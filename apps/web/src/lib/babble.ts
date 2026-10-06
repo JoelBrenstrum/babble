@@ -10,9 +10,14 @@ export interface Babble {
 let babble: Promise<Babble> | null = null;
 
 export function loadBabble(): Promise<Babble> {
-  babble ??= getPublicConfig().then((config) => ({
-    config,
-    client: createBabbleClient(config, { auth: { persistSession: true, detectSessionInUrl: false } }),
-  }));
+  babble ??= getPublicConfig()
+    .then((config) => ({
+      config,
+      client: createBabbleClient(config, { auth: { persistSession: true, detectSessionInUrl: false } }),
+    }))
+    .catch((error: unknown) => {
+      babble = null;
+      throw error;
+    });
   return babble;
 }
