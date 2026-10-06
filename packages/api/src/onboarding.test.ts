@@ -20,7 +20,7 @@ const family = (id: string, babies: BabyRow[] = []): Family => ({
   created_at: '',
   babies,
   members: [
-    { family_id: id, user_id: 'joel', role: 'owner', display_name: 'Joel', created_at: '' },
+    { family_id: id, user_id: 'john', role: 'owner', display_name: 'John', created_at: '' },
     { family_id: id, user_id: 'gran', role: 'viewer', display_name: 'Gran', created_at: '' },
   ],
 });
@@ -82,7 +82,7 @@ describe('roles', () => {
   });
 
   it('lets owners and caregivers edit', () => {
-    expect(canEdit(family('f'), 'joel')).toBe(true);
+    expect(canEdit(family('f'), 'john')).toBe(true);
     expect(canEdit(family('f'), 'gran')).toBe(false);
   });
 });

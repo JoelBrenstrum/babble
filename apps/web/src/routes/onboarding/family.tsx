@@ -77,7 +77,7 @@ function FamilyStep() {
         {mode === 'create' ? (
           <TextField
             label="Family name"
-            placeholder="The Brenstrums"
+            placeholder="The Smiths"
             value={familyName}
             onChange={(event) => setFamilyName(event.target.value)}
           />

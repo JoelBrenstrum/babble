@@ -31,10 +31,10 @@ as $$
   values (user_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', email, metadata, now(), now());
 $$;
 
--- Users: Joel (owner), Jaimi (joins by invite), Grandma (viewer), Stranger (another family)
-select pg_temp.create_user('00000000-0000-0000-0000-00000000000a', 'joel@example.com');
+-- Users: John (owner), Jane (joins by invite), Grandma (viewer), Stranger (another family)
+select pg_temp.create_user('00000000-0000-0000-0000-00000000000a', 'john@example.com');
 select throws_ok(
-  $$ select pg_temp.create_user('00000000-0000-0000-0000-00000000000b', 'jaimi@example.com') $$,
+  $$ select pg_temp.create_user('00000000-0000-0000-0000-00000000000b', 'jane@example.com') $$,
   'P0001',
   'Sign-up on this Babble server requires a valid invite code',
   'invite-only rejects a sign-up without an invite code'
@@ -43,7 +43,7 @@ select throws_ok(
 select pg_temp.sign_in_as('00000000-0000-0000-0000-00000000000a');
 
 select isnt(
-  (select public.create_family('Brenstrum', 'Joel')),
+  (select public.create_family('Smith', 'John')),
   null,
   'a signed-in user can create a family'
 );
@@ -78,7 +78,7 @@ select throws_ok(
   null,
   'owners cannot change their plan'
 );
-select lives_ok($$ update public.families set name = 'The Brenstrums' $$, 'owners can rename their family');
+select lives_ok($$ update public.families set name = 'The Smiths' $$, 'owners can rename their family');
 
 create temp table invite on commit drop as select * from public.create_invite((select id from family));
 grant select on invite to anon, authenticated;
@@ -103,7 +103,7 @@ select pg_temp.sign_out();
 
 select lives_ok(
   format(
-    $$ select pg_temp.create_user('00000000-0000-0000-0000-00000000000b', 'jaimi@example.com', %L) $$,
+    $$ select pg_temp.create_user('00000000-0000-0000-0000-00000000000b', 'jane@example.com', %L) $$,
     json_build_object('invite_code', lower((select code from invite)))
   ),
   'invite-only accepts a sign-up with a valid invite code, case-insensitively'
@@ -119,7 +119,7 @@ select lives_ok(
 set local role anon;
 select is(
   (select family_name from public.check_invite((select code from invite))),
-  'The Brenstrums',
+  'The Smiths',
   'anyone can check an invite code before signing up'
 );
 select is(
@@ -133,7 +133,7 @@ reset role;
 select pg_temp.sign_in_as('00000000-0000-0000-0000-00000000000b');
 select is((select count(*)::int from public.babies), 0, 'non-members see no babies');
 select is(
-  public.accept_invite((select code from invite), 'Jaimi'),
+  public.accept_invite((select code from invite), 'Jane'),
   (select id from family),
   'accepting an invite joins the family'
 );

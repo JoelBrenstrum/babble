@@ -56,7 +56,7 @@ export default function FamilyStep() {
         />
         <TextField label="Your name" value={displayName} onChangeText={setDisplayName} hint="Shown to your family." />
         {mode === 'create' ? (
-          <TextField label="Family name" value={familyName} onChangeText={setFamilyName} placeholder="The Brenstrums" />
+          <TextField label="Family name" value={familyName} onChangeText={setFamilyName} placeholder="The Smiths" />
         ) : (
           <TextField
             label="Invite code"

@@ -37,7 +37,7 @@
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
           <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">Email</span>
-          <div style="display:flex;align-items:center;height:56px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:2px solid rgb(var(--primary));box-sizing:border-box;font-size:17px">jaimi@example.com</div>
+          <div style="display:flex;align-items:center;height:56px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:2px solid rgb(var(--primary));box-sizing:border-box;font-size:17px">jane@example.com</div>
         </div>
         <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-mail" style="font-size:20px"></i>Email me a sign-in link</div>
         <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:rgb(var(--ink-3))"><span style="flex:1;height:1px;background:rgb(var(--line))"></span>or<span style="flex:1;height:1px;background:rgb(var(--line))"></span></div>
@@ -50,7 +50,7 @@
         <div style="display:flex;flex-direction:column;gap:14px;padding-top:72px">
           <span style="width:72px;height:72px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--primary));display:grid;place-items:center"><i class="icon-mail-check" style="font-size:32px"></i></span>
           <span style="font-size:28px;font-weight:700">Check your email</span>
-          <span style="font-size:17px;color:rgb(var(--ink-2));line-height:1.45">We sent a sign-in link to <b style="color:rgb(var(--ink))">jaimi@example.com</b>. Open it on this phone. It expires in 15 minutes.</span>
+          <span style="font-size:17px;color:rgb(var(--ink-2));line-height:1.45">We sent a sign-in link to <b style="color:rgb(var(--ink))">jane@example.com</b>. Open it on this phone. It expires in 15 minutes.</span>
         </div>
         <div style="flex:1"></div>
         <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:34px">
@@ -71,7 +71,7 @@
           <div style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--primary-soft));border:2px solid rgb(var(--primary))">
             <div style="display:flex;align-items:center;gap:14px">
               <span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--primary));box-sizing:border-box;display:grid;place-items:center"><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--primary))"></span></span>
-              <div style="flex:1;color:rgb(var(--on-primary-soft))"><div style="font-size:17px;font-weight:700">Join with an invite code</div><div style="font-size:14px">From Joel's Babble app</div></div>
+              <div style="flex:1;color:rgb(var(--on-primary-soft))"><div style="font-size:17px;font-weight:700">Join with an invite code</div><div style="font-size:14px">From John's Babble app</div></div>
               <i class="icon-users" style="font-size:22px;color:rgb(var(--primary))"></i>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr) 14px repeat(3,1fr);gap:6px;align-items:center">
@@ -182,7 +182,7 @@
       <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:14px">
         <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong))"></span>
         <span style="width:52px;height:52px;border-radius:50%;background:rgb(var(--danger-soft));color:rgb(var(--danger));display:grid;place-items:center"><i class="icon-trash-2" style="font-size:24px"></i></span>
-        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:22px;font-weight:700">Delete your account?</span><span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">You'll be signed out on every device and your login is removed. Adaline's records stay with the family because Joel is still a member.</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:22px;font-weight:700">Delete your account?</span><span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">You'll be signed out on every device and your login is removed. Adaline's records stay with the family because John is still a member.</span></div>
         <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">Type DELETE to confirm</span><div style="display:flex;align-items:center;height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--bg));border:2px solid rgb(var(--danger));box-sizing:border-box;font-size:17px;font-weight:700;letter-spacing:0.06em">DELETE</div></div>
         <div style="height:56px;border-radius:14px;background:rgb(var(--danger));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-trash-2" style="font-size:19px"></i>Delete account</div>
         <div style="height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Cancel</div>
@@ -267,7 +267,7 @@ class Component extends DCLogic {
       grp('Timers', [row('icon-merge', 'Merge downtime under', '15s'), row('icon-timer-off', 'Auto-end paused after', '30m')]),
       grp('Appearance', [row('icon-palette', 'Theme', 'Dark at night', { noTrail: true, sub: 'Dark during the night window' })], true),
       grp('Data', [row('icon-file-input', 'Import from Huckleberry', 'On the web', { ext: true }), row('icon-download', 'Export data', 'CSV · JSON')]),
-      grp('Account', [row('icon-mail', 'jaimi@example.com', '', { noTrail: true }), row('icon-log-out', 'Sign out', ''), row('icon-trash-2', 'Delete account', '', { danger: true })])
+      grp('Account', [row('icon-mail', 'jane@example.com', '', { noTrail: true }), row('icon-log-out', 'Sign out', ''), row('icon-trash-2', 'Delete account', '', { danger: true })])
     ];
     const themeSeg = [['System', 'icon-smartphone'], ['Light', 'icon-sun'], ['Dark', 'icon-moon'], ['Dark at night', 'icon-moon-star']].map(([label, icon]) => {
       const on = label === 'Dark at night';

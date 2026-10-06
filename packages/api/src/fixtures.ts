@@ -2,7 +2,7 @@ import type { BabyRow, Family, FamilyMemberRow, InstanceSettings } from './types
 
 export const sampleBaby: BabyRow = {
   id: 'baby-adaline',
-  family_id: 'family-brenstrum',
+  family_id: 'family-smith',
   name: 'Adaline',
   birth_date: '2026-09-26',
   timezone: 'Pacific/Auckland',
@@ -13,24 +13,24 @@ export const sampleBaby: BabyRow = {
 
 export const sampleMembers: FamilyMemberRow[] = [
   {
-    family_id: 'family-brenstrum',
-    user_id: 'user-joel',
+    family_id: 'family-smith',
+    user_id: 'user-john',
     role: 'owner',
-    display_name: 'Joel',
+    display_name: 'John',
     created_at: '2026-09-26T09:00:00Z',
   },
   {
-    family_id: 'family-brenstrum',
-    user_id: 'user-jaimi',
+    family_id: 'family-smith',
+    user_id: 'user-jane',
     role: 'caregiver',
-    display_name: 'Jaimi',
+    display_name: 'Jane',
     created_at: '2026-09-26T09:05:00Z',
   },
 ];
 
 export const sampleFamily: Family = {
-  id: 'family-brenstrum',
-  name: 'The Brenstrums',
+  id: 'family-smith',
+  name: 'The Smiths',
   plan: 'free',
   created_at: '2026-09-26T09:00:00Z',
   members: sampleMembers,

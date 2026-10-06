@@ -15,8 +15,8 @@ export default {
   ),
   Avatars: (
     <div className="flex gap-2">
-      <Avatar name="Joel" />
-      <Avatar name="Jaimi Brenstrum" />
+      <Avatar name="John" />
+      <Avatar name="Jane Smith" />
     </div>
   ),
 };

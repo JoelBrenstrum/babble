@@ -8,3 +8,4 @@ dist/
 LICENSE
 packages/tokens/css/babble-tokens.css
 packages/tokens/css/shadcn-theme.css
+apps/mobile/expo-env.d.ts

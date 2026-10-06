@@ -16,7 +16,7 @@ describe('requestMagicLink', () => {
   it('sends a normalised invite code as sign-up metadata', async () => {
     const { client, requests } = fakeClient(() => ({ body: {} }));
     await requestMagicLink(client, {
-      email: ' jaimi@example.com ',
+      email: ' jane@example.com ',
       redirectTo: 'https://babble.test/auth/callback',
       inviteCode: 'k7q4md',
     });
@@ -24,7 +24,7 @@ describe('requestMagicLink', () => {
     expect(request!.url.pathname).toBe('/auth/v1/otp');
     expect(request!.url.searchParams.get('redirect_to')).toBe('https://babble.test/auth/callback');
     expect(request!.body).toMatchObject({
-      email: 'jaimi@example.com',
+      email: 'jane@example.com',
       create_user: true,
       data: { invite_code: 'K7Q-4MD' },
     });
@@ -32,7 +32,7 @@ describe('requestMagicLink', () => {
 
   it('omits metadata without an invite code', async () => {
     const { client, requests } = fakeClient(() => ({ body: {} }));
-    await requestMagicLink(client, { email: 'joel@example.com', redirectTo: 'https://babble.test', inviteCode: ' ' });
+    await requestMagicLink(client, { email: 'john@example.com', redirectTo: 'https://babble.test', inviteCode: ' ' });
     expect((requests[0]!.body as Record<string, unknown>).data).toEqual({});
   });
 
@@ -64,9 +64,9 @@ describe('families API', () => {
 
   it('creates a family with trimmed names', async () => {
     const { client, requests } = fakeClient(() => ({ body: 'family-1' }));
-    expect(await createFamily(client, { familyName: ' Brenstrum ', displayName: ' Joel ' })).toBe('family-1');
+    expect(await createFamily(client, { familyName: ' Smith ', displayName: ' John ' })).toBe('family-1');
     expect(requests[0]!.url.pathname).toBe('/rest/v1/rpc/create_family');
-    expect(requests[0]!.body).toEqual({ family_name: 'Brenstrum', display_name: 'Joel' });
+    expect(requests[0]!.body).toEqual({ family_name: 'Smith', display_name: 'John' });
   });
 
   it('lists families with members and babies embedded', async () => {
@@ -111,7 +111,7 @@ describe('families API', () => {
       status: 400,
       body: { code: 'P0002', message: 'This invite code is invalid, used or expired' },
     }));
-    const result = acceptInvite(client, { code: 'K7Q-4MD', displayName: 'Jaimi' });
+    const result = acceptInvite(client, { code: 'K7Q-4MD', displayName: 'Jane' });
     await expect(result).rejects.toBeInstanceOf(BabbleError);
     await expect(result).rejects.toMatchObject({ code: 'invite_invalid' });
   });

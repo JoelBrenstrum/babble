@@ -27,7 +27,7 @@ All screens are in light and dark. The `.dc.html` files take a `screen` prop (sh
 **Decisions taken from the design:**
 
 - Home has **separate Breastfeed and Bottle rows** (instead of one Feed row with a picker). The Feeds list still combines them, with All / Breast / Bottle filters.
-- Home and running cards show **who started** a session (caregiver initials, "Started by Jaimi").
+- Home and running cards show **who started** a session (caregiver initials, "Started by Jane").
 - Nappy **texture is multi-select** ("Pick any"): runny, seedy, pasty, formed, mucousy, hard, plus loose, pebbles and diarrhea for imported data.
 - Two poo colours render as a 135° hard split, first pick top-left. Picking a third is blocked until one is removed.
 - Downtime is a dashed neutral dot tagged **"idle"**, never red.

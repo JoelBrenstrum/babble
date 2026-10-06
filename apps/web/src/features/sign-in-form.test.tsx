@@ -10,9 +10,9 @@ describe('SignInForm', () => {
   it('sends a magic link for the entered email', async () => {
     const onMagicLink = vi.fn().mockResolvedValue(undefined);
     render(<SignInForm settings={openSettings} googleEnabled={false} onMagicLink={onMagicLink} onGoogle={vi.fn()} />);
-    await userEvent.type(screen.getByLabelText('Email'), 'joel@example.com');
+    await userEvent.type(screen.getByLabelText('Email'), 'john@example.com');
     await userEvent.click(screen.getByRole('button', { name: /email me a sign-in link/i }));
-    expect(onMagicLink).toHaveBeenCalledWith({ email: 'joel@example.com', inviteCode: undefined });
+    expect(onMagicLink).toHaveBeenCalledWith({ email: 'john@example.com', inviteCode: undefined });
   });
 
   it('only asks for an invite code on invite-only servers', () => {
@@ -49,9 +49,9 @@ describe('SignInForm', () => {
         onGoogle={vi.fn()}
       />,
     );
-    await userEvent.type(screen.getByLabelText('Email'), 'jaimi@example.com');
+    await userEvent.type(screen.getByLabelText('Email'), 'jane@example.com');
     await userEvent.click(screen.getByRole('button', { name: /email me a sign-in link/i }));
-    expect(onMagicLink).toHaveBeenCalledWith({ email: 'jaimi@example.com', inviteCode: 'K7Q-4MD' });
+    expect(onMagicLink).toHaveBeenCalledWith({ email: 'jane@example.com', inviteCode: 'K7Q-4MD' });
   });
 
   it('shows errors from the server', async () => {

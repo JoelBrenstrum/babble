@@ -18,8 +18,8 @@ export default {
   ),
   Avatars: (
     <View className="flex-row gap-2">
-      <Avatar name="Joel" />
-      <Avatar name="Jaimi Brenstrum" />
+      <Avatar name="John" />
+      <Avatar name="Jane Smith" />
     </View>
   ),
   'Empty state': (
