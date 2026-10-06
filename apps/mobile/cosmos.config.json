@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json.schemastore.org/cosmos-config",
+  "rootDir": "src",
+  "port": 5101,
+  "exposeImports": "cosmos.imports.ts",
+  "ignore": ["**/app/**"]
+}

@@ -3,11 +3,12 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "node scripts/ensure-cosmos-imports.mjs && expo start",
+    "android": "node scripts/ensure-cosmos-imports.mjs && expo start --android",
+    "ios": "node scripts/ensure-cosmos-imports.mjs && expo start --ios",
     "test": "jest",
-    "typecheck": "tsc"
+    "typecheck": "node scripts/ensure-cosmos-imports.mjs && tsc",
+    "cosmos": "cosmos-native"
   },
   "dependencies": {
     "@babble/api": "workspace:*",
@@ -50,6 +51,9 @@
     "@types/react": "~19.2.18",
     "jest": "^30.5.2",
     "jest-expo": "^57.0.5",
+    "react-cosmos": "7.4.1",
+    "react-cosmos-core": "7.4.0",
+    "react-cosmos-native": "7.4.0",
     "typescript": "^7.0.2"
   }
 }

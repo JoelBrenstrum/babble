@@ -1,7 +1,7 @@
-import { canEdit, deleteMyAccount, queryKeys, signOut, toBabbleError, updateBaby } from '@babble/api';
+import { canEdit, createInvite, deleteMyAccount, queryKeys, signOut, toBabbleError, updateBaby } from '@babble/api';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { LogOut, UserPlus } from 'lucide-react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { Card, SectionLabel } from '#/components/ui/card';
@@ -118,9 +118,11 @@ function BabySection({ disabled }: { disabled: boolean }) {
 }
 
 function InviteToggle({ familyId }: { familyId: string }) {
+  const { babble } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
+  const onCreate = useCallback(() => createInvite(babble.client, familyId), [babble, familyId]);
   return open ? (
-    <InvitePanel familyId={familyId} />
+    <InvitePanel publicUrl={babble.config.publicUrl} onCreate={onCreate} />
   ) : (
     <Button variant="secondary" className="self-start" onClick={() => setOpen(true)}>
       <UserPlus className="size-5" strokeWidth={2.75} />

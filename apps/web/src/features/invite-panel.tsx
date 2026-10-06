@@ -1,10 +1,9 @@
-import { createInvite, toBabbleError, type Invite } from '@babble/api';
+import { toBabbleError, type Invite } from '@babble/api';
 import { Copy, Share2 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { StatusMessage } from '#/components/ui/status';
-import { useRouteContext } from '@tanstack/react-router';
 
 export function inviteLink(publicUrl: string, code: string): string {
   return `${publicUrl}/join/${code}`;
@@ -15,8 +14,7 @@ export function formatExpiry(expiresAt: string, now: Date = new Date()): string 
   return `Expires in ${days} ${days === 1 ? 'day' : 'days'} · one use`;
 }
 
-export function InvitePanel({ familyId }: { familyId: string }) {
-  const { babble } = useRouteContext({ from: '__root__' });
+export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCreate: () => Promise<Invite> }) {
   const [invite, setInvite] = useState<Invite | null>(null);
   const [qr, setQr] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,12 +22,12 @@ export function InvitePanel({ familyId }: { familyId: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    createInvite(babble.client, familyId)
+    onCreate()
       .then(async (created) => {
         if (cancelled) return;
         setInvite(created);
         setQr(
-          await QRCode.toString(inviteLink(babble.config.publicUrl, created.code), {
+          await QRCode.toString(inviteLink(publicUrl, created.code), {
             type: 'svg',
             margin: 0,
             color: { dark: '#1f211c', light: '#00000000' },
@@ -40,12 +38,12 @@ export function InvitePanel({ familyId }: { familyId: string }) {
     return () => {
       cancelled = true;
     };
-  }, [babble, familyId]);
+  }, [onCreate, publicUrl]);
 
   if (error) return <StatusMessage tone="danger">{error}</StatusMessage>;
   if (!invite) return <div className="h-72 animate-pulse rounded-card bg-surface" />;
 
-  const link = inviteLink(babble.config.publicUrl, invite.code);
+  const link = inviteLink(publicUrl, invite.code);
 
   async function share() {
     if (navigator.share) {

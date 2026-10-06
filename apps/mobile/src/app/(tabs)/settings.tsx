@@ -1,5 +1,6 @@
 import {
   canEdit,
+  createInvite,
   deleteMyAccount,
   queryKeys,
   signOut,
@@ -11,7 +12,7 @@ import {
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useColorScheme } from 'nativewind';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
@@ -27,7 +28,6 @@ import { TimezoneField } from '@/features/timezone-field';
 import { useBabble } from '@/lib/babble';
 import { loadThemePreference, saveThemePreference, type ThemePreference } from '@/lib/theme-preference';
 import { useReadyState } from '@/lib/use-onboarding';
-import { useEffect } from 'react';
 
 const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
 
@@ -98,7 +98,9 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
 }
 
 function CaregiversSection({ family, userId, editable }: { family: Family; userId: string; editable: boolean }) {
+  const { client, config } = useBabble();
   const [inviting, setInviting] = useState(false);
+  const onCreate = useCallback(() => createInvite(client, family.id), [client, family.id]);
   return (
     <View className="gap-3">
       <SectionLabel>Caregivers</SectionLabel>
@@ -121,7 +123,7 @@ function CaregiversSection({ family, userId, editable }: { family: Family; userI
       </Card>
       {editable &&
         (inviting ? (
-          <InvitePanel familyId={family.id} />
+          <InvitePanel publicUrl={config.publicUrl} onCreate={onCreate} />
         ) : (
           <Button variant="secondary" onPress={() => setInviting(true)}>
             Invite a caregiver
