@@ -31,3 +31,29 @@
 
 - pgTAP: RLS for every table, for each role
 - Unit: config parsing, `entitlements()`
+
+## Status (2026-10-07)
+
+Built on branch `stage-0`:
+
+- [x] Monorepo, Turborepo, Prettier, Vitest, AGPL-3.0 licence, CI workflow
+- [x] `packages/config`, `packages/tokens` (generated from the design, with drift test), `packages/api`, `packages/db`
+- [x] Migration for families, members, babies, settings, invites, invite-only sign-up, account deletion, plus pgTAP tests
+- [x] Web: sign-in (magic link + Google), auth callback, invite links, onboarding (family → baby → day start → invite), responsive shell (sidebar / rail / tab bar), Home, History, Stats, Settings, PWA manifest and icons, `/api/health`
+- [x] Mobile: the same flows in Expo with NativeWind, deep-link auth (`babble://auth/callback`)
+- [x] Dockerfile, `fly.toml`, self-host compose + README
+- [x] React Cosmos on web and mobile, with fixtures
+
+Not yet verified (needs Docker running locally):
+
+- [ ] Run the migration and pgTAP tests (`pnpm --filter @babble/db start && pnpm --filter @babble/db test`)
+- [ ] Regenerate `packages/api/src/database.types.ts` from the real schema (`gen:types`)
+- [ ] End-to-end sign-in → onboarding against local Supabase
+- [ ] Build the Docker image locally
+
+Needs your accounts:
+
+- [ ] Create the Supabase Cloud project, push migrations, configure redirect URLs and Google OAuth
+- [ ] Create the Fly app, set secrets, `fly deploy`
+
+Deviation from the plan: `infra/self-host` runs only the web container and points at an existing Supabase (Cloud or the official self-hosting stack), instead of bundling the ~10 Supabase containers itself.
