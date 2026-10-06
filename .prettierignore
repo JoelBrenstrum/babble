@@ -4,3 +4,7 @@ pnpm-lock.yaml
 **/database.types.ts
 .output/
 dist/
+**/public/
+LICENSE
+packages/tokens/css/babble-tokens.css
+packages/tokens/css/shadcn-theme.css

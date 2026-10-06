@@ -1,0 +1,12 @@
+# Runs the Babble web app against a Supabase instance (Supabase Cloud or self-hosted).
+# See README.md in this folder for the full setup.
+services:
+  web:
+    image: ghcr.io/joelbrenstrum/babble-web:latest
+    build:
+      context: ../..
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - '${BABBLE_PORT:-3000}:3000'

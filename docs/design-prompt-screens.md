@@ -3,13 +3,16 @@
 Continue the **Babble design system v1 ("Sage")** in this project. Use its existing tokens, components and patterns exactly: the same colours, Figtree type scale, radii, spacing, Lucide icons at stroke 2.75, side toggle, running-timer card, chips, segmented control, stepper, swatch picker, size selector, bottom sheet, undo toast, swipe-to-delete, day group header, tab bar and empty state. **Don't change any tokens.** If a screen needs a new component, build it from the existing tokens and add it to the component sheet.
 
 ## Correction to the platform note
+
 Babble is now **two apps that share tokens**:
+
 - **Mobile:** Expo (React Native) with NativeWind, for iOS and Android.
 - **Web:** TanStack Start (React) with Tailwind and shadcn/ui (Radix), restyled to the Babble tokens. The web app must also work as an **installable phone PWA**, because self-hosted users only have the web app. At phone width it uses the same layouts as the native app. At desktop width it gets its own richer layouts.
 
 Please update the "One Expo codebase" line in the design system intro.
 
 ## Phone screens to design (light and dark, phone width)
+
 Use the same baby (Adaline, 10 days old) and caregivers (Joel "Jo", Jaimi "Ja") as the existing screens.
 
 1. **Bottle form:** content as a segmented control (Breast milk / Formula / Mixed / Other), amount stepper (±10 ml, tap the number for a keypad), an optional "left over" amount, time (defaults to now, editable), notes, and a Save button.
@@ -28,6 +31,7 @@ Use the same baby (Adaline, 10 days old) and caregivers (Joel "Jo", Jaimi "Ja") 
 12. **Add-to-Home-Screen prompt** for the web PWA on a phone (iOS Safari share-sheet instructions and the Android install prompt).
 
 ## Desktop web layouts (light and dark, around 1440 wide; also show a tablet width around 900)
+
 1. **App shell:** a left sidebar with the wordmark, baby switcher, and nav (Home, Feeds, Sleep, Nappies, Pump, Growth, Custom, History, Stats, Settings), plus caregiver avatars and running-session indicators in the sidebar. It collapses to the phone bottom tab bar on narrow widths.
 2. **Home:** tracker rows and running-session cards on the left, with **today's timeline** (the daily history view) alongside on the right. The "Next feed due" banner sits across the top.
 3. **Category list + detail split view** (use Feeds): the day-grouped list on the left and the selected feed's session detail/edit panel on the right. Show the add flow opening in the detail panel or a dialog rather than a full-screen page.
@@ -37,9 +41,11 @@ Use the same baby (Adaline, 10 days old) and caregivers (Joel "Jo", Jaimi "Ja") 
 7. **Running timer on desktop:** how an active breastfeed looks on the web, as a persistent card in the sidebar or a top bar that's controllable from any page.
 
 ## States to include where relevant
+
 Loading skeletons, empty states, offline ("saved on this device, will sync"), a partner's live update arriving (a running card appearing with "Started by Jaimi"), errors (failed save with retry), and destructive confirmations.
 
 ## Deliverables
+
 - All screens above in light and dark.
 - Any new components added to the component sheet.
 - A short note on how the desktop layouts scale down to tablet and phone.

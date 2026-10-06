@@ -3,6 +3,7 @@
 **Goal:** the headline feature. Detailed session breakdowns with downtime, resuming, and nap prompts.
 
 ## Scope
+
 - `summariseSegments(segments, { mergeGapSec })` in `domain`. Rules are in [data-model.md](../data-model.md#timed-segments-and-downtime). Used by breast feed and pump.
 - Merge threshold setting (default 15s)
 - Session states: running / paused / ended. A paused session auto-ends after `auto_end_paused_session_min` (default 30), with `ended_at` set to the end of the last segment.
@@ -13,6 +14,7 @@
   - End feed → "Start nap?" (now / at feed end / no)
 
 ## Edge cases to cover
+
 - Switching sides within the threshold: no downtime row
 - Pausing and resuming the same side above the threshold: `Left · Downtime · Left`
 - A session crossing midnight or the day start
@@ -20,4 +22,5 @@
 - Clock skew between devices: server time is the source of truth for RPC actions
 
 ## Tests
+
 - Table-driven tests for `summariseSegments`, segment-edit recomputation, and resume eligibility

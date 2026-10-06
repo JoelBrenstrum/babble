@@ -1,6 +1,7 @@
 # Stage 7 (Phase 2): Stats and Insights
 
 ## Candidate insights
+
 - Sleep: total per day, day vs. night sleep (uses the night window), longest stretch, wake windows
 - Feeds: count per day, average interval, L/R balance, downtime trend, bottle volume
 - Pump: volume per day, L/R yield
@@ -9,5 +10,6 @@
 - Food intake correlations, if Stage 6 ships
 
 ## Notes
+
 - All aggregation is pure functions in `domain`, built on `bucketByDay`
 - Web gets the rich version. Mobile gets a compact summary of cards.

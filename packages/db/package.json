@@ -2,16 +2,12 @@
   "name": "@babble/db",
   "private": true,
   "type": "module",
-  "exports": {
-    ".": "./src/index.ts"
-  },
   "scripts": {
     "start": "supabase start",
     "stop": "supabase stop",
     "reset": "supabase db reset",
     "test": "supabase test db",
-    "gen:types": "supabase gen types typescript --local --schema public > src/database.types.ts && prettier --write src/database.types.ts",
-    "typecheck": "tsc"
+    "gen:types": "supabase gen types typescript --local --schema public > ../api/src/database.types.ts && prettier --write ../api/src/database.types.ts"
   },
   "devDependencies": {
     "supabase": "^2.119.0",

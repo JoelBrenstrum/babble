@@ -1,0 +1,11 @@
+**/node_modules
+**/.output
+**/.turbo
+**/.expo
+**/dist
+**/.env
+**/.env.*
+.git
+docs
+apps/mobile
+packages/db/supabase/.temp

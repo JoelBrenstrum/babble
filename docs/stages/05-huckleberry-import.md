@@ -16,20 +16,21 @@ Header: `Type, Start, End, Duration, Start Condition, Start Location, End Condit
 - Notes encode newlines as a literal `\n`.
 - **The columns mean different things for each `Type`:**
 
-| Type | Start Condition | Start Location | End Condition | Duration | Maps to |
-|---|---|---|---|---|---|
-| Feed (breast) | Right total `00:35R` | `Breast` | Left total `00:21L` | Total | `breast_feed` + segments |
-| Feed (bottle) | `Breast Milk` / `Formula` / other milk | `Bottle` | Amount `110ml` / `4oz` | — | `bottle` |
-| Diaper | Texture (`Loose`, `Runny`, ...) | `Diaper rash` or empty | `Pee[:size]` / `Poo[:size]` / `Both[, pee:x poo:y]` / `Dry` | **Poo colour** | `nappy` |
-| Sleep | Comma list: fall-asleep times + moods | Comma list of locations | Comma list: moods + `Woke up child` | Total | `sleep` + details |
-| Pump | Left amount `30ml` | — | Right amount `10ml` | Optional | `pump` (no segments) |
-| Growth | Weight `4.09kg` | Length `52cm` | Head `37.5cm` | — | `growth` |
-| Tummy time, Bath | — | — | — | Optional | `custom` (title = type) |
-| Potty, Solids, Temp, Medicine | | | | | skipped, with a reason |
+| Type                          | Start Condition                        | Start Location          | End Condition                                               | Duration       | Maps to                  |
+| ----------------------------- | -------------------------------------- | ----------------------- | ----------------------------------------------------------- | -------------- | ------------------------ |
+| Feed (breast)                 | Right total `00:35R`                   | `Breast`                | Left total `00:21L`                                         | Total          | `breast_feed` + segments |
+| Feed (bottle)                 | `Breast Milk` / `Formula` / other milk | `Bottle`                | Amount `110ml` / `4oz`                                      | —              | `bottle`                 |
+| Diaper                        | Texture (`Loose`, `Runny`, ...)        | `Diaper rash` or empty  | `Pee[:size]` / `Poo[:size]` / `Both[, pee:x poo:y]` / `Dry` | **Poo colour** | `nappy`                  |
+| Sleep                         | Comma list: fall-asleep times + moods  | Comma list of locations | Comma list: moods + `Woke up child`                         | Total          | `sleep` + details        |
+| Pump                          | Left amount `30ml`                     | —                       | Right amount `10ml`                                         | Optional       | `pump` (no segments)     |
+| Growth                        | Weight `4.09kg`                        | Length `52cm`           | Head `37.5cm`                                               | —              | `growth`                 |
+| Tummy time, Bath              | —                                      | —                       | —                                                           | Optional       | `custom` (title = type)  |
+| Potty, Solids, Temp, Medicine |                                        |                         |                                                             |                | skipped, with a reason   |
 
 Unknown types and unparseable rows are skipped with a reason, and unrecognised values within a row produce warnings. Nothing is guessed silently.
 
 ## Mapping rules
+
 - **Breast feeds:** the side columns are fixed (Right, then Left), so the order in which sides were fed is lost. Segments are built back-to-back from `Start`, Right then Left, with zero-length sides dropped and no downtime. The event's end = start + sum of sides; Huckleberry's own `End` can be about a minute later because of rounding. Imported feeds are flagged in the UI, which hides downtime and side order for them.
 - **Bottle:** `Breast Milk` → `breast_milk`, `Formula` → `formula`. Any other milk type (Tube Feeding, Cow/Goat/Soy Milk, Other) → `other`, with a warning.
 - **Nappies:** quantity `small/medium/large` → `little/medium/large`, for both wet and poo. Huckleberry has one colour, which becomes a one-item `poo_colours` (`gray` → `white_grey`). Texture becomes a one-item `poo_textures` (`solid` → `formed`). `Diaper rash` → `rash = true`.
@@ -38,13 +39,17 @@ Unknown types and unparseable rows are skipped with a reason, and unrecognised v
 - **Activities:** `Tummy time` and `Bath` become custom events, so their history isn't lost, even though activities aren't a tracker.
 
 ## Flow
+
 Web only, designed in `design/Web.dc.html` (`import-1`…`import-5`): upload → choose an existing baby **or create a new one**, and confirm the timezone → preview (counts per type, date range, skipped rows with reasons, warnings) → import in batches through an RPC → summary, with a downloadable skipped-rows report.
 
 ## Idempotency
+
 `source = huckleberry_csv`, `source_ref = hash(raw row) + "-" + occurrence`. The occurrence index keeps genuinely identical rows distinct (the test export has several). A unique index on `(baby_id, source, source_ref)` means importing a newer export during the switchover only adds new rows.
 
 ## Privacy
+
 Real exports are never committed. `__fixtures__/real-week.csv` is a real week with notes replaced, growth values made up, and every date moved back 364 days. `__fixtures__/all-types.csv` is a test export (one of every entry type) with dates shifted the same way.
 
 ## Tests
+
 `packages/domain/src/huckleberry/import.test.ts`: every row shape, field parsers, malformed rows, unknown types, timezone conversion, source-ref stability, and both fixtures end to end.

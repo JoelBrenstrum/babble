@@ -1,0 +1,29 @@
+# Deploy from the repository root: fly deploy
+# Set secrets first: fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... PUBLIC_URL=https://<app>.fly.dev
+app = "babble"
+primary_region = "syd"
+
+[build]
+  dockerfile = "apps/web/Dockerfile"
+
+[env]
+  GOOGLE_AUTH_ENABLED = "true"
+  BILLING_ENABLED = "false"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    grace_period = "10s"
+    interval = "30s"
+    method = "GET"
+    path = "/api/health"
+    timeout = "5s"
+
+[[vm]]
+  memory = "256mb"
+  cpus = 1

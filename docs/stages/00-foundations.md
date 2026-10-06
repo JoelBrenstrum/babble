@@ -3,6 +3,7 @@
 **Goal:** an empty but deployable product. Two people can sign in on web and mobile and share a baby, both locally and on a self-hosted stack.
 
 ## Scope
+
 - Monorepo (pnpm + Turborepo), TypeScript, ESLint/Prettier, Vitest, `LICENSE` (AGPL-3.0)
 - CI: typecheck, lint, unit tests, pgTAP RLS tests, a web build, and a compose smoke test
 - `apps/web` (TanStack Start) and `apps/mobile` (Expo) scaffolds wired to the shared `api`, `hooks` and `tokens` packages
@@ -20,11 +21,13 @@
 - Expo app: dev builds on Android / Expo Go only for now. No Apple Developer account yet, so iPhones use the web PWA.
 
 ## Done when
+
 - Two accounts can sign in on web (desktop and phone) and mobile, and see the same baby.
 - The web image is live on `*.fly.dev` against Supabase Cloud.
 - `docker compose up` from `infra/self-host` gives a working instance.
 - RLS tests prove one family can't read another family's data.
 
 ## Tests
+
 - pgTAP: RLS for every table, for each role
 - Unit: config parsing, `entitlements()`

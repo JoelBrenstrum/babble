@@ -17,7 +17,6 @@
 > Don't need medicine
 > Maybe the ability to add an adhoc event with length and description
 >
->
 > Additional features
 > Track feeding downtime/lost tjme, track each boob time as a micro session. So you can see all feeds in a session.
 >
@@ -34,7 +33,6 @@
 >
 > When starting a feed prompt to stop current nap of there is a nap, at the end of a feed prompt to start a nap
 >
->
 > For nappys allow picking colour from presets, but allow selecting between 2, way black black/green green/yellow
 > More sizes for poo. tiny, little, medium, large, massive
 >
@@ -42,14 +40,12 @@
 >
 > A view where I can see all feeds and a similar view for all nappys etc can add from this view. Also on the main list clicking takes you to list automatically but we have an add button to the right
 >
->
 > A daily and weekly history view where you can see how the baby is tracking with events.
 > The ability to start the baby's day at midnight or a chose time.
 >
 > I also want a nice stats page where you can view insights into the collected information. Phase 2
 >
 > Also the ability to import hucklenerry csv exports, they don't track feeding downtime so we will import as best effort.
->
 >
 > Draw me up a detailed plan, question any ideas.
 > I think we could use a base event table with smaller tables for more specific data per event,
@@ -63,6 +59,7 @@
 Build **Babble**, a baby tracking app modelled on Huckleberry, with extra features focused on breastfeeding detail. It ships as a **web app** and an **Expo (iOS/Android) app**.
 
 ### Trackers carried over from Huckleberry
+
 - Sleep
 - Feeding: breast and bottle
 - Nappy
@@ -73,6 +70,7 @@ Build **Babble**, a baby tracking app modelled on Huckleberry, with extra featur
 Out of scope: activities, milestones and medicine.
 
 ### New features
+
 1. **Breastfeeding micro-sessions.** A feed session is made of per-side segments. The session view lists each segment and the downtime between segments:
    ```
    Left      10m 32s
@@ -82,11 +80,11 @@ Out of scope: activities, milestones and medicine.
    ```
    A gap under a threshold (default 5s) doesn't count as downtime. Resuming on the same side continues that side.
 2. **Resume a saved feed.** A finished feed can be reopened and continued instead of starting a new one.
-3. **Feed reminders.** Set a target interval between feeds, measured from the *start* of the previous feed, and get a reminder when it's due.
+3. **Feed reminders.** Set a target interval between feeds, measured from the _start_ of the previous feed, and get a reminder when it's due.
 4. **Food intake log.** Record what the feeding parent ate or drank (caffeine, eggs, dairy and so on) so it can later be compared with how the baby behaves after feeds.
 5. **Feed ↔ nap prompts.** Starting a feed while a nap is running asks whether to end the nap. Ending a feed asks whether to start a nap.
 6. **Richer nappies.** Poo colour is chosen from presets, with up to two colours per nappy (e.g. black/green, green/yellow). Five poo sizes: tiny, little, medium, large, massive.
-7. **Quick-add nappy** *(still to decide)*.
+7. **Quick-add nappy** _(still to decide)_.
 8. **Category lists.** Each tracker has a full-history list you can add from. On the home screen, tapping a tracker row opens its list, and a separate + button on the right adds an entry.
 9. **Daily and weekly history views**, with a configurable day start (midnight or a time you choose).
 10. **Stats and insights page.** Phase 2.

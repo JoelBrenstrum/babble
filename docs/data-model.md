@@ -81,6 +81,7 @@ summariseSegments(segments, { mergeGapSec }) => {
 ```
 
 Rules:
+
 1. Sort segments by `started_at`.
 2. Gap below `mergeGapSec` → no downtime row. If both segments are on the same side, they combine into one row.
 3. Gap at or above the threshold → a downtime row, including between two segments on the same side (`Left 5m · Downtime 1m · Left 5m`).

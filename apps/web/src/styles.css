@@ -1,0 +1,33 @@
+@import 'tailwindcss';
+@import '@babble/tokens/babble-tokens.css';
+@import '@babble/tokens/shadcn-theme.css';
+@import '@babble/tokens/web.css';
+@import '@fontsource/figtree/400.css';
+@import '@fontsource/figtree/500.css';
+@import '@fontsource/figtree/600.css';
+@import '@fontsource/figtree/700.css';
+@import '@fontsource/caprasimo/400.css';
+
+@source '../../../packages';
+
+html,
+body {
+  min-height: 100%;
+  background: rgb(var(--bg));
+  color: rgb(var(--ink));
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--primary));
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}

@@ -3,6 +3,7 @@
 **Goal:** a reminder when the next feed is due.
 
 ## Scope
+
 - `nextFeedDue(lastFeed, intervalMin)` in `domain`: `due = lastFeed.started_at + interval`, where the last feed is the latest **breast or bottle** feed
 - The schedule is recalculated whenever a feed is created, edited or deleted
 - `nextSide(lastBreastFeed)` in `domain`: the opposite of the last segment's side, shown in the reminder ("ended on Right. Next side: Left") with a "Start feed · Left" action
@@ -15,4 +16,5 @@
   - Expo: Expo push, plus local notifications as a backup when offline
 
 ## Later
+
 - Quiet hours
