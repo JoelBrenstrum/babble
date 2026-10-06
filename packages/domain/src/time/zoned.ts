@@ -31,14 +31,7 @@ export function timeZoneOffsetMs(instant: number, timeZone: string): number {
   for (const part of formatterFor(timeZone).formatToParts(instant)) {
     if (part.type !== 'literal') parts[part.type] = Number(part.value);
   }
-  const asUtc = Date.UTC(
-    parts.year!,
-    parts.month! - 1,
-    parts.day!,
-    parts.hour!,
-    parts.minute!,
-    parts.second!,
-  );
+  const asUtc = Date.UTC(parts.year!, parts.month! - 1, parts.day!, parts.hour!, parts.minute!, parts.second!);
   return asUtc - Math.floor(instant / 1000) * 1000;
 }
 

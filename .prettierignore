@@ -1,0 +1,6 @@
+docs/design/
+pnpm-lock.yaml
+**/routeTree.gen.ts
+**/database.types.ts
+.output/
+dist/

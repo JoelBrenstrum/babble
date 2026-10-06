@@ -59,7 +59,10 @@ describe('parseHuckleberryCsv', () => {
     });
 
     it('handles a single side', () => {
-      const { event } = onlyEvent(['"Feed","2025-10-01 06:00","2025-10-01 06:11","00:11",,"Breast","00:11L",,'], 'breast_feed');
+      const { event } = onlyEvent(
+        ['"Feed","2025-10-01 06:00","2025-10-01 06:11","00:11",,"Breast","00:11L",,'],
+        'breast_feed',
+      );
       expect(event.segments).toEqual([
         { side: 'left', startedAt: '2025-10-01T06:00:00.000Z', endedAt: '2025-10-01T06:11:00.000Z' },
       ]);
@@ -79,7 +82,10 @@ describe('parseHuckleberryCsv', () => {
 
   describe('bottle feeds', () => {
     it('maps content and amount', () => {
-      const { event } = onlyEvent(['"Feed","2025-10-01 10:56",,,"Breast Milk","Bottle","110ml","A milk note",'], 'bottle');
+      const { event } = onlyEvent(
+        ['"Feed","2025-10-01 10:56",,,"Breast Milk","Bottle","110ml","A milk note",'],
+        'bottle',
+      );
       expect(event.details).toEqual({ content: 'breast_milk', amountMl: 110, amountLeftMl: null });
       expect(event.notes).toBe('A milk note');
       expect(event.endedAt).toBe(event.startedAt);
@@ -112,7 +118,10 @@ describe('parseHuckleberryCsv', () => {
     });
 
     it('maps colour, texture and rash from the repurposed columns', () => {
-      const { event } = onlyEvent(['"Diaper","2025-10-01 10:00",,"black","Loose","Diaper rash","Poo:medium",,'], 'nappy');
+      const { event } = onlyEvent(
+        ['"Diaper","2025-10-01 10:00",,"black","Loose","Diaper rash","Poo:medium",,'],
+        'nappy',
+      );
       expect(event.details).toEqual({
         wet: false,
         dirty: true,
@@ -229,7 +238,9 @@ describe('parseHuckleberryCsv', () => {
     });
 
     it('skips an entry with no measurements', () => {
-      expect(importRows('"Growth","2025-10-01 11:02",,,,,,,').skipped[0]!.reason).toBe('Growth entry has no measurements');
+      expect(importRows('"Growth","2025-10-01 11:02",,,,,,,').skipped[0]!.reason).toBe(
+        'Growth entry has no measurements',
+      );
     });
   });
 
@@ -239,7 +250,10 @@ describe('parseHuckleberryCsv', () => {
         '"Tummy time","2025-10-01 11:00","2025-10-01 11:15","00:15",,,,,',
         '"Bath","2025-10-01 10:59",,,,,,"bathtime note ",',
       );
-      expect(result.events.map((event) => event.type === 'custom' && event.details.title)).toEqual(['Tummy time', 'Bath']);
+      expect(result.events.map((event) => event.type === 'custom' && event.details.title)).toEqual([
+        'Tummy time',
+        'Bath',
+      ]);
       expect(result.events[0]!.endedAt).toBe('2025-10-01T11:15:00.000Z');
       expect(result.events[1]!.endedAt).toBe(result.events[1]!.startedAt);
       expect(result.events[1]!.notes).toBe('bathtime note');
@@ -261,7 +275,10 @@ describe('parseHuckleberryCsv', () => {
   });
 
   it('decodes escaped newlines in notes and drops blank notes', () => {
-    const result = importRows('"Diaper","2025-10-01 10:00",,,,,"Dry","First\\nSecond ",', '"Diaper","2025-10-01 11:00",,,,,"Dry","  ",');
+    const result = importRows(
+      '"Diaper","2025-10-01 10:00",,,,,"Dry","First\\nSecond ",',
+      '"Diaper","2025-10-01 11:00",,,,,"Dry","  ",',
+    );
     expect(result.events.map((event) => event.notes)).toEqual(['First\nSecond', null]);
   });
 
@@ -272,7 +289,10 @@ describe('parseHuckleberryCsv', () => {
     });
 
     it('differ between rows', () => {
-      const [a, b] = importRows('"Diaper","2025-10-01 10:00",,,,,"Dry",,', '"Diaper","2025-10-01 10:01",,,,,"Dry",,').events;
+      const [a, b] = importRows(
+        '"Diaper","2025-10-01 10:00",,,,,"Dry",,',
+        '"Diaper","2025-10-01 10:01",,,,,"Dry",,',
+      ).events;
       expect(a!.sourceRef).not.toBe(b!.sourceRef);
     });
 
@@ -286,7 +306,10 @@ describe('parseHuckleberryCsv', () => {
 
 describe('Huckleberry export fixtures', () => {
   const countByType = (events: ImportedEvent[]) =>
-    events.reduce<Record<string, number>>((counts, event) => ({ ...counts, [event.type]: (counts[event.type] ?? 0) + 1 }), {});
+    events.reduce<Record<string, number>>(
+      (counts, event) => ({ ...counts, [event.type]: (counts[event.type] ?? 0) + 1 }),
+      {},
+    );
 
   it('imports a week of real (anonymised) data without skips or warnings', () => {
     const result = parseHuckleberryCsv(fixture('real-week.csv'), { timeZone: 'Pacific/Auckland' });

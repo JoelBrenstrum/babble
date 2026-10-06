@@ -1,0 +1,29 @@
+/* Babble → shadcn/ui (Tailwind v4 style, full colour values). Load after babble-tokens.css.
+   Radix primitives keep their behaviour; only these variables are restyled. */
+:root, .dark, [data-theme] {
+  --background: rgb(var(--bg));
+  --foreground: rgb(var(--ink));
+  --card: rgb(var(--raised));
+  --card-foreground: rgb(var(--ink));
+  --popover: rgb(var(--raised));
+  --popover-foreground: rgb(var(--ink));
+  --primary-foreground: rgb(var(--on-primary));
+  --secondary-foreground: rgb(var(--on-secondary-soft));
+  --muted: rgb(var(--surface));
+  --muted-foreground: rgb(var(--ink-2));
+  --accent: rgb(var(--primary-soft));
+  --accent-foreground: rgb(var(--on-primary-soft));
+  --destructive: rgb(var(--danger));
+  --destructive-foreground: rgb(var(--ink-on-solid));
+  --border: rgb(var(--line));
+  --input: rgb(var(--line-strong));
+  --ring: rgb(var(--primary));
+  --radius: 14px;
+  --sidebar: rgb(var(--raised));
+  --sidebar-foreground: rgb(var(--ink));
+  --sidebar-accent: rgb(var(--primary-soft));
+  --sidebar-accent-foreground: rgb(var(--on-primary-soft));
+  --sidebar-border: rgb(var(--line));
+}
+/* --primary and --secondary keep Babble's channel format; in shadcn components use
+   bg-[rgb(var(--primary))] or map them in @theme as --color-primary: rgb(var(--primary)). */

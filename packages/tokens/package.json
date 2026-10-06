@@ -1,0 +1,22 @@
+{
+  "name": "@babble/tokens",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./babble-tokens.css": "./css/babble-tokens.css",
+    "./shadcn-theme.css": "./css/shadcn-theme.css",
+    "./web.css": "./css/web.css",
+    "./nativewind-preset": "./nativewind-preset.cjs"
+  },
+  "scripts": {
+    "generate": "node scripts/generate.ts && prettier --write css/web.css nativewind-preset.cjs src/generated",
+    "test": "vitest run",
+    "typecheck": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.3"
+  }
+}

@@ -185,8 +185,7 @@ function mapRow(row: Row, timeZone: string, warn: (message: string) => void): Ma
 
   const durationMs = parseHoursMinutes(row.duration);
   const endedAt =
-    parseLocalTime(row.end, timeZone) ??
-    (durationMs !== null ? new Date(startedAt.getTime() + durationMs) : null);
+    parseLocalTime(row.end, timeZone) ?? (durationMs !== null ? new Date(startedAt.getTime() + durationMs) : null);
 
   const context: RowContext = { row, startedAt, endedAt, notes: parseNotes(row.notes), warn };
 
