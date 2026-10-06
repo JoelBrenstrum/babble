@@ -1,2 +1,2 @@
-export { darkVars, lightVars, type TokenVar } from './generated/vars.ts';
-export { durations, fontFamilies, fontSizes, nativeFontFamilies, radii, spacing } from './theme.ts';
+export { darkVars, lightVars, type TokenVar } from './generated/vars';
+export { durations, fontFamilies, fontSizes, nativeFontFamilies, radii, spacing } from './theme';

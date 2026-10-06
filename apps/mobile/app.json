@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Babble",
+    "slug": "babble",
+    "version": "0.1.0",
+    "scheme": "babble",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "bundleIdentifier": "com.brenstrum.babble",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.brenstrum.babble",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#56633f"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-font",
+      "expo-web-browser",
+      "@react-native-community/datetimepicker",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "backgroundColor": "#f3f0e8",
+          "dark": { "backgroundColor": "#141612" }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
