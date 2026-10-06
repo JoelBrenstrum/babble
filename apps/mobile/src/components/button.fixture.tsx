@@ -8,6 +8,8 @@ export default (
     <Button variant="ghost">Cancel</Button>
     <Button variant="destructive">Discard feed</Button>
     <Button disabled>Disabled</Button>
-    <Button loading>Saving</Button>
+    <Button size="lg" loading>
+      Creating family…
+    </Button>
   </View>
 );

@@ -21,15 +21,18 @@ function DayStartForm({ babyId, babyName, initial }: { babyId: string; babyName:
   const queryClient = useQueryClient();
   const [minutes, setMinutes] = useState(initial);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   async function save() {
     setError(null);
+    setSaving(true);
     try {
       await updateBaby(client, babyId, { day_start_minutes: minutes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families });
       router.replace('/onboarding/invite');
     } catch (caught) {
       setError(toBabbleError(caught).message);
+      setSaving(false);
     }
   }
 
@@ -41,8 +44,8 @@ function DayStartForm({ babyId, babyName, initial }: { babyId: string; babyName:
       <View className="gap-5">
         <DayStartPicker value={minutes} onChange={setMinutes} />
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-        <Button size="lg" onPress={save}>
-          Continue
+        <Button size="lg" onPress={save} loading={saving}>
+          {saving ? 'Saving…' : 'Continue'}
         </Button>
       </View>
     </Screen>

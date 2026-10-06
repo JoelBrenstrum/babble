@@ -1,5 +1,6 @@
 import { toBabbleError, type Invite } from '@babble/api';
 import { useEffect, useState } from 'react';
+import { useTokenColor } from '@/lib/theme';
 import { ActivityIndicator, Share, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
 import { Button } from '@/components/button';
@@ -7,6 +8,7 @@ import { Card } from '@/components/card';
 import { StatusMessage } from '@/components/status-message';
 
 export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCreate: () => Promise<Invite> }) {
+  const spinnerColor = useTokenColor('--primary');
   const [invite, setInvite] = useState<Invite | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -21,7 +23,14 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
   }, [onCreate]);
 
   if (error) return <StatusMessage tone="danger">{error}</StatusMessage>;
-  if (!invite) return <ActivityIndicator className="my-10" />;
+  if (!invite) {
+    return (
+      <Card className="h-80 items-center justify-center gap-3">
+        <ActivityIndicator size="large" color={spinnerColor} />
+        <Text className="font-sans text-meta text-ink-2">Creating invite…</Text>
+      </Card>
+    );
+  }
 
   const link = `${publicUrl}/join/${invite.code}`;
   const days = Math.max(1, Math.round((Date.parse(invite.expiresAt) - Date.now()) / 86_400_000));

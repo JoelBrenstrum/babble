@@ -1,8 +1,8 @@
 import { exchangeAuthCode, toBabbleError } from '@babble/api';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { View } from 'react-native';
 import { Button } from '@/components/button';
+import { PageSpinner } from '@/components/page-spinner';
 import { Screen, Title } from '@/components/screen';
 import { StatusMessage } from '@/components/status-message';
 import { useBabble } from '@/lib/babble';
@@ -25,7 +25,7 @@ export default function AuthCallback() {
   }, [client, code, error_description]);
 
   if (done) return <Redirect href="/" />;
-  if (!error) return <View className="flex-1 bg-bg" />;
+  if (!error) return <PageSpinner label="Signing you in" />;
 
   return (
     <Screen>

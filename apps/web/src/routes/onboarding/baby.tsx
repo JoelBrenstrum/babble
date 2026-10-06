@@ -52,7 +52,6 @@ function BabyStep() {
       await navigate({ to: '/onboarding/day-start' });
     } catch (caught) {
       setError(toBabbleError(caught).message);
-    } finally {
       setSubmitting(false);
     }
   }
@@ -83,8 +82,8 @@ function BabyStep() {
           ))}
         </SelectField>
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-        <Button type="submit" size="lg" disabled={!name.trim() || !birthDate || submitting}>
-          Continue
+        <Button type="submit" size="lg" disabled={!name.trim() || !birthDate} loading={submitting}>
+          {submitting ? 'Adding baby…' : 'Continue'}
         </Button>
       </form>
     </CenteredPage>

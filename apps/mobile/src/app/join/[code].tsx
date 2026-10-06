@@ -2,8 +2,9 @@ import { acceptInvite, inviteQuery, normalizeInviteCode, queryKeys, toBabbleErro
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { View } from 'react-native';
 import { Button } from '@/components/button';
+import { PageSpinner } from '@/components/page-spinner';
 import { Screen, Title } from '@/components/screen';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
@@ -17,8 +18,9 @@ export default function Join() {
   const invite = useQuery(inviteQuery(client, code));
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [joining, setJoining] = useState(false);
 
-  if (invite.isPending) return <ActivityIndicator className="flex-1" />;
+  if (invite.isPending) return <PageSpinner label="Checking invite" />;
 
   if (!invite.data) {
     return (
@@ -31,12 +33,14 @@ export default function Join() {
 
   async function join() {
     setError(null);
+    setJoining(true);
     try {
       await acceptInvite(client, { code, displayName });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families });
       router.replace('/');
     } catch (caught) {
       setError(toBabbleError(caught).message);
+      setJoining(false);
     }
   }
 
@@ -49,8 +53,8 @@ export default function Join() {
         <View className="gap-5">
           <TextField label="Your name" value={displayName} onChangeText={setDisplayName} />
           {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-          <Button size="lg" onPress={join} disabled={!displayName.trim()}>
-            Join family
+          <Button size="lg" onPress={join} disabled={!displayName.trim()} loading={joining}>
+            {joining ? 'Joining…' : 'Join family'}
           </Button>
         </View>
       ) : (

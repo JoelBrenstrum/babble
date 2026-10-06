@@ -3,6 +3,7 @@ import { Copy, Share2 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
 import { Button } from '#/components/ui/button';
+import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 
 export function inviteLink(publicUrl: string, code: string): string {
@@ -41,7 +42,14 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
   }, [onCreate, publicUrl]);
 
   if (error) return <StatusMessage tone="danger">{error}</StatusMessage>;
-  if (!invite) return <div className="h-72 animate-pulse rounded-card bg-surface" />;
+  if (!invite) {
+    return (
+      <div className="flex h-80 flex-col items-center justify-center gap-3 rounded-card bg-raised text-meta text-ink-2 shadow-raised">
+        <Spinner className="size-7 text-primary" label="Creating invite" />
+        Creating invite…
+      </div>
+    );
+  }
 
   const link = inviteLink(publicUrl, invite.code);
 

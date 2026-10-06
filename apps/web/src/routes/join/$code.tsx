@@ -5,6 +5,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
 import { TextField } from '#/components/ui/field';
+import { PageSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { storageKeys, writeStorage } from '#/lib/storage';
 
@@ -23,6 +24,7 @@ function JoinPage() {
   const invite = useQuery(inviteQuery(babble.client, code));
   const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [joining, setJoining] = useState(false);
 
   useEffect(() => {
     writeStorage(storageKeys.pendingInvite, code);
@@ -31,6 +33,7 @@ function JoinPage() {
   async function join(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setJoining(true);
     try {
       const familyId = await acceptInvite(babble.client, { code, displayName });
       writeStorage(storageKeys.pendingInvite, null);
@@ -39,10 +42,11 @@ function JoinPage() {
       await navigate({ to: '/' });
     } catch (caught) {
       setError(toBabbleError(caught).message);
+      setJoining(false);
     }
   }
 
-  if (invite.isPending) return <CenteredPage>{null}</CenteredPage>;
+  if (invite.isPending) return <PageSpinner label="Checking invite" />;
 
   if (!invite.data) {
     return (
@@ -71,8 +75,8 @@ function JoinPage() {
             required
           />
           {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-          <Button type="submit" size="lg" disabled={!displayName.trim()}>
-            Join family
+          <Button type="submit" size="lg" disabled={!displayName.trim()} loading={joining}>
+            {joining ? 'Joining…' : 'Join family'}
           </Button>
         </form>
       ) : (

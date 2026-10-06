@@ -11,6 +11,7 @@ import {
 import { useEffect, type ReactNode } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
+import { PageSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { loadBabble } from '#/lib/babble';
 import { themeBootScript } from '#/lib/theme';
@@ -43,7 +44,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async () => ({ babble: await loadBabble() }),
   shellComponent: RootDocument,
   component: RootComponent,
-  pendingComponent: () => null,
+  pendingComponent: () => <PageSpinner />,
   errorComponent: RootError,
 });
 

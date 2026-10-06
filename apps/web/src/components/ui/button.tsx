@@ -1,5 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { cn } from '#/lib/cn';
+import { Spinner } from './spinner';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 type Size = 'lg' | 'md' | 'icon';
@@ -22,19 +23,27 @@ export function Button({
   size = 'md',
   className,
   type = 'button',
+  loading = false,
+  disabled,
+  children,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size; loading?: boolean }) {
   return (
     <button
       type={type}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       className={cn(
         'inline-flex items-center justify-center gap-2 rounded-button font-semibold transition-colors duration-fast',
-        'disabled:pointer-events-none disabled:opacity-45',
+        'disabled:pointer-events-none disabled:opacity-45 aria-busy:opacity-100',
         variants[variant],
         sizes[size],
         className,
       )}
       {...props}
-    />
+    >
+      {loading && <Spinner label="Working" />}
+      {children}
+    </button>
   );
 }

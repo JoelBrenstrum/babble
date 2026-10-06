@@ -77,12 +77,12 @@ describe('families API', () => {
   });
 
   it('adds a baby', async () => {
-    const baby = { id: 'baby-1', name: 'Adaline' };
+    const baby = { id: 'baby-1', name: 'Olivia' };
     const { client, requests } = fakeClient(() => ({ body: baby }));
     expect(
       await addBaby(client, {
         familyId: 'family-1',
-        name: ' Adaline ',
+        name: ' Olivia ',
         birthDate: '2026-09-26',
         timezone: 'Pacific/Auckland',
         dayStartMinutes: 420,
@@ -91,7 +91,7 @@ describe('families API', () => {
     expect(requests[0]!.method).toBe('POST');
     expect(requests[0]!.body).toEqual({
       family_id: 'family-1',
-      name: 'Adaline',
+      name: 'Olivia',
       birth_date: '2026-09-26',
       timezone: 'Pacific/Auckland',
       day_start_minutes: 420,

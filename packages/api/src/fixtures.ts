@@ -1,9 +1,9 @@
 import type { BabyRow, Family, FamilyMemberRow, InstanceSettings } from './types';
 
 export const sampleBaby: BabyRow = {
-  id: 'baby-adaline',
+  id: 'baby-olivia',
   family_id: 'family-smith',
-  name: 'Adaline',
+  name: 'Olivia',
   birth_date: '2026-09-26',
   timezone: 'Pacific/Auckland',
   day_start_minutes: 420,

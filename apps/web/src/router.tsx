@@ -1,5 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
+import { PageSpinner } from './components/ui/spinner';
 import { routeTree } from './routeTree.gen';
 
 export function getRouter() {
@@ -12,6 +13,9 @@ export function getRouter() {
     scrollRestoration: true,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
+    defaultPendingComponent: () => <PageSpinner />,
+    defaultPendingMs: 150,
+    defaultPendingMinMs: 300,
   });
 }
 

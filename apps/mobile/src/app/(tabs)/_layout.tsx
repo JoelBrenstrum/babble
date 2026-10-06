@@ -2,8 +2,9 @@ import { queryKeys } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, Tabs } from 'expo-router';
 import { ChartColumn, History, House, Settings } from 'lucide-react-native';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
+import { PageSpinner } from '@/components/page-spinner';
 import { useTokenColor } from '@/lib/theme';
 import { useOnboarding } from '@/lib/use-onboarding';
 
@@ -15,7 +16,7 @@ export default function TabsLayout() {
   const surface = useTokenColor('--raised');
   const line = useTokenColor('--line');
 
-  if (loading) return <ActivityIndicator className="flex-1 bg-bg" />;
+  if (loading) return <PageSpinner />;
   if (error) {
     return (
       <View className="flex-1 items-center justify-center gap-4 bg-bg px-6">

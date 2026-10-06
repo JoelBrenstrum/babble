@@ -56,7 +56,7 @@ create temp table family on commit drop as select id from public.families;
 grant select on family to anon, authenticated;
 
 insert into public.babies (family_id, name, birth_date, timezone)
-select id, 'Adaline', '2026-09-26', 'Pacific/Auckland' from public.families;
+select id, 'Olivia', '2026-09-26', 'Pacific/Auckland' from public.families;
 select is((select count(*)::int from public.babies), 1, 'an owner can add a baby');
 select is(
   (select downtime_merge_threshold_sec from public.baby_settings),
@@ -162,7 +162,7 @@ select lives_ok(
   'a viewer invite can be accepted'
 );
 update public.babies set name = 'Changed';
-select is((select name from public.babies), 'Adaline', 'viewers cannot update babies');
+select is((select name from public.babies), 'Olivia', 'viewers cannot update babies');
 select throws_ok(
   $$ select public.create_invite((select id from family)) $$,
   '42501',

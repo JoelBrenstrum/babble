@@ -35,7 +35,6 @@ export default function FamilyStep() {
       router.replace(mode === 'create' ? '/onboarding/baby' : '/');
     } catch (caught) {
       setError(toBabbleError(caught).message);
-    } finally {
       setSubmitting(false);
     }
   }
@@ -68,7 +67,13 @@ export default function FamilyStep() {
         )}
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
         <Button size="lg" onPress={submit} loading={submitting} disabled={!valid}>
-          {mode === 'create' ? 'Continue' : 'Join family'}
+          {submitting
+            ? mode === 'create'
+              ? 'Creating family…'
+              : 'Joining…'
+            : mode === 'create'
+              ? 'Continue'
+              : 'Join family'}
         </Button>
       </View>
     </Screen>

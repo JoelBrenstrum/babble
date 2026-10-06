@@ -13,7 +13,7 @@ Please update the "One Expo codebase" line in the design system intro.
 
 ## Phone screens to design (light and dark, phone width)
 
-Use the same baby (Adaline, 10 days old) and caregivers (John "Jo", Jane "Ja") as the existing screens.
+Use the same baby (Olivia, 10 days old) and caregivers (John "Jo", Jane "Ja") as the existing screens.
 
 1. **Bottle form:** content as a segmented control (Breast milk / Formula / Mixed / Other), amount stepper (±10 ml, tap the number for a keypad), an optional "left over" amount, time (defaults to now, editable), notes, and a Save button.
 2. **Sleep timer:** a large running timer with tabular figures, Start/Stop, a "Started earlier?" control to adjust the start time, location chips (multi-select: cot, bassinet, pram, car, swing, held, nursing, co-sleep, next to carer), and an optional "how it went" section (fell asleep: under 10 min / 10–20 min / took a while; mood at start and end: happy / upset; woken by carer). Also show a **manual entry** variant with start and end pickers.

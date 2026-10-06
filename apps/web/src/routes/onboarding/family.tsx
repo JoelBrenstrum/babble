@@ -46,7 +46,6 @@ function FamilyStep() {
       await navigate({ to: mode === 'create' ? '/onboarding/baby' : '/' });
     } catch (caught) {
       setError(toBabbleError(caught).message);
-    } finally {
       setSubmitting(false);
     }
   }
@@ -91,8 +90,14 @@ function FamilyStep() {
           />
         )}
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-        <Button type="submit" size="lg" disabled={!valid || submitting}>
-          {mode === 'create' ? 'Continue' : 'Join family'}
+        <Button type="submit" size="lg" disabled={!valid} loading={submitting}>
+          {submitting
+            ? mode === 'create'
+              ? 'Creating family…'
+              : 'Joining…'
+            : mode === 'create'
+              ? 'Continue'
+              : 'Join family'}
         </Button>
       </form>
     </CenteredPage>

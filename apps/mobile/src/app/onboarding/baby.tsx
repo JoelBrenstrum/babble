@@ -4,6 +4,7 @@ import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { Button } from '@/components/button';
+import { PageSpinner } from '@/components/page-spinner';
 import { Screen, Title } from '@/components/screen';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
@@ -22,7 +23,7 @@ export default function BabyStep() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (loading) return null;
+  if (loading) return <PageSpinner />;
   if (state?.step === 'family') return <Redirect href="/onboarding/family" />;
   if (state?.step !== 'baby' && state?.step !== 'ready') return <Redirect href="/" />;
   const family = state.family;
@@ -36,7 +37,6 @@ export default function BabyStep() {
       router.replace('/onboarding/day-start');
     } catch (caught) {
       setError(toBabbleError(caught).message);
-    } finally {
       setSubmitting(false);
     }
   }
@@ -50,7 +50,7 @@ export default function BabyStep() {
         <TimezoneField value={timezone} onChange={setTimezone} />
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
         <Button size="lg" onPress={submit} loading={submitting} disabled={!name.trim() || !birthDate}>
-          Continue
+          {submitting ? 'Adding baby…' : 'Continue'}
         </Button>
       </View>
     </Screen>

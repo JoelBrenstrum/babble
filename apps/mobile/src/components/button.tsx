@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
+import { useTokenColor } from '@/lib/theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive';
 
@@ -34,14 +35,18 @@ export function Button({
   children: string;
   className?: string;
 }) {
+  const spinnerColor = useTokenColor(
+    variant === 'primary' ? '--on-primary' : variant === 'destructive' ? '--ink-on-solid' : '--ink',
+  );
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ busy: loading, disabled: disabled || loading }}
       disabled={disabled || loading}
       className={`flex-row items-center justify-center gap-2 rounded-button px-5 ${size === 'lg' ? 'min-h-tap-lg' : 'min-h-tap'} ${container[variant]} ${disabled ? 'opacity-45' : ''} ${className ?? ''}`}
       {...props}
     >
-      {loading ? <ActivityIndicator /> : icon}
+      {loading ? <ActivityIndicator color={spinnerColor} /> : icon}
       <Text className={`font-semibold ${size === 'lg' ? 'text-row-title' : 'text-body'} ${label[variant]}`}>
         {children}
       </Text>

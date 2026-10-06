@@ -27,15 +27,18 @@ function DayStartStep() {
   const navigate = useNavigate();
   const [minutes, setMinutes] = useState(baby.day_start_minutes);
   const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   async function save() {
     setError(null);
+    setSaving(true);
     try {
       await updateBaby(babble.client, baby.id, { day_start_minutes: minutes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families });
       await navigate({ to: '/onboarding/invite' });
     } catch (caught) {
       setError(toBabbleError(caught).message);
+      setSaving(false);
     }
   }
 
@@ -51,8 +54,8 @@ function DayStartStep() {
           <StatusMessage tone="danger">{error}</StatusMessage>
         </div>
       )}
-      <Button size="lg" className="mt-8" onClick={save}>
-        Continue
+      <Button size="lg" className="mt-8" onClick={save} loading={saving}>
+        {saving ? 'Saving…' : 'Continue'}
       </Button>
     </CenteredPage>
   );

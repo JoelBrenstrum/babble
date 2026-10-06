@@ -68,8 +68,8 @@ export function SignInForm({ settings, googleEnabled, initialInviteCode, onMagic
         />
       )}
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-      <Button type="submit" size="lg" disabled={submitting || !email.includes('@')}>
-        <Mail className="size-5" strokeWidth={2.75} />
+      <Button type="submit" size="lg" disabled={!email.includes('@')} loading={submitting}>
+        {!submitting && <Mail className="size-5" strokeWidth={2.75} />}
         {submitting ? 'Sending…' : 'Email me a sign-in link'}
       </Button>
       {googleEnabled && (
