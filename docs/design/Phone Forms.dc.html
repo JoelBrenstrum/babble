@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="width:390px;height:844px;border-radius:52px;border:9px solid #0e0f0c;box-sizing:content-box;overflow:hidden;position:relative;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(20,22,18,.28)">
+  <div style="flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">
+    <span>3:12</span>
+    <div style="display:flex;align-items:center;gap:6px;color:rgb(var(--ink-2))"><i class="icon-signal" style="font-size:15px"></i><i class="icon-wifi" style="font-size:15px"></i><div style="width:24px;height:12px;border-radius:4px;border:1.5px solid rgb(var(--ink-2));padding:1.5px;box-sizing:border-box"><div style="width:60%;height:100%;border-radius:2px;background:rgb(var(--ink-2))"></div></div></div>
+  </div>
+
+  <div style="flex:1;min-height:0;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:16px">
+    <div style="flex:none;display:flex;align-items:center;gap:12px;height:52px">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:{{ backD }};place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+      <div style="flex:1;font-weight:700;font-size:21px">{{ title }}</div>
+      <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:{{ closeD }};place-items:center"><i class="icon-x" style="font-size:22px"></i></div>
+    </div>
+
+    <sc-if value="{{ is.bottle }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:16px;background:rgb(var(--surface))">
+        <sc-for list="{{ bottleSeg }}" as="o" hint-placeholder-count="4"><div style="height:52px;border-radius:12px;display:grid;place-items:center;text-align:center;line-height:1.15;font-size:14px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }}">{{ o.label }}</div></sc-for>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Amount</span>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <div style="width:72px;height:60px;border-radius:12px;background:rgb(var(--bottle-soft));color:rgb(var(--on-bottle));display:flex;align-items:center;justify-content:center;gap:2px;font-size:16px;font-weight:700"><i class="icon-minus" style="font-size:16px"></i>10</div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center"><span style="font-size:34px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1;border-bottom:2px dotted rgb(var(--line-strong))">120<span style="font-size:17px;color:rgb(var(--ink-2));margin-left:4px">ml</span></span></div>
+          <div style="width:72px;height:60px;border-radius:12px;background:rgb(var(--bottle-soft));color:rgb(var(--on-bottle));display:flex;align-items:center;justify-content:center;gap:2px;font-size:16px;font-weight:700"><i class="icon-plus" style="font-size:16px"></i>10</div>
+        </div>
+        <span style="font-size:13px;color:rgb(var(--ink-2))">Tap the number to type an exact amount.</span>
+      </div>
+      <div style="display:flex;flex-direction:column;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+        <div style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px">
+          <span style="flex:1;font-size:16px;font-weight:600">Left over<span style="font-weight:400;color:rgb(var(--ink-3))"> · optional</span></span>
+          <span style="width:52px;height:32px;border-radius:999px;background:rgb(var(--primary));position:relative"><span style="position:absolute;top:3px;right:3px;width:26px;height:26px;border-radius:50%;background:rgb(var(--on-primary))"></span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:0 14px 12px">
+          <div style="width:48px;height:44px;border-radius:12px;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-minus" style="font-size:16px"></i></div>
+          <span style="font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;min-width:70px;text-align:center">15 ml</span>
+          <div style="width:48px;height:44px;border-radius:12px;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-plus" style="font-size:16px"></i></div>
+          <span style="flex:1;text-align:right;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Drank <b style="color:rgb(var(--ink))">105 ml</b></span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+        <span style="font-size:16px;color:rgb(var(--ink-2))">Time</span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">Now · 3:12 am<i class="icon-chevron-down" style="font-size:18px;color:rgb(var(--ink-2))"></i></span>
+      </div>
+      <div style="min-height:84px;padding:14px 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line));font-size:16px;color:rgb(var(--ink-3));box-sizing:border-box">Add a note</div>
+      <div style="flex:1"></div>
+    </sc-if>
+
+    <sc-if value="{{ is.sleep }}" hint-placeholder-val="{{ false }}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
+        <sc-for list="{{ sleepSeg }}" as="o" hint-placeholder-count="2"><div style="height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }}">{{ o.label }}</div></sc-for>
+      </div>
+      <sc-if value="{{ is.sleepTop }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0 0">
+          <div style="display:flex;align-items:center;gap:9px;padding:5px 12px 5px 11px;border-radius:999px;background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep));font-size:14px;font-weight:600"><span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep))"></span></span>Sleeping · started by Joel</div>
+          <div style="font-weight:500;font-size:64px;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">1<span style="font-weight:600;font-size:26px;color:rgb(var(--ink-2));margin:0 10px 0 3px;letter-spacing:0">h</span>12<span style="font-weight:600;font-size:26px;color:rgb(var(--ink-2));margin:0 10px 0 3px;letter-spacing:0">m</span>08<span style="font-weight:600;font-size:26px;color:rgb(var(--ink-2));margin-left:3px;letter-spacing:0">s</span></div>
+          <div style="font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Since 1:58 am</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <div style="display:flex;align-items:center;gap:10px"><i class="icon-history" style="font-size:18px;color:rgb(var(--ink-2))"></i><span style="flex:1;font-size:16px;font-weight:600">Started earlier?</span><span style="font-size:14px;color:rgb(var(--ink-2));display:flex;align-items:center;gap:4px">Pick time<i class="icon-chevron-right" style="font-size:16px"></i></span></div>
+          <div style="display:flex;gap:8px">
+            <sc-for list="{{ earlier }}" as="e" hint-placeholder-count="4"><div style="flex:1;height:44px;border-radius:12px;background:rgb(var(--surface));display:grid;place-items:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">{{ e }}</div></sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <div style="display:{{ whereD }};flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Where</span><span style="font-size:14px;color:rgb(var(--ink-2))">Pick any</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ locations }}" as="ch" hint-placeholder-count="9"><div style="height:44px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;background:{{ ch.bg }};color:{{ ch.color }};border:1.5px solid {{ ch.border }};box-sizing:border-box"><i class="{{ ch.icon }}" style="font-size:15px"></i>{{ ch.label }}</div></sc-for>
+        </div>
+      </div>
+      <sc-if value="{{ is.sleepDetails }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:17px;font-weight:700">How it went</span><span style="font-size:14px;color:rgb(var(--ink-3))">Optional</span></div>
+          <sc-for list="{{ howRows }}" as="hr" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:14px;color:rgb(var(--ink-2))">{{ hr.label }}</span>
+              <div style="display:flex;gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
+                <sc-for list="{{ hr.opts }}" as="o" hint-placeholder-count="3"><div style="flex:1;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }}"><i class="{{ o.icon }}" style="font-size:16px"></i>{{ o.label }}</div></sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:flex;align-items:center;gap:12px;min-height:48px;border-top:1px solid rgb(var(--line));padding-top:6px">
+            <span style="flex:1;font-size:16px;font-weight:600">Woken by a carer</span>
+            <span style="width:52px;height:32px;border-radius:999px;background:rgb(var(--line-strong));position:relative"><span style="position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:rgb(var(--raised))"></span></span>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ is.sleepManual }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));overflow:hidden">
+          <div style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px"><span style="width:64px;font-size:15px;color:rgb(var(--ink-2))">Start</span><span style="flex:1;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">Tue 6 Oct · 1:58 am</span><i class="icon-chevron-up" style="font-size:18px;color:rgb(var(--primary))"></i></div>
+          <div style="position:relative;height:150px;background:rgb(var(--surface));display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;align-items:center;padding:0 10px;font-variant-numeric:tabular-nums">
+            <div style="position:absolute;left:10px;right:10px;top:55px;height:40px;border-radius:12px;background:rgb(var(--raised));box-shadow:var(--shadow-raised)"></div>
+            <sc-for list="{{ wheel }}" as="col" hint-placeholder-count="4">
+              <div style="position:relative;display:flex;flex-direction:column;align-items:center;gap:0">
+                <sc-for list="{{ col }}" as="cell" hint-placeholder-count="5"><span style="height:30px;line-height:30px;font-size:{{ cell.fs }};font-weight:{{ cell.w }};color:{{ cell.c }}">{{ cell.t }}</span></sc-for>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 16px;border-top:1px solid rgb(var(--line))"><span style="width:64px;font-size:15px;color:rgb(var(--ink-2))">End</span><span style="flex:1;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">Tue 6 Oct · 3:10 am</span><i class="icon-chevron-down" style="font-size:18px;color:rgb(var(--ink-2))"></i></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid rgb(var(--line));background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep))"><span style="font-size:15px;font-weight:600">Duration</span><span style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums">1h 12m</span></div>
+        </div>
+      </sc-if>
+      <div style="flex:1"></div>
+    </sc-if>
+
+    <sc-if value="{{ is.pump }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0 0">
+        <div style="display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--on-pump))"><span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--pump));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--pump))"></span></span>Right side</div>
+        <div style="font-weight:500;font-size:74px;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">9<span style="font-weight:600;font-size:28px;color:rgb(var(--ink-2));margin:0 10px 0 4px;letter-spacing:0">m</span>45<span style="font-weight:600;font-size:28px;color:rgb(var(--ink-2));margin-left:4px;letter-spacing:0">s</span></div>
+        <div style="font-size:16px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Total pumping 17m 55s</div>
+      </div>
+      <div style="padding:6px 16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised)">
+        <sc-for list="{{ pumpSegs }}" as="sg" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:12px;height:48px;border-top:{{ sg.divider }}">
+            <span style="width:12px;height:12px;flex:none;border-radius:50%;background:{{ sg.dot }};border:{{ sg.dotBorder }};box-sizing:border-box;box-shadow:{{ sg.ring }}"></span>
+            <span style="flex:1;font-size:16px;font-weight:{{ sg.weight }};color:{{ sg.color }}">{{ sg.label }}</span>
+            <span style="font-size:12px;font-weight:600;color:{{ sg.tagColor }}">{{ sg.tag }}</span>
+            <span style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ sg.color }};min-width:80px;text-align:right">{{ sg.time }}</span>
+          </div>
+        </sc-for>
+        <div style="border-top:1px solid rgb(var(--line));padding:12px 0 8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Total pumping <span style="color:rgb(var(--ink));font-weight:600">17m 55s</span> · lost 1m 20s</div>
+      </div>
+      <div style="flex:1"></div>
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;height:132px;border-radius:16px;background:rgb(var(--pump-soft));color:rgb(var(--on-pump));border:2px solid rgb(var(--pump) / 0.45);box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><span style="font-weight:700;font-size:40px;line-height:1">L</span><span style="font-size:15px;font-weight:600">Left</span><span style="font-size:14px;font-variant-numeric:tabular-nums">8m 10s</span></div>
+        <div style="flex:1;height:132px;border-radius:16px;background:rgb(var(--pump));color:rgb(var(--ink-on-solid));box-shadow:0 0 0 5px rgb(var(--pump) / 0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px"><span style="font-weight:700;font-size:40px;line-height:1">R</span><span style="font-size:15px;font-weight:700">Right · on</span><span style="font-size:14px;font-variant-numeric:tabular-nums">9m 45s</span></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.growth }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+        <span style="font-size:16px;color:rgb(var(--ink-2))">Date</span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:600">Today · Tue 6 Oct<i class="icon-chevron-down" style="font-size:18px;color:rgb(var(--ink-2))"></i></span>
+      </div>
+      <sc-for list="{{ measures }}" as="m" hint-placeholder-count="3">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">{{ m.label }}</span><span style="font-size:13px;color:rgb(var(--ink-3))">{{ m.hint }}</span></div>
+          <div style="display:flex;align-items:center;gap:10px;height:60px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:{{ m.border }};box-sizing:border-box">
+            <i class="{{ m.icon }}" style="font-size:20px;color:rgb(var(--growth))"></i>
+            <span style="flex:1;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ m.c }}">{{ m.value }}</span>
+            <span style="font-size:16px;font-weight:600;color:rgb(var(--ink-2))">{{ m.unit }}</span>
+          </div>
+        </div>
+      </sc-for>
+      <span style="font-size:13px;color:rgb(var(--ink-2))">Units follow Settings · Metric. Every field is optional.</span>
+      <div style="min-height:72px;padding:14px 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line));font-size:16px;color:rgb(var(--ink-3));box-sizing:border-box">Add a note, e.g. "Midwife visit"</div>
+      <div style="flex:1"></div>
+      <sc-if value="{{ is.growthError }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px;padding:6px 6px 6px 14px;border-radius:16px;background:rgb(var(--danger-soft));color:rgb(var(--on-danger));border:1px solid rgb(var(--danger) / 0.35)">
+          <i class="icon-circle-alert" style="font-size:20px;color:rgb(var(--danger))"></i>
+          <span style="flex:1;font-size:15px;line-height:1.3"><b>Couldn't save.</b> Your entry is kept here.</span>
+          <div style="height:48px;padding:0 16px;border-radius:12px;background:rgb(var(--raised));color:rgb(var(--ink));display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700"><i class="icon-rotate-cw" style="font-size:16px"></i>Retry</div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ is.custom }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Title</span>
+        <div style="display:flex;align-items:center;height:56px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:2px solid rgb(var(--primary));box-sizing:border-box;font-size:18px;font-weight:600">Bath<span style="width:2px;height:22px;background:rgb(var(--primary));margin-left:2px"></span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ suggestions }}" as="ch" hint-placeholder-count="5"><div style="height:40px;padding:0 13px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;background:{{ ch.bg }};color:{{ ch.color }};border:1.5px solid {{ ch.border }};box-sizing:border-box"><i class="{{ ch.icon }}" style="font-size:14px"></i>{{ ch.label }}</div></sc-for>
+        </div>
+      </div>
+      <div style="min-height:72px;padding:14px 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line));font-size:16px;color:rgb(var(--ink-3));box-sizing:border-box">Description (optional)</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;min-height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+        <span style="font-size:16px;color:rgb(var(--ink-2))">Start</span>
+        <span style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">Now · 3:12 am<i class="icon-chevron-down" style="font-size:18px;color:rgb(var(--ink-2))"></i></span>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Length</span>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:16px;background:rgb(var(--surface))">
+          <sc-for list="{{ lengthSeg }}" as="o" hint-placeholder-count="3"><div style="height:44px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }}">{{ o.label }}</div></sc-for>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:6px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <div style="width:64px;height:48px;border-radius:12px;background:rgb(var(--custom-soft));color:rgb(var(--on-custom));display:flex;align-items:center;justify-content:center;gap:2px;font-size:15px;font-weight:700"><i class="icon-minus" style="font-size:16px"></i>5</div>
+          <div style="flex:1;text-align:center;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums">15<span style="font-size:15px;color:rgb(var(--ink-2));margin-left:4px">min</span></div>
+          <div style="width:64px;height:48px;border-radius:12px;background:rgb(var(--custom-soft));color:rgb(var(--on-custom));display:flex;align-items:center;justify-content:center;gap:2px;font-size:15px;font-weight:700"><i class="icon-plus" style="font-size:16px"></i>5</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:56px;padding:0 14px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+        <i class="icon-timer" style="font-size:20px;color:rgb(var(--custom))"></i>
+        <span style="flex:1;font-size:16px;font-weight:600">Time it with a timer instead</span>
+        <span style="width:52px;height:32px;border-radius:999px;background:rgb(var(--line-strong));position:relative"><span style="position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:rgb(var(--raised))"></span></span>
+      </div>
+      <div style="flex:1"></div>
+    </sc-if>
+  </div>
+
+  <div style="flex:none;padding:14px 20px 30px;display:flex;gap:12px">
+    <sc-if value="{{ hasSecondary }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="{{ secIcon }}" style="font-size:20px"></i>{{ secLabel }}</div>
+    </sc-if>
+    <div style="flex:1;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="{{ priIcon }}" style="font-size:20px"></i>{{ priLabel }}</div>
+  </div>
+
+  <sc-if value="{{ is.sheet }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.45)"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:14px">
+      <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong))"></span>
+      <sc-if value="{{ is.keypad }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:20px;font-weight:700">Amount</span><span style="font-size:36px;font-weight:600;font-variant-numeric:tabular-nums">125<span style="font-size:18px;color:rgb(var(--ink-2));margin-left:4px">ml</span></span></div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+          <sc-for list="{{ keys }}" as="k" hint-placeholder-count="12"><div style="height:60px;border-radius:14px;background:{{ k.bg }};display:grid;place-items:center;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums"><i class="{{ k.icon }}" style="font-size:22px"></i>{{ k.t }}</div></sc-for>
+        </div>
+        <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600">Done</div>
+      </sc-if>
+      <sc-if value="{{ is.pumpFinish }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:12px;background:rgb(var(--pump-soft));color:rgb(var(--pump));display:grid;place-items:center"><i class="icon-glass-water" style="font-size:22px"></i></span><div><div style="font-size:20px;font-weight:700">How much did you pump?</div><div style="font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">17m 55s · finished 3:12 am</div></div></div>
+        <sc-for list="{{ pumpAmounts }}" as="pa" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:10px;padding:6px 6px 6px 14px;border-radius:16px;background:rgb(var(--bg));border:1px solid rgb(var(--line))">
+            <span style="width:32px;height:32px;border-radius:50%;background:rgb(var(--pump-soft));color:rgb(var(--on-pump));display:grid;place-items:center;font-size:15px;font-weight:700">{{ pa.side }}</span>
+            <span style="flex:1;font-size:16px;font-weight:600">{{ pa.label }}</span>
+            <div style="width:56px;height:48px;border-radius:12px;background:rgb(var(--pump-soft));color:rgb(var(--on-pump));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700"><i class="icon-minus" style="font-size:15px"></i>10</div>
+            <span style="min-width:74px;text-align:center;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums">{{ pa.v }}<span style="font-size:14px;color:rgb(var(--ink-2));margin-left:3px">ml</span></span>
+            <div style="width:56px;height:48px;border-radius:12px;background:rgb(var(--pump-soft));color:rgb(var(--on-pump));display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700"><i class="icon-plus" style="font-size:15px"></i>10</div>
+          </div>
+        </sc-for>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 4px 0"><span style="font-size:16px;color:rgb(var(--ink-2))">Total</span><span style="font-size:24px;font-weight:700;font-variant-numeric:tabular-nums">115 ml</span></div>
+        <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600">Save pump</div>
+        <div style="height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft))">Save without amounts</div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;bottle&quot;,&quot;bottle-keypad&quot;,&quot;sleep&quot;,&quot;sleep-details&quot;,&quot;sleep-manual&quot;,&quot;pump&quot;,&quot;pump-finish&quot;,&quot;growth&quot;,&quot;growth-error&quot;,&quot;custom&quot;],&quot;default&quot;:&quot;bottle&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen || 'bottle';
+    const c = n => `rgb(var(--${n}))`;
+    const line = `1px solid ${c('line')}`;
+    const seg = (labels, sel, icons) => labels.map((label, i) => {
+      const on = label === sel;
+      return { label, icon: icons ? icons[i] : '', w: on ? 700 : 500, bg: on ? c('raised') : 'transparent', c: on ? c('ink') : c('ink-2'), s: on ? 'var(--shadow-raised)' : 'none' };
+    });
+    const chip = (label, on, icon) => ({ label, icon: on ? 'icon-check' : (icon || ''), bg: on ? c('primary-soft') : c('raised'), color: on ? c('on-primary-soft') : c('ink'), border: on ? c('primary') : c('line') });
+    const is = {
+      bottle: s === 'bottle' || s === 'bottle-keypad', keypad: s === 'bottle-keypad',
+      sleep: s.startsWith('sleep'), sleepTop: s === 'sleep', sleepDetails: s === 'sleep-details', sleepManual: s === 'sleep-manual',
+      pump: s === 'pump' || s === 'pump-finish', pumpFinish: s === 'pump-finish',
+      growth: s.startsWith('growth'), growthError: s === 'growth-error', custom: s === 'custom'
+    };
+    is.sheet = is.keypad || is.pumpFinish;
+    const titles = { bottle: 'Log bottle', sleep: 'Sleep', pump: 'Pump', growth: 'Log growth', custom: 'Custom event' };
+    const key = Object.keys(titles).find(k => is[k]);
+    const footer = is.bottle ? ['Save bottle', 'icon-check'] : is.sleepManual ? ['Save sleep', 'icon-check'] : is.sleep ? ['Stop · end sleep', 'icon-square'] : is.pump ? ['Finish', 'icon-check'] : is.growth ? ['Save growth', 'icon-check'] : ['Save event', 'icon-check'];
+    const pumpSegs = [
+      { label: 'Left', time: '8m 10s', dot: c('pump'), dotBorder: 'none', ring: 'none', color: c('ink'), weight: 600, tag: '', tagColor: c('ink-2'), divider: 'none' },
+      { label: 'Downtime', time: '1m 20s', dot: 'transparent', dotBorder: `2px dashed ${c('session-downtime')}`, ring: 'none', color: c('ink-2'), weight: 500, tag: 'idle', tagColor: c('on-session-downtime'), divider: line },
+      { label: 'Right', time: '9m 45s', dot: c('pump'), dotBorder: 'none', ring: `0 0 0 4px rgb(var(--pump) / 0.25)`, color: c('ink'), weight: 600, tag: 'running', tagColor: c('on-pump'), divider: line }
+    ];
+    const wheelCol = (vals, sel, fs) => vals.map((t, i) => ({ t, fs: i === sel ? fs : '15px', w: i === sel ? 700 : 500, c: i === sel ? c('ink') : c('ink-3') }));
+    const wheel = [
+      wheelCol(['Sun 4', 'Mon 5', 'Tue 6', 'Wed 7', 'Thu 8'], 2, '17px'),
+      wheelCol(['11', '12', '1', '2', '3'], 2, '20px'),
+      wheelCol(['56', '57', '58', '59', '00'], 2, '20px'),
+      wheelCol(['', '', 'am', 'pm', ''], 2, '17px')
+    ];
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ''].map((t, i) => ({ t, icon: i === 9 ? 'icon-eraser' : i === 11 ? 'icon-delete' : '', bg: i === 9 || i === 11 ? 'transparent' : c('surface') }));
+    keys[9] = { t: '', icon: '', bg: 'transparent' };
+    return {
+      is, whereD: is.sleepDetails ? 'none' : 'flex', title: titles[key] || '', backD: is.pump || is.sleepTop || is.sleepDetails ? 'grid' : 'none', closeD: is.pump || is.sleepTop || is.sleepDetails ? 'none' : 'grid',
+      priLabel: footer[0], priIcon: footer[1],
+      hasSecondary: is.pump, secLabel: 'Pause', secIcon: 'icon-pause',
+      bottleSeg: seg(['Breast milk', 'Formula', 'Mixed', 'Other'], 'Breast milk'),
+      sleepSeg: seg(['Timer', 'Manual'], is.sleepManual ? 'Manual' : 'Timer'),
+      lengthSeg: seg(['None', 'Duration', 'End time'], 'Duration'),
+      earlier: ['−5m', '−10m', '−15m', '−30m'],
+      locations: ['Cot', 'Bassinet', 'Pram', 'Car', 'Swing', 'Held', 'Nursing', 'Co-sleep', 'Next to carer'].map(l => chip(l, l === 'Bassinet' || (is.sleepManual && l === 'Held'))),
+      howRows: [
+        { label: 'Fell asleep', opts: seg(['Under 10m', '10–20m', 'Took a while'], '10–20m') },
+        { label: 'Mood at start', opts: seg(['Happy', 'Upset'], 'Upset', ['icon-smile', 'icon-frown']) },
+        { label: 'Mood at end', opts: seg(['Happy', 'Upset'], 'Happy', ['icon-smile', 'icon-frown']) }
+      ],
+      wheel, keys, pumpSegs,
+      pumpAmounts: [{ side: 'L', label: 'Left', v: '60' }, { side: 'R', label: 'Right', v: '55' }],
+      measures: [
+        { label: 'Weight', hint: 'Last 3.38 kg · 2 Oct', icon: 'icon-weight', value: '3.42', unit: 'kg', c: c('ink'), border: `2px solid ${c('primary')}` },
+        { label: 'Length', hint: 'Last 50.5 cm', icon: 'icon-ruler', value: '51.0', unit: 'cm', c: c('ink'), border: line },
+        { label: 'Head', hint: 'Optional', icon: 'icon-circle-dashed', value: '—', unit: 'cm', c: c('ink-3'), border: line }
+      ],
+      suggestions: [chip('Bath', true), chip('Tummy time', false, 'icon-history'), chip('Vitamin D', false, 'icon-history'), chip('Skin to skin', false, 'icon-history'), chip('Walk', false, 'icon-history')]
+    };
+  }
+}
+</script>
+</body>
+</html>

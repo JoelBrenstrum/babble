@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<style>body{margin:0;background:#efe6d6;font-family:Figtree,system-ui,sans-serif;color:#201e1d}a{color:#8c491a}a:hover{color:#643312}.dv-turn{padding:40px 44px 32px;border-bottom:1px solid rgba(0,0,0,.08);scroll-margin-top:16px}.dv-thd{display:flex;align-items:baseline;gap:10px;margin:0 0 20px}.dv-tid{font:600 10px ui-monospace,Menlo,monospace;padding:3px 7px;background:#1a1a1a;color:#fff;border-radius:4px;text-decoration:none}.dv-tname{font:600 13px/1.2 system-ui,sans-serif;color:#1a1a1a}.dv-opts{display:flex;flex-wrap:wrap;gap:40px;align-items:flex-start}.dv-opt{flex:none;display:flex;flex-direction:column;gap:9px;scroll-margin-top:16px}.dv-oid{font:600 10.5px ui-monospace,Menlo,monospace;padding:3px 7px;background:rgba(0,0,0,.08);color:#1a1a1a;border-radius:5px;text-decoration:none}.dv-olabel{display:flex;align-items:baseline;gap:8px;font:400 13px/1.3 system-ui,sans-serif;color:rgba(0,0,0,.6)}.dv-card{max-width:100%;background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,.06);overflow:hidden}.dv-opt:target .dv-oid{background:#2a78d6;color:#fff}.dv-next{margin:22px 0 0;font:12px/1.5 system-ui,sans-serif;color:rgba(0,0,0,.5)}</style>
+</helmet>
+<section class="dv-turn" id="t1">
+  <div class="dv-thd"><a class="dv-tid" href="#t1">1</a><span class="dv-tname">Three directions on Home + Breastfeed timer, light and dark</span></div>
+
+  <div style="max-width:880px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin:0 0 36px;font-size:14px;line-height:1.55;color:#3d3833">
+    <div><div style="font-weight:700;margin-bottom:4px">Starting point</div>All three come from the Organic system: cream and sand ground, terracotta and sage accents, Figtree body, Caprasimo display, Lucide icons. Dark themes are built from the same warm hue, with no neutral greys or blue.</div>
+    <div><div style="font-weight:700;margin-bottom:4px">Shared across all three</div>The tracker colours stay the same, so you can compare neutrals, type and shape. Left is a deep clay and Right a lighter apricot, and the L/R letters always sit with the colour. Downtime gets a dashed neutral dot labelled "idle", not red.</div>
+    <div><div style="font-weight:700;margin-bottom:4px">Timers</div>Running timers use tabular figures. In <a class="dv-oid" href="#1c">1c</a> Caprasimo, which has proportional digits, sits in fixed-width digit cells so the numbers don't jitter. Every control is at least 48pt, with the L/R toggle and Pause/Finish in thumb reach.</div>
+  </div>
+
+  <div class="dv-opts">
+    <div class="dv-opt" id="1a">
+      <div class="dv-olabel"><a class="dv-oid" href="#1a">1a</a><b style="color:#201e1d">Clay</b> Closest to Organic. Terracotta primary, sage secondary, Caprasimo headings, Figtree timers, separate row cards.</div>
+      <div class="dv-card" style="padding:36px;display:flex;gap:32px;background:#e9dfcf">
+        <dc-import name="Phone" screen="home" t="{{ aL }}" v="{{ va }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="home" t="{{ aD }}" v="{{ va }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="timer" t="{{ aL }}" v="{{ va }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="timer" t="{{ aD }}" v="{{ va }}" hint-size="408px,862px"></dc-import>
+      </div>
+    </div>
+    <div class="dv-opt" id="1b">
+      <div class="dv-olabel"><a class="dv-oid" href="#1b">1b</a><b style="color:#201e1d">Sage</b> The most clinical. Sage primary, terracotta secondary, Figtree only (Caprasimo kept for the wordmark), grouped list rows, tighter radii.</div>
+      <div class="dv-card" style="padding:36px;display:flex;gap:32px;background:#e6e3d8">
+        <dc-import name="Phone" screen="home" t="{{ bL }}" v="{{ vb }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="home" t="{{ bD }}" v="{{ vb }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="timer" t="{{ bL }}" v="{{ vb }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="timer" t="{{ bD }}" v="{{ vb }}" hint-size="408px,862px"></dc-import>
+      </div>
+    </div>
+    <div class="dv-opt" id="1c">
+      <div class="dv-olabel"><a class="dv-oid" href="#1c">1c</a><b style="color:#201e1d">Lamplight</b> Built for night first. The darkest amber-on-umber dark theme, a Caprasimo timer in fixed-width cells, round L/R buttons and pill shapes.</div>
+      <div class="dv-card" style="padding:36px;display:flex;gap:32px;background:#e4d6c2">
+        <dc-import name="Phone" screen="home" t="{{ cL }}" v="{{ vc }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="home" t="{{ cD }}" v="{{ vc }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="timer" t="{{ cL }}" v="{{ vc }}" hint-size="408px,862px"></dc-import>
+        <dc-import name="Phone" screen="timer" t="{{ cD }}" v="{{ vc }}" hint-size="408px,862px"></dc-import>
+      </div>
+    </div>
+  </div>
+  <p class="dv-next">Try next: "go with <a class="dv-oid" href="#1a">1a</a> but use the dark theme from <a class="dv-oid" href="#1c">1c</a>" · "<a class="dv-oid" href="#1b">1b</a> with round L/R buttons" · "build out <a class="dv-oid" href="#1c">1c</a> in full"</p>
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  cats(dark, dim) {
+    const L = {
+      sleep: ['#6a5fa0', '#e8e3f2', '#3a3168'], feedL: ['#a4442e', '#f5ddd4', '#6e2a1b'], feedR: ['#c9763a', '#f8e5d1', '#7a4316'],
+      bottle: ['#a8801c', '#f3e8c8', '#5f4808'], nappy: ['#3f7f66', '#d9ebe2', '#1f4a3a'], pump: ['#8d4f7b', '#efdeea', '#562c4a']
+    };
+    const D = {
+      sleep: ['#a597d4', '#28233a', '#d8cff0'], feedL: ['#dc8268', '#3a211a', '#f2c3b3'], feedR: ['#eeb072', '#3a2915', '#f7d7b1'],
+      bottle: ['#dcbb62', '#322914', '#efdcaa'], nappy: ['#86c4a8', '#1a2e25', '#c3e6d5'], pump: ['#d29bc2', '#33202d', '#ecc9e1']
+    };
+    const N = {
+      sleep: ['#9184bb', '#201b2a', '#c9bfe2'], feedL: ['#c97761', '#2e1a14', '#e6b6a5'], feedR: ['#dca067', '#2f2112', '#ecc9a2'],
+      bottle: ['#c8aa5a', '#2a2212', '#e1cd9c'], nappy: ['#7bb19a', '#16251f', '#b5d6c6'], pump: ['#bd8eaf', '#2a1b25', '#dcbad1']
+    };
+    const src = dark ? (dim ? N : D) : L;
+    const out = {};
+    for (const k in src) { const [solid, soft, on] = src[k]; out[k] = { solid, soft, on, ring: solid + (dark ? '33' : '33'), edge: solid + '66' }; }
+    return out;
+  }
+  renderVals() {
+    const lightShadow = '0 1px 2px rgba(46,43,37,.08), 0 4px 14px rgba(46,43,37,.08)';
+    const darkShadow = '0 0 0 1px rgba(255,235,210,.03), 0 8px 24px rgba(0,0,0,.35)';
+    const aL = { bg: '#f5ead8', surface: '#ebddc5', raised: '#fbf4ea', border: 'rgba(32,30,29,.10)', borderStrong: 'rgba(32,30,29,.28)', text: '#201e1d', text2: '#645c50', muted: '#7a7062',
+      primary: '#b2622d', onPrimary: '#fff8ef', primarySoft: '#ffe1d0', primaryOn: '#8c491a', primaryText: '#8c491a', shadow: lightShadow, tabBg: '#f0e3cd',
+      info: { soft: '#e1e8d6', on: '#3d472b' }, idle: '#a19786', inkOnSolid: '#fff8ef', cat: this.cats(false) };
+    const aD = { bg: '#1a1512', surface: '#241e19', raised: '#2b241f', border: 'rgba(236,220,198,.08)', borderStrong: 'rgba(236,220,198,.24)', text: '#ecdcc6', text2: '#b8a690', muted: '#948470',
+      primary: '#e0905c', onPrimary: '#241307', primarySoft: '#3d2717', primaryOn: '#f6c3a0', primaryText: '#eaa275', shadow: darkShadow, tabBg: '#1f1915',
+      info: { soft: '#232a1c', on: '#c3d1a8' }, idle: '#6e655b', inkOnSolid: '#1d140c', cat: this.cats(true) };
+    const bL = { bg: '#f3f0e8', surface: '#e8e4d9', raised: '#fbf9f4', border: 'rgba(31,33,28,.10)', borderStrong: 'rgba(31,33,28,.26)', text: '#1f211c', text2: '#555a4c', muted: '#6b7062',
+      primary: '#56633f', onPrimary: '#f6f8ef', primarySoft: '#e1eecc', primaryOn: '#3d472b', primaryText: '#56633f', shadow: '0 1px 2px rgba(31,33,28,.07)', tabBg: '#fbf9f4',
+      info: { soft: '#dde9e6', on: '#24504a' }, idle: '#a3a294', inkOnSolid: '#fffaf2', cat: this.cats(false) };
+    const bD = { bg: '#141612', surface: '#1d201a', raised: '#22261f', border: 'rgba(227,227,212,.08)', borderStrong: 'rgba(227,227,212,.22)', text: '#e3e2d3', text2: '#a9ad98', muted: '#8b8f7b',
+      primary: '#aebf92', onPrimary: '#1a2010', primarySoft: '#2a3220', primaryOn: '#cfdcb6', primaryText: '#b9c99d', shadow: darkShadow, tabBg: '#181a15',
+      info: { soft: '#182725', on: '#a9d6cc' }, idle: '#6a6c60', inkOnSolid: '#1a140c', cat: this.cats(true) };
+    const cL = { bg: '#efe2cf', surface: '#e5d3ba', raised: '#f7ecdc', border: 'rgba(42,29,20,.10)', borderStrong: 'rgba(42,29,20,.28)', text: '#2a1d14', text2: '#66513f', muted: '#7a6450',
+      primary: '#9c4a26', onPrimary: '#fff3e6', primarySoft: '#f6d6c2', primaryOn: '#7a3517', primaryText: '#9c4a26', shadow: lightShadow, tabBg: '#ead9c2',
+      info: { soft: '#e2e2cc', on: '#46502f' }, idle: '#a08a74', inkOnSolid: '#fff3e6', cat: this.cats(false) };
+    const cD = { bg: '#120c09', surface: '#1b130f', raised: '#211813', border: 'rgba(226,195,160,.07)', borderStrong: 'rgba(226,195,160,.22)', text: '#e2c3a0', text2: '#b0906f', muted: '#977a60',
+      primary: '#c9683d', onPrimary: '#170904', primarySoft: '#2e1a10', primaryOn: '#e7a982', primaryText: '#d98457', shadow: '0 0 0 1px rgba(226,195,160,.04), 0 10px 28px rgba(0,0,0,.5)', tabBg: '#160f0b',
+      info: { soft: '#1d1f13', on: '#c4c79c' }, idle: '#5e4c3e', inkOnSolid: '#170c06', cat: this.cats(true, true) };
+    const va = { headFont: 'Caprasimo, serif', headWeight: 400, lrWeight: 400, timerFont: 'Figtree, sans-serif', timerWeight: 600, timerTrack: '-0.02em', digitW: 'auto', cardR: '24px', tileR: '16px', btnR: '999px', btnFont: 'Figtree, sans-serif', rowsAsList: false, lrRound: false };
+    const vb = { headFont: 'Figtree, sans-serif', headWeight: 700, lrWeight: 700, timerFont: 'Figtree, sans-serif', timerWeight: 500, timerTrack: '-0.03em', digitW: 'auto', cardR: '16px', tileR: '12px', btnR: '14px', btnFont: 'Figtree, sans-serif', rowsAsList: true, lrRound: false };
+    const vc = { headFont: 'Caprasimo, serif', headWeight: 400, lrWeight: 400, timerFont: 'Caprasimo, serif', timerWeight: 400, timerTrack: '0', digitW: '0.64em', cardR: '30px', tileR: '50%', btnR: '999px', btnFont: 'Figtree, sans-serif', rowsAsList: false, lrRound: true };
+    return { aL, aD, bL, bD, cL, cD, va, vb, vc };
+  }
+}
+</script>
+</body>
+</html>

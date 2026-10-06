@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="width:390px;height:844px;border-radius:52px;border:9px solid #0e0f0c;box-sizing:content-box;overflow:hidden;position:relative;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(20,22,18,.28)">
+  <div style="flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">
+    <span>3:12</span>
+    <div style="display:flex;align-items:center;gap:6px;color:rgb(var(--ink-2))"><i class="icon-signal" style="font-size:15px"></i><i class="icon-wifi" style="font-size:15px"></i><div style="width:24px;height:12px;border-radius:4px;border:1.5px solid rgb(var(--ink-2));padding:1.5px;box-sizing:border-box"><div style="width:60%;height:100%;border-radius:2px;background:rgb(var(--ink-2))"></div></div></div>
+  </div>
+  <div style="flex:1;min-height:0;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:14px">
+    <div style="display:flex;align-items:center;gap:12px;height:52px;flex:none">
+      <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+      <div style="flex:1;display:flex;align-items:center;gap:10px;font-weight:700;font-size:21px"><span style="width:32px;height:32px;border-radius:10px;background:{{ cat.soft }};color:{{ cat.solid }};display:grid;place-items:center"><i class="{{ cat.icon }}" style="font-size:17px"></i></span>{{ cat.title }}</div>
+      <div style="width:48px;height:48px;border-radius:50%;background:{{ cat.soft }};color:{{ cat.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
+    </div>
+    <sc-if value="{{ hasSeg }}" hint-placeholder-val="{{ true }}">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:16px;background:rgb(var(--surface));flex:none">
+        <sc-for list="{{ segOpts }}" as="o" hint-placeholder-count="3"><div style="height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }}">{{ o.label }}</div></sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
+      <sc-for list="{{ skel }}" as="g" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;justify-content:space-between;padding:4px 4px 0"><span style="width:110px;height:18px;border-radius:6px;background:rgb(var(--surface))"></span><span style="width:120px;height:16px;border-radius:6px;background:rgb(var(--surface))"></span></div>
+          <div style="border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+            <sc-for list="{{ g }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;height:60px;padding:0 14px;border-top:{{ r.divider }}">
+                <span style="width:44px;height:16px;border-radius:6px;background:rgb(var(--surface))"></span>
+                <span style="width:{{ r.w1 }};height:26px;border-radius:999px;background:rgb(var(--surface))"></span>
+                <span style="width:{{ r.w2 }};height:26px;border-radius:999px;background:rgb(var(--surface))"></span>
+                <span style="flex:1"></span>
+                <span style="width:34px;height:16px;border-radius:6px;background:rgb(var(--surface))"></span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+      <span style="font-size:13px;color:rgb(var(--ink-3));text-align:center">Loading feeds…</span>
+    </sc-if>
+
+    <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;padding:0 8px 80px">
+        <span style="width:64px;height:64px;border-radius:50%;background:rgb(var(--custom-soft));color:rgb(var(--custom));display:grid;place-items:center"><i class="icon-sparkles" style="font-size:28px"></i></span>
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:21px;font-weight:700">No custom events yet</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45;text-wrap:pretty">Track anything else here, like baths, tummy time or vitamin drops.</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <sc-for list="{{ emptySugg }}" as="e" hint-placeholder-count="3"><div style="height:40px;padding:0 13px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;background:rgb(var(--raised));border:1.5px solid rgb(var(--line));box-sizing:border-box"><i class="icon-plus" style="font-size:14px"></i>{{ e }}</div></sc-for>
+        </div>
+        <div style="height:56px;padding:0 22px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-plus" style="font-size:20px"></i>Log custom event</div>
+      </div>
+    </sc-if>
+
+    <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:4px 4px 0">
+          <div style="display:flex;align-items:baseline;gap:8px;white-space:nowrap"><span style="font-size:17px;font-weight:700">{{ g.title }}</span><span style="font-size:14px;color:rgb(var(--ink-3))">{{ g.sub }}</span></div>
+          <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;text-align:right">{{ g.totals }}</span>
+        </div>
+        <div style="border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));overflow:hidden">
+          <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+            <div style="position:relative;border-top:{{ r.divider }}">
+              <div style="position:absolute;inset:0;background:rgb(var(--danger));color:rgb(var(--ink-on-solid));display:{{ r.behind }};justify-content:flex-end;align-items:center"><div style="width:92px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:13px;font-weight:700"><i class="icon-trash-2" style="font-size:20px"></i>Delete</div></div>
+              <div style="position:relative;display:flex;align-items:center;gap:12px;min-height:60px;padding:8px 14px;background:rgb(var(--raised));transform:{{ r.tx }}">
+                <span style="width:46px;flex:none;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums">{{ r.time }}</span>
+                <div style="flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px">
+                  <sc-for list="{{ r.parts }}" as="pt" hint-placeholder-count="2">
+                    <span style="height:28px;padding:0 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;background:{{ pt.bg }};color:{{ pt.color }};border:{{ pt.border }};box-sizing:border-box;white-space:nowrap"><span style="width:14px;height:14px;border-radius:50%;background:{{ pt.sw }};display:{{ pt.swD }};box-shadow:inset 0 0 0 1px rgb(var(--swatch-edge) / 0.6)"></span><i class="{{ pt.icon }}" style="font-size:13px"></i>{{ pt.text }}</span>
+                  </sc-for>
+                </div>
+                <span style="font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.total }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+  <div style="flex:none;height:86px;padding:8px 12px 24px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);background:rgb(var(--raised));border-top:1px solid rgb(var(--line))">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.color }};font-size:12px;font-weight:{{ tb.weight }}"><span style="width:56px;height:30px;border-radius:999px;background:{{ tb.pill }};display:grid;place-items:center"><i class="{{ tb.icon }}" style="font-size:22px"></i></span>{{ tb.label }}</div></sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sleep&quot;,&quot;nappy&quot;,&quot;pump&quot;,&quot;growth&quot;,&quot;custom-empty&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;sleep&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen || 'sleep';
+    const c = n => `rgb(var(--${n}))`;
+    const line = `1px solid ${c('line')}`;
+    const pill = (k, text, o = {}) => ({ text, bg: c(k + '-soft'), color: c('on-' + k), border: 'none', icon: o.icon || '', sw: o.sw || 'transparent', swD: o.sw ? 'block' : 'none' });
+    const neutral = (text, icon) => ({ text, bg: c('surface'), color: c('ink-2'), border: 'none', icon: icon || '', sw: 'transparent', swD: 'none' });
+    const idle = t => ({ text: t, bg: c('session-downtime-soft'), color: c('on-session-downtime'), border: `1.5px dashed ${c('session-downtime')}`, icon: '', sw: 'transparent', swD: 'none' });
+    const poo = (a, b) => b ? `linear-gradient(135deg, rgb(var(--poo-${a})) 50%, rgb(var(--poo-${b})) 50%)` : `rgb(var(--poo-${a}))`;
+    const rows = arr => arr.map(([time, parts, total, swiped], i) => ({ time, parts, total, divider: i ? line : 'none', behind: swiped ? 'flex' : 'none', tx: swiped ? 'translateX(-92px)' : 'none' }));
+    const seg = (labels) => labels.map((label, i) => ({ label, w: i ? 500 : 700, bg: i ? 'transparent' : c('raised'), c: i ? c('ink-2') : c('ink'), s: i ? 'none' : 'var(--shadow-raised)' }));
+    const cats = {
+      sleep: { k: 'sleep', icon: 'icon-moon', title: 'Sleep', seg: ['All', 'Naps', 'Night'], groups: [
+        { title: 'Today', sub: 'Tue 6 Oct', totals: '2 sleeps · 2h 37m', rows: rows([
+          ['01:58', [pill('session-active', 'In progress', { icon: 'icon-play' }), pill('sleep', 'Bassinet')], '1h 12m'],
+          ['00:10', [pill('sleep', 'Bassinet'), neutral('Woken by carer')], '1h 25m']]) },
+        { title: 'Yesterday', sub: 'Mon 5 Oct', totals: '8 sleeps · 14h 20m', rows: rows([
+          ['20:24', [pill('sleep', 'Cot'), neutral('Upset → happy')], '3h 10m'],
+          ['18:00', [pill('sleep', 'Held')], '1h 06m', true],
+          ['15:30', [pill('sleep', 'Pram')], '54m'],
+          ['13:00', [pill('sleep', 'Car'), pill('sleep', 'Swing')], '1h 12m'],
+          ['09:30', [pill('sleep', 'Bassinet')], '2h 06m']]) }] },
+      nappy: { k: 'nappy', icon: 'icon-droplets', title: 'Nappies', seg: ['All', 'Wet', 'Dirty'], groups: [
+        { title: 'Today', sub: 'Tue 6 Oct', totals: '3 · 2 wet · 2 dirty', rows: rows([
+          ['02:24', [pill('nappy', 'Wet', { icon: 'icon-droplet' })], 'Medium'],
+          ['01:10', [pill('nappy', 'Both', { icon: 'icon-layers' }), neutral('Seedy')].concat([{ text: 'Mustard + green', bg: c('surface'), color: c('ink-2'), border: 'none', icon: '', sw: poo('mustard', 'green'), swD: 'block' }]), 'Large'],
+          ['00:02', [pill('nappy', 'Dirty', { icon: 'icon-circle-dot' }), { text: 'Black', bg: c('surface'), color: c('ink-2'), border: 'none', icon: '', sw: poo('black'), swD: 'block' }, pill('caution', 'Check', { icon: 'icon-stethoscope' })], 'Little']]) },
+        { title: 'Yesterday', sub: 'Mon 5 Oct', totals: '8 · 6 wet · 4 dirty', rows: rows([
+          ['22:50', [pill('nappy', 'Wet', { icon: 'icon-droplet' })], 'Medium'],
+          ['20:10', [pill('nappy', 'Dirty', { icon: 'icon-circle-dot' }), { text: 'Mustard', bg: c('surface'), color: c('ink-2'), border: 'none', icon: '', sw: poo('mustard'), swD: 'block' }], 'Medium'],
+          ['17:45', [pill('nappy', 'Both', { icon: 'icon-layers' }), { text: 'Yellow', bg: c('surface'), color: c('ink-2'), border: 'none', icon: '', sw: poo('yellow'), swD: 'block' }], 'Massive', true],
+          ['14:30', [pill('nappy', 'Wet', { icon: 'icon-droplet' })], 'Tiny']]) }] },
+      pump: { k: 'pump', icon: 'icon-glass-water', title: 'Pump', seg: null, groups: [
+        { title: 'Today', sub: 'Tue 6 Oct', totals: '1 session · 115 ml', rows: rows([
+          ['01:30', [pill('pump', 'L 8m'), pill('pump', 'R 10m'), idle('1m')], '115 ml']]) },
+        { title: 'Yesterday', sub: 'Mon 5 Oct', totals: '4 sessions · 420 ml', rows: rows([
+          ['19:40', [pill('pump', 'L 10m'), pill('pump', 'R 9m')], '110 ml'],
+          ['14:10', [pill('pump', 'L 12m'), pill('pump', 'R 12m'), idle('2m')], '120 ml', true],
+          ['08:00', [pill('pump', 'L 9m'), pill('pump', 'R 9m')], '95 ml'],
+          ['02:15', [pill('pump', 'L 8m'), pill('pump', 'R 8m')], '95 ml']]) }] },
+      growth: { k: 'growth', icon: 'icon-ruler', title: 'Growth', seg: null, groups: [
+        { title: 'Today', sub: 'Tue 6 Oct', totals: '+40 g since 2 Oct', rows: rows([
+          ['10:15', [pill('growth', '3.42 kg', { icon: 'icon-weight' }), pill('growth', '51.0 cm', { icon: 'icon-ruler' })], '']]) },
+        { title: 'Fri 2 Oct', sub: 'Midwife visit', totals: '', rows: rows([
+          ['11:00', [pill('growth', '3.38 kg', { icon: 'icon-weight' }), pill('growth', '50.5 cm', { icon: 'icon-ruler' }), pill('growth', 'Head 34.5', { icon: 'icon-circle-dashed' })], '']]) },
+        { title: 'Mon 28 Sep', sub: '', totals: '', rows: rows([
+          ['09:40', [pill('growth', '3.21 kg', { icon: 'icon-weight' })], '', true]]) },
+        { title: 'Birth', sub: 'Sat 26 Sep', totals: '', rows: rows([
+          ['06:12', [pill('growth', '3.30 kg', { icon: 'icon-weight' }), pill('growth', '50.0 cm', { icon: 'icon-ruler' }), pill('growth', 'Head 34.0', { icon: 'icon-circle-dashed' })], '']]) }] },
+      custom: { k: 'custom', icon: 'icon-sparkles', title: 'Custom', seg: null, groups: [] },
+      loading: { k: 'feed-right', icon: 'icon-heart', title: 'Feeds', seg: ['All', 'Breast', 'Bottle'], groups: [] }
+    };
+    const key = s === 'custom-empty' ? 'custom' : s;
+    const d = cats[key] || cats.sleep;
+    const tabs = [['icon-house', 'Home'], ['icon-history', 'History'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
+      .map(([icon, label], i) => ({ icon, label, color: i === 1 ? c('on-primary-soft') : c('ink-3'), weight: i === 1 ? 700 : 500, pill: i === 1 ? c('primary-soft') : 'transparent' }));
+    const sk = n => Array.from({ length: n }, (_, i) => ({ divider: i ? line : 'none', w1: [70, 56, 84, 62][i % 4] + 'px', w2: [62, 74, 50, 70][i % 4] + 'px' }));
+    return {
+      cat: { title: d.title, icon: d.icon, solid: c(d.k), soft: c(d.k + '-soft'), on: c('on-' + d.k) },
+      hasSeg: !!d.seg, segOpts: seg(d.seg || []),
+      groups: d.groups, tabs,
+      isLoading: s === 'loading', isEmpty: s === 'custom-empty',
+      skel: [sk(3), sk(4)], emptySugg: ['Bath', 'Tummy time', 'Vitamin D']
+    };
+  }
+}
+</script>
+</body>
+</html>

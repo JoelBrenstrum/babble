@@ -1,0 +1,164 @@
+/* Babble design tokens — derived from Organic. Colours are space-separated RGB channels so
+   Tailwind/NativeWind can apply alpha: rgb(var(--primary) / 0.5). Light is :root; dark via .dark or [data-theme="dark"]. */
+:root, [data-theme="light"] {
+  --bg: 243 240 232; /* #f3f0e8 */
+  --surface: 232 228 217; /* #e8e4d9 */
+  --raised: 251 249 244; /* #fbf9f4 */
+  --line: 220 216 204; /* #dcd8cc */
+  --line-strong: 174 170 155; /* #aeaa9b */
+  --ink: 31 33 28; /* #1f211c */
+  --ink-2: 85 90 76; /* #555a4c */
+  --ink-3: 98 103 90; /* #62675a */
+  --ink-on-solid: 255 250 242; /* #fffaf2 */
+  --scrim: 31 33 28; /* #1f211c */
+  --primary: 86 99 63; /* #56633f */
+  --on-primary: 246 248 239; /* #f6f8ef */
+  --primary-soft: 225 238 204; /* #e1eecc */
+  --on-primary-soft: 61 71 43; /* #3d472b */
+  --secondary: 178 98 45; /* #b2622d */
+  --on-secondary: 255 248 239; /* #fff8ef */
+  --secondary-soft: 255 225 208; /* #ffe1d0 */
+  --on-secondary-soft: 140 73 26; /* #8c491a */
+  --sleep: 106 95 160; /* #6a5fa0 */
+  --sleep-soft: 232 227 242; /* #e8e3f2 */
+  --on-sleep: 58 49 104; /* #3a3168 */
+  --feed-left: 159 63 53; /* #9f3f35 */
+  --feed-left-soft: 245 221 212; /* #f5ddd4 */
+  --on-feed-left: 110 42 27; /* #6e2a1b */
+  --feed-right: 169 95 34; /* #a95f22 */
+  --feed-right-soft: 248 229 209; /* #f8e5d1 */
+  --on-feed-right: 122 67 22; /* #7a4316 */
+  --bottle: 143 108 18; /* #8f6c12 */
+  --bottle-soft: 243 232 200; /* #f3e8c8 */
+  --on-bottle: 95 72 8; /* #5f4808 */
+  --nappy: 63 127 102; /* #3f7f66 */
+  --nappy-soft: 217 235 226; /* #d9ebe2 */
+  --on-nappy: 31 74 58; /* #1f4a3a */
+  --pump: 141 79 123; /* #8d4f7b */
+  --pump-soft: 239 222 234; /* #efdeea */
+  --on-pump: 86 44 74; /* #562c4a */
+  --growth: 74 111 134; /* #4a6f86 */
+  --growth-soft: 221 231 236; /* #dde7ec */
+  --on-growth: 37 64 79; /* #25404f */
+  --custom: 122 106 88; /* #7a6a58 */
+  --custom-soft: 235 227 216; /* #ebe3d8 */
+  --on-custom: 74 62 49; /* #4a3e31 */
+  --session-active: 86 99 63; /* #56633f */
+  --session-active-soft: 225 238 204; /* #e1eecc */
+  --on-session-active: 61 71 43; /* #3d472b */
+  --session-paused: 138 122 74; /* #8a7a4a */
+  --session-paused-soft: 239 233 214; /* #efe9d6 */
+  --on-session-paused: 90 77 38; /* #5a4d26 */
+  --session-downtime: 143 142 128; /* #8f8e80 */
+  --session-downtime-soft: 235 233 224; /* #ebe9e0 */
+  --on-session-downtime: 93 93 82; /* #5d5d52 */
+  --success: 63 122 74; /* #3f7a4a */
+  --success-soft: 220 235 220; /* #dcebdc */
+  --on-success: 36 74 44; /* #244a2c */
+  --warning: 168 102 26; /* #a8661a */
+  --warning-soft: 246 228 204; /* #f6e4cc */
+  --on-warning: 106 61 8; /* #6a3d08 */
+  --danger: 178 58 46; /* #b23a2e */
+  --danger-soft: 246 220 216; /* #f6dcd8 */
+  --on-danger: 122 34 25; /* #7a2219 */
+  --info: 47 111 104; /* #2f6f68 */
+  --info-soft: 221 233 230; /* #dde9e6 */
+  --on-info: 36 80 74; /* #24504a */
+  --caution: 138 106 46; /* #8a6a2e */
+  --caution-soft: 243 236 220; /* #f3ecdc */
+  --on-caution: 92 71 24; /* #5c4718 */
+  --swatch-edge: 141 138 126; /* #8d8a7e */
+  --shadow-raised: 0 1px 2px rgb(31 33 28 / 0.07), 0 2px 8px rgb(31 33 28 / 0.05);
+  --shadow-sheet: 0 -8px 32px rgb(31 33 28 / 0.14);
+  --shadow-toast: 0 6px 20px rgb(31 33 28 / 0.18);
+}
+.dark, [data-theme="dark"] {
+  --bg: 20 22 18; /* #141612 */
+  --surface: 29 32 26; /* #1d201a */
+  --raised: 34 38 31; /* #22261f */
+  --line: 48 53 43; /* #30352b */
+  --line-strong: 83 90 74; /* #535a4a */
+  --ink: 227 226 211; /* #e3e2d3 */
+  --ink-2: 169 173 152; /* #a9ad98 */
+  --ink-3: 139 143 123; /* #8b8f7b */
+  --ink-on-solid: 22 24 18; /* #161812 */
+  --scrim: 0 0 0; /* #000000 */
+  --primary: 174 191 146; /* #aebf92 */
+  --on-primary: 26 32 16; /* #1a2010 */
+  --primary-soft: 42 50 32; /* #2a3220 */
+  --on-primary-soft: 207 220 182; /* #cfdcb6 */
+  --secondary: 224 144 92; /* #e0905c */
+  --on-secondary: 36 19 7; /* #241307 */
+  --secondary-soft: 61 39 23; /* #3d2717 */
+  --on-secondary-soft: 246 195 160; /* #f6c3a0 */
+  --sleep: 165 151 212; /* #a597d4 */
+  --sleep-soft: 40 35 58; /* #28233a */
+  --on-sleep: 216 207 240; /* #d8cff0 */
+  --feed-left: 220 130 104; /* #dc8268 */
+  --feed-left-soft: 58 33 26; /* #3a211a */
+  --on-feed-left: 242 195 179; /* #f2c3b3 */
+  --feed-right: 238 176 114; /* #eeb072 */
+  --feed-right-soft: 58 41 21; /* #3a2915 */
+  --on-feed-right: 247 215 177; /* #f7d7b1 */
+  --bottle: 220 187 98; /* #dcbb62 */
+  --bottle-soft: 50 41 20; /* #322914 */
+  --on-bottle: 239 220 170; /* #efdcaa */
+  --nappy: 134 196 168; /* #86c4a8 */
+  --nappy-soft: 26 46 37; /* #1a2e25 */
+  --on-nappy: 195 230 213; /* #c3e6d5 */
+  --pump: 210 155 194; /* #d29bc2 */
+  --pump-soft: 51 32 45; /* #33202d */
+  --on-pump: 236 201 225; /* #ecc9e1 */
+  --growth: 147 180 198; /* #93b4c6 */
+  --growth-soft: 26 37 43; /* #1a252b */
+  --on-growth: 198 218 229; /* #c6dae5 */
+  --custom: 191 174 152; /* #bfae98 */
+  --custom-soft: 42 37 31; /* #2a251f */
+  --on-custom: 224 212 195; /* #e0d4c3 */
+  --session-active: 174 191 146; /* #aebf92 */
+  --session-active-soft: 42 50 32; /* #2a3220 */
+  --on-session-active: 207 220 182; /* #cfdcb6 */
+  --session-paused: 196 179 131; /* #c4b383 */
+  --session-paused-soft: 42 38 24; /* #2a2618 */
+  --on-session-paused: 226 214 176; /* #e2d6b0 */
+  --session-downtime: 106 108 96; /* #6a6c60 */
+  --session-downtime-soft: 35 36 31; /* #23241f */
+  --on-session-downtime: 179 180 166; /* #b3b4a6 */
+  --success: 143 196 154; /* #8fc49a */
+  --success-soft: 26 42 29; /* #1a2a1d */
+  --on-success: 194 226 200; /* #c2e2c8 */
+  --warning: 232 168 96; /* #e8a860 */
+  --warning-soft: 51 35 15; /* #33230f */
+  --on-warning: 245 210 168; /* #f5d2a8 */
+  --danger: 236 138 126; /* #ec8a7e */
+  --danger-soft: 58 26 22; /* #3a1a16 */
+  --on-danger: 246 196 189; /* #f6c4bd */
+  --info: 134 196 186; /* #86c4ba */
+  --info-soft: 22 39 36; /* #162724 */
+  --on-info: 191 226 219; /* #bfe2db */
+  --caution: 214 187 130; /* #d6bb82 */
+  --caution-soft: 44 36 20; /* #2c2414 */
+  --on-caution: 236 220 182; /* #ecdcb6 */
+  --swatch-edge: 139 143 123; /* #8b8f7b */
+  --shadow-raised: 0 0 0 1px rgb(227 226 211 / 0.05);
+  --shadow-sheet: 0 -12px 40px rgb(0 0 0 / 0.55), 0 0 0 1px rgb(227 226 211 / 0.06);
+  --shadow-toast: 0 8px 24px rgb(0 0 0 / 0.5), 0 0 0 1px rgb(227 226 211 / 0.08);
+}
+/* Poo swatches are literal and never themed. */
+:root {
+  --poo-yellow: 232 197 71; /* #e8c547 */
+  --poo-mustard: 201 162 39; /* #c9a227 */
+  --poo-green: 125 154 58; /* #7d9a3a */
+  --poo-dark-green: 63 90 36; /* #3f5a24 */
+  --poo-brown: 122 78 42; /* #7a4e2a */
+  --poo-orange: 217 130 43; /* #d9822b */
+  --poo-black: 28 26 23; /* #1c1a17 */
+  --poo-red: 168 50 42; /* #a8322a */
+  --poo-white-grey: 220 217 207; /* #dcd9cf */
+  --font-sans: "Figtree", system-ui, sans-serif;
+  --font-brand: "Caprasimo", "Figtree", serif;
+  --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms; --dur-pulse: 2400ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+}
+@keyframes babble-pulse { 0% { transform: scale(1); opacity: .55 } 70% { transform: scale(2.4); opacity: 0 } 100% { transform: scale(2.4); opacity: 0 } }
+@media (prefers-reduced-motion: reduce) { [data-pulse] { animation: none !important; opacity: .35 !important; transform: scale(1.8) !important; } }

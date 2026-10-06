@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>body{margin:0;background:#e8e4d9;font-family:Figtree,system-ui,sans-serif}a{color:#56633f;text-underline-offset:3px}a:hover{color:#3d472b}</style>
+</helmet>
+<div data-theme="light" style="background:rgb(var(--surface));color:rgb(var(--ink));padding:64px 72px 96px;display:flex;flex-direction:column;gap:80px;box-sizing:border-box;min-width:1800px">
+  <header style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:64px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="font-family:Caprasimo, serif;font-size:64px;line-height:1;color:rgb(var(--primary))">Babble</div>
+      <div style="font-size:22px;font-weight:700">Screens v1.1 · remaining phone flows and web</div>
+      <div style="font-size:16px;color:rgb(var(--ink-2));line-height:1.5;max-width:460px">Built with the v1 Sage tokens and components, unchanged. Each screen is shown in light then dark. New components are added to the <a href="Babble Design System.dc.html">design system</a> sheet.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 32px;font-size:15px;line-height:1.55;color:rgb(var(--ink-2))">
+      <div><div style="font-weight:700;color:rgb(var(--ink));margin-bottom:6px">Desktop, 1280px and up</div>A 268px sidebar holds the wordmark, baby switcher, running-session card, nav and online caregivers. Pages use two columns: trackers next to the timeline, and list next to detail. Adding an entry opens a dialog instead of a new page. The sidebar card is hidden on Home, where the full card already shows. In Settings the running timer is shown as a top bar instead, so you can compare both treatments.</div>
+      <div><div style="font-weight:700;color:rgb(var(--ink));margin-bottom:6px">Tablet, 768–1279px</div>The sidebar shrinks to an 84px icon rail. The running session becomes a pulsing chip with its side and time. Two-column pages split 1fr / 1fr. The settings section list becomes a select above the form. The week table scrolls sideways.</div>
+      <div><div style="font-weight:700;color:rgb(var(--ink));margin-bottom:6px">Phone and PWA, under 768px</div>The rail becomes the bottom tab bar (Home, History, Stats, Settings), and categories open from the Home rows. Detail panels become full screens and dialogs become bottom sheets. Layouts match the native app exactly, so the phone screens below serve both Expo and the PWA.</div>
+    </div>
+  </header>
+
+  <section style="display:flex;flex-direction:column;gap:28px">
+    <h2 style="margin:0;font-size:30px;font-weight:700">Phone · forms and timers</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:56px 64px">
+      <sc-for list="{{ forms }}" as="it" hint-placeholder-count="10">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+          <div style="display:flex;gap:24px"><div data-theme="light"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:28px">
+    <h2 style="margin:0;font-size:30px;font-weight:700">Phone · feed flows, prompts, reminders and live states</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:56px 64px">
+      <sc-for list="{{ flows }}" as="it" hint-placeholder-count="9">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+          <div style="display:flex;gap:24px"><div data-theme="light"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:28px">
+    <h2 style="margin:0;font-size:30px;font-weight:700">Phone · category lists</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:56px 64px">
+      <sc-for list="{{ lists }}" as="it" hint-placeholder-count="6">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+          <div style="display:flex;gap:24px"><div data-theme="light"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:28px">
+    <h2 style="margin:0;font-size:30px;font-weight:700">Phone · onboarding, settings and install</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:56px 64px">
+      <sc-for list="{{ account }}" as="it" hint-placeholder-count="11">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+          <div style="display:flex;gap:24px"><div data-theme="light"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:28px">
+    <h2 style="margin:0;font-size:30px;font-weight:700">Web · desktop 1440</h2>
+    <div style="display:flex;flex-direction:column;gap:64px">
+      <sc-for list="{{ web }}" as="it" hint-placeholder-count="11">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span><span style="font-size:15px;color:rgb(var(--ink-2))">{{ it.note }}</span></div>
+          <div style="display:flex;gap:40px"><div data-theme="light"><dc-import name="Web" screen="{{ it.s }}" width="desktop" hint-size="1440px,900px"></dc-import></div><div data-theme="dark"><dc-import name="Web" screen="{{ it.s }}" width="desktop" hint-size="1440px,900px"></dc-import></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:28px">
+    <h2 style="margin:0;font-size:30px;font-weight:700">Web · tablet 900</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:56px 64px">
+      <sc-for list="{{ tablet }}" as="it" hint-placeholder-count="2">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+          <div style="display:flex;gap:32px"><div data-theme="light"><dc-import name="Web" screen="{{ it.s }}" width="tablet" hint-size="900px,900px"></dc-import></div><div data-theme="dark"><dc-import name="Web" screen="{{ it.s }}" width="tablet" hint-size="900px,900px"></dc-import></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const L = (arr, p) => arr.map(([s, title, note], i) => ({ s, title, note: note || '', n: p + String(i + 1).padStart(2, '0') }));
+    return {
+      forms: L([['bottle', 'Bottle form'], ['bottle-keypad', 'Bottle · keypad'], ['sleep', 'Sleep timer · running'], ['sleep-details', 'Sleep · how it went'], ['sleep-manual', 'Sleep · manual entry'], ['pump', 'Pump timer'], ['pump-finish', 'Pump · amounts on finish'], ['growth', 'Growth form'], ['growth-error', 'Growth · failed save'], ['custom', 'Custom event']], 'P1.'),
+      flows: L([['feed-detail', 'Feed detail · edit'], ['feed-imported', 'Feed detail · imported'], ['prompt-endnap', 'Feed start · End nap?'], ['prompt-startnap', 'Feed end · Start a nap?'], ['notif-lock', 'Feed due notification'], ['home-overdue', 'Home · feed overdue'], ['home-snoozed', 'Home · snoozed'], ['home-live', 'Home · partner live update'], ['home-offline', 'Home · offline']], 'P2.'),
+      lists: L([['sleep', 'Sleep list'], ['nappy', 'Nappy list'], ['pump', 'Pump list'], ['growth', 'Growth list'], ['custom-empty', 'Custom · empty'], ['loading', 'Loading skeleton']], 'P3.'),
+      account: L([['signin', 'Sign in'], ['check-email', 'Check your email'], ['family', 'Create or join family'], ['add-baby', 'Add baby'], ['day-start', 'Day start'], ['invite', 'Invite a caregiver'], ['settings', 'Settings'], ['settings-2', 'Settings · scrolled'], ['delete-confirm', 'Delete account'], ['pwa-ios', 'Install · iOS Safari'], ['pwa-android', 'Install · Android']], 'P4.'),
+      web: L([['home', 'Home', 'Banner across the top, trackers and running card left, today\u2019s timeline right'], ['feeds', 'Feeds · list and detail', 'Selected feed edits in the right panel'], ['feeds-add', 'Feeds · add dialog', 'The add flow opens over the split view'], ['history-day', 'History · day', 'Timeline and totals side by side'], ['history-week', 'History · week', 'Seven full-height days with a daily totals table'], ['import-1', 'Import · upload'], ['import-2', 'Import · baby and timezone'], ['import-3', 'Import · preview'], ['import-4', 'Import · progress'], ['import-5', 'Import · summary'], ['settings', 'Settings', 'Shows the top-bar treatment of the running timer']], 'W.'),
+      tablet: L([['home', 'Home · tablet'], ['feeds', 'Feeds · tablet']], 'T.')
+    };
+  }
+}
+</script>
+</body>
+</html>

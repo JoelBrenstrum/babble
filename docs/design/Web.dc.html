@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="width:{{ W }};height:{{ Hpx }};border-radius:14px;overflow:hidden;position:relative;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgb(var(--line)), 0 24px 60px rgba(20,22,18,.22)">
+  <div style="flex:none;height:40px;display:flex;align-items:center;gap:14px;padding:0 16px;background:rgb(var(--surface));border-bottom:1px solid rgb(var(--line))">
+    <div style="display:flex;gap:7px"><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--line-strong))"></span><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--line-strong))"></span><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--line-strong))"></span></div>
+    <div style="flex:1;display:flex;justify-content:center"><div style="height:26px;min-width:320px;border-radius:8px;background:rgb(var(--raised));display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:rgb(var(--ink-2))"><i class="icon-lock" style="font-size:12px"></i>babble.home.nz{{ path }}</div></div>
+    <div style="width:57px"></div>
+  </div>
+  <div style="flex:1;min-height:0;display:flex">
+    <aside style="flex:none;width:{{ sideW }};display:flex;flex-direction:column;gap:14px;padding:18px {{ sidePad }};background:rgb(var(--raised));border-right:1px solid rgb(var(--line));box-sizing:border-box;overflow:hidden">
+      <div style="display:flex;align-items:center;justify-content:{{ sideAlign }};height:40px;padding:0 6px">
+        <span style="font-family:Caprasimo, serif;font-size:{{ markSize }};line-height:1;color:rgb(var(--primary))">{{ mark }}</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:14px;background:rgb(var(--surface));justify-content:{{ sideAlign }}">
+        <div style="width:40px;height:40px;flex:none;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-weight:700;font-size:17px">A</div>
+        <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}"><div style="flex:1;line-height:1.25"><div style="font-size:16px;font-weight:700">Adaline</div><div style="font-size:13px;color:rgb(var(--ink-2))">10 days old</div></div><i class="icon-chevrons-up-down" style="font-size:17px;color:rgb(var(--ink-3))"></i></sc-if>
+      </div>
+      <sc-if value="{{ sideTimer }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ wide }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-radius:16px;background:rgb(var(--feed-right-soft));color:rgb(var(--on-feed-right))">
+            <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700"><span style="position:relative;width:8px;height:8px"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right))"></span></span>Feeding · Right</span><span style="font-size:12px;font-weight:600">by Jaimi</span></div>
+            <div style="font-size:34px;font-weight:500;line-height:1;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:rgb(var(--ink))">12<span style="font-size:17px;font-weight:600;color:rgb(var(--ink-2));margin:0 6px 0 2px">m</span>23<span style="font-size:17px;font-weight:600;color:rgb(var(--ink-2));margin-left:2px">s</span></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 44px;gap:6px">
+              <div style="height:40px;border-radius:10px;background:rgb(var(--raised));color:rgb(var(--on-feed-left));display:grid;place-items:center;font-size:14px;font-weight:700">L</div>
+              <div style="height:40px;border-radius:10px;background:rgb(var(--feed-right));color:rgb(var(--ink-on-solid));display:grid;place-items:center;font-size:14px;font-weight:700">R · on</div>
+              <div style="height:40px;border-radius:10px;background:rgb(var(--raised));color:rgb(var(--ink));display:grid;place-items:center"><i class="icon-pause" style="font-size:16px"></i></div>
+            </div>
+          </div>
+        </sc-if>
+        <sc-if value="{{ narrow }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 0;border-radius:14px;background:rgb(var(--feed-right-soft));color:rgb(var(--on-feed-right))">
+            <span style="position:relative;width:10px;height:10px"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right))"></span></span>
+            <span style="font-size:13px;font-weight:700;font-variant-numeric:tabular-nums">R 12m</span>
+          </div>
+        </sc-if>
+      </sc-if>
+      <nav style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ nav }}" as="n" hint-placeholder-count="10">
+          <div style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-radius:12px;justify-content:{{ sideAlign }};background:{{ n.bg }};color:{{ n.c }};font-size:15px;font-weight:{{ n.w }}"><i class="{{ n.icon }}" style="font-size:19px;color:{{ n.ic }}"></i><span style="display:{{ labelD }}">{{ n.label }}</span></div>
+        </sc-for>
+      </nav>
+      <div style="flex:1"></div>
+      <div style="display:flex;align-items:center;gap:10px;padding:6px;justify-content:{{ sideAlign }};flex-direction:{{ cgDir }}">
+        <sc-for list="{{ carers }}" as="cg" hint-placeholder-count="2">
+          <span style="position:relative;width:34px;height:34px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:12px;font-weight:700;color:rgb(var(--ink-2))">{{ cg }}<span style="position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:rgb(var(--success));border:2px solid rgb(var(--raised))"></span></span>
+        </sc-for>
+        <span style="font-size:13px;color:rgb(var(--ink-2));display:{{ labelD }}">Both online</span>
+      </div>
+    </aside>
+
+    <main style="flex:1;min-width:0;display:flex;flex-direction:column">
+      <sc-if value="{{ topTimer }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;height:60px;display:flex;align-items:center;gap:16px;padding:0 28px;background:rgb(var(--feed-right-soft));color:rgb(var(--on-feed-right))">
+          <span style="position:relative;width:10px;height:10px"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right))"></span></span>
+          <span style="font-size:15px;font-weight:700">Feeding · Right</span>
+          <span style="font-size:26px;font-weight:500;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;color:rgb(var(--ink))">12m 23s</span>
+          <span style="font-size:14px">Total 22m 55s · started by Jaimi</span>
+          <span style="flex:1"></span>
+          <div style="height:40px;padding:0 16px;border-radius:10px;background:rgb(var(--raised));color:rgb(var(--on-feed-left));display:grid;place-items:center;font-size:14px;font-weight:700">Switch to L</div>
+          <div style="height:40px;padding:0 14px;border-radius:10px;background:rgb(var(--raised));color:rgb(var(--ink));display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600"><i class="icon-pause" style="font-size:16px"></i>Pause</div>
+          <div style="height:40px;padding:0 16px;border-radius:10px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600"><i class="icon-check" style="font-size:16px"></i>Finish</div>
+        </div>
+      </sc-if>
+      <div style="flex:none;height:72px;display:flex;align-items:center;gap:14px;padding:0 {{ mainPad }}">
+        <span style="font-size:26px;font-weight:700">{{ pageTitle }}</span>
+        <span style="font-size:15px;color:rgb(var(--ink-2))">{{ pageSub }}</span>
+        <span style="flex:1"></span>
+        <sc-if value="{{ hasLog }}" hint-placeholder-val="{{ true }}">
+          <div style="height:44px;padding:0 18px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="icon-plus" style="font-size:18px"></i>{{ logLabel }}</div>
+        </sc-if>
+      </div>
+
+      <div style="flex:1;min-height:0;overflow:hidden;padding:0 {{ mainPad }} 28px;display:flex;flex-direction:column;gap:18px">
+        <sc-if value="{{ is.home }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:16px;background:rgb(var(--info-soft));color:rgb(var(--on-info))">
+            <i class="icon-clock" style="font-size:20px;color:rgb(var(--info))"></i>
+            <span style="flex:1;font-size:16px"><b>Next feed due in 42m</b> · around 3:02 pm, on the Left</span>
+            <span style="height:36px;padding:0 14px;border-radius:10px;background:rgb(var(--raised));color:rgb(var(--ink));display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600"><i class="icon-bell-minus" style="font-size:15px"></i>Snooze</span>
+          </div>
+        </sc-if>
+
+        <div style="flex:1;min-height:0;display:grid;grid-template-columns:{{ gridCols }};gap:20px">
+          <sc-if value="{{ is.home }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;flex-direction:column;gap:14px;min-width:0;overflow:hidden">
+              <div style="padding:18px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised);display:flex;flex-direction:column;gap:12px">
+                <div style="display:flex;align-items:center;justify-content:space-between"><span style="display:flex;align-items:center;gap:9px;padding:5px 12px 5px 11px;border-radius:999px;background:rgb(var(--feed-right-soft));color:rgb(var(--on-feed-right));font-size:14px;font-weight:600"><span style="position:relative;width:8px;height:8px"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right))"></span></span>Feeding · Right</span><span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2))"><span style="width:22px;height:22px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Started by Jaimi</span></div>
+                <div style="display:flex;align-items:flex-end;gap:16px">
+                  <div style="flex:1"><div style="font-weight:500;font-size:48px;line-height:1;letter-spacing:-0.03em;font-variant-numeric:tabular-nums">12<span style="font-size:22px;font-weight:600;color:rgb(var(--ink-2));margin:0 10px 0 3px">m</span>23<span style="font-size:22px;font-weight:600;color:rgb(var(--ink-2));margin-left:3px">s</span></div><div style="font-size:14px;color:rgb(var(--ink-2));margin-top:6px;font-variant-numeric:tabular-nums">Left 10m 32s · idle 3m 02s · total 22m 55s</div></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+                  <div style="height:48px;border-radius:12px;background:rgb(var(--feed-left-soft));color:rgb(var(--on-feed-left));border:2px solid rgb(var(--feed-left) / 0.45);box-sizing:border-box;display:grid;place-items:center;font-size:15px;font-weight:700">L · 10m</div>
+                  <div style="height:48px;border-radius:12px;background:rgb(var(--feed-right));color:rgb(var(--ink-on-solid));display:grid;place-items:center;font-size:15px;font-weight:700">R · on</div>
+                  <div style="height:48px;border-radius:12px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:600"><i class="icon-pause" style="font-size:16px"></i>Pause</div>
+                  <div style="height:48px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:600"><i class="icon-check" style="font-size:16px"></i>Finish</div>
+                </div>
+              </div>
+              <div style="display:{{ stripD }};grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 4px;border-radius:16px;background:rgb(var(--surface))">
+                <sc-for list="{{ todayStrip }}" as="s" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:2px;padding:0 14px;border-left:{{ s.divider }}"><span style="font-size:13px;color:rgb(var(--ink-2))">{{ s.label }}</span><span style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">{{ s.value }}</span></div></sc-for>
+              </div>
+              <div style="display:flex;flex-direction:column;background:rgb(var(--raised));border-radius:16px;border:1px solid rgb(var(--line))">
+                <sc-for list="{{ trackerRows }}" as="r" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:14px;min-height:58px;padding:6px 10px 6px 14px;border-top:{{ r.divider }}">
+                    <div style="width:40px;height:40px;flex:none;border-radius:12px;background:{{ r.soft }};color:{{ r.solid }};display:grid;place-items:center"><i class="{{ r.icon }}" style="font-size:20px"></i></div>
+                    <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:600">{{ r.title }}</div><div style="font-size:14px;color:{{ r.metaC }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.meta }}</div></div>
+                    <div style="width:44px;height:44px;flex:none;border-radius:50%;background:{{ r.soft }};color:{{ r.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:20px"></i></div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ showTimeline }}" hint-placeholder-val="{{ true }}">
+            <div style="min-width:0;display:flex;flex-direction:column;gap:10px;padding:18px 20px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+              <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:17px;font-weight:700">{{ tlTitle }}</span><span style="font-size:14px;color:rgb(var(--ink-2))">{{ tlSub }}</span></div>
+              <div style="display:grid;grid-template-columns:44px repeat(4,minmax(0,1fr));gap:10px;font-size:13px;font-weight:600;color:rgb(var(--ink-2))">
+                <span></span>
+                <sc-for list="{{ lanes }}" as="ln" hint-placeholder-count="4"><span style="display:flex;align-items:center;gap:6px"><i class="{{ ln.icon }}" style="font-size:14px;color:{{ ln.c }}"></i>{{ ln.label }}</span></sc-for>
+              </div>
+              <div style="position:relative;height:{{ tl.height }};display:grid;grid-template-columns:44px repeat(4,minmax(0,1fr));gap:10px">
+                <div style="position:relative"><sc-for list="{{ tl.ticks }}" as="h" hint-placeholder-count="13"><span style="position:absolute;top:{{ h.top }};transform:translateY(-50%);font-size:12px;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums">{{ h.label }}</span></sc-for></div>
+                <div style="position:absolute;left:54px;right:0;top:0;bottom:0;pointer-events:none"><sc-for list="{{ tl.ticks }}" as="h" hint-placeholder-count="13"><div style="position:absolute;left:0;right:0;top:{{ h.top }};border-top:1px solid rgb(var(--line))"></div></sc-for></div>
+                <div style="position:relative"><sc-for list="{{ tl.sleep }}" as="b" hint-placeholder-count="6"><div style="position:absolute;left:0;right:0;top:{{ b.top }};height:{{ b.h }};border-radius:6px;background:rgb(var(--sleep));color:rgb(var(--ink-on-solid));font-size:12px;font-weight:700;padding:4px 8px;box-sizing:border-box;overflow:hidden;font-variant-numeric:tabular-nums">{{ b.label }}</div></sc-for></div>
+                <div style="position:relative"><sc-for list="{{ tl.feeds }}" as="f" hint-placeholder-count="6"><div style="position:absolute;left:0;right:0;top:{{ f.top }};display:flex;flex-direction:column;border-radius:4px;overflow:hidden;box-shadow:{{ f.ring }}"><div style="height:{{ f.lh }};background:rgb(var(--feed-left))"></div><div style="height:{{ f.rh }};background:rgb(var(--feed-right))"></div></div></sc-for></div>
+                <div style="position:relative"><sc-for list="{{ tl.nappies }}" as="n" hint-placeholder-count="5"><div style="position:absolute;left:0;top:{{ n.top }};transform:translateY(-50%);height:22px;padding:0 8px;border-radius:999px;background:rgb(var(--nappy-soft));color:rgb(var(--on-nappy));border:1px solid rgb(var(--nappy) / 0.5);font-size:12px;font-weight:700;display:flex;align-items:center;gap:5px"><span style="width:9px;height:9px;border-radius:50%;background:{{ n.poo }};display:{{ n.pooD }};box-shadow:0 0 0 1px rgb(var(--swatch-edge) / 0.6)"></span>{{ n.label }}</div></sc-for></div>
+                <div style="position:relative"><sc-for list="{{ tl.pumps }}" as="p" hint-placeholder-count="2"><div style="position:absolute;left:0;right:20%;top:{{ p.top }};height:{{ p.h }};border-radius:4px;background:rgb(var(--pump))"></div></sc-for></div>
+                <div style="position:absolute;left:44px;right:0;top:{{ tl.nowTop }};display:{{ tl.nowD }};align-items:center;pointer-events:none"><span style="font-size:11px;font-weight:700;color:rgb(var(--ink-on-solid));background:rgb(var(--primary));padding:1px 6px;border-radius:999px;margin-left:-40px">now</span><span style="flex:1;height:2px;background:rgb(var(--primary))"></span></div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ is.day }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px;min-width:0">
+              <sc-for list="{{ dayTotals }}" as="t" hint-placeholder-count="4">
+                <div style="display:flex;flex-direction:column;gap:10px;padding:16px 18px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+                  <div style="display:flex;align-items:center;gap:10px"><span style="width:36px;height:36px;border-radius:10px;background:{{ t.soft }};color:{{ t.solid }};display:grid;place-items:center"><i class="{{ t.icon }}" style="font-size:18px"></i></span><span style="flex:1;font-size:16px;font-weight:700">{{ t.label }}</span><span style="font-size:24px;font-weight:700;font-variant-numeric:tabular-nums">{{ t.value }}</span></div>
+                  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+                    <sc-for list="{{ t.subs }}" as="sb" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;padding:8px 10px;border-radius:10px;background:rgb(var(--surface))"><span style="font-size:12px;color:rgb(var(--ink-2))">{{ sb.k }}</span><span style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ sb.v }}</span></div></sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ is.feeds }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:12px;min-width:0;overflow:hidden">
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
+                <div style="height:36px;border-radius:10px;display:grid;place-items:center;font-size:14px;font-weight:700;background:rgb(var(--raised));box-shadow:var(--shadow-raised)">All</div><div style="height:36px;border-radius:10px;display:grid;place-items:center;font-size:14px;color:rgb(var(--ink-2))">Breast</div><div style="height:36px;border-radius:10px;display:grid;place-items:center;font-size:14px;color:rgb(var(--ink-2))">Bottle</div>
+              </div>
+              <sc-for list="{{ feedGroups }}" as="g" hint-placeholder-count="2">
+                <div style="display:flex;flex-direction:column;gap:8px">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;padding:4px 4px 0"><div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:16px;font-weight:700">{{ g.title }}</span><span style="font-size:13px;color:rgb(var(--ink-3))">{{ g.sub }}</span></div><span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ g.totals }}</span></div>
+                  <div style="border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));overflow:hidden">
+                    <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+                      <div style="display:flex;align-items:center;gap:12px;min-height:54px;padding:6px 14px;border-top:{{ r.divider }};background:{{ r.bg }};box-shadow:{{ r.ring }}">
+                        <span style="width:44px;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ r.time }}</span>
+                        <div style="flex:1;display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ r.parts }}" as="pt" hint-placeholder-count="2"><span style="height:26px;padding:0 9px;border-radius:999px;display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;background:{{ pt.bg }};color:{{ pt.color }}"><i class="{{ pt.icon }}" style="font-size:12px"></i>{{ pt.text }}</span></sc-for></div>
+                        <span style="font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ r.total }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;padding:22px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));min-width:0;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:12px"><span style="width:40px;height:40px;border-radius:12px;background:rgb(var(--feed-left-soft));color:rgb(var(--feed-left));display:grid;place-items:center"><i class="icon-heart" style="font-size:20px"></i></span><div style="flex:1"><div style="font-size:20px;font-weight:700">Breastfeed · 11:40</div><div style="font-size:14px;color:rgb(var(--ink-2))">Today · most recent · logged by Joel</div></div><div style="width:40px;height:40px;border-radius:10px;background:rgb(var(--danger-soft));color:rgb(var(--on-danger));display:grid;place-items:center"><i class="icon-trash-2" style="font-size:18px"></i></div></div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2))">Started</span><div style="height:44px;padding:0 14px;border-radius:12px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">Tue 6 Oct · 11:40<i class="icon-calendar-clock" style="font-size:16px;color:rgb(var(--ink-3))"></i></div></div>
+                <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2))">Ended</span><div style="height:44px;padding:0 14px;border-radius:12px;background:rgb(var(--surface));display:flex;align-items:center;font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">12:06 · from segments</div></div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:6px">
+                <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Segments</span>
+                <div style="border-radius:14px;border:1px solid rgb(var(--line))">
+                  <sc-for list="{{ detailSegs }}" as="sg" hint-placeholder-count="3">
+                    <div style="display:grid;grid-template-columns:130px 1fr 1fr 40px;gap:10px;align-items:center;min-height:56px;padding:0 10px;border-top:{{ sg.divider }}">
+                      <div style="height:40px;padding:0 10px;border-radius:10px;display:flex;align-items:center;gap:6px;background:{{ sg.bg }};color:{{ sg.c }};border:{{ sg.border }};box-sizing:border-box;font-size:14px;font-weight:700"><span style="width:9px;height:9px;border-radius:50%;background:{{ sg.dot }};border:{{ sg.dotBorder }};box-sizing:border-box"></span>{{ sg.label }}<i class="{{ sg.caret }}" style="font-size:14px;margin-left:auto"></i></div>
+                      <div style="height:40px;padding:0 12px;border-radius:10px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:flex;align-items:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ sg.tc }}">{{ sg.time }}</div>
+                      <span style="font-size:13px;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums">{{ sg.range }}</span>
+                      <div style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;color:rgb(var(--on-danger))"><i class="icon-trash-2" style="font-size:16px"></i></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="height:40px;border-radius:12px;border:1.5px dashed rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;font-weight:600;color:rgb(var(--ink-2))"><i class="icon-plus" style="font-size:15px"></i>Add segment</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums"><span>Total feeding <b style="color:rgb(var(--ink))">26m 00s</b></span><span>lost 7m 10s</span></div>
+              <div style="min-height:64px;padding:12px 14px;border-radius:12px;background:rgb(var(--bg));border:1px solid rgb(var(--line));font-size:15px;color:rgb(var(--ink-3));box-sizing:border-box">Add a note</div>
+              <div style="flex:1"></div>
+              <div style="display:flex;gap:10px;justify-content:flex-end">
+                <div style="height:44px;padding:0 18px;border-radius:12px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="icon-play" style="font-size:16px"></i>Resume feed</div>
+                <div style="height:44px;padding:0 22px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="icon-check" style="font-size:16px"></i>Save changes</div>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ is.week }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+              <div style="padding:18px 20px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));display:flex;flex-direction:column;gap:8px">
+                <div style="display:flex;gap:16px;font-size:13px;font-weight:600;color:rgb(var(--ink-2));padding-left:52px"><span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:rgb(var(--sleep))"></span>Sleep</span><span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:3px;border-radius:2px;background:rgb(var(--feed-right))"></span>Feed</span><span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:rgb(var(--nappy))"></span>Nappy</span></div>
+                <div style="display:grid;grid-template-columns:42px repeat(7,minmax(0,1fr));gap:10px">
+                  <div style="position:relative;height:{{ wkH }}"><sc-for list="{{ wkTicks }}" as="h" hint-placeholder-count="5"><span style="position:absolute;top:{{ h.top }};transform:translateY(-50%);font-size:12px;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums">{{ h.label }}</span></sc-for></div>
+                  <sc-for list="{{ wkDays }}" as="d" hint-placeholder-count="7">
+                    <div style="position:relative;height:{{ wkH }};border-radius:10px;background:rgb(var(--surface));overflow:hidden;box-shadow:{{ d.ring }}">
+                      <sc-for list="{{ d.sleep }}" as="b" hint-placeholder-count="6"><div style="position:absolute;left:4px;right:24px;top:{{ b.top }};height:{{ b.h }};border-radius:4px;background:rgb(var(--sleep))"></div></sc-for>
+                      <sc-for list="{{ d.feeds }}" as="f" hint-placeholder-count="8"><div style="position:absolute;right:6px;width:14px;top:{{ f.top }};height:3px;border-radius:2px;background:rgb(var(--feed-right))"></div></sc-for>
+                      <sc-for list="{{ d.naps }}" as="n" hint-placeholder-count="6"><div style="position:absolute;right:9px;width:8px;height:8px;border-radius:50%;top:{{ n.top }};background:rgb(var(--nappy))"></div></sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="display:grid;grid-template-columns:42px repeat(7,minmax(0,1fr));gap:10px"><span></span><sc-for list="{{ wkDays }}" as="d" hint-placeholder-count="7"><div style="text-align:center;line-height:1.2"><div style="font-size:14px;font-weight:700;color:{{ d.lc }}">{{ d.dow }}</div><div style="font-size:12px;color:rgb(var(--ink-3))">{{ d.date }}</div></div></sc-for></div>
+              </div>
+              <div style="border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));overflow:hidden">
+                <div style="display:grid;grid-template-columns:200px repeat(7,minmax(0,1fr)) 100px;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:rgb(var(--ink-2));background:rgb(var(--surface))">
+                  <span style="padding:10px 16px">Daily totals</span>
+                  <sc-for list="{{ wkDays }}" as="d" hint-placeholder-count="7"><span style="padding:10px 8px;text-align:right">{{ d.dow }} {{ d.date }}</span></sc-for>
+                  <span style="padding:10px 16px;text-align:right">Avg</span>
+                </div>
+                <sc-for list="{{ wkTable }}" as="tr" hint-placeholder-count="6">
+                  <div style="display:grid;grid-template-columns:200px repeat(7,minmax(0,1fr)) 100px;border-top:1px solid rgb(var(--line));font-size:14px;font-variant-numeric:tabular-nums">
+                    <span style="padding:10px 16px;display:flex;align-items:center;gap:8px;font-weight:600"><span style="width:10px;height:10px;border-radius:3px;background:{{ tr.c }}"></span>{{ tr.label }}</span>
+                    <sc-for list="{{ tr.vals }}" as="v" hint-placeholder-count="7"><span style="padding:10px 8px;text-align:right">{{ v }}</span></sc-for>
+                    <span style="padding:10px 16px;text-align:right;font-weight:700">{{ tr.avg }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ is.settings }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ setNav }}" as="sn" hint-placeholder-count="9"><div style="display:flex;align-items:center;gap:10px;height:42px;padding:0 12px;border-radius:12px;background:{{ sn.bg }};color:{{ sn.c }};font-size:15px;font-weight:{{ sn.w }}"><i class="{{ sn.icon }}" style="font-size:17px"></i>{{ sn.label }}</div></sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px;min-width:0;max-width:760px;overflow:hidden">
+              <sc-for list="{{ setCards }}" as="sc" hint-placeholder-count="3">
+                <div style="padding:20px 22px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));display:flex;flex-direction:column;gap:4px">
+                  <span style="font-size:18px;font-weight:700">{{ sc.title }}</span>
+                  <span style="font-size:14px;color:rgb(var(--ink-2));margin-bottom:8px">{{ sc.sub }}</span>
+                  <sc-for list="{{ sc.rows }}" as="r" hint-placeholder-count="2">
+                    <div style="display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:20px;align-items:center;padding:12px 0;border-top:1px solid rgb(var(--line))">
+                      <div style="display:flex;flex-direction:column;line-height:1.35"><span style="font-size:15px;font-weight:600">{{ r.label }}</span><span style="font-size:13px;color:rgb(var(--ink-3))">{{ r.hint }}</span></div>
+                      <div style="display:flex;justify-content:flex-end;gap:4px">
+                        <sc-for list="{{ r.ctl }}" as="ct" hint-placeholder-count="1"><div style="height:40px;padding:0 12px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:6px;flex:{{ ct.flex }};font-size:14px;font-weight:{{ ct.w }};background:{{ ct.bg }};color:{{ ct.c }};border:{{ ct.border }};box-sizing:border-box;font-variant-numeric:tabular-nums;white-space:nowrap">{{ ct.t }}<i class="{{ ct.icon }}" style="font-size:15px;color:rgb(var(--ink-3))"></i></div></sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ is.import }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:22px;align-items:center;min-width:0">
+              <div style="display:flex;align-items:center;gap:10px;width:100%;max-width:880px">
+                <sc-for list="{{ impSteps }}" as="st" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:center;gap:10px;flex:{{ st.flex }}">
+                    <span style="width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:700;background:{{ st.bg }};color:{{ st.c }};border:{{ st.border }};box-sizing:border-box"><i class="{{ st.icon }}" style="font-size:15px"></i>{{ st.n }}</span>
+                    <span style="font-size:14px;font-weight:{{ st.w }};color:{{ st.lc }};white-space:nowrap">{{ st.label }}</span>
+                    <span style="flex:1;height:2px;border-radius:1px;background:{{ st.line }};display:{{ st.lineD }}"></span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="width:100%;max-width:880px;padding:28px;border-radius:20px;background:rgb(var(--raised));border:1px solid rgb(var(--line));display:flex;flex-direction:column;gap:20px;box-sizing:border-box">
+                <sc-if value="{{ imp.s1 }}" hint-placeholder-val="{{ true }}">
+                  <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:22px;font-weight:700">Import from Huckleberry</span><span style="font-size:15px;color:rgb(var(--ink-2))">Export your data from Huckleberry as a CSV file, then drop it here.</span></div>
+                  <div style="height:300px;border-radius:16px;border:2px dashed rgb(var(--line-strong));background:rgb(var(--bg));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+                    <span style="width:64px;height:64px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--primary));display:grid;place-items:center"><i class="icon-file-up" style="font-size:28px"></i></span>
+                    <span style="font-size:18px;font-weight:700">Drop your CSV here</span>
+                    <span style="font-size:14px;color:rgb(var(--ink-2))">or</span>
+                    <span style="height:44px;padding:0 18px;border-radius:12px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="icon-folder-open" style="font-size:16px"></i>Choose a file</span>
+                  </div>
+                  <span style="font-size:13px;color:rgb(var(--ink-3))">Files stay on your Babble server. Nothing is sent to Huckleberry.</span>
+                </sc-if>
+                <sc-if value="{{ imp.s2 }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:rgb(var(--success-soft));color:rgb(var(--on-success))"><i class="icon-file-check" style="font-size:20px;color:rgb(var(--success))"></i><span style="flex:1;font-size:15px"><b>huckleberry-export.csv</b> · 1.2 MB · 254 rows</span><span style="font-size:14px;font-weight:600">Replace</span></div>
+                  <div style="display:flex;flex-direction:column;gap:10px"><span style="font-size:16px;font-weight:700">Import into</span>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                      <div style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:14px;background:rgb(var(--primary-soft));border:2px solid rgb(var(--primary));color:rgb(var(--on-primary-soft))"><span style="width:22px;height:22px;border-radius:50%;border:2px solid rgb(var(--primary));display:grid;place-items:center;box-sizing:border-box"><span style="width:10px;height:10px;border-radius:50%;background:rgb(var(--primary))"></span></span><div style="flex:1"><div style="font-size:16px;font-weight:700">Adaline</div><div style="font-size:13px">Born 26 Sep · 41 entries already</div></div></div>
+                      <div style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:14px;border:1.5px solid rgb(var(--line))"><span style="width:22px;height:22px;border-radius:50%;border:2px solid rgb(var(--line-strong));box-sizing:border-box"></span><div style="flex:1"><div style="font-size:16px;font-weight:700">A new baby</div><div style="font-size:13px;color:rgb(var(--ink-2))">Name and birth date next</div></div></div>
+                    </div>
+                  </div>
+                  <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:16px;font-weight:700">Timezone of these records</span>
+                    <div style="height:48px;padding:0 14px;border-radius:12px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600">Pacific/Auckland (NZDT, UTC+13)<i class="icon-chevron-down" style="font-size:17px;color:rgb(var(--ink-3))"></i></div>
+                    <span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--on-success))"><i class="icon-check" style="font-size:14px"></i>Matches Adaline's timezone. Huckleberry exports local times without an offset.</span>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ imp.s3 }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:22px;font-weight:700">247 entries ready to import</span><span style="font-size:15px;color:rgb(var(--ink-2))">26 Sep – 6 Oct 2026</span></div>
+                  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px">
+                    <sc-for list="{{ impCounts }}" as="ic" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:14px;background:{{ ic.soft }};color:{{ ic.on }}"><span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i class="{{ ic.icon }}" style="font-size:14px;color:{{ ic.solid }}"></i>{{ ic.label }}</span><span style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums">{{ ic.n }}</span></div></sc-for>
+                  </div>
+                  <div style="display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:rgb(var(--warning-soft));color:rgb(var(--on-warning))"><i class="icon-triangle-alert" style="font-size:18px;color:rgb(var(--warning))"></i><span style="font-size:14px;line-height:1.4"><b>No downtime data for feeds.</b> Side totals are kept but side order is unknown, so these feeds show the "Imported from Huckleberry" note.</span></div>
+                  <div style="display:flex;gap:10px;padding:12px 14px;border-radius:14px;background:rgb(var(--info-soft));color:rgb(var(--on-info))"><i class="icon-refresh-cw" style="font-size:18px;color:rgb(var(--info))"></i><span style="font-size:14px;line-height:1.4"><b>Safe to re-import.</b> If you import this file again later, only rows that aren't already in Babble are added.</span></div>
+                  <div style="border-radius:14px;border:1px solid rgb(var(--line));overflow:hidden">
+                    <div style="display:grid;grid-template-columns:70px 110px 160px 1fr;font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:rgb(var(--ink-2));background:rgb(var(--surface))"><span style="padding:9px 14px">Row</span><span style="padding:9px 8px">Type</span><span style="padding:9px 8px">Time</span><span style="padding:9px 8px">Skipped because</span></div>
+                    <sc-for list="{{ skipped }}" as="sk" hint-placeholder-count="4"><div style="display:grid;grid-template-columns:70px 110px 160px 1fr;border-top:1px solid rgb(var(--line));font-size:14px;font-variant-numeric:tabular-nums"><span style="padding:9px 14px;color:rgb(var(--ink-2))">{{ sk.row }}</span><span style="padding:9px 8px;font-weight:600">{{ sk.type }}</span><span style="padding:9px 8px">{{ sk.time }}</span><span style="padding:9px 8px;color:rgb(var(--ink-2))">{{ sk.why }}</span></div></sc-for>
+                    <div style="border-top:1px solid rgb(var(--line));padding:9px 14px;font-size:13px;color:rgb(var(--ink-2));display:flex;justify-content:space-between"><span>7 rows skipped · 3 more not shown</span><span style="font-weight:600;color:rgb(var(--on-primary-soft))">Download skipped rows</span></div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ imp.s4 }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:22px;font-weight:700">Importing…</span><span style="font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">153 of 247</span></div>
+                  <div style="height:14px;border-radius:999px;background:rgb(var(--surface));overflow:hidden"><div style="width:62%;height:100%;border-radius:999px;background:rgb(var(--primary))"></div></div>
+                  <div style="display:flex;flex-direction:column;border-radius:14px;border:1px solid rgb(var(--line))">
+                    <sc-for list="{{ impProg }}" as="ip" hint-placeholder-count="5"><div style="display:grid;grid-template-columns:160px 1fr 110px;gap:16px;align-items:center;min-height:48px;padding:0 16px;border-top:{{ ip.divider }}"><span style="display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600"><i class="{{ ip.icon }}" style="font-size:16px;color:{{ ip.solid }}"></i>{{ ip.label }}</span><div style="height:8px;border-radius:999px;background:rgb(var(--surface));overflow:hidden"><div style="width:{{ ip.pct }};height:100%;background:{{ ip.solid }}"></div></div><span style="font-size:14px;color:{{ ip.sc }};text-align:right;font-variant-numeric:tabular-nums;display:flex;align-items:center;justify-content:flex-end;gap:4px"><i class="{{ ip.sIcon }}" style="font-size:14px"></i>{{ ip.state }}</span></div></sc-for>
+                  </div>
+                  <span style="font-size:14px;color:rgb(var(--ink-2))">You can keep using Babble in another tab. Keep this tab open until the import finishes.</span>
+                </sc-if>
+                <sc-if value="{{ imp.s5 }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:16px"><span style="width:64px;height:64px;border-radius:50%;background:rgb(var(--success-soft));color:rgb(var(--success));display:grid;place-items:center"><i class="icon-circle-check" style="font-size:30px"></i></span><div><div style="font-size:24px;font-weight:700">247 entries imported</div><div style="font-size:15px;color:rgb(var(--ink-2))">Adaline's history now goes back to 26 Sep. Joel will see it straight away.</div></div></div>
+                  <div style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px">
+                    <sc-for list="{{ impCounts }}" as="ic" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:4px;padding:12px 14px;border-radius:14px;background:{{ ic.soft }};color:{{ ic.on }}"><span style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><i class="{{ ic.icon }}" style="font-size:14px;color:{{ ic.solid }}"></i>{{ ic.label }}</span><span style="font-size:26px;font-weight:700;font-variant-numeric:tabular-nums">{{ ic.n }}</span></div></sc-for>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:rgb(var(--surface));font-size:14px;color:rgb(var(--ink-2))"><i class="icon-file-x" style="font-size:17px"></i><span style="flex:1">7 rows skipped</span><span style="font-weight:600;color:rgb(var(--on-primary-soft))">Download report</span></div>
+                </sc-if>
+                <div style="display:flex;justify-content:space-between;gap:10px;padding-top:4px">
+                  <div style="height:44px;padding:0 18px;border-radius:12px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;font-size:15px;font-weight:600">{{ imp.back }}</div>
+                  <div style="height:44px;padding:0 22px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;opacity:{{ imp.op }}">{{ imp.next }}<i class="icon-arrow-right" style="font-size:16px"></i></div>
+                </div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <sc-if value="{{ is.add }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:40px 0 0 0;background:rgb(var(--scrim) / 0.45);display:grid;place-items:center">
+      <div style="width:520px;padding:24px;border-radius:24px;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:22px;font-weight:700">Log feed</span><i class="icon-x" style="font-size:20px;color:rgb(var(--ink-2))"></i></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))"><div style="height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:700;background:rgb(var(--raised));box-shadow:var(--shadow-raised)">Breast</div><div style="height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;color:rgb(var(--ink-2))">Bottle</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div style="display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:14px;background:rgb(var(--feed-left-soft));color:rgb(var(--on-feed-left))"><span style="font-size:15px;font-weight:700">L · Left</span><div style="height:44px;border-radius:10px;background:rgb(var(--raised));color:rgb(var(--ink));display:flex;align-items:center;padding:0 12px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">12 min</div></div>
+          <div style="display:flex;flex-direction:column;gap:8px;padding:14px;border-radius:14px;background:rgb(var(--feed-right-soft));color:rgb(var(--on-feed-right))"><span style="font-size:15px;font-weight:700">R · Right</span><div style="height:44px;border-radius:10px;background:rgb(var(--raised));color:rgb(var(--ink));display:flex;align-items:center;padding:0 12px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">10 min</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2))">Started</span><div style="height:44px;padding:0 14px;border-radius:12px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600">Today · 14:05<i class="icon-calendar-clock" style="font-size:16px;color:rgb(var(--ink-3))"></i></div></div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:rgb(var(--ink-2))"><i class="icon-timer" style="font-size:16px"></i>Or start a live timer instead</div>
+        <div style="display:flex;justify-content:flex-end;gap:10px"><div style="height:44px;padding:0 18px;border-radius:12px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;font-size:15px;font-weight:600">Cancel</div><div style="height:44px;padding:0 22px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;font-size:15px;font-weight:600">Save feed</div></div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1460,&quot;height&quot;:920},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;feeds&quot;,&quot;feeds-add&quot;,&quot;history-day&quot;,&quot;history-week&quot;,&quot;import-1&quot;,&quot;import-2&quot;,&quot;import-3&quot;,&quot;import-4&quot;,&quot;import-5&quot;,&quot;settings&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;width&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;desktop&quot;,&quot;tablet&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen || 'home';
+    const narrow = this.props.width === 'tablet';
+    const c = n => `rgb(var(--${n}))`;
+    const line = `1px solid ${c('line')}`;
+    const px = v => v + 'px';
+    const is = { home: s === 'home', feeds: s === 'feeds' || s === 'feeds-add', add: s === 'feeds-add', day: s === 'history-day', week: s === 'history-week', settings: s === 'settings', import: s.startsWith('import') };
+    const impN = is.import ? +s.split('-')[1] : 0;
+    const navDefs = [['Home', 'icon-house', ''], ['Feeds', 'icon-heart', 'feed-right'], ['Sleep', 'icon-moon', 'sleep'], ['Nappies', 'icon-droplets', 'nappy'], ['Pump', 'icon-glass-water', 'pump'], ['Growth', 'icon-ruler', 'growth'], ['Custom', 'icon-sparkles', 'custom'], ['History', 'icon-history', ''], ['Stats', 'icon-chart-column', ''], ['Settings', 'icon-settings', '']];
+    const activeNav = is.home ? 'Home' : is.feeds ? 'Feeds' : (is.day || is.week) ? 'History' : 'Settings';
+    const nav = navDefs.map(([label, icon, k]) => { const on = label === activeNav; return { label, icon, bg: on ? c('primary-soft') : 'transparent', c: on ? c('on-primary-soft') : c('ink'), w: on ? 700 : 500, ic: k ? c(k) : (on ? c('primary') : c('ink-2')) }; });
+    const titles = { home: ['Today', 'Tue 6 Oct · 2:20 pm'], feeds: ['Feeds', '9 today · 3h 12m'], day: ['History', 'Day · Mon 5 Oct'], week: ['History', 'Week · 30 Sep – 6 Oct'], settings: ['Settings', 'Family and app preferences'], import: ['Import', 'From Huckleberry'] };
+    const tk = Object.keys(titles).find(k => is[k]) || 'home';
+    const H = is.home ? 23.5 : 25;
+    const sleepD = [[0.2, 2.4], [3.3, 5.9], [6.8, 8.1], [9.5, 11.6], [13, 14.2], [15.5, 16.4], [18, 19.1], [20.4, 23.6]];
+    const feedD = [[2.5, 10, 12], [6.0, 12, 9], [8.2, 15, 0], [11.7, 9, 11], [14.1, 10, 12], [16.5, 10, 13], [19.2, 12, 10], [23.7, 8, 0]];
+    const nappyD = [[1.0, 'Wet'], [6.1, 'Dirty', 'mustard'], [8.3, 'Both', 'yellow'], [11.8, 'Wet'], [14.4, 'Dirty', 'mustard'], [19.3, 'Wet'], [22.8, 'Both', 'green']];
+    const pumpD = [[4.0, 0.3], [17.0, 0.35]];
+    const fmt = h => { const m = Math.round(h * 60); return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m}m`; };
+    const cut = is.home ? 14.33 : 24;
+    const tl = {
+      height: px(24 * H),
+      ticks: [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24].map(h => ({ top: px(h * H), label: String(h % 24).padStart(2, '0') + ':00' })),
+      sleep: sleepD.filter(([a]) => a < cut).map(([a, b]) => { b = Math.min(b, cut); return { top: px(a * H), h: px((b - a) * H - 1), label: (b - a) * H > 28 ? fmt(b - a) : '' }; }),
+      feeds: feedD.filter(([t]) => t < cut).map(([t, l, r]) => ({ top: px(t * H), lh: px(Math.max(4, l / 60 * H)), rh: px(r ? Math.max(4, r / 60 * H) : 0), ring: is.home && t === 14.1 ? `0 0 0 2px ${c('bg')}, 0 0 0 4px ${c('feed-right')}` : 'none' })),
+      nappies: nappyD.filter(([t]) => t < cut).map(([t, label, poo]) => ({ top: px(t * H), label, poo: poo ? `rgb(var(--poo-${poo}))` : 'transparent', pooD: poo ? 'block' : 'none' })),
+      pumps: pumpD.filter(([t]) => t < cut).map(([t, d]) => ({ top: px(t * H), h: px(d * H) })),
+      nowTop: px(14.33 * H), nowD: is.home ? 'flex' : 'none'
+    };
+    const lanes = [['Sleep', 'icon-moon', 'sleep'], ['Feeds', 'icon-heart', 'feed-left'], ['Nappy', 'icon-droplets', 'nappy'], ['Pump', 'icon-glass-water', 'pump']].map(([label, icon, k]) => ({ label, icon, c: c(k) }));
+    const tr = (k, icon, title, meta, i, live) => ({ icon, title, meta, solid: c(k), soft: c(k + '-soft'), on: c('on-' + k), metaC: live ? c('on-' + k) : c('ink-2'), divider: i ? line : 'none' });
+    const trackerRows = [tr('feed-right', 'icon-heart', 'Breastfeed', 'In progress · R 12m 23s', 0, true), tr('sleep', 'icon-moon', 'Sleep', 'Awake 8m · nap was 1h 12m', 1), tr('nappy', 'icon-droplets', 'Nappy', 'Last 12m ago · Dirty · mustard', 2), tr('bottle', 'icon-milk', 'Bottle', 'Last yesterday 19:58 · 90 ml', 3), tr('pump', 'icon-glass-water', 'Pump', 'Last 10h 20m ago · 115 ml', 4), tr('growth', 'icon-ruler', 'Growth', '3.42 kg · today', 5)];
+    const strip = arr => arr.map(([label, value], i) => ({ label, value, divider: i ? line : 'none' }));
+    const sub = (k, v) => ({ k, v });
+    const dt = (k, icon, label, value, subs) => ({ icon, label, value, solid: c(k), soft: c(k + '-soft'), subs });
+    const dayTotals = [
+      dt('sleep', 'icon-moon', 'Sleep', '14h 20m', [sub('Naps', '6 · 7h 15m'), sub('Night', '7h 05m'), sub('Longest', '3h 12m')]),
+      dt('feed-right', 'icon-heart', 'Feeds', '8', [sub('Left', '1h 26m'), sub('Right', '1h 20m'), sub('Bottle', '1 · 90 ml')]),
+      dt('nappy', 'icon-droplets', 'Nappies', '7', [sub('Wet', '5'), sub('Dirty', '4'), sub('Last', '22:48')]),
+      dt('pump', 'icon-glass-water', 'Pump', '210 ml', [sub('Sessions', '2'), sub('Left', '105 ml'), sub('Right', '105 ml')])
+    ];
+    const P = {
+      L: t => ({ text: 'L ' + t, bg: c('feed-left-soft'), color: c('on-feed-left'), icon: '' }),
+      R: t => ({ text: 'R ' + t, bg: c('feed-right-soft'), color: c('on-feed-right'), icon: '' }),
+      pause: t => ({ text: t, bg: c('session-downtime-soft'), color: c('on-session-downtime'), icon: 'icon-pause' }),
+      bottle: t => ({ text: t, bg: c('bottle-soft'), color: c('on-bottle'), icon: 'icon-milk' }),
+      live: () => ({ text: 'In progress', bg: c('session-active-soft'), color: c('on-session-active'), icon: 'icon-play' })
+    };
+    const fr = (arr) => arr.map(([time, parts, total, sel], i) => ({ time, parts, total, divider: i ? line : 'none', bg: sel ? c('primary-soft') : 'transparent', ring: sel ? `inset 0 0 0 2px ${c('primary')}` : 'none' }));
+    const feedGroups = [
+      { title: 'Today', sub: 'Tue 6 Oct', totals: '5 feeds · 1h 48m', rows: fr([['14:02', [P.live(), P.L('10m'), P.R('12m')], '22m'], ['11:40', [P.L('12m'), P.pause('7m'), P.R('14m')], '26m', true], ['08:12', [P.L('15m')], '15m'], ['06:00', [P.L('12m'), P.R('9m')], '21m'], ['02:30', [P.L('10m'), P.R('12m'), P.pause('3m')], '22m']]) },
+      { title: 'Yesterday', sub: 'Mon 5 Oct', totals: '9 feeds · 3h 12m · 90 ml', rows: fr([['22:15', [P.L('12m'), P.R('9m')], '21m'], ['19:58', [P.bottle('90 ml')], '12m'], ['17:30', [P.R('15m'), P.L('11m')], '26m']]) }
+    ];
+    const dseg = (k, label, time, range, i) => ({ label, time, range, divider: i ? line : 'none', bg: c(k + '-soft'), c: c('on-' + k), border: 'none', dot: c(k), dotBorder: 'none', caret: 'icon-chevron-down', tc: c('ink') });
+    const detailSegs = [dseg('feed-left', 'Left', '12m 00s', '11:40 – 11:52', 0),
+      { label: 'Idle', time: '7m 10s', range: '11:52 – 11:59', divider: line, bg: c('session-downtime-soft'), c: c('on-session-downtime'), border: `1.5px dashed ${c('session-downtime')}`, dot: 'transparent', dotBorder: `2px dashed ${c('session-downtime')}`, caret: '', tc: c('ink-2') },
+      dseg('feed-right', 'Right', '14m 00s', '11:59 – 12:13', 2)];
+    const WH = 16;
+    const dows = ['Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue'], dates = ['30', '1', '2', '3', '4', '5', '6'];
+    const wkDays = dows.map((dow, i) => {
+      const shift = ((i * 37) % 5 - 2) * 0.15;
+      let blocks = sleepD.map(([a, b]) => [Math.max(0, a + shift), Math.min(24, b + shift)]);
+      if (i >= 4) blocks = blocks.filter((_, j) => j !== 1).map(([a, b], j) => j === 0 ? [a, b + 3.3] : [a, b]);
+      if (i === 6) blocks = blocks.filter(([a]) => a < 14.3).map(([a, b]) => [a, Math.min(b, 14.3)]);
+      const lim = i === 6 ? 14.3 : 24;
+      return { dow, date: dates[i], lc: i === 6 ? c('on-primary-soft') : c('ink'), ring: i === 6 ? `0 0 0 2px ${c('primary')}` : 'none',
+        sleep: blocks.map(([a, b]) => ({ top: px(a * WH), h: px((b - a) * WH) })),
+        feeds: feedD.filter(([t]) => t < lim).map(([t]) => ({ top: px((t + shift) * WH) })),
+        naps: nappyD.filter(([t]) => t < lim).map(([t]) => ({ top: px((t + shift * 1.5) * WH - 4) })) };
+    });
+    const wkTable = [
+      { label: 'Sleep', c: c('sleep'), vals: ['13h 40m', '14h 05m', '13h 55m', '14h 30m', '14h 50m', '14h 20m', '7h 05m'], avg: '14h 13m' },
+      { label: 'Longest stretch', c: c('sleep'), vals: ['2h 35m', '2h 40m', '2h 50m', '3h 05m', '3h 40m', '3h 12m', '3h 20m'], avg: '3h 00m' },
+      { label: 'Feeds', c: c('feed-right'), vals: ['9', '9', '8', '9', '8', '8', '5'], avg: '8.5' },
+      { label: 'Breast time', c: c('feed-left'), vals: ['3h 05m', '2h 58m', '2h 50m', '3h 02m', '2h 44m', '2h 46m', '1h 48m'], avg: '2h 54m' },
+      { label: 'Bottle', c: c('bottle'), vals: ['60 ml', '—', '90 ml', '60 ml', '—', '90 ml', '—'], avg: '50 ml' },
+      { label: 'Nappies', c: c('nappy'), vals: ['8', '7', '8', '7', '7', '7', '4'], avg: '7.4' }
+    ];
+    const ctl = (t, o = {}) => ({ t, icon: o.icon || '', flex: o.flex || '0 0 auto', w: o.on ? 700 : 500, bg: o.on ? c('primary-soft') : o.seg ? c('surface') : c('bg'), c: o.on ? c('on-primary-soft') : c('ink'), border: o.on ? `1.5px solid ${c('primary')}` : o.seg ? 'none' : line });
+    const segc = (opts, sel) => opts.map(o => ctl(o, { seg: true, on: o === sel, flex: '1' }));
+    const setCards = [
+      { title: 'Day and night', sub: 'Changes how daily totals and the night window are counted.', rows: [
+        { label: 'Day starts at', hint: 'Totals reset at this time', ctl: [ctl('Midnight', { icon: 'icon-chevron-down', flex: '1' })] },
+        { label: 'Night window', hint: 'Used for night sleep and "dark at night"', ctl: [ctl('19:00', { flex: '1' }), ctl('to', { seg: true }), ctl('07:00', { flex: '1' })] },
+        { label: 'Units', hint: 'Weight, length and volume', ctl: segc(['Metric', 'Imperial'], 'Metric') }] },
+      { title: 'Feed reminders', sub: 'The interval is shared by the family. Notifications are per person.', rows: [
+        { label: 'Remind every', hint: 'From the start of the last feed', ctl: [ctl('3 hours', { icon: 'icon-chevron-down', flex: '1' })] },
+        { label: 'Notify me', hint: 'Jaimi · this browser and phone', ctl: segc(['Off', 'On'], 'On') }] },
+      { title: 'Timers', sub: 'How feed and pump sessions handle gaps.', rows: [
+        { label: 'Merge gaps shorter than', hint: 'Shorter downtime joins the segment', ctl: [ctl('15 s', { flex: '1' })] },
+        { label: 'Auto-end paused sessions after', hint: 'A paused feed ends on its own', ctl: [ctl('30 min', { icon: 'icon-chevron-down', flex: '1' })] },
+        { label: 'Theme', hint: '', ctl: segc(['System', 'Light', 'Dark', 'Dark at night'], 'Dark at night') }] }
+    ];
+    const setNav = [['General', 'icon-sliders-horizontal'], ['Baby profile', 'icon-baby'], ['Caregivers & invites', 'icon-users'], ['Notifications', 'icon-bell'], ['Import from Huckleberry', 'icon-file-input'], ['Export data', 'icon-download'], ['Account', 'icon-user']].map(([label, icon], i) => ({ label, icon, bg: i ? 'transparent' : c('primary-soft'), c: i ? c('ink') : c('on-primary-soft'), w: i ? 500 : 700 }));
+    const stepLabels = ['Upload', 'Baby & timezone', 'Preview', 'Import', 'Done'];
+    const impSteps = stepLabels.map((label, i) => { const n = i + 1, done = n < impN, cur = n === impN; return { label, n: done ? '' : n, icon: done ? 'icon-check' : '', flex: i < 4 ? '1' : '0 0 auto', bg: done ? c('primary') : cur ? c('primary-soft') : 'transparent', c: done ? c('on-primary') : cur ? c('on-primary-soft') : c('ink-3'), border: cur ? `2px solid ${c('primary')}` : done ? 'none' : `1.5px solid ${c('line-strong')}`, w: cur ? 700 : 500, lc: cur || done ? c('ink') : c('ink-3'), line: done ? c('primary') : c('line'), lineD: i < 4 ? 'block' : 'none' }; });
+    const ik = (k, icon, label, n) => ({ icon, label, n, solid: c(k), soft: c(k + '-soft'), on: c('on-' + k) });
+    const impCounts = [ik('sleep', 'icon-moon', 'Sleep', '64'), ik('feed-right', 'icon-heart', 'Feeds', '98'), ik('nappy', 'icon-droplets', 'Nappies', '71'), ik('pump', 'icon-glass-water', 'Pump', '12'), ik('growth', 'icon-ruler', 'Growth', '2')];
+    const impProg = [['sleep', 'icon-moon', 'Sleep', '100%', 'Done', 'icon-check'], ['feed-right', 'icon-heart', 'Feeds', '91%', '89 / 98', ''], ['nappy', 'icon-droplets', 'Nappies', '0%', 'Waiting', ''], ['pump', 'icon-glass-water', 'Pump', '0%', 'Waiting', ''], ['growth', 'icon-ruler', 'Growth', '0%', 'Waiting', '']]
+      .map(([k, icon, label, pct, state, sIcon], i) => ({ icon, label, pct, state, sIcon, solid: c(k), sc: state === 'Done' ? c('on-success') : c('ink-2'), divider: i ? line : 'none' }));
+    const imp = { s1: impN === 1, s2: impN === 2, s3: impN === 3, s4: impN === 4, s5: impN === 5,
+      back: ['', 'Cancel', 'Back', 'Back', 'Cancel import', 'Import another file'][impN] || '', next: ['', 'Continue', 'Preview', 'Import 247 entries', 'Importing…', 'View history'][impN] || '', op: impN === 1 || impN === 4 ? 0.45 : 1 };
+    const histSeg = is.day || is.week;
+    return {
+      is, imp, nav, narrow, wide: !narrow,
+      W: narrow ? '900px' : '1440px', Hpx: is.week || is.settings ? '1080px' : '900px',
+      sideW: narrow ? '84px' : '268px', sidePad: narrow ? '12px' : '16px', sideAlign: narrow ? 'center' : 'flex-start',
+      mark: narrow ? 'b' : 'Babble', markSize: narrow ? '30px' : '30px', labelD: narrow ? 'none' : 'inline', cgDir: narrow ? 'column' : 'row',
+      carers: ['Jo', 'Ja'], mainPad: narrow ? '24px' : '32px',
+      sideTimer: !is.home && s !== 'settings', topTimer: s === 'settings',
+      path: { home: '/', feeds: '/feeds', 'feeds-add': '/feeds/new', 'history-day': '/history/day', 'history-week': '/history/week', settings: '/settings' }[s] || '/import',
+      pageTitle: titles[tk][0], pageSub: titles[tk][1],
+      hasLog: is.home || is.feeds || histSeg, logLabel: is.feeds ? 'Log feed' : 'Log',
+      gridCols: is.home ? (narrow ? 'minmax(0,1fr) minmax(0,1fr)' : '520px minmax(0,1fr)') : is.feeds ? (narrow ? 'minmax(0,1fr) minmax(0,1fr)' : '520px minmax(0,1fr)') : is.day ? 'minmax(0,1.4fr) minmax(0,1fr)' : is.settings ? '240px minmax(0,1fr)' : 'minmax(0,1fr)',
+      showTimeline: is.home || is.day, tl, lanes,
+      tlTitle: is.home ? "Today's timeline" : 'Mon 5 Oct', tlSub: is.home ? 'Day starts at midnight' : '‹ Prev · Next ›',
+      stripD: 'none', trackerRows, todayStrip: strip([['Sleep today', '9h 40m'], ['Feeds', '5'], ['Nappies', '6']]),
+      dayTotals, feedGroups, detailSegs, wkDays, wkTable, wkH: px(24 * WH), wkTicks: [0, 6, 12, 18, 24].map(h => ({ top: px(h * WH), label: String(h % 24).padStart(2, '0') + ':00' })),
+      setCards, setNav, impSteps, impCounts, impProg,
+      skipped: [{ row: '14', type: 'Feed', time: '26 Sep · 07:10', why: 'Duration missing' }, { row: '88', type: 'Sleep', time: '30 Sep · 22:40', why: 'Overlaps an existing sleep' }, { row: '131', type: 'Solids', time: '2 Oct · 12:00', why: 'Type not supported yet' }, { row: '203', type: 'Nappy', time: '4 Oct · 03:15', why: 'Already in Babble' }]
+    };
+  }
+}
+</script>
+</body>
+</html>

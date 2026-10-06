@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+</helmet>
+<div style="width:390px;height:844px;border-radius:52px;border:9px solid #0e0b09;box-sizing:content-box;overflow:hidden;position:relative;background:{{ t.bg }};color:{{ t.text }};font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(30,20,10,.28)">
+  <div style="flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">
+    <span>3:12</span>
+    <div style="display:flex;align-items:center;gap:6px;color:{{ t.text2 }}"><i class="icon-signal" style="font-size:15px"></i><i class="icon-wifi" style="font-size:15px"></i><div style="width:24px;height:12px;border-radius:4px;border:1.5px solid {{ t.text2 }};padding:1.5px;box-sizing:border-box"><div style="width:60%;height:100%;border-radius:2px;background:{{ t.text2 }}"></div></div></div>
+  </div>
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:0;overflow:hidden;padding:4px 20px 0;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px;padding-top:6px">
+        <div style="width:52px;height:52px;border-radius:50%;background:{{ t.primarySoft }};color:{{ t.primaryOn }};display:grid;place-items:center;font-family:{{ v.headFont }};font-weight:{{ v.headWeight }};font-size:22px">A</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:{{ v.headFont }};font-weight:{{ v.headWeight }};font-size:26px;line-height:1.1;letter-spacing:-0.01em">Adaline</div>
+          <div style="font-size:15px;color:{{ t.text2 }}">10 days old</div>
+        </div>
+        <div style="display:flex">
+          <div style="width:34px;height:34px;border-radius:50%;background:{{ t.surface }};border:2px solid {{ t.bg }};display:grid;place-items:center;font-size:13px;font-weight:700;color:{{ t.text2 }}">Jo</div>
+          <div style="width:34px;height:34px;border-radius:50%;background:{{ t.surface }};border:2px solid {{ t.bg }};margin-left:-10px;display:grid;place-items:center;font-size:13px;font-weight:700;color:{{ t.text2 }}">Ja</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:{{ v.cardR }};background:{{ t.info.soft }};color:{{ t.info.on }}">
+        <i class="icon-clock" style="font-size:20px"></i>
+        <div style="flex:1;font-size:16px;font-weight:600">Next feed due in 42m</div>
+        <div style="font-size:14px;font-variant-numeric:tabular-nums">~3:54 am</div>
+      </div>
+
+      <div style="padding:16px;border-radius:{{ v.cardR }};background:{{ t.raised }};border:1px solid {{ t.border }};box-shadow:{{ t.shadow }};display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 12px 5px 10px;border-radius:999px;background:{{ t.cat.feedR.soft }};color:{{ t.cat.feedR.on }};font-size:14px;font-weight:600">
+            <span style="width:8px;height:8px;border-radius:50%;background:{{ t.cat.feedR.solid }};box-shadow:0 0 0 4px {{ t.cat.feedR.ring }}"></span>Feeding · Right
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:{{ t.text2 }}"><span style="width:22px;height:22px;border-radius:50%;background:{{ t.surface }};display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Started by Jaimi</div>
+        </div>
+        <div style="font-family:{{ v.timerFont }};font-weight:{{ v.timerWeight }};font-size:48px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:{{ v.timerTrack }};display:flex;align-items:baseline">
+          <sc-for list="{{ heroParts }}" as="p" hint-placeholder-count="2">
+            <span style="display:inline-flex;align-items:baseline"><sc-for list="{{ p.digits }}" as="d" hint-placeholder-count="2"><span style="display:inline-block;width:{{ v.digitW }};text-align:center">{{ d }}</span></sc-for><span style="font-family:Figtree, sans-serif;font-weight:600;font-size:22px;color:{{ t.text2 }};margin:0 12px 0 3px">{{ p.u }}</span></span>
+          </sc-for>
+        </div>
+        <div style="font-size:14px;color:{{ t.text2 }};font-variant-numeric:tabular-nums">Left 10m 32s · total 22m 55s</div>
+        <div style="display:flex;gap:10px;margin-top:2px">
+          <div style="flex:1;height:48px;border-radius:{{ v.btnR }};border:1.5px solid {{ t.borderStrong }};display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-pause" style="font-size:18px"></i>Pause</div>
+          <div style="flex:1;height:48px;border-radius:{{ v.btnR }};background:{{ t.primary }};color:{{ t.onPrimary }};display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;font-family:{{ v.btnFont }}">Open timer</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 4px;border-radius:{{ v.cardR }};background:{{ t.surface }}">
+        <sc-for list="{{ summary }}" as="s" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:2px;padding:0 12px;border-left:{{ s.divider }}">
+            <span style="font-size:13px;color:{{ t.text2 }}">{{ s.label }}</span>
+            <span style="font-size:20px;font-weight:700;font-variant-numeric:tabular-nums">{{ s.value }}</span>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:{{ rowGap }};background:{{ wrapBg }};border-radius:{{ v.cardR }};border:{{ wrapBorder }}">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:14px;min-height:68px;padding:8px 10px 8px 14px;border-radius:{{ v.cardR }};background:{{ r.bg }};border-top:{{ r.divider }};box-sizing:border-box">
+            <div style="width:44px;height:44px;flex:none;border-radius:{{ v.tileR }};background:{{ r.soft }};color:{{ r.solid }};display:grid;place-items:center"><i class="{{ r.icon }}" style="font-size:22px"></i></div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:17px;font-weight:600;line-height:1.25">{{ r.title }}</div>
+              <div style="font-size:14px;color:{{ r.metaColor }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.meta }}</div>
+            </div>
+            <div style="width:48px;height:48px;flex:none;border-radius:50%;background:{{ r.soft }};color:{{ r.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="flex:none;height:86px;padding:8px 12px 24px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);background:{{ t.tabBg }};border-top:1px solid {{ t.border }}">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.color }};font-size:12px;font-weight:{{ tb.weight }}"><i class="{{ tb.icon }}" style="font-size:23px"></i>{{ tb.label }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isTimer }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;padding:0 20px 30px;display:flex;flex-direction:column;gap:16px">
+      <div style="display:flex;align-items:center;gap:12px;height:52px">
+        <div style="width:44px;height:44px;border-radius:50%;background:{{ t.surface }};display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+        <div style="flex:1;font-family:{{ v.headFont }};font-weight:{{ v.headWeight }};font-size:21px">Breastfeed</div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:{{ t.text2 }};padding:5px 10px 5px 5px;border-radius:999px;background:{{ t.surface }}"><span style="width:24px;height:24px;border-radius:50%;background:{{ t.raised }};display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Jaimi · 2:49</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0 4px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:{{ t.cat.feedR.on }}"><span style="width:8px;height:8px;border-radius:50%;background:{{ t.cat.feedR.solid }};box-shadow:0 0 0 5px {{ t.cat.feedR.ring }}"></span>Right side</div>
+        <div style="font-family:{{ v.timerFont }};font-weight:{{ v.timerWeight }};font-size:74px;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:{{ v.timerTrack }};display:flex;align-items:baseline">
+          <sc-for list="{{ heroParts }}" as="p" hint-placeholder-count="2">
+            <span style="display:inline-flex;align-items:baseline"><sc-for list="{{ p.digits }}" as="d" hint-placeholder-count="2"><span style="display:inline-block;width:{{ v.digitW }};text-align:center">{{ d }}</span></sc-for><span style="font-family:Figtree, sans-serif;font-weight:600;font-size:28px;color:{{ t.text2 }};margin:0 10px 0 4px">{{ p.u }}</span></span>
+          </sc-for>
+        </div>
+        <div style="font-size:16px;color:{{ t.text2 }};font-variant-numeric:tabular-nums">Total feeding 22m 55s</div>
+      </div>
+
+      <div style="padding:6px 16px;border-radius:{{ v.cardR }};background:{{ t.raised }};border:1px solid {{ t.border }};box-shadow:{{ t.shadow }}">
+        <sc-for list="{{ segs }}" as="sg" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:12px;height:48px;border-top:{{ sg.divider }}">
+            <span style="width:12px;height:12px;flex:none;border-radius:50%;background:{{ sg.dot }};border:{{ sg.dotBorder }};box-sizing:border-box;box-shadow:{{ sg.ring }}"></span>
+            <span style="flex:1;font-size:16px;font-weight:{{ sg.weight }};color:{{ sg.color }}">{{ sg.label }}</span>
+            <span style="font-size:12px;font-weight:600;color:{{ sg.tagColor }}">{{ sg.tag }}</span>
+            <span style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ sg.color }};min-width:80px;text-align:right">{{ sg.time }}</span>
+          </div>
+        </sc-for>
+        <div style="border-top:1px solid {{ t.border }};padding:12px 0 8px;font-size:14px;color:{{ t.text2 }};font-variant-numeric:tabular-nums">Total feeding <span style="color:{{ t.text }};font-weight:600">22m 55s</span> · lost 3m 02s</div>
+      </div>
+
+      <div style="flex:1"></div>
+
+      <div style="display:flex;gap:{{ lrGap }};justify-content:center">
+        <div style="width:{{ lrW }};height:{{ lrH }};border-radius:{{ lrR }};background:{{ t.cat.feedL.soft }};color:{{ t.cat.feedL.on }};border:2px solid {{ t.cat.feedL.edge }};box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+          <span style="font-family:{{ v.headFont }};font-weight:{{ v.lrWeight }};font-size:40px;line-height:1">L</span>
+          <span style="font-size:15px;font-weight:600">Left</span>
+          <span style="font-size:14px;font-variant-numeric:tabular-nums;opacity:.85">10m 32s</span>
+        </div>
+        <div style="width:{{ lrW }};height:{{ lrH }};border-radius:{{ lrR }};background:{{ t.cat.feedR.solid }};color:{{ t.inkOnSolid }};box-shadow:0 0 0 6px {{ t.cat.feedR.ring }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+          <span style="font-family:{{ v.headFont }};font-weight:{{ v.lrWeight }};font-size:40px;line-height:1">R</span>
+          <span style="font-size:15px;font-weight:700">Right · on</span>
+          <span style="font-size:14px;font-variant-numeric:tabular-nums">12m 23s</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px">
+        <div style="flex:1;height:56px;border-radius:{{ v.btnR }};border:1.5px solid {{ t.borderStrong }};display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-pause" style="font-size:20px"></i>Pause</div>
+        <div style="flex:1;height:56px;border-radius:{{ v.btnR }};background:{{ t.primary }};color:{{ t.onPrimary }};display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;font-family:{{ v.btnFont }}"><i class="icon-check" style="font-size:20px"></i>Finish</div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880}}">
+class Component extends DCLogic {
+  split(str) {
+    return str.split(' ').map(tok => {
+      const m = tok.match(/^(\d+)(\D+)$/);
+      return { digits: m[1].split(''), u: m[2] };
+    });
+  }
+  renderVals() {
+    const p = this.props;
+    const t = p.t || { cat: { feedL: {}, feedR: {}, sleep: {}, bottle: {}, nappy: {}, pump: {} }, info: {} };
+    const v = p.v || {};
+    const list = !!v.rowsAsList;
+    const c = t.cat;
+    const rowDefs = [
+      ['feedR', 'icon-heart', 'Feed', 'In progress · R 12m 23s', true],
+      ['sleep', 'icon-moon', 'Sleep', 'Awake 1h 05m · last nap 1h 40m'],
+      ['nappy', 'icon-droplets', 'Nappy', 'Last 48m ago · Wet'],
+      ['bottle', 'icon-milk', 'Bottle', 'Last 5h 10m ago · 60 ml'],
+      ['pump', 'icon-glass-water', 'Pump', 'Last 6h 02m ago · 90 ml']
+    ];
+    const rows = rowDefs.map(([k, icon, title, meta, live], i) => ({
+      icon, title, meta,
+      solid: c[k].solid, soft: c[k].soft, on: c[k].on,
+      metaColor: live ? c[k].on : t.text2,
+      bg: list ? 'transparent' : t.raised,
+      divider: list && i > 0 ? `1px solid ${t.border}` : 'none'
+    }));
+    const segs = [
+      { label: 'Left', time: '10m 32s', dot: c.feedL.solid, dotBorder: 'none', ring: 'none', color: t.text, weight: 600, tag: '', tagColor: t.text2, divider: 'none' },
+      { label: 'Downtime', time: '3m 02s', dot: 'transparent', dotBorder: `2px dashed ${t.idle}`, ring: 'none', color: t.text2, weight: 500, tag: 'idle', tagColor: t.muted, divider: `1px solid ${t.border}` },
+      { label: 'Right', time: '12m 23s', dot: c.feedR.solid, dotBorder: 'none', ring: `0 0 0 4px ${c.feedR.ring}`, color: t.text, weight: 600, tag: 'running', tagColor: c.feedR.on, divider: `1px solid ${t.border}` }
+    ];
+    const tabs = [['icon-house', 'Home'], ['icon-history', 'History'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
+      .map(([icon, label], i) => ({ icon, label, color: i === 0 ? t.primaryText : t.muted, weight: i === 0 ? 700 : 500 }));
+    const summary = [['Sleep today', '9h 40m'], ['Feeds', '7'], ['Nappies', '6']]
+      .map(([label, value], i) => ({ label, value, divider: i ? `1px solid ${t.border}` : 'none' }));
+    const round = !!v.lrRound;
+    return {
+      t, v, rows, segs, tabs, summary,
+      isHome: p.screen !== 'timer', isTimer: p.screen === 'timer',
+      heroParts: this.split('12m 23s'),
+      rowGap: list ? '0' : '8px',
+      wrapBg: list ? t.raised : 'transparent',
+      wrapBorder: list ? `1px solid ${t.border}` : 'none',
+      lrW: round ? '156px' : 'calc(50% - 6px)', lrH: round ? '156px' : '132px',
+      lrR: round ? '50%' : v.cardR, lrGap: round ? '22px' : '12px'
+    };
+  }
+}
+</script>
+</body>
+</html>

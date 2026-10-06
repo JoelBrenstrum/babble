@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="width:390px;height:844px;border-radius:52px;border:9px solid #0e0f0c;box-sizing:content-box;overflow:hidden;position:relative;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(20,22,18,.28)">
+  <div style="flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">
+    <span>3:12</span>
+    <div style="display:flex;align-items:center;gap:6px;color:rgb(var(--ink-2))"><i class="icon-signal" style="font-size:15px"></i><i class="icon-wifi" style="font-size:15px"></i><div style="width:24px;height:12px;border-radius:4px;border:1.5px solid rgb(var(--ink-2));padding:1.5px;box-sizing:border-box"><div style="width:60%;height:100%;border-radius:2px;background:rgb(var(--ink-2))"></div></div></div>
+  </div>
+
+  <sc-if value="{{ is.onboard }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:1;min-height:0;padding:8px 24px 0;display:flex;flex-direction:column;gap:20px">
+      <sc-if value="{{ hasSteps }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:12px;height:48px">
+          <div style="width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:20px"></i></div>
+          <div style="flex:1;display:flex;gap:6px"><sc-for list="{{ steps }}" as="st" hint-placeholder-count="4"><span style="flex:1;height:6px;border-radius:3px;background:{{ st }}"></span></sc-for></div>
+          <span style="font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ stepLabel }}</span>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.signin }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:10px;padding-top:56px">
+          <span style="font-family:Caprasimo, serif;font-size:52px;line-height:1;color:rgb(var(--primary))">Babble</span>
+          <span style="font-size:18px;color:rgb(var(--ink-2));line-height:1.4">Sign in to share Adaline's day with your family.</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+          <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">Email</span>
+          <div style="display:flex;align-items:center;height:56px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:2px solid rgb(var(--primary));box-sizing:border-box;font-size:17px">jaimi@example.com</div>
+        </div>
+        <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-mail" style="font-size:20px"></i>Email me a sign-in link</div>
+        <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:rgb(var(--ink-3))"><span style="flex:1;height:1px;background:rgb(var(--line))"></span>or<span style="flex:1;height:1px;background:rgb(var(--line))"></span></div>
+        <div style="height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:600"><span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--ink-2));display:grid;place-items:center;font-size:13px;font-weight:700;box-sizing:border-box">G</span>Continue with Google</div>
+        <div style="flex:1"></div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;color:rgb(var(--ink-2));padding-bottom:34px"><i class="icon-server" style="font-size:15px"></i>babble.home.nz · <span style="color:rgb(var(--on-primary-soft));font-weight:600">Change server</span></div>
+      </sc-if>
+
+      <sc-if value="{{ is.check }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:14px;padding-top:72px">
+          <span style="width:72px;height:72px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--primary));display:grid;place-items:center"><i class="icon-mail-check" style="font-size:32px"></i></span>
+          <span style="font-size:28px;font-weight:700">Check your email</span>
+          <span style="font-size:17px;color:rgb(var(--ink-2));line-height:1.45">We sent a sign-in link to <b style="color:rgb(var(--ink))">jaimi@example.com</b>. Open it on this phone. It expires in 15 minutes.</span>
+        </div>
+        <div style="flex:1"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:34px">
+          <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-external-link" style="font-size:19px"></i>Open email app</div>
+          <div style="height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;opacity:.45;font-variant-numeric:tabular-nums">Resend in 0:42</div>
+          <div style="height:48px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft))">Use a different email</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.family }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size:28px;font-weight:700;line-height:1.2">Set up your family</span>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--raised));border:1.5px solid rgb(var(--line))">
+            <span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--line-strong));box-sizing:border-box"></span>
+            <div style="flex:1"><div style="font-size:17px;font-weight:700">Create a new family</div><div style="font-size:14px;color:rgb(var(--ink-2))">You'll add your baby next.</div></div>
+            <i class="icon-house-plus" style="font-size:22px;color:rgb(var(--ink-2))"></i>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--primary-soft));border:2px solid rgb(var(--primary))">
+            <div style="display:flex;align-items:center;gap:14px">
+              <span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--primary));box-sizing:border-box;display:grid;place-items:center"><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--primary))"></span></span>
+              <div style="flex:1;color:rgb(var(--on-primary-soft))"><div style="font-size:17px;font-weight:700">Join with an invite code</div><div style="font-size:14px">From Joel's Babble app</div></div>
+              <i class="icon-users" style="font-size:22px;color:rgb(var(--primary))"></i>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr) 14px repeat(3,1fr);gap:6px;align-items:center">
+              <sc-for list="{{ code }}" as="ch" hint-placeholder-count="7"><span style="height:{{ ch.h }};border-radius:12px;background:{{ ch.bg }};border:{{ ch.border }};box-sizing:border-box;display:grid;place-items:center;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:rgb(var(--ink))">{{ ch.t }}</span></sc-for>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="height:56px;margin-bottom:34px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;opacity:.45">Join family</div>
+      </sc-if>
+
+      <sc-if value="{{ is.baby }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size:28px;font-weight:700;line-height:1.2">Add your baby</span>
+        <sc-for list="{{ babyFields }}" as="f" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">{{ f.label }}</span>
+            <div style="display:flex;align-items:center;gap:10px;height:56px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:{{ f.border }};box-sizing:border-box">
+              <i class="{{ f.icon }}" style="font-size:19px;color:rgb(var(--ink-2))"></i>
+              <span style="flex:1;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums">{{ f.value }}</span>
+              <span style="font-size:13px;font-weight:600;color:{{ f.tagC }};display:flex;align-items:center;gap:4px"><i class="{{ f.tagIcon }}" style="font-size:14px"></i>{{ f.tag }}</span>
+            </div>
+          </div>
+        </sc-for>
+        <span style="font-size:14px;color:rgb(var(--ink-2));line-height:1.45">Timezone is detected from this phone. Times stay correct when you travel.</span>
+        <div style="flex:1"></div>
+        <div style="height:56px;margin-bottom:34px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600">Continue</div>
+      </sc-if>
+
+      <sc-if value="{{ is.daystart }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:28px;font-weight:700;line-height:1.2">When does Adaline's day start?</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45">Daily totals and history reset at this time. You can change it later in Settings.</span></div>
+        <div style="display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--raised));border:1.5px solid rgb(var(--line))">
+          <span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--line-strong));box-sizing:border-box"></span>
+          <div style="flex:1"><div style="font-size:17px;font-weight:700">Midnight</div><div style="font-size:14px;color:rgb(var(--ink-2))">A night sleep is split across two days</div></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--primary-soft));border:2px solid rgb(var(--primary))">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--primary));box-sizing:border-box;display:grid;place-items:center"><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--primary))"></span></span>
+            <div style="flex:1;color:rgb(var(--on-primary-soft))"><div style="font-size:17px;font-weight:700">Custom time</div><div style="font-size:14px">Keeps each night in one day</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:6px;border-radius:14px;background:rgb(var(--raised))">
+            <div style="width:56px;height:48px;border-radius:12px;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-minus" style="font-size:16px"></i></div>
+            <span style="flex:1;text-align:center;font-size:26px;font-weight:600;font-variant-numeric:tabular-nums">7:00 am</span>
+            <div style="width:56px;height:48px;border-radius:12px;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-plus" style="font-size:16px"></i></div>
+          </div>
+        </div>
+        <div style="flex:1"></div>
+        <div style="height:56px;margin-bottom:34px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600">Continue</div>
+      </sc-if>
+
+      <sc-if value="{{ is.invite }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:28px;font-weight:700;line-height:1.2">Invite a caregiver</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45">They'll see the same timers and history live, and can log too.</span></div>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px;border-radius:20px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <div style="width:168px;height:168px;border-radius:16px;background:repeating-linear-gradient(45deg, rgb(var(--surface)) 0 8px, rgb(var(--raised)) 8px 16px);border:1px solid rgb(var(--line));display:grid;place-items:center;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:rgb(var(--ink-2))">QR code</div>
+          <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Invite code</span>
+          <span style="font-size:34px;font-weight:700;letter-spacing:0.08em;font-variant-numeric:tabular-nums">K7Q-4MD</span>
+          <span style="font-size:14px;color:rgb(var(--ink-3))">Expires in 7 days · one use</span>
+        </div>
+        <div style="flex:1"></div>
+        <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:34px">
+          <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-share" style="font-size:19px"></i>Share invite link</div>
+          <div style="display:flex;gap:10px">
+            <div style="flex:1;height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-copy" style="font-size:17px"></i>Copy code</div>
+            <div style="flex:1;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft))">Skip for now</div>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ is.settings }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;align-items:center;height:48px;flex:none;font-weight:700;font-size:26px">Settings</div>
+      <sc-if value="{{ showProfile }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;align-items:center;gap:14px;padding:14px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <div style="width:52px;height:52px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-weight:700;font-size:22px">A</div>
+          <div style="flex:1"><div style="font-size:18px;font-weight:700">Adaline</div><div style="font-size:14px;color:rgb(var(--ink-2))">Born Sat 26 Sep · 10 days</div></div>
+          <i class="icon-chevron-right" style="font-size:20px;color:rgb(var(--ink-3))"></i>
+        </div>
+      </sc-if>
+      <sc-for list="{{ settingGroups }}" as="g" hint-placeholder-count="4">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2));padding:0 4px">{{ g.title }}</span>
+          <div style="border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+            <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:4px 14px;border-top:{{ r.divider }}">
+                <i class="{{ r.icon }}" style="font-size:19px;color:{{ r.ic }}"></i>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3"><span style="font-size:16px;font-weight:600;color:{{ r.lc }}">{{ r.label }}</span><span style="font-size:13px;color:rgb(var(--ink-3));display:{{ r.subD }}">{{ r.sub }}</span></div>
+                <span style="font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.value }}</span>
+                <span style="width:52px;height:32px;flex:none;border-radius:999px;background:rgb(var(--primary));position:relative;display:{{ r.swD }}"><span style="position:absolute;top:3px;right:3px;width:26px;height:26px;border-radius:50%;background:rgb(var(--on-primary))"></span></span>
+                <i class="{{ r.trail }}" style="font-size:18px;color:rgb(var(--ink-3))"></i>
+              </div>
+            </sc-for>
+            <sc-if value="{{ g.hasTheme }}" hint-placeholder-val="{{ false }}">
+              <div style="padding:4px 10px 12px;display:grid;grid-template-columns:repeat(4,1fr);gap:4px">
+                <sc-for list="{{ themeSeg }}" as="o" hint-placeholder-count="4"><div style="height:48px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:12px;line-height:1.15;text-align:center;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};border:{{ o.border }};box-sizing:border-box"><i class="{{ o.icon }}" style="font-size:17px"></i>{{ o.label }}</div></sc-for>
+              </div>
+            </sc-if>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{ showVersion }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:rgb(var(--ink-3));text-align:center">Babble 1.0 · self-hosted at babble.home.nz</span></sc-if>
+    </div>
+    <div style="flex:none;height:86px;padding:8px 12px 24px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);background:rgb(var(--raised));border-top:1px solid rgb(var(--line))">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.color }};font-size:12px;font-weight:{{ tb.weight }}"><span style="width:56px;height:30px;border-radius:999px;background:{{ tb.pill }};display:grid;place-items:center"><i class="{{ tb.icon }}" style="font-size:22px"></i></span>{{ tb.label }}</div></sc-for>
+    </div>
+    <sc-if value="{{ is.del }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.5)"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:14px">
+        <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong))"></span>
+        <span style="width:52px;height:52px;border-radius:50%;background:rgb(var(--danger-soft));color:rgb(var(--danger));display:grid;place-items:center"><i class="icon-trash-2" style="font-size:24px"></i></span>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:22px;font-weight:700">Delete your account?</span><span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">You'll be signed out on every device and your login is removed. Adaline's records stay with the family because Joel is still a member.</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">Type DELETE to confirm</span><div style="display:flex;align-items:center;height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--bg));border:2px solid rgb(var(--danger));box-sizing:border-box;font-size:17px;font-weight:700;letter-spacing:0.06em">DELETE</div></div>
+        <div style="height:56px;border-radius:14px;background:rgb(var(--danger));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-trash-2" style="font-size:19px"></i>Delete account</div>
+        <div style="height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Cancel</div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <sc-if value="{{ is.pwa }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ is.android }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;height:56px;display:flex;align-items:center;gap:10px;padding:0 12px;background:rgb(var(--surface))"><i class="icon-house" style="font-size:19px;color:rgb(var(--ink-2))"></i><div style="flex:1;height:40px;border-radius:999px;background:rgb(var(--raised));display:flex;align-items:center;gap:8px;padding:0 14px;font-size:15px"><i class="icon-lock" style="font-size:14px;color:rgb(var(--ink-2))"></i>babble.home.nz</div><i class="icon-ellipsis-vertical" style="font-size:19px;color:rgb(var(--ink-2))"></i></div>
+    </sc-if>
+    <div style="flex:1;min-height:0;overflow:hidden;padding:12px 20px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:52px;height:52px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-weight:700;font-size:22px">A</div>
+        <div style="flex:1"><div style="font-weight:700;font-size:26px;line-height:1.15">Adaline</div><div style="font-size:15px;color:rgb(var(--ink-2))">10 days old</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;background:rgb(var(--raised));border-radius:16px;border:1px solid rgb(var(--line))">
+        <sc-for list="{{ pwaRows }}" as="r" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:14px;min-height:68px;padding:8px 10px 8px 14px;border-top:{{ r.divider }}">
+            <div style="width:44px;height:44px;flex:none;border-radius:12px;background:{{ r.soft }};color:{{ r.solid }};display:grid;place-items:center"><i class="{{ r.icon }}" style="font-size:22px"></i></div>
+            <div style="flex:1"><div style="font-size:17px;font-weight:600">{{ r.title }}</div><div style="font-size:14px;color:rgb(var(--ink-2))">{{ r.meta }}</div></div>
+            <div style="width:48px;height:48px;border-radius:50%;background:{{ r.soft }};color:{{ r.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    <sc-if value="{{ is.ios }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;left:14px;right:14px;bottom:122px;padding:18px;border-radius:22px;background:rgb(var(--raised));box-shadow:var(--shadow-toast);border:1px solid rgb(var(--line));display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:48px;height:48px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-family:Caprasimo, serif;font-size:26px">b</span><div style="flex:1"><div style="font-size:18px;font-weight:700">Install Babble</div><div style="font-size:14px;color:rgb(var(--ink-2))">Opens full screen and works offline</div></div><i class="icon-x" style="font-size:20px;color:rgb(var(--ink-3))"></i></div>
+        <sc-for list="{{ iosSteps }}" as="st" hint-placeholder-count="3">
+          <div style="display:flex;align-items:center;gap:12px;font-size:16px"><span style="width:28px;height:28px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-size:14px;font-weight:700">{{ st.n }}</span><span style="flex:1">{{ st.pre }} <b>{{ st.b }}</b></span><i class="{{ st.icon }}" style="font-size:20px;color:rgb(var(--primary))"></i></div>
+        </sc-for>
+        <span style="position:absolute;bottom:-9px;left:calc(50% - 9px);width:18px;height:18px;background:rgb(var(--raised));transform:rotate(45deg);border-right:1px solid rgb(var(--line));border-bottom:1px solid rgb(var(--line))"></span>
+      </div>
+      <div style="flex:none;padding:8px 14px 28px;background:rgb(var(--surface));display:flex;flex-direction:column;gap:8px">
+        <div style="height:44px;border-radius:14px;background:rgb(var(--raised));display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px"><i class="icon-lock" style="font-size:13px;color:rgb(var(--ink-2))"></i>babble.home.nz</div>
+        <div style="display:flex;justify-content:space-around;color:rgb(var(--ink-2))"><i class="icon-chevron-left" style="font-size:24px"></i><i class="icon-chevron-right" style="font-size:24px;opacity:.4"></i><span style="width:44px;height:36px;border-radius:10px;background:rgb(var(--primary-soft));color:rgb(var(--primary));display:grid;place-items:center"><i class="icon-share" style="font-size:22px"></i></span><i class="icon-book-open" style="font-size:22px"></i><i class="icon-copy" style="font-size:22px"></i></div>
+      </div>
+    </sc-if>
+    <sc-if value="{{ is.android }}" hint-placeholder-val="{{ false }}">
+      <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.4)"></div>
+      <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 22px 30px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:16px">
+        <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong))"></span>
+        <div style="display:flex;align-items:center;gap:14px"><span style="width:56px;height:56px;border-radius:16px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-family:Caprasimo, serif;font-size:30px">b</span><div><div style="font-size:20px;font-weight:700">Install app</div><div style="font-size:15px;color:rgb(var(--ink-2))">Babble · babble.home.nz</div></div></div>
+        <span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">Add Babble to your home screen for one-tap timers, reminders and offline logging.</span>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1;height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Not now</div>
+          <div style="flex:1;height:52px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-download" style="font-size:18px"></i>Install</div>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;check-email&quot;,&quot;family&quot;,&quot;add-baby&quot;,&quot;day-start&quot;,&quot;invite&quot;,&quot;settings&quot;,&quot;settings-2&quot;,&quot;delete-confirm&quot;,&quot;pwa-ios&quot;,&quot;pwa-android&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen || 'signin';
+    const c = n => `rgb(var(--${n}))`;
+    const line = `1px solid ${c('line')}`;
+    const is = { signin: s === 'signin', check: s === 'check-email', family: s === 'family', baby: s === 'add-baby', daystart: s === 'day-start', invite: s === 'invite',
+      settings: s.startsWith('settings') || s === 'delete-confirm', del: s === 'delete-confirm', ios: s === 'pwa-ios', android: s === 'pwa-android' };
+    is.onboard = is.signin || is.check || is.family || is.baby || is.daystart || is.invite;
+    is.pwa = is.ios || is.android;
+    const stepN = { family: 1, 'add-baby': 2, 'day-start': 3, invite: 4 }[s] || 0;
+    const steps = [1, 2, 3, 4].map(i => i <= stepN ? c('primary') : c('line'));
+    const codeChars = ['K', '7', 'Q', '-', '4', 'M', ''];
+    const code = codeChars.map((t, i) => i === 3 ? { t: '–', h: 'auto', bg: 'transparent', border: 'none' } : { t, h: '56px', bg: c('raised'), border: i === 6 ? `2px solid ${c('primary')}` : line });
+    const babyFields = [
+      { label: 'Name', icon: 'icon-baby', value: 'Adaline', tag: '', tagIcon: '', tagC: c('ink-2'), border: line },
+      { label: 'Birth date and time', icon: 'icon-calendar', value: 'Sat 26 Sep 2026 · 6:12 am', tag: '', tagIcon: '', tagC: c('ink-2'), border: line },
+      { label: 'Timezone', icon: 'icon-globe', value: 'Pacific/Auckland', tag: 'Detected', tagIcon: 'icon-check', tagC: c('on-success'), border: line }
+    ];
+    const row = (icon, label, value, o = {}) => ({ icon, label, value: value || '', sub: o.sub || '', subD: o.sub ? 'block' : 'none', swD: o.sw ? 'block' : 'none', trail: o.sw || o.noTrail ? '' : (o.ext ? 'icon-external-link' : 'icon-chevron-right'), ic: o.danger ? c('danger') : c('ink-2'), lc: o.danger ? c('on-danger') : c('ink') });
+    const grp = (title, rows, hasTheme) => ({ title, hasTheme: !!hasTheme, rows: rows.map((r, i) => ({ ...r, divider: i ? line : 'none' })) });
+    const g1 = [
+      grp('Family', [row('icon-users', 'Caregivers & invites', 'Jo, Ja · 1 pending')]),
+      grp('Day & night', [row('icon-sunrise', 'Day starts at', 'Midnight'), row('icon-moon-star', 'Night window', '19:00–07:00'), row('icon-ruler', 'Units', 'Metric')]),
+      grp('Feed reminders', [row('icon-alarm-clock', 'Remind every', '3h', { sub: 'For Adaline · shared' }), row('icon-bell', 'Notify me', '', { sw: true, sub: 'Just this phone' })]),
+    ];
+    const g2 = [
+      grp('Timers', [row('icon-merge', 'Merge downtime under', '15s'), row('icon-timer-off', 'Auto-end paused after', '30m')]),
+      grp('Appearance', [row('icon-palette', 'Theme', 'Dark at night', { noTrail: true, sub: 'Dark during the night window' })], true),
+      grp('Data', [row('icon-file-input', 'Import from Huckleberry', 'On the web', { ext: true }), row('icon-download', 'Export data', 'CSV · JSON')]),
+      grp('Account', [row('icon-mail', 'jaimi@example.com', '', { noTrail: true }), row('icon-log-out', 'Sign out', ''), row('icon-trash-2', 'Delete account', '', { danger: true })])
+    ];
+    const themeSeg = [['System', 'icon-smartphone'], ['Light', 'icon-sun'], ['Dark', 'icon-moon'], ['Dark at night', 'icon-moon-star']].map(([label, icon]) => {
+      const on = label === 'Dark at night';
+      return { label, icon, w: on ? 700 : 500, bg: on ? c('primary-soft') : c('surface'), c: on ? c('on-primary-soft') : c('ink-2'), border: on ? `2px solid ${c('primary')}` : 'none' };
+    });
+    const tabs = [['icon-house', 'Home'], ['icon-history', 'History'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
+      .map(([icon, label], i) => ({ icon, label, color: i === 3 ? c('on-primary-soft') : c('ink-3'), weight: i === 3 ? 700 : 500, pill: i === 3 ? c('primary-soft') : 'transparent' }));
+    const pr = (k, icon, title, meta, i) => ({ icon, title, meta, solid: c(k), soft: c(k + '-soft'), on: c('on-' + k), divider: i ? line : 'none' });
+    const scrolled = s === 'settings-2' || is.del;
+    return {
+      is, steps, stepLabel: stepN ? `${stepN} of 4` : '', hasSteps: stepN > 0,
+      code, babyFields, themeSeg, tabs,
+      settingGroups: scrolled ? g2 : g1, showProfile: !scrolled, showVersion: false,
+      pwaRows: [pr('feed-right', 'icon-heart', 'Feed', 'Last 2h 14m ago (R)', 0), pr('sleep', 'icon-moon', 'Sleep', 'Awake 1h 05m', 1), pr('nappy', 'icon-droplets', 'Nappy', 'Last 48m ago · Wet', 2), pr('bottle', 'icon-milk', 'Bottle', 'Last 5h 10m ago · 60 ml', 3)],
+      iosSteps: [{ n: 1, pre: 'Tap', b: 'Share', icon: 'icon-share' }, { n: 2, pre: 'Choose', b: 'Add to Home Screen', icon: 'icon-square-plus' }, { n: 3, pre: 'Tap', b: 'Add', icon: 'icon-check' }]
+    };
+  }
+}
+</script>
+</body>
+</html>
