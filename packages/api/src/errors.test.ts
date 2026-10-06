@@ -11,6 +11,8 @@ describe('toBabbleError', () => {
     [{ status: 401, message: 'JWT expired' }, 'not_signed_in'],
     [{ name: 'TypeError', message: 'Failed to fetch' }, 'network'],
     [{ name: 'AuthRetryableFetchError', message: '' }, 'network'],
+    [{ message: 'TypeError: Failed to fetch', code: '' }, 'network'],
+    [{ message: 'Network request failed' }, 'network'],
     [{ message: 'weird' }, 'unknown'],
     [null, 'unknown'],
   ])('classifies %j as %s', (error, code) => {

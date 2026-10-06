@@ -31,7 +31,7 @@ pnpm --filter @babble/db test         # database / RLS tests
 
 ```sh
 cp apps/web/.env.example apps/web/.env   # set SUPABASE_ANON_KEY from `supabase start`
-pnpm --filter @babble/web dev            # http://localhost:3000
+pnpm --filter @babble/web dev            # http://localhost:3210
 ```
 
 Magic-link emails are captured locally by Supabase's Mailpit at http://127.0.0.1:54324.

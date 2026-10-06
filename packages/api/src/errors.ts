@@ -41,7 +41,7 @@ function classify(code: string | undefined, message: string, status: number | un
   if (code === 'P0002') return 'invite_invalid';
   if (/not signed in/i.test(message) || status === 401) return 'not_signed_in';
   if (code === '42501' || status === 403) return 'forbidden';
-  if (name === 'TypeError' && /fetch/i.test(message)) return 'network';
+  if (/failed to fetch|fetch failed|network request failed|load failed/i.test(message)) return 'network';
   if (name === 'AuthRetryableFetchError') return 'network';
   return 'unknown';
 }

@@ -1,6 +1,17 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
-import { HeadContent, Outlet, Scripts, createRootRouteWithContext, useRouter } from '@tanstack/react-router';
+import { toBabbleError } from '@babble/api';
+import {
+  HeadContent,
+  Outlet,
+  Scripts,
+  createRootRouteWithContext,
+  useRouter,
+  type ErrorComponentProps,
+} from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
+import { CenteredPage } from '#/components/shell/centered-page';
+import { Button } from '#/components/ui/button';
+import { StatusMessage } from '#/components/ui/status';
 import { loadBabble } from '#/lib/babble';
 import { themeBootScript } from '#/lib/theme';
 import appCss from '../styles.css?url';
@@ -33,6 +44,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   shellComponent: RootDocument,
   component: RootComponent,
   pendingComponent: () => null,
+  errorComponent: RootError,
 });
 
 function RootDocument({ children }: { children: ReactNode }) {
@@ -67,5 +79,25 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <Outlet />
     </QueryClientProvider>
+  );
+}
+
+function RootError({ error, reset }: ErrorComponentProps) {
+  const router = useRouter();
+  const message = toBabbleError(error).message;
+  return (
+    <CenteredPage>
+      <h1 className="mb-4 text-title font-bold">Something's not right</h1>
+      <StatusMessage tone="danger">{message}</StatusMessage>
+      <Button
+        className="mt-6 self-start"
+        onClick={() => {
+          reset();
+          void router.invalidate();
+        }}
+      >
+        Try again
+      </Button>
+    </CenteredPage>
   );
 }

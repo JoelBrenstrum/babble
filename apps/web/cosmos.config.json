@@ -1,10 +1,11 @@
 {
   "$schema": "http://json.schemastore.org/cosmos-config",
+  "rootDir": "src",
   "plugins": ["react-cosmos-plugin-vite"],
   "port": 5000,
   "vite": {
-    "configPath": "vite.cosmos.config.ts",
+    "configPath": "../vite.cosmos.config.ts",
     "port": 5050
   },
-  "exportPath": "cosmos-export"
+  "exportPath": "../cosmos-export"
 }
