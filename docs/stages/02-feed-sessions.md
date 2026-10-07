@@ -37,6 +37,7 @@ Built on branch `stage-2`, on web and mobile:
 - [x] Resume the latest feed: `resume_feed` RPC enforces "most recent feed, nothing else running". The Resume button shows only when that's true.
 - [x] Paused feeds and pumps auto-finish after the configured time (checked by the apps every minute; ends at the last segment end).
 - [x] Feed ↔ nap prompts: starting a breastfeed or logging a bottle during a nap asks "End Olivia's nap?"; finishing a breastfeed or logging a bottle with no nap running asks "Is Olivia asleep?". `start_session` and `end_session` accept a time for "End at feed start" / "Asleep since feed end".
+- [x] Back-date a running feed, pump or nap: "Started 3:12 am" on the timer opens "5/10/15 min earlier" or an exact time. `set_session_start` moves the first side too and refuses future times or times after the first side ended.
 - [x] Settings → Tracking: units, "ignore gaps shorter than", "finish paused feeds after".
 - [x] Tests: 14 new pgTAP assertions (92 total), domain table tests, web/mobile component tests, Playwright for nap prompts, resume and segment editing.
 

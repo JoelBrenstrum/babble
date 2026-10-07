@@ -99,3 +99,15 @@ Paste everything below this line into Claude Design.
 > Add two small screens/sections in the Sage system:
 > - **Choose a new password** (reached from a password-recovery link): centred page like the other account screens, title "Choose a new password", subtitle "For jane@example.com.", fields "New password" (hint "At least 8 characters.") and "Confirm password" (error "The passwords don't match."), primary button "Save password".
 > - **Settings → Account**: a secondary "Change password" button above "Sign out"; it expands in place into the same two fields with "Save password" and a ghost "Cancel", and shows a success status "Password saved." afterwards.
+
+---
+
+## 2026-10-08 · Change a running session's start
+
+Paste everything below this line into Claude Design.
+
+> Update the running-session cards (breastfeed, pump and nap; on Home and on the full timer screen, `Screen.dc.html` `timer`):
+> - Under the timer row, a quiet tappable line "Started 3:12 am" in meta/ink-2 with a small Lucide `pencil` icon (14pt). On naps this replaces the old "Since 3:12 am" line. Hover/pressed: a faint ink tint behind the text.
+> - Tapping it expands an inline panel inside the card (raised surface, tile radius): title "Started earlier?", a row of chips "5 min earlier", "10 min earlier", "15 min earlier" (each applies straight away and closes the panel), a "Start time" date + time field, and two buttons, "Cancel" (secondary) and "Save start" (primary, disabled until the time changes).
+> - Errors under the field: "The start can't be in the future." and "The start must be before the first side ended."
+> - Show the panel open on a feed in light and dark, at phone width.

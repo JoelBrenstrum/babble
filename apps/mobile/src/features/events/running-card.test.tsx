@@ -7,9 +7,11 @@ import { fixtureClient } from '@/fixtures/client';
 import { RunningCard } from './running-card';
 
 const mockDeleteEvent = jest.fn().mockResolvedValue(undefined);
+const mockSetSessionStart = jest.fn().mockResolvedValue(undefined);
 jest.mock('@babble/api', () => ({
   ...jest.requireActual('@babble/api'),
   deleteEvent: (...args: unknown[]) => mockDeleteEvent(...args),
+  setSessionStart: (...args: unknown[]) => mockSetSessionStart(...args),
 }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({
@@ -62,5 +64,15 @@ describe('RunningCard discard', () => {
     const buttons = alert.mock.calls[0]![2] as { text: string; onPress?: () => void }[];
     buttons.find((button) => button.text === 'Discard')!.onPress!();
     await waitFor(() => expect(mockDeleteEvent).toHaveBeenCalledWith(fixtureClient, event.id));
+  });
+});
+
+describe('RunningCard start time', () => {
+  it('moves the start earlier', async () => {
+    const { event } = await renderCard(60);
+    await fireEvent.press(screen.getByRole('button', { name: /change start time/i }));
+    await fireEvent.press(screen.getByRole('button', { name: '10 min earlier' }));
+    const expected = new Date(Date.parse(event.startedAt) - 10 * 60_000).toISOString();
+    await waitFor(() => expect(mockSetSessionStart).toHaveBeenCalledWith(fixtureClient, event.id, expected));
   });
 });

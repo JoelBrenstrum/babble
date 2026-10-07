@@ -52,6 +52,25 @@ test('the latest feed can be resumed', async ({ page }, testInfo) => {
   await expect(page.getByText('Total feeding')).toBeVisible();
 });
 
+test('a running feed can be backdated', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+  await startFeed(page);
+  await expect(page.getByText('Feeding · Left')).toBeVisible();
+
+  await page.getByRole('button', { name: /change start time/i }).click();
+  await page.getByRole('button', { name: '10 min earlier' }).click();
+  await expect(page.getByText(/total 10m/)).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByText(/total 10m/)).toBeVisible();
+
+  await page.getByRole('button', { name: /change start time/i }).click();
+  const editor = page.getByRole('group', { name: 'Change start time' });
+  await editor.getByLabel('Start time').fill('2099-01-01T09:00');
+  await expect(editor.getByText("The start can't be in the future.")).toBeVisible();
+  await expect(editor.getByRole('button', { name: 'Save start' })).toBeDisabled();
+});
+
 test('a feed can be edited segment by segment', async ({ page }, testInfo) => {
   await newFamily(page, testInfo.project.name);
   await page.getByRole('link', { name: 'Log breastfeed' }).click();

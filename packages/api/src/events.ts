@@ -259,6 +259,11 @@ export async function endSession(client: BabbleClient, eventId: string, endAt?: 
   if (error) throw toBabbleError(error);
 }
 
+export async function setSessionStart(client: BabbleClient, eventId: string, startAt: string): Promise<void> {
+  const { error } = await client.rpc('set_session_start', { target_event_id: eventId, start_at: startAt });
+  if (error) throw toBabbleError(error);
+}
+
 export async function resumeFeed(client: BabbleClient, eventId: string, side?: Side): Promise<void> {
   const { error } = await client.rpc('resume_feed', {
     target_event_id: eventId,

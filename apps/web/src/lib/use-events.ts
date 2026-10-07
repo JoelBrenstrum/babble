@@ -7,6 +7,7 @@ import {
   queryKeys,
   restoreEvent,
   resumeSession,
+  setSessionStart,
   runningEventsQuery,
   saveEvent,
   startSession,
@@ -135,6 +136,8 @@ export function useSessionAction(client: BabbleClient, babyId: string) {
           return resumeSession(client, event.id, action.side);
         case 'end':
           return endSession(client, event.id);
+        case 'set-start':
+          return setSessionStart(client, event.id, action.startedAt);
       }
     },
     onMutate: async ({ event, action }) => {

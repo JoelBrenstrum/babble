@@ -2,7 +2,6 @@ import type { BabbleClient, FamilyMemberRow } from '@babble/api';
 import {
   discardNeedsConfirmation,
   formatDuration,
-  formatTimeOfDay,
   formatTimer,
   feedEndTime,
   napPromptOnFeedEnd,
@@ -22,6 +21,7 @@ import { useDiscardSession, useSessionAction } from '#/lib/use-events';
 import { clock, queryKeys } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNow } from '#/lib/use-now';
+import { StartTimeButton, StartTimeEditor } from './start-time-editor';
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
 
@@ -46,6 +46,7 @@ export function RunningCard({
   const showNapPrompt = useNapPrompt();
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
+  const [editingStart, setEditingStart] = useState(false);
   const noun = sessionNoun(event.type);
 
   function requestDiscard() {
@@ -67,6 +68,19 @@ export function RunningCard({
       onDiscard={confirmDiscard}
     />
   ) : null;
+  const startControls = editingStart ? (
+    <StartTimeEditor
+      event={event}
+      timeZone={timeZone}
+      onCancel={() => setEditingStart(false)}
+      onSave={(startedAt) => {
+        setEditingStart(false);
+        action.mutate({ event, action: { kind: 'set-start', startedAt } });
+      }}
+    />
+  ) : (
+    <StartTimeButton event={event} timeZone={timeZone} onClick={() => setEditingStart(true)} />
+  );
   const navigate = useNavigate();
   const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
@@ -84,7 +98,7 @@ export function RunningCard({
         />
         {discardControls}
         <div className="tabular text-timer-lg font-medium text-on-sleep">{formatTimer(elapsed)}</div>
-        <div className="text-meta text-ink-2">Since {formatTimeOfDay(event.startedAt, timeZone)}</div>
+        {startControls}
         <Button
           size="lg"
           className="mt-2 w-full bg-sleep text-ink-on-solid hover:bg-on-sleep"
@@ -136,6 +150,7 @@ export function RunningCard({
           {paused ? 'total so far' : `total ${formatDuration(totals.activeMs)}`}
         </span>
       </div>
+      {startControls}
       <div className="grid grid-cols-2 gap-3">
         {(['left', 'right'] as const).map((side) => {
           const active = totals.openSide === side;

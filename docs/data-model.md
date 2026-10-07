@@ -94,6 +94,7 @@ Downtime is derived rather than stored so that changing the threshold applies to
 - `switch_side`, `pause_session`, `resume_session(event_id, side?)`.
 - `end_session(event_id, end_at?)`: closes the open segment; feeds and pumps end at their last segment, naps at `end_at` (default now).
 - `resume_feed(event_id, side?)`: reopens the most recent feed (breast or bottle) if it's a breastfeed and no feed is running; adds a new segment so the gap shows as downtime.
+- `set_session_start(event_id, start_at)`: moves a running session's start (and the first segment's, for feeds and pumps). The start can't be in the future or after the first segment ended.
 
 ## Feeds for reminders
 

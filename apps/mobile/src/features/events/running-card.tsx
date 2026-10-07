@@ -2,7 +2,6 @@ import type { BabbleClient, FamilyMemberRow } from '@babble/api';
 import {
   discardNeedsConfirmation,
   formatDuration,
-  formatTimeOfDay,
   formatTimer,
   feedEndTime,
   napPromptOnFeedEnd,
@@ -13,6 +12,7 @@ import {
 } from '@babble/domain';
 import { router } from 'expo-router';
 import { Trash2 } from 'lucide-react-native';
+import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
@@ -22,6 +22,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNapPrompt } from '@/features/nap-prompt';
 import { useDiscardSession, useSessionAction } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
+import { StartTimeButton, StartTimeEditor } from './start-time-editor';
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
 
@@ -47,6 +48,7 @@ export function RunningCard({
   const queryClient = useQueryClient();
   const trashColor = useTokenColor('--ink-3');
   const noun = sessionNoun(event.type);
+  const [editingStart, setEditingStart] = useState(false);
 
   function discardNow() {
     discard.mutate(event);
@@ -61,6 +63,19 @@ export function RunningCard({
       { text: 'Discard', style: 'destructive', onPress: discardNow },
     ]);
   }
+  const startControls = editingStart ? (
+    <StartTimeEditor
+      event={event}
+      timeZone={timeZone}
+      onCancel={() => setEditingStart(false)}
+      onSave={(startedAt) => {
+        setEditingStart(false);
+        action.mutate({ event, action: { kind: 'set-start', startedAt } });
+      }}
+    />
+  ) : (
+    <StartTimeButton event={event} timeZone={timeZone} onPress={() => setEditingStart(true)} />
+  );
   const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
   const header = (title: string) => (
@@ -95,7 +110,7 @@ export function RunningCard({
         <Text className="font-medium text-timer-lg text-on-sleep">
           {formatTimer(now.getTime() - Date.parse(event.startedAt))}
         </Text>
-        <Text className="font-sans text-meta text-ink-2">{`Since ${formatTimeOfDay(event.startedAt, timeZone)}`}</Text>
+        {startControls}
         <Button size="lg" loading={action.isPending} onPress={() => action.mutate({ event, action: { kind: 'end' } })}>
           End nap
         </Button>
@@ -132,6 +147,7 @@ export function RunningCard({
           {paused ? 'total so far' : `total ${formatDuration(totals.activeMs)}`}
         </Text>
       </View>
+      {startControls}
       <View className="flex-row gap-3">
         {(['left', 'right'] as const).map((side) => {
           const active = totals.openSide === side;

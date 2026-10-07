@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { applySessionAction, discardNeedsConfirmation, sessionNoun } from './session-actions';
+import {
+  applySessionAction,
+  discardNeedsConfirmation,
+  earlierStart,
+  sessionNoun,
+  startChangeError,
+} from './session-actions';
 import { makeEvent } from './test-events';
 
 const NOW = new Date('2026-10-06T10:20:00Z');
@@ -65,5 +71,46 @@ describe('sessionNoun', () => {
     expect(sessionNoun('sleep')).toBe('nap');
     expect(sessionNoun('breast_feed')).toBe('feed');
     expect(sessionNoun('pump')).toBe('pump');
+  });
+});
+
+describe('changing the start of a running session', () => {
+  it('moves the feed and its first side earlier', () => {
+    const next = applySessionAction(running, { kind: 'set-start', startedAt: '2026-10-06T09:50:00.000Z' }, NOW);
+    expect(next.startedAt).toBe('2026-10-06T09:50:00.000Z');
+    expect(next.type === 'breast_feed' && next.segments[0]?.startedAt).toBe('2026-10-06T09:50:00.000Z');
+  });
+
+  it('moves only the first side when there are several', () => {
+    const switched = applySessionAction(running, { kind: 'switch', side: 'right' }, NOW);
+    const next = applySessionAction(switched, { kind: 'set-start', startedAt: '2026-10-06T09:55:00.000Z' }, NOW);
+    expect(next.type === 'breast_feed' && next.segments.map((s) => s.startedAt)).toEqual([
+      '2026-10-06T09:55:00.000Z',
+      NOW.toISOString(),
+    ]);
+  });
+
+  it('moves a nap start', () => {
+    const nap = makeEvent('sleep', { startedAt: '2026-10-06T10:00:00Z', endedAt: null, sessionState: 'running' });
+    const next = applySessionAction(nap, { kind: 'set-start', startedAt: '2026-10-06T09:00:00.000Z' }, NOW);
+    expect(next.startedAt).toBe('2026-10-06T09:00:00.000Z');
+  });
+
+  it('ignores an invalid start', () => {
+    expect(applySessionAction(running, { kind: 'set-start', startedAt: '2026-10-06T11:00:00Z' }, NOW)).toBe(running);
+  });
+
+  it('rejects future starts and starts after the first side ended', () => {
+    expect(startChangeError(running, '2026-10-06T10:30:00Z', NOW)).toBe("The start can't be in the future.");
+    const switched = applySessionAction(running, { kind: 'switch', side: 'right' }, new Date('2026-10-06T10:05:00Z'));
+    expect(startChangeError(switched, '2026-10-06T10:06:00Z', NOW)).toBe(
+      'The start must be before the first side ended.',
+    );
+    expect(startChangeError(switched, '2026-10-06T09:30:00Z', NOW)).toBeNull();
+    expect(startChangeError(running, 'nonsense', NOW)).toBe('Pick a start time.');
+  });
+
+  it('offers starts earlier than the current one', () => {
+    expect(earlierStart(running, 10)).toBe('2026-10-06T09:50:00.000Z');
   });
 });

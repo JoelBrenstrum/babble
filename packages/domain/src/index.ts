@@ -52,7 +52,10 @@ export {
   applySessionAction,
   DISCARD_CONFIRM_AFTER_MS,
   discardNeedsConfirmation,
+  EARLIER_START_OPTIONS_MIN,
+  earlierStart,
   sessionNoun,
+  startChangeError,
   type SessionAction,
 } from './events/session-actions';
 export { entryAuthorText } from './format/entry-author';
