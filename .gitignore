@@ -18,3 +18,5 @@ supabase/.branches/
 cosmos-export/
 apps/mobile/src/cosmos.imports.ts
 apps/mobile/expo-env.d.ts
+apps/web/test-results/
+apps/web/playwright-report/

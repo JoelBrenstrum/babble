@@ -68,7 +68,7 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
         timezone,
         day_start_minutes: dayStart,
       });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       setStatus({ tone: 'success', text: 'Saved.' });
     } catch (caught) {
       setStatus({ tone: 'danger', text: toBabbleError(caught).message });

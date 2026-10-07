@@ -24,7 +24,7 @@ jobs:
       - run: pnpm turbo run typecheck test --filter='!@babble/db'
       - run: pnpm --filter @babble/web build
 
-  database:
+  database-and-e2e:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,11 +33,20 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - run: pnpm install --frozen-lockfile --filter @babble/db
+      - run: pnpm install --frozen-lockfile
       - working-directory: packages/db
-        run: pnpm exec supabase start --exclude studio,imgproxy,inbucket,edge-runtime,logflare,vector,supavisor
+        run: pnpm exec supabase start --exclude studio,imgproxy,edge-runtime,logflare,vector,supavisor
       - working-directory: packages/db
         run: pnpm exec supabase test db
+      - working-directory: apps/web
+        run: pnpm exec playwright install --with-deps chromium
+      - working-directory: apps/web
+        run: cp .env.example .env && pnpm e2e
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: apps/web/test-results
 
   docker:
     runs-on: ubuntu-latest

@@ -34,7 +34,7 @@ function DayStartStep() {
     setSaving(true);
     try {
       await updateBaby(babble.client, baby.id, { day_start_minutes: minutes });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       await navigate({ to: '/onboarding/invite' });
     } catch (caught) {
       setError(toBabbleError(caught).message);

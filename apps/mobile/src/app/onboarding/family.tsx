@@ -31,7 +31,7 @@ export default function FamilyStep() {
     try {
       if (mode === 'create') await createFamily(client, { familyName, displayName });
       else await acceptInvite(client, { code: inviteCode, displayName });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace(mode === 'create' ? '/onboarding/baby' : '/');
     } catch (caught) {
       setError(toBabbleError(caught).message);

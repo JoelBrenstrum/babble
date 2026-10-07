@@ -38,7 +38,7 @@ function JoinPage() {
       const familyId = await acceptInvite(babble.client, { code, displayName });
       writeStorage(storageKeys.pendingInvite, null);
       writeStorage(storageKeys.activeFamily, familyId);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       await navigate({ to: '/' });
     } catch (caught) {
       setError(toBabbleError(caught).message);

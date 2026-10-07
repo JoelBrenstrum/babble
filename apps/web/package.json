@@ -12,7 +12,8 @@
     "test": "vitest run",
     "typecheck": "tsr generate && tsc",
     "cosmos": "cosmos",
-    "cosmos:export": "cosmos-export"
+    "cosmos:export": "cosmos-export",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@babble/api": "workspace:*",
@@ -35,6 +36,7 @@
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tanstack/router-cli": "^1.167.40",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

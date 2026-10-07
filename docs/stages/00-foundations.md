@@ -44,12 +44,12 @@ Built on branch `stage-0`:
 - [x] Dockerfile, `fly.toml`, self-host compose + README
 - [x] React Cosmos on web and mobile, with fixtures
 
-Not yet verified (needs Docker running locally):
+Verified locally:
 
-- [ ] Run the migration and pgTAP tests (`pnpm --filter @babble/db start && pnpm --filter @babble/db test`)
-- [ ] Regenerate `packages/api/src/database.types.ts` from the real schema (`gen:types`)
-- [ ] End-to-end sign-in → onboarding against local Supabase
-- [ ] Build the Docker image locally
+- [x] Migration applies and all 38 pgTAP tests pass
+- [x] `packages/api/src/database.types.ts` regenerated from the real schema
+- [x] Playwright E2E (phone + desktop): magic-link sign-in via Mailpit → family → baby → day start → invite → Home → Settings (`pnpm --filter @babble/web e2e`)
+- [x] Docker image builds (242 MB) and serves the app
 
 Needs your accounts:
 

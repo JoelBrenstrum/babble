@@ -11,6 +11,8 @@ export default defineConfig(({ mode }) => {
   }
   return {
     resolve: { tsconfigPaths: true },
+    // CommonJS dependencies only reached from lazily loaded routes; pre-bundling avoids 504 "Outdated Optimize Dep" reloads in dev.
+    optimizeDeps: { include: ['qrcode'] },
     plugins: [nitro(), tailwindcss(), tanstackStart(), viteReact()],
   };
 });

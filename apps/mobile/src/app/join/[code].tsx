@@ -36,7 +36,7 @@ export default function Join() {
     setJoining(true);
     try {
       await acceptInvite(client, { code, displayName });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace('/');
     } catch (caught) {
       setError(toBabbleError(caught).message);

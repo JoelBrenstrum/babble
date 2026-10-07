@@ -33,7 +33,7 @@ export default function BabyStep() {
     setSubmitting(true);
     try {
       await addBaby(client, { familyId: family.id, name, birthDate, timezone, dayStartMinutes: 0 });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace('/onboarding/day-start');
     } catch (caught) {
       setError(toBabbleError(caught).message);

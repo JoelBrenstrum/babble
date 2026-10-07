@@ -28,7 +28,7 @@ function DayStartForm({ babyId, babyName, initial }: { babyId: string; babyName:
     setSaving(true);
     try {
       await updateBaby(client, babyId, { day_start_minutes: minutes });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace('/onboarding/invite');
     } catch (caught) {
       setError(toBabbleError(caught).message);

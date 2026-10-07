@@ -1,14 +1,15 @@
 {
   "name": "@babble/mobile",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "scripts": {
     "start": "node scripts/ensure-cosmos-imports.mjs && expo start",
     "android": "node scripts/ensure-cosmos-imports.mjs && expo start --android",
     "ios": "node scripts/ensure-cosmos-imports.mjs && expo start --ios",
     "test": "jest",
     "typecheck": "node scripts/ensure-cosmos-imports.mjs && tsc",
-    "cosmos": "cosmos-native"
+    "cosmos": "cosmos-native",
+    "cosmos:app": "node scripts/ensure-cosmos-imports.mjs && EXPO_PUBLIC_COSMOS=1 expo start --ios"
   },
   "dependencies": {
     "@babble/api": "workspace:*",

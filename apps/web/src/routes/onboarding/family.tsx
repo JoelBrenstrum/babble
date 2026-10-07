@@ -42,7 +42,7 @@ function FamilyStep() {
           : await acceptInvite(babble.client, { code: inviteCode, displayName });
       writeStorage(storageKeys.activeFamily, familyId);
       writeStorage(storageKeys.pendingInvite, null);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       await navigate({ to: mode === 'create' ? '/onboarding/baby' : '/' });
     } catch (caught) {
       setError(toBabbleError(caught).message);

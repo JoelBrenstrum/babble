@@ -48,7 +48,7 @@ function BabyStep() {
         dayStartMinutes: 0,
       });
       writeStorage(storageKeys.activeBaby, baby.id);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       await navigate({ to: '/onboarding/day-start' });
     } catch (caught) {
       setError(toBabbleError(caught).message);

@@ -23,7 +23,10 @@ export default function TabsLayout() {
         <Text className="text-center font-sans text-body text-ink-2">
           Couldn't load your family. Check your connection.
         </Text>
-        <Button variant="secondary" onPress={() => queryClient.invalidateQueries({ queryKey: queryKeys.families })}>
+        <Button
+          variant="secondary"
+          onPress={() => queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' })}
+        >
           Retry
         </Button>
       </View>
