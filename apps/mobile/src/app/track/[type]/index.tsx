@@ -9,10 +9,11 @@ import {
   type TrackerKey,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { Link, Redirect, useLocalSearchParams } from 'expo-router';
+import { Link, Redirect, router, useLocalSearchParams } from 'expo-router';
 import { Plus } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { Screen } from '@/components/screen';
@@ -92,9 +93,14 @@ function TrackerListContent({
         {events.isPending && <ActivityIndicator size="large" color={spinnerColor} className="py-16" />}
         {events.data?.length === 0 && (
           <EmptyState
-            icon={Plus}
+            illustration={<TrackerIcon tracker={tracker} size="lg" />}
             title={`No ${tracker.pluralLabel.toLowerCase()} yet`}
-            body="Tap + to log the first one."
+            body="Entries you log will show up here, grouped by day."
+            action={
+              <Button onPress={() => router.push(`/track/${filter === 'bottle' ? 'bottle' : eventType}/new`)}>
+                {`Log ${(filter === 'bottle' ? trackerFor('bottle') : tracker).label.toLowerCase()}`}
+              </Button>
+            }
           />
         )}
         {groups.map((group) => (

@@ -67,11 +67,11 @@ export function HomeOverview({ baby, running, latest, summary, units, now, rende
           const event = latest.find((item) => item.type === tracker.key);
           const live = event?.endedAt === null && tracker.key !== 'bottle';
           return (
-            <div key={tracker.key} className="flex items-center">
+            <div key={tracker.key} className="flex items-center transition-colors duration-fast hover:bg-surface">
               <Link
                 to="/track/$type"
                 params={{ type: tracker.key }}
-                className="flex min-w-0 flex-1 items-center gap-4 px-4 py-3 hover:bg-surface"
+                className="flex min-w-0 flex-1 items-center gap-4 px-4 py-3 focus-visible:bg-surface"
               >
                 <TrackerIcon tracker={tracker} />
                 <span className="min-w-0 flex-1">
@@ -91,7 +91,7 @@ export function HomeOverview({ baby, running, latest, summary, units, now, rende
                 to="/track/$type/new"
                 params={{ type: tracker.key }}
                 aria-label={`Log ${tracker.label.toLowerCase()}`}
-                className="mr-3 grid size-tap shrink-0 place-items-center rounded-full border border-line bg-raised text-ink hover:bg-surface"
+                className="mr-3 grid size-tap shrink-0 place-items-center rounded-full border border-line bg-raised text-ink hover:border-line-strong hover:bg-bg"
               >
                 <Plus className="size-5" strokeWidth={2.75} />
               </Link>

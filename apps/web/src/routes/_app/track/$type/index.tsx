@@ -88,8 +88,21 @@ function TrackerList() {
         </div>
       )}
       {events.data?.length === 0 && (
-        <EmptyState icon={Plus} title={`No ${tracker.pluralLabel.toLowerCase()} yet`}>
-          Tap + to log the first one.
+        <EmptyState
+          illustration={<TrackerIcon tracker={tracker} size="lg" />}
+          title={`No ${tracker.pluralLabel.toLowerCase()} yet`}
+          action={
+            <Link
+              to="/track/$type/new"
+              params={{ type: filter === 'bottle' ? 'bottle' : eventType }}
+              className="inline-flex h-tap items-center gap-2 rounded-button bg-primary px-5 font-semibold text-on-primary hover:bg-on-primary-soft"
+            >
+              <Plus className="size-5" strokeWidth={2.75} />
+              Log {(filter === 'bottle' ? trackerFor('bottle') : tracker).label.toLowerCase()}
+            </Link>
+          }
+        >
+          Entries you log will show up here, grouped by day.
         </EmptyState>
       )}
       {groups.map((group) => (

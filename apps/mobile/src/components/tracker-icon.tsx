@@ -23,12 +23,13 @@ const TILE: Record<Tracker['token'], string> = {
   custom: 'bg-custom-soft',
 };
 
-export function TrackerIcon({ tracker }: { tracker: Tracker }) {
+export function TrackerIcon({ tracker, size = 'md' }: { tracker: Tracker; size?: 'md' | 'lg' }) {
   const Icon = ICONS[tracker.icon];
   const color = useTokenColor(`--on-${tracker.token}`);
+  const shape = size === 'lg' ? 'size-16 rounded-full' : 'size-11 rounded-tile';
   return (
-    <View className={`size-11 items-center justify-center rounded-tile ${TILE[tracker.token]}`}>
-      <Icon size={20} color={color} strokeWidth={2.75} />
+    <View className={`items-center justify-center ${shape} ${TILE[tracker.token]}`}>
+      <Icon size={size === 'lg' ? 28 : 20} color={color} strokeWidth={2.75} />
     </View>
   );
 }

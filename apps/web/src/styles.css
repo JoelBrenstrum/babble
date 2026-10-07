@@ -28,6 +28,16 @@ body {
   outline-offset: 2px;
 }
 
+/* Tailwind v4 resets buttons to the default cursor; restore the pointer for anything clickable. */
+button:not(:disabled),
+[role='button']:not([aria-disabled='true']),
+[role='checkbox']:not(:disabled),
+[role='radio']:not(:disabled),
+label:has(input[type='checkbox']),
+select {
+  cursor: pointer;
+}
+
 .tabular {
   font-variant-numeric: tabular-nums;
 }

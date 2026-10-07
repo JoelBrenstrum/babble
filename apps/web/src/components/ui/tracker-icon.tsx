@@ -22,11 +22,18 @@ const TILE: Record<Tracker['token'], string> = {
   custom: 'bg-custom-soft text-on-custom',
 };
 
-export function TrackerIcon({ tracker, className }: { tracker: Tracker; className?: string }) {
+export function TrackerIcon({ tracker, size = 'md' }: { tracker: Tracker; size?: 'md' | 'lg' }) {
   const Icon = ICONS[tracker.icon];
   return (
-    <span className={cn('grid size-11 shrink-0 place-items-center rounded-tile', TILE[tracker.token], className)}>
-      <Icon className="size-5" strokeWidth={2.75} />
+    <span
+      aria-hidden
+      className={cn(
+        'grid shrink-0 place-items-center',
+        size === 'lg' ? 'size-16 rounded-full' : 'size-11 rounded-tile',
+        TILE[tracker.token],
+      )}
+    >
+      <Icon className={size === 'lg' ? 'size-7' : 'size-5'} strokeWidth={2.75} />
     </span>
   );
 }
