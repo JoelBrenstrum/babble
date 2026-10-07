@@ -1,12 +1,14 @@
 import 'react-native-url-polyfill/auto';
-import { createBabbleClient, syncClock, type BabbleClient } from '@babble/api';
+import { accountChanged, createBabbleClient, syncClock, type BabbleClient } from '@babble/api';
 import { ConfigError, type PublicConfig } from '@babble/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
 import { useQueryClient } from '@tanstack/react-query';
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState, Text, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { readMobileConfig } from './config';
+import { chunkedStore } from './secure-session-storage';
 
 interface BabbleContextValue {
   config: PublicConfig;
@@ -17,12 +19,17 @@ interface BabbleContextValue {
 
 const BabbleContext = createContext<BabbleContextValue | null>(null);
 
+const sessionStorage = chunkedStore(
+  { getItem: SecureStore.getItemAsync, setItem: SecureStore.setItemAsync, removeItem: SecureStore.deleteItemAsync },
+  AsyncStorage,
+);
+
 export function BabbleProvider({ children }: { children: ReactNode }) {
   const setup = useMemo(() => {
     try {
       const config = readMobileConfig();
       const client = createBabbleClient(config, {
-        auth: { storage: AsyncStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+        auth: { storage: sessionStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
       });
       return { ok: true as const, config, client };
     } catch (error) {
@@ -69,7 +76,11 @@ function ConfiguredProvider({
       setSession(data.session);
       setSessionLoaded(true);
     });
+    let userId: string | null | undefined;
     const { data } = client.auth.onAuthStateChange((event, next) => {
+      const nextUserId = next?.user.id ?? null;
+      if (accountChanged(userId, nextUserId)) queryClient.clear();
+      userId = nextUserId;
       setSession(next);
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') void queryClient.invalidateQueries();
     });

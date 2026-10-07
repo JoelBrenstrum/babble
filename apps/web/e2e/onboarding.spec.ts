@@ -25,7 +25,7 @@ test('a new parent signs in with a magic link and sets up their family', async (
   await page.getByRole('button', { name: 'Continue' }).click();
 
   await expect(page.getByRole('heading', { name: 'Invite a caregiver' })).toBeVisible();
-  await expect(page.getByText(/^[2-9A-HJ-NP-Z]{3}-[2-9A-HJ-NP-Z]{3}$/)).toBeVisible();
+  await expect(page.getByText(/^[2-9A-HJ-NP-Z]{5}-[2-9A-HJ-NP-Z]{5}$/)).toBeVisible();
   await page.getByRole('button', { name: 'Done' }).click();
 
   await expect(page).toHaveURL(/\/$/);

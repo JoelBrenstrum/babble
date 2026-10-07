@@ -3,7 +3,7 @@ import { formatExpiry, inviteLink } from './invite-panel';
 
 describe('inviteLink', () => {
   it('points at the join route', () => {
-    expect(inviteLink('https://babble.fly.dev', 'K7Q-4MD')).toBe('https://babble.fly.dev/join/K7Q-4MD');
+    expect(inviteLink('https://babble.fly.dev', 'K7Q4M-D2XPA')).toBe('https://babble.fly.dev/join/K7Q4M-D2XPA');
   });
 });
 

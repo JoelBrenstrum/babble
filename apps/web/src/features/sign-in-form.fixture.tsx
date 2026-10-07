@@ -22,7 +22,7 @@ export default {
   ),
   'Create account with invite': (
     <Page>
-      <SignInForm settings={inviteOnlySignup} googleEnabled={false} initialInviteCode="K7Q-4MD" {...handlers} />
+      <SignInForm settings={inviteOnlySignup} googleEnabled={false} initialInviteCode="K7Q4M-D2XPA" {...handlers} />
     </Page>
   ),
   'Wrong password': (

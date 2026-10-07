@@ -29,12 +29,12 @@ describe('SignInForm', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'Create account' }));
     await fireEvent.changeText(screen.getByLabelText('Email'), 'jane@example.com');
     await fireEvent.changeText(screen.getByLabelText('Password'), 'correcthorse');
-    await fireEvent.changeText(screen.getByLabelText('Invite code'), 'K7Q-4MD');
+    await fireEvent.changeText(screen.getByLabelText('Invite code'), 'K7Q4M-D2XPA');
     await fireEvent.press(screen.getByRole('button', { name: 'Create account' }));
     expect(props.onSignUp).toHaveBeenCalledWith({
       email: 'jane@example.com',
       password: 'correcthorse',
-      inviteCode: 'K7Q-4MD',
+      inviteCode: 'K7Q4M-D2XPA',
     });
   });
 });

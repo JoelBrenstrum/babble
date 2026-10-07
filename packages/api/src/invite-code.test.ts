@@ -7,6 +7,7 @@ describe('normalizeInviteCode', () => {
     ['k7q4md', 'K7Q-4MD'],
     [' k7q 4md ', 'K7Q-4MD'],
     ['K7Q', 'K7Q'],
+    ['k7q4m d2xpa', 'K7Q4M-D2XPA'],
   ])('%j → %j', (input, expected) => expect(normalizeInviteCode(input)).toBe(expected));
 });
 
@@ -17,5 +18,7 @@ describe('isValidInviteCode', () => {
     ['K7Q-4M', false],
     ['K7Q-4M0', false],
     ['I1O-ABC', false],
+    ['K7Q4M-D2XPA', true],
+    ['K7Q4M-D2XP', false],
   ])('%j → %s', (input, expected) => expect(isValidInviteCode(input)).toBe(expected));
 });

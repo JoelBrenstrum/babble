@@ -5,7 +5,10 @@ const sevenDays = () => new Date(Date.now() + 7 * 86_400_000).toISOString();
 
 export default {
   Ready: (
-    <InvitePanel publicUrl={PUBLIC_URL} onCreate={() => Promise.resolve({ code: 'K7Q-4MD', expiresAt: sevenDays() })} />
+    <InvitePanel
+      publicUrl={PUBLIC_URL}
+      onCreate={() => Promise.resolve({ code: 'K7Q4M-D2XPA', expiresAt: sevenDays() })}
+    />
   ),
   Loading: <InvitePanel publicUrl={PUBLIC_URL} onCreate={() => new Promise<never>(() => undefined)} />,
   Error: (

@@ -32,6 +32,9 @@ test('a dashboard recovery link lets a parent choose a new password', async ({ p
   await page.evaluate(() => localStorage.clear());
 
   await page.goto(await recoveryLink(email));
+  await expect(page.getByRole('heading', { name: `Continue as ${email}?` })).toBeVisible();
+  expect(new URL(page.url()).hash).toBe('');
+  await page.getByRole('button', { name: 'Continue' }).click();
   await expect(page.getByRole('heading', { name: 'Choose a new password' })).toBeVisible();
   await page.getByLabel('New password').fill('second password');
   await page.getByLabel('Confirm password').fill('second password');
@@ -44,4 +47,10 @@ test('a dashboard recovery link lets a parent choose a new password', async ({ p
   await page.getByLabel('Password').fill('second password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByText('Olivia').filter({ visible: true }).first()).toBeVisible();
+});
+
+test('a crafted sign-in link shows fixed wording, not text from the link', async ({ page }) => {
+  await page.goto('/auth/callback?error_description=Your+account+is+locked.+Call+0800+000+000');
+  await expect(page.getByText("This sign-in link didn't work. Try signing in again.")).toBeVisible();
+  await expect(page.getByText(/0800/)).toHaveCount(0);
 });

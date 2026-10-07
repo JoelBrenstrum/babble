@@ -1,5 +1,5 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
-import { syncClock, toBabbleError } from '@babble/api';
+import { accountChanged, syncClock, toBabbleError } from '@babble/api';
 import {
   HeadContent,
   Outlet,
@@ -17,6 +17,7 @@ import { ToastProvider } from '#/components/ui/toast';
 import { loadBabble } from '#/lib/babble';
 import { configProblem } from '#/lib/config-problem';
 import { themeBootScript } from '#/lib/theme';
+import { clearAccountStorage } from '#/lib/storage';
 import appCss from '../styles.css?url';
 
 export interface RouterContext {
@@ -81,7 +82,14 @@ function RootComponent() {
   }, [babble]);
 
   useEffect(() => {
-    const { data } = babble.client.auth.onAuthStateChange((event) => {
+    let userId: string | null | undefined;
+    const { data } = babble.client.auth.onAuthStateChange((event, session) => {
+      const nextUserId = session?.user.id ?? null;
+      if (accountChanged(userId, nextUserId)) {
+        clearAccountStorage();
+        queryClient.clear();
+      }
+      userId = nextUserId;
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
         void queryClient.invalidateQueries();
         void router.invalidate();

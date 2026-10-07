@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { accountChanged } from '@babble/api';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useBabble } from './babble';
 
 interface ActiveBaby {
   familyId: string | null;
@@ -24,6 +26,18 @@ export function ActiveBabyProvider({ children }: { children: ReactNode }) {
       .catch(() => undefined)
       .finally(() => setLoaded(true));
   }, []);
+
+  const { session, sessionLoaded } = useBabble();
+  const userId = useRef<string | null | undefined>(undefined);
+  useEffect(() => {
+    if (!sessionLoaded) return;
+    const nextUserId = session?.user.id ?? null;
+    if (accountChanged(userId.current, nextUserId)) {
+      setActive({ familyId: null, babyId: null });
+      void AsyncStorage.removeItem(KEY).catch(() => undefined);
+    }
+    userId.current = nextUserId;
+  }, [session, sessionLoaded]);
 
   const select = useCallback((next: { familyId: string; babyId: string }) => {
     setActive(next);

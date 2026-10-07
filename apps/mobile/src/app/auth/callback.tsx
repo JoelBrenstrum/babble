@@ -1,4 +1,4 @@
-import { exchangeAuthCode, toBabbleError } from '@babble/api';
+import { authLinkErrorMessage, exchangeAuthCode, toBabbleError } from '@babble/api';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/button';
@@ -10,19 +10,28 @@ import { router } from 'expo-router';
 
 export default function AuthCallback() {
   const { client } = useBabble();
-  const { code, error_description } = useLocalSearchParams<{ code?: string; error_description?: string }>();
+  const params = useLocalSearchParams<{
+    code?: string;
+    error?: string;
+    error_code?: string;
+    error_description?: string;
+  }>();
+  const { code } = params;
+  const linkFailed = Boolean(params.error || params.error_code || params.error_description);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState<string | null>(error_description ?? null);
+  const [error, setError] = useState<string | null>(
+    linkFailed ? authLinkErrorMessage(params.error_code ?? params.error) : null,
+  );
 
   useEffect(() => {
-    if (!code || error_description) {
+    if (!code || linkFailed) {
       if (!code) setError((current) => current ?? 'This sign-in link is missing its code. Try signing in again.');
       return;
     }
     exchangeAuthCode(client, code)
       .then(() => setDone(true))
       .catch((caught) => setError(toBabbleError(caught).message));
-  }, [client, code, error_description]);
+  }, [client, code, linkFailed]);
 
   if (done) return <Redirect href="/" />;
   if (!error) return <PageSpinner label="Signing you in" />;

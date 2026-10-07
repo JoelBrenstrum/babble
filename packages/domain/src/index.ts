@@ -4,6 +4,7 @@ export { zonedToUtc, type LocalDateTime } from './time/zoned';
 export {
   HUCKLEBERRY_HEADER,
   HuckleberryCsvError,
+  MAX_IMPORT_BYTES,
   parseHuckleberryCsv,
   type HuckleberryImport,
   type ImportedEvent,

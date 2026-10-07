@@ -62,7 +62,7 @@ export default function FamilyStep() {
             value={inviteCode}
             onChangeText={setInviteCode}
             autoCapitalize="characters"
-            placeholder="K7Q-4MD"
+            placeholder="K7Q4M-D2XPA"
           />
         )}
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}

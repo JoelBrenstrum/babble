@@ -66,3 +66,19 @@ Paste everything below this line into Claude Design.
 > - **Custom:** Last `2h 00m` / "ago · 1:40 pm" · Today `3` · 7 days `14`.
 >
 > Hide the strip when the list is empty (the empty state shows instead). Use "—" for a figure with nothing to show.
+
+---
+
+## 2026-10-08 · Confirm account from a sign-in link
+
+Paste everything below this line into Claude Design.
+
+> Add a **"Continue as…"** state to the auth callback (`Web Auth.dc.html`, and `Phone Account.dc.html` for consistency), light and dark. It uses the centered auth page layout. It appears when someone opens a sign-in or password-reset link sent from the Supabase dashboard, before the link signs them in.
+>
+> - Title: "Continue as jane@example.com?"
+> - Body in ink-2: "Only continue if you asked for this sign-in link." When someone else is already signed in on this device, the body instead reads "You're signed in as john@example.com. This link signs you in as jane@example.com instead."
+> - A full-width primary **Continue** button, and under it a centred "Cancel" text link in primary that goes back to sign in.
+>
+> Also, the "Couldn't sign you in" error state now shows fixed wording: "This sign-in link has expired. Ask for a new one.", "This sign-in link isn't valid any more. Ask for a new one." or "This sign-in link didn't work. Try signing in again."
+>
+> Invite codes are now 10 characters, shown as `K7Q4M-D2XPA`. Update the invite code in the invite panel, the onboarding invite step and the invite-code field placeholder.

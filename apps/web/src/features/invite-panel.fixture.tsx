@@ -3,7 +3,7 @@ import { InvitePanel } from './invite-panel';
 const PUBLIC_URL = 'https://babble.fly.dev';
 const sevenDays = () => new Date(Date.now() + 7 * 86_400_000).toISOString();
 
-const ready = () => Promise.resolve({ code: 'K7Q-4MD', expiresAt: sevenDays() });
+const ready = () => Promise.resolve({ code: 'K7Q4M-D2XPA', expiresAt: sevenDays() });
 const loading = () => new Promise<never>(() => undefined);
 const failing = () => Promise.reject({ code: '42501', message: 'Only owners and caregivers can invite' });
 

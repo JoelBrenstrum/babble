@@ -22,7 +22,7 @@ import { DayStartPicker } from '#/features/day-start-picker';
 import { InvitePanel } from '#/features/invite-panel';
 import { PasswordForm } from '#/features/password-form';
 import { TrackingSettings } from '#/features/tracking-settings';
-import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
+import { clearAccountStorage, readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { applyTheme, type ThemePreference } from '#/lib/theme';
 import { listTimeZones } from '#/lib/timezones';
 
@@ -200,7 +200,7 @@ function AccountSection({ email }: { email: string }) {
     setError(null);
     try {
       await action();
-      for (const key of [storageKeys.activeFamily, storageKeys.activeBaby]) writeStorage(key, null);
+      clearAccountStorage();
       queryClient.clear();
       await navigate({ to: '/sign-in', search: { invite: undefined } });
     } catch (caught) {

@@ -38,35 +38,77 @@ export interface AuthRedirect {
   error: string | null;
 }
 
+const LINK_ERRORS: Record<string, string> = {
+  otp_expired: 'This sign-in link has expired. Ask for a new one.',
+  access_denied: "This sign-in link isn't valid any more. Ask for a new one.",
+};
+const DEFAULT_LINK_ERROR = "This sign-in link didn't work. Try signing in again.";
+
+export function authLinkErrorMessage(errorCode: string | null | undefined): string {
+  return (errorCode && LINK_ERRORS[errorCode]) || DEFAULT_LINK_ERROR;
+}
+
 export function parseAuthRedirect(href: string): AuthRedirect {
   const url = new URL(href);
   const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
   const read = (key: string) => url.searchParams.get(key) ?? hash.get(key);
+  const failed = read('error') ?? read('error_code') ?? read('error_description');
   return {
     code: url.searchParams.get('code'),
     accessToken: hash.get('access_token'),
     refreshToken: hash.get('refresh_token'),
     type: read('type'),
-    error: read('error_description') ?? read('error'),
+    error: failed ? authLinkErrorMessage(read('error_code') ?? read('error')) : null,
   };
 }
 
-// Links sent from the Supabase dashboard (e.g. password recovery) use the implicit flow and put the session in the URL hash.
-export async function completeAuthRedirect(client: BabbleClient, href: string): Promise<{ type: string | null }> {
+export function tokenEmail(accessToken: string): string | null {
+  try {
+    const payload = accessToken.split('.')[1]!.replace(/-/g, '+').replace(/_/g, '/');
+    const claims = JSON.parse(atob(payload)) as { email?: unknown };
+    return typeof claims.email === 'string' ? claims.email : null;
+  } catch {
+    return null;
+  }
+}
+
+export interface LinkSession {
+  accessToken: string;
+  refreshToken: string;
+  email: string | null;
+}
+
+export type AuthRedirectResult =
+  { kind: 'signed-in'; type: string | null } | { kind: 'confirm'; type: string | null; session: LinkSession };
+
+// Dashboard links carry a session in the URL hash; anyone can craft one, so the account is confirmed before use.
+export async function completeAuthRedirect(client: BabbleClient, href: string): Promise<AuthRedirectResult> {
   const redirect = parseAuthRedirect(href);
   if (redirect.error) throw new BabbleError(redirect.error, 'unknown');
   if (redirect.code) {
     await exchangeAuthCode(client, redirect.code);
-  } else if (redirect.accessToken && redirect.refreshToken) {
-    const { error } = await client.auth.setSession({
-      access_token: redirect.accessToken,
-      refresh_token: redirect.refreshToken,
-    });
-    if (error) throw toBabbleError(error);
-  } else {
-    throw new BabbleError('This sign-in link is missing its code. Try signing in again.', 'unknown');
+    return { kind: 'signed-in', type: redirect.type };
   }
-  return { type: redirect.type };
+  if (redirect.accessToken && redirect.refreshToken) {
+    return {
+      kind: 'confirm',
+      type: redirect.type,
+      session: {
+        accessToken: redirect.accessToken,
+        refreshToken: redirect.refreshToken,
+        email: tokenEmail(redirect.accessToken),
+      },
+    };
+  }
+  throw new BabbleError('This sign-in link is missing its code. Try signing in again.', 'unknown');
+}
+
+export async function acceptLinkSession(client: BabbleClient, session: LinkSession): Promise<void> {
+  const { error } = await client.auth.setSession({
+    access_token: session.accessToken,
+    refresh_token: session.refreshToken,
+  });
+  if (error) throw toBabbleError(error);
 }
 
 export async function updatePassword(client: BabbleClient, password: string): Promise<void> {
@@ -81,7 +123,11 @@ export async function exchangeAuthCode(client: BabbleClient, code: string): Prom
 
 export async function signOut(client: BabbleClient): Promise<void> {
   const { error } = await client.auth.signOut();
-  if (error) throw toBabbleError(error);
+  if (error) await client.auth.signOut({ scope: 'local' });
+}
+
+export function accountChanged(previousUserId: string | null | undefined, nextUserId: string | null): boolean {
+  return previousUserId !== undefined && previousUserId !== nextUserId;
 }
 
 export async function signInWithPassword(

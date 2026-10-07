@@ -70,6 +70,12 @@ type MapResult = EventDraft | { skip: string };
 
 const ACTIVITY_TYPES = new Set(['Tummy time', 'Bath']);
 
+function lookup<T>(table: Record<string, T>, key: string): T | undefined {
+  return Object.hasOwn(table, key) ? table[key] : undefined;
+}
+
+export const MAX_IMPORT_BYTES = 20 * 1024 * 1024;
+
 const UNSUPPORTED_TYPES: Record<string, string> = {
   Potty: 'Potty tracking is not supported',
   Solids: 'Solids tracking is not supported',
@@ -177,7 +183,7 @@ function toRow(record: string[], line: number): Row {
 }
 
 function mapRow(row: Row, timeZone: string, warn: (message: string) => void): MapResult {
-  const unsupported = UNSUPPORTED_TYPES[row.type];
+  const unsupported = lookup(UNSUPPORTED_TYPES, row.type);
   if (unsupported) return { skip: unsupported };
 
   const startedAt = parseLocalTime(row.start, timeZone);
@@ -247,7 +253,7 @@ function mapBreastFeed({ row, startedAt, notes, warn }: RowContext): MapResult {
 }
 
 function mapBottle({ row, startedAt, endedAt, notes, warn }: RowContext): MapResult {
-  const content = BOTTLE_CONTENTS[row.startCondition.toLowerCase()] ?? 'other';
+  const content = lookup(BOTTLE_CONTENTS, row.startCondition.toLowerCase()) ?? 'other';
   if (content === 'other' && row.startCondition !== '') {
     warn(`Bottle type "${row.startCondition}" imported as other`);
   }
@@ -264,7 +270,7 @@ function mapBottle({ row, startedAt, endedAt, notes, warn }: RowContext): MapRes
 }
 
 function mapDiaper({ row, startedAt, notes, warn }: RowContext): MapResult {
-  const match = /^(pee|poo|both|dry)\b[\s,:]*(.*)$/i.exec(row.endCondition);
+  const match = /^(pee|poo|both|dry)\b[\s,:]*(.*)$/is.exec(row.endCondition);
   if (!match) return { skip: `Unrecognised diaper contents "${row.endCondition}"` };
 
   const mode = match[1]!.toLowerCase();
@@ -283,21 +289,21 @@ function mapDiaper({ row, startedAt, notes, warn }: RowContext): MapResult {
 
   const toSize = (value: string | undefined) => {
     if (value === undefined) return null;
-    const size = QUANTITY_SIZES[value];
+    const size = lookup(QUANTITY_SIZES, value);
     if (!size) warn(`Unrecognised diaper quantity "${value}"`);
     return size ?? null;
   };
 
   const pooColours: PooColour[] = [];
   if (row.duration !== '') {
-    const colour = POO_COLOURS[row.duration.toLowerCase()];
+    const colour = lookup(POO_COLOURS, row.duration.toLowerCase());
     if (colour) pooColours.push(colour);
     else warn(`Unrecognised poo colour "${row.duration}"`);
   }
 
   const pooTextures: PooTexture[] = [];
   for (const token of splitList(row.startCondition)) {
-    const texture = POO_TEXTURES[token];
+    const texture = lookup(POO_TEXTURES, token);
     if (texture) pooTextures.push(texture);
     else warn(`Unrecognised poo texture "${token}"`);
   }
@@ -325,7 +331,7 @@ function mapSleep({ row, startedAt, endedAt, notes, warn }: RowContext): MapResu
   const fallAsleepValues: FallAsleep[] = [];
   const startMoods: Mood[] = [];
   for (const token of splitList(row.startCondition)) {
-    const fallAsleep = FALL_ASLEEP[token];
+    const fallAsleep = lookup(FALL_ASLEEP, token);
     if (fallAsleep) fallAsleepValues.push(fallAsleep);
     else if (MOODS.has(token as Mood)) startMoods.push(token as Mood);
     else warn(`Unrecognised sleep start condition "${token}"`);
@@ -336,7 +342,7 @@ function mapSleep({ row, startedAt, endedAt, notes, warn }: RowContext): MapResu
 
   const locations: SleepLocation[] = [];
   for (const token of splitList(row.startLocation)) {
-    const location = SLEEP_LOCATIONS[token];
+    const location = lookup(SLEEP_LOCATIONS, token);
     if (location) locations.push(location);
     else warn(`Unrecognised sleep location "${token}"`);
   }

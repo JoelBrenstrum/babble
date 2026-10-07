@@ -53,15 +53,15 @@ describe('SignInForm', () => {
   });
 
   it('opens on create account with a prefilled invite code', async () => {
-    const { props } = setup({ settings: inviteOnlySettings, initialInviteCode: 'K7Q-4MD' });
-    expect(screen.getByLabelText('Invite code')).toHaveValue('K7Q-4MD');
+    const { props } = setup({ settings: inviteOnlySettings, initialInviteCode: 'K7Q4M-D2XPA' });
+    expect(screen.getByLabelText('Invite code')).toHaveValue('K7Q4M-D2XPA');
     await userEvent.type(screen.getByLabelText('Email'), 'jane@example.com');
     await userEvent.type(screen.getByLabelText('Password'), 'correcthorse');
     await userEvent.click(screen.getByRole('button', { name: 'Create account' }));
     expect(props.onSignUp).toHaveBeenCalledWith({
       email: 'jane@example.com',
       password: 'correcthorse',
-      inviteCode: 'K7Q-4MD',
+      inviteCode: 'K7Q4M-D2XPA',
     });
   });
 

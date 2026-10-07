@@ -85,7 +85,7 @@ select lives_ok($$ update public.families set name = 'The Smiths' $$, 'owners ca
 
 create temp table invite on commit drop as select * from public.create_invite((select id from family));
 grant select on invite to anon, authenticated;
-select matches((select code from invite), '^[2-9A-HJ-NP-Z]{3}-[2-9A-HJ-NP-Z]{3}$', 'invite codes look like K7Q-4MD');
+select matches((select code from invite), '^[2-9A-HJ-NP-Z]{5}-[2-9A-HJ-NP-Z]{5}$', 'invite codes look like K7Q4M-D2XPA');
 select ok(
   (select expires_at between now() + interval '6 days 23 hours' and now() + interval '7 days 1 hour' from invite),
   'invites expire in 7 days'

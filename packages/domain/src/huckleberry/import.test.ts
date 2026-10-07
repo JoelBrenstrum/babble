@@ -33,6 +33,23 @@ describe('parseHuckleberryCsv', () => {
     expect(() => parseHuckleberryCsv('', { timeZone: 'UTC' })).toThrow(HuckleberryCsvError);
   });
 
+  it('treats built-in object names as unknown values, not lookups', () => {
+    const typeRow = importRows('"constructor","2025-10-01 10:00",,,,,,,');
+    expect(typeRow.events).toEqual([]);
+    expect(typeRow.skipped.every((skip) => typeof skip.reason === 'string')).toBe(true);
+    const { event } = onlyEvent(
+      ['"Diaper","2025-10-01 10:00",,"toString","constructor",,"Poo:constructor",,'],
+      'nappy',
+    );
+    expect(event.details).toMatchObject({ pooSize: null, pooColours: [], pooTextures: [] });
+  });
+
+  it('parses a nappy with a huge run of spaces quickly', () => {
+    const started = performance.now();
+    importRows(`"Diaper","2025-10-01 10:00",,,,,"Pee${' '.repeat(50_000)}\nx",,`);
+    expect(performance.now() - started).toBeLessThan(500);
+  });
+
   it('ignores blank lines', () => {
     expect(importRows('', '"Diaper","2025-10-01 10:00",,,,,"Dry",,', '').events).toHaveLength(1);
   });

@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.brenstrum.babble",
+      "allowBackup": false,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#56633f"
@@ -30,9 +31,12 @@
           "image": "./assets/splash-icon.png",
           "imageWidth": 120,
           "backgroundColor": "#f3f0e8",
-          "dark": { "backgroundColor": "#141612" }
+          "dark": {
+            "backgroundColor": "#141612"
+          }
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

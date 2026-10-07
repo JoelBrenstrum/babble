@@ -101,7 +101,7 @@ export function SignInForm({
           value={inviteCode}
           onChangeText={setInviteCode}
           autoCapitalize="characters"
-          placeholder="K7Q-4MD"
+          placeholder="K7Q4M-D2XPA"
           hint="Ask someone in your family for a code from Settings."
         />
       )}

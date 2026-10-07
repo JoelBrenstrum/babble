@@ -83,7 +83,7 @@ function FamilyStep() {
         ) : (
           <TextField
             label="Invite code"
-            placeholder="K7Q-4MD"
+            placeholder="K7Q4M-D2XPA"
             autoCapitalize="characters"
             value={inviteCode}
             onChange={(event) => setInviteCode(event.target.value)}

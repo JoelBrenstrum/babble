@@ -21,3 +21,8 @@ export const storageKeys = {
   pendingInvite: 'babble.pendingInvite',
   theme: 'babble.theme',
 } as const;
+
+export function clearAccountStorage(): void {
+  for (const key of [storageKeys.activeFamily, storageKeys.activeBaby, storageKeys.pendingInvite])
+    writeStorage(key, null);
+}

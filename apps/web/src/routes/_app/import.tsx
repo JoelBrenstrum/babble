@@ -1,5 +1,5 @@
 import { babyChoices, importEvents, queryKeys, toBabbleError } from '@babble/api';
-import { HuckleberryCsvError, parseHuckleberryCsv, type HuckleberryImport } from '@babble/domain';
+import { HuckleberryCsvError, MAX_IMPORT_BYTES, parseHuckleberryCsv, type HuckleberryImport } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ChevronLeft, FileUp } from 'lucide-react';
@@ -103,7 +103,14 @@ function ImportPage() {
               aria-label="Huckleberry CSV file"
               onChange={async (event) => {
                 const chosen = event.target.files?.[0];
-                if (chosen) setFile({ name: chosen.name, text: await chosen.text() });
+                if (!chosen) return;
+                if (chosen.size > MAX_IMPORT_BYTES) {
+                  setFile(null);
+                  setError('That file is too big to be a Huckleberry export. Choose the CSV you exported.');
+                  return;
+                }
+                setError(null);
+                setFile({ name: chosen.name, text: await chosen.text() });
               }}
             />
           </label>

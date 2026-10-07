@@ -229,6 +229,7 @@ export type Database = {
           family_id: string;
           id: string;
           role: Database['public']['Enums']['family_role'];
+          signed_up_at: string | null;
           used_at: string | null;
           used_by: string | null;
         };
@@ -240,6 +241,7 @@ export type Database = {
           family_id: string;
           id?: string;
           role?: Database['public']['Enums']['family_role'];
+          signed_up_at?: string | null;
           used_at?: string | null;
           used_by?: string | null;
         };
@@ -251,6 +253,7 @@ export type Database = {
           family_id?: string;
           id?: string;
           role?: Database['public']['Enums']['family_role'];
+          signed_up_at?: string | null;
           used_at?: string | null;
           used_by?: string | null;
         };

@@ -9,4 +9,4 @@ services:
     restart: unless-stopped
     env_file: .env
     ports:
-      - '${BABBLE_PORT:-3000}:3000'
+      - '${BABBLE_BIND:-127.0.0.1}:${BABBLE_PORT:-3000}:3000'

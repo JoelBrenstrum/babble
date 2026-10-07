@@ -7,7 +7,7 @@ const handlers = { onPasswordSignIn: wait, onSignUp: wait, onMagicLink: wait, on
 export default {
   'Sign in': <SignInForm settings={openSignup} googleEnabled {...handlers} />,
   'Create account with invite': (
-    <SignInForm settings={inviteOnlySignup} googleEnabled={false} initialInviteCode="K7Q-4MD" {...handlers} />
+    <SignInForm settings={inviteOnlySignup} googleEnabled={false} initialInviteCode="K7Q4M-D2XPA" {...handlers} />
   ),
   'Wrong password': (
     <SignInForm

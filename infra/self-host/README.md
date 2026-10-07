@@ -12,8 +12,16 @@ Choose one:
 Then configure Supabase Auth:
 
 - **Site URL**: your `PUBLIC_URL`
-- **Redirect URLs**: `${PUBLIC_URL}/auth/callback`
+- **Redirect URLs**: exactly `${PUBLIC_URL}/auth/callback`, plus `babble://auth/callback` if you use the mobile app. Don't add wildcards such as `babble://**` or `exp://**`: another app could catch a sign-in link meant for Babble.
+- **Secure password change** on, so changing a password needs a fresh sign-in.
+- **Confirm email** on if sign-ups are open.
+- Custom **SMTP**, so sign-in emails aren't limited to Supabase's test sender.
 - Optionally enable the **Google** provider.
+
+If you self-host Supabase, before exposing it:
+
+- Replace every default in its `.env`: `POSTGRES_PASSWORD`, `JWT_SECRET` (then generate new `ANON_KEY` and `SERVICE_ROLE_KEY` from it) and `DASHBOARD_USERNAME` / `DASHBOARD_PASSWORD`.
+- Keep Postgres (5432) and Studio off the public internet. Only the API gateway (Kong, port 8000) needs to be reachable, behind HTTPS.
 
 ## 2. Apply the database schema
 
@@ -24,7 +32,7 @@ cd packages/db
 pnpm exec supabase db push --db-url "postgresql://postgres:<password>@<host>:5432/postgres"
 ```
 
-New instances are **invite-only**: the first account can sign up freely, and everyone after that needs an invite code from an existing family. To allow open sign-ups, run this in the SQL editor:
+New instances are **invite-only**: the first account can sign up freely, and everyone after that needs an invite code from an existing family. Create your own account straight after deploying, so nobody else can claim the first one. To allow open sign-ups, run this in the SQL editor:
 
 ```sql
 update private.instance_settings set signup_mode = 'open';
@@ -38,7 +46,7 @@ cp .env.example .env   # fill in PUBLIC_URL, SUPABASE_URL and SUPABASE_ANON_KEY
 docker compose up -d
 ```
 
-Put it behind your reverse proxy with HTTPS. HTTPS is required to install Babble on a phone's home screen.
+Put it behind your reverse proxy with HTTPS. HTTPS is required to install Babble on a phone's home screen. The container only listens on `127.0.0.1` by default; if your proxy runs on another machine, set `BABBLE_BIND=0.0.0.0` in `.env` and firewall the port.
 
 ### Unraid
 
