@@ -13,6 +13,7 @@ import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
 import { PageSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
+import { ToastProvider } from '#/components/ui/toast';
 import { loadBabble } from '#/lib/babble';
 import { themeBootScript } from '#/lib/theme';
 import appCss from '../styles.css?url';
@@ -78,7 +79,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <ToastProvider>
+        <Outlet />
+      </ToastProvider>
     </QueryClientProvider>
   );
 }

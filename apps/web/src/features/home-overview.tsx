@@ -1,22 +1,59 @@
 import type { BabyRow } from '@babble/api';
-import { TRACKERS } from '@babble/domain';
+import {
+  formatAgo,
+  formatDuration,
+  formatShortDate,
+  summariseLatest,
+  TRACKERS,
+  type BabyEvent,
+  type DaySummary,
+  type Units,
+} from '@babble/domain';
+import { Link } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { Card } from '#/components/ui/card';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 
-export function HomeOverview({ baby }: { baby: BabyRow }) {
+export interface HomeOverviewProps {
+  baby: BabyRow;
+  running: BabyEvent[];
+  latest: BabyEvent[];
+  summary: DaySummary | null;
+  units: Units;
+  now: Date;
+  renderRunning: (event: BabyEvent) => ReactNode;
+}
+
+export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units, timeZone: string): string {
+  if (!event) return 'Nothing logged yet';
+  if (event.endedAt === null && event.type !== 'bottle') return 'In progress';
+  if (event.type === 'growth') {
+    const [first] = summariseLatest(event, now, units).split(' · ');
+    return `${first} · ${formatShortDate(event.startedAt, timeZone)}`;
+  }
+  const reference = event.endedAt ?? event.startedAt;
+  const detail = summariseLatest(event, now, units);
+  return `Last ${formatAgo(now.getTime() - Date.parse(reference))}${detail ? ` · ${detail}` : ''}`;
+}
+
+export function HomeOverview({ baby, running, latest, summary, units, now, renderRunning }: HomeOverviewProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="hidden md:block">
         <h1 className="text-title font-bold">Today</h1>
-        <p className="mt-1 text-body text-ink-2">Logging for {baby.name} arrives in the next update.</p>
+        <p className="mt-1 text-body text-ink-2">{baby.name}'s day so far.</p>
       </div>
+
+      {running.map((event) => (
+        <div key={event.id}>{renderRunning(event)}</div>
+      ))}
 
       <Card className="grid grid-cols-3 divide-x divide-line">
         {[
-          ['Sleep today', '—'],
-          ['Feeds', '—'],
-          ['Nappies', '—'],
+          ['Sleep today', summary ? formatDuration(summary.sleepMs, { seconds: false }) : '—'],
+          ['Feeds', summary ? String(summary.feeds) : '—'],
+          ['Nappies', summary ? String(summary.nappies) : '—'],
         ].map(([label, value]) => (
           <div key={label} className="px-4 py-4">
             <div className="text-meta text-ink-2">{label}</div>
@@ -25,25 +62,42 @@ export function HomeOverview({ baby }: { baby: BabyRow }) {
         ))}
       </Card>
 
-      <Card className="divide-y divide-line">
-        {TRACKERS.map((tracker) => (
-          <div key={tracker.key} className="flex items-center gap-4 px-4 py-3">
-            <TrackerIcon tracker={tracker} />
-            <div className="min-w-0 flex-1">
-              <div className="text-row-title font-semibold">{tracker.label}</div>
-              <div className="text-meta text-ink-2">Nothing logged yet</div>
+      <Card className="divide-y divide-line overflow-hidden">
+        {TRACKERS.map((tracker) => {
+          const event = latest.find((item) => item.type === tracker.key);
+          const live = event?.endedAt === null && tracker.key !== 'bottle';
+          return (
+            <div key={tracker.key} className="flex items-center">
+              <Link
+                to="/track/$type"
+                params={{ type: tracker.key }}
+                className="flex min-w-0 flex-1 items-center gap-4 px-4 py-3 hover:bg-surface"
+              >
+                <TrackerIcon tracker={tracker} />
+                <span className="min-w-0 flex-1">
+                  <span className="block text-row-title font-semibold">{tracker.label}</span>
+                  <span
+                    className={
+                      live
+                        ? 'block truncate text-meta font-semibold text-primary'
+                        : 'block truncate text-meta text-ink-2'
+                    }
+                  >
+                    {latestMeta(event, now, units, baby.timezone)}
+                  </span>
+                </span>
+              </Link>
+              <Link
+                to="/track/$type/new"
+                params={{ type: tracker.key }}
+                aria-label={`Log ${tracker.label.toLowerCase()}`}
+                className="mr-3 grid size-tap shrink-0 place-items-center rounded-full border border-line bg-raised text-ink hover:bg-surface"
+              >
+                <Plus className="size-5" strokeWidth={2.75} />
+              </Link>
             </div>
-            <button
-              type="button"
-              disabled
-              title="Coming soon"
-              aria-label={`Log ${tracker.label.toLowerCase()}`}
-              className="grid size-tap place-items-center rounded-full border border-line text-ink-2 disabled:opacity-45"
-            >
-              <Plus className="size-5" strokeWidth={2.75} />
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </Card>
     </div>
   );

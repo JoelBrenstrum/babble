@@ -23,6 +23,10 @@ import { Route as OnboardingBabyRouteImport } from './routes/onboarding/baby'
 import { Route as OnboardingDayStartRouteImport } from './routes/onboarding/day-start'
 import { Route as OnboardingFamilyRouteImport } from './routes/onboarding/family'
 import { Route as OnboardingInviteRouteImport } from './routes/onboarding/invite'
+import { Route as AppEventsEventIdRouteImport } from './routes/_app/events/$eventId'
+import { Route as AppSessionsEventIdRouteImport } from './routes/_app/sessions/$eventId'
+import { Route as AppTrackTypeIndexRouteImport } from './routes/_app/track/$type/index'
+import { Route as AppTrackTypeNewRouteImport } from './routes/_app/track/$type/new'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -93,6 +97,26 @@ const OnboardingInviteRoute = OnboardingInviteRouteImport.update({
   path: '/invite',
   getParentRoute: () => OnboardingRoute,
 } as any)
+const AppEventsEventIdRoute = AppEventsEventIdRouteImport.update({
+  id: '/events/$eventId',
+  path: '/events/$eventId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSessionsEventIdRoute = AppSessionsEventIdRouteImport.update({
+  id: '/sessions/$eventId',
+  path: '/sessions/$eventId',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTrackTypeIndexRoute = AppTrackTypeIndexRouteImport.update({
+  id: '/track/$type/',
+  path: '/track/$type/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTrackTypeNewRoute = AppTrackTypeNewRouteImport.update({
+  id: '/track/$type/new',
+  path: '/track/$type/new',
+  getParentRoute: () => AppRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
@@ -108,6 +132,10 @@ export interface FileRoutesByFullPath {
   '/onboarding/day-start': typeof OnboardingDayStartRoute
   '/onboarding/family': typeof OnboardingFamilyRoute
   '/onboarding/invite': typeof OnboardingInviteRoute
+  '/events/$eventId': typeof AppEventsEventIdRoute
+  '/sessions/$eventId': typeof AppSessionsEventIdRoute
+  '/track/$type/new': typeof AppTrackTypeNewRoute
+  '/track/$type/': typeof AppTrackTypeIndexRoute
 }
 export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRouteWithChildren
@@ -123,6 +151,10 @@ export interface FileRoutesByTo {
   '/onboarding/family': typeof OnboardingFamilyRoute
   '/onboarding/invite': typeof OnboardingInviteRoute
   '/': typeof AppIndexRoute
+  '/events/$eventId': typeof AppEventsEventIdRoute
+  '/sessions/$eventId': typeof AppSessionsEventIdRoute
+  '/track/$type/new': typeof AppTrackTypeNewRoute
+  '/track/$type': typeof AppTrackTypeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -140,6 +172,10 @@ export interface FileRoutesById {
   '/onboarding/family': typeof OnboardingFamilyRoute
   '/onboarding/invite': typeof OnboardingInviteRoute
   '/_app/': typeof AppIndexRoute
+  '/_app/events/$eventId': typeof AppEventsEventIdRoute
+  '/_app/sessions/$eventId': typeof AppSessionsEventIdRoute
+  '/_app/track/$type/new': typeof AppTrackTypeNewRoute
+  '/_app/track/$type/': typeof AppTrackTypeIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -157,6 +193,10 @@ export interface FileRouteTypes {
     | '/onboarding/day-start'
     | '/onboarding/family'
     | '/onboarding/invite'
+    | '/events/$eventId'
+    | '/sessions/$eventId'
+    | '/track/$type/new'
+    | '/track/$type/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/onboarding'
@@ -172,6 +212,10 @@ export interface FileRouteTypes {
     | '/onboarding/family'
     | '/onboarding/invite'
     | '/'
+    | '/events/$eventId'
+    | '/sessions/$eventId'
+    | '/track/$type/new'
+    | '/track/$type'
   id:
     | '__root__'
     | '/_app'
@@ -188,6 +232,10 @@ export interface FileRouteTypes {
     | '/onboarding/family'
     | '/onboarding/invite'
     | '/_app/'
+    | '/_app/events/$eventId'
+    | '/_app/sessions/$eventId'
+    | '/_app/track/$type/new'
+    | '/_app/track/$type/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -299,6 +347,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OnboardingInviteRouteImport
       parentRoute: typeof OnboardingRoute
     }
+    '/_app/events/$eventId': {
+      id: '/_app/events/$eventId'
+      path: '/events/$eventId'
+      fullPath: '/events/$eventId'
+      preLoaderRoute: typeof AppEventsEventIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/sessions/$eventId': {
+      id: '/_app/sessions/$eventId'
+      path: '/sessions/$eventId'
+      fullPath: '/sessions/$eventId'
+      preLoaderRoute: typeof AppSessionsEventIdRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/track/$type/': {
+      id: '/_app/track/$type/'
+      path: '/track/$type'
+      fullPath: '/track/$type/'
+      preLoaderRoute: typeof AppTrackTypeIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/track/$type/new': {
+      id: '/_app/track/$type/new'
+      path: '/track/$type/new'
+      fullPath: '/track/$type/new'
+      preLoaderRoute: typeof AppTrackTypeNewRouteImport
+      parentRoute: typeof AppRoute
+    }
   }
 }
 
@@ -307,6 +383,10 @@ interface AppRouteChildren {
   AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
   AppIndexRoute: typeof AppIndexRoute
+  AppEventsEventIdRoute: typeof AppEventsEventIdRoute
+  AppSessionsEventIdRoute: typeof AppSessionsEventIdRoute
+  AppTrackTypeNewRoute: typeof AppTrackTypeNewRoute
+  AppTrackTypeIndexRoute: typeof AppTrackTypeIndexRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
@@ -314,6 +394,10 @@ const AppRouteChildren: AppRouteChildren = {
   AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,
   AppIndexRoute: AppIndexRoute,
+  AppEventsEventIdRoute: AppEventsEventIdRoute,
+  AppSessionsEventIdRoute: AppSessionsEventIdRoute,
+  AppTrackTypeNewRoute: AppTrackTypeNewRoute,
+  AppTrackTypeIndexRoute: AppTrackTypeIndexRoute,
 }
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)

@@ -28,10 +28,13 @@ export { formatAgo, formatDuration, formatTimer } from './format/duration';
 export { formatLength, formatVolume, formatWeight, lengthToMm, volumeToMl, weightToGrams } from './format/units';
 export {
   dayKeyFor,
+  dayWindow,
   formatDayLabel,
+  formatShortDate,
   formatTimeOfDay,
   fromLocalInputValue,
   shiftDay,
   toLocalInputValue,
 } from './time/local-time';
 export { summariseDay, type DaySummary } from './events/day-summary';
+export { applySessionAction, type SessionAction } from './events/session-actions';

@@ -175,6 +175,15 @@ describe('describeEvent', () => {
     expect(summariseLatest(nappy, NOW, 'metric')).toBe('Wet');
     const sleep = makeEvent('sleep', { startedAt: '2026-10-06T08:00:00Z', endedAt: '2026-10-06T09:40:00Z' });
     expect(summariseLatest(sleep, NOW, 'metric')).toBe('1h 40m');
+    const feed = makeEvent('breast_feed', {
+      startedAt: '2026-10-06T09:00:00Z',
+      endedAt: '2026-10-06T09:30:00Z',
+      segments: [
+        { side: 'left', startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:10:00Z' },
+        { side: 'right', startedAt: '2026-10-06T09:15:00Z', endedAt: '2026-10-06T09:30:00Z' },
+      ],
+    });
+    expect(summariseLatest(feed, NOW, 'metric')).toBe('L 10m · R 15m');
     const custom = makeEvent('custom', { details: { title: 'Bath', description: '' } });
     expect(describeEvent(custom, NOW, 'metric').title).toBe('Bath');
   });

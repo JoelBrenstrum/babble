@@ -27,6 +27,10 @@ const SIZE_LABELS: Record<Size, string> = {
   massive: 'Massive',
 };
 
+function short(ms: number): string {
+  return formatDuration(ms, { seconds: ms < 60_000 });
+}
+
 const BOTTLE_LABELS = { breast_milk: 'breast milk', formula: 'formula', mixed: 'mixed', other: 'other' } as const;
 
 export function describeEvent(event: BabyEvent, now: Date, units: Units): EventDescription {
@@ -37,15 +41,13 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
     case 'breast_feed': {
       const totals = segmentTotals(event.segments, now);
       const parts: DescriptionPart[] = [];
-      if (totals.leftMs > 0)
-        parts.push({ text: `L ${formatDuration(totals.leftMs, { seconds: false })}`, tone: 'feed-left' });
-      if (totals.rightMs > 0)
-        parts.push({ text: `R ${formatDuration(totals.rightMs, { seconds: false })}`, tone: 'feed-right' });
+      if (totals.leftMs > 0) parts.push({ text: `L ${short(totals.leftMs)}`, tone: 'feed-left' });
+      if (totals.rightMs > 0) parts.push({ text: `R ${short(totals.rightMs)}`, tone: 'feed-right' });
       const idleMs = Math.max(0, spanMs - totals.activeMs);
       if (!running && idleMs >= 60_000 && event.source === 'manual') {
         parts.push({ text: formatDuration(idleMs, { seconds: false }), tone: 'downtime' });
       }
-      return { title: 'Breastfeed', parts, duration: formatDuration(totals.activeMs, { seconds: false }), running };
+      return { title: 'Breastfeed', parts, duration: short(totals.activeMs), running };
     }
     case 'pump': {
       const { leftMl, rightMl, totalMl } = event.details;
@@ -110,6 +112,10 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
 export function summariseLatest(event: BabyEvent, now: Date, units: Units): string {
   const description = describeEvent(event, now, units);
   if (description.running) return 'In progress';
-  const detail = description.parts.map((part) => part.text).join(' · ') || description.duration;
+  const detail =
+    description.parts
+      .filter((part) => part.tone !== 'downtime')
+      .map((part) => part.text)
+      .join(' · ') || description.duration;
   return detail ?? '';
 }

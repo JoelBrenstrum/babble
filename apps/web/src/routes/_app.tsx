@@ -2,6 +2,7 @@ import { familiesQuery, resolveOnboarding } from '@babble/api';
 import { createFileRoute, Outlet, redirect } from '@tanstack/react-router';
 import { AppShell } from '#/components/shell/app-shell';
 import { readStorage, storageKeys } from '#/lib/storage';
+import { useRealtimeEvents } from '#/lib/use-events';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context }) => {
@@ -24,7 +25,8 @@ export const Route = createFileRoute('/_app')({
 });
 
 function AppLayout() {
-  const { family, baby } = Route.useRouteContext();
+  const { family, baby, babble } = Route.useRouteContext();
+  useRealtimeEvents(babble.client, baby.id);
   return (
     <AppShell family={family} baby={baby}>
       <Outlet />

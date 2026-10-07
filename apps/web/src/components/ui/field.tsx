@@ -1,4 +1,11 @@
-import { useId, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes } from 'react';
+import { fromLocalInputValue, toLocalInputValue } from '@babble/domain';
+import {
+  useId,
+  type InputHTMLAttributes,
+  type ReactNode,
+  type SelectHTMLAttributes,
+  type TextareaHTMLAttributes,
+} from 'react';
 import { cn } from '#/lib/cn';
 
 const controlClass =
@@ -62,5 +69,49 @@ function FieldShell({ id, label, hint, error, children }: FieldProps & { id: str
         </p>
       )}
     </div>
+  );
+}
+
+export function TextAreaField({
+  label,
+  hint,
+  error,
+  className,
+  ...props
+}: FieldProps & TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  const id = useId();
+  return (
+    <FieldShell id={id} label={label} hint={hint} error={error}>
+      <textarea
+        id={id}
+        rows={3}
+        aria-invalid={error ? true : undefined}
+        className={cn(controlClass, 'h-auto min-h-24 py-3', className)}
+        {...props}
+      />
+    </FieldShell>
+  );
+}
+
+export function DateTimeField({
+  label,
+  value,
+  onChange,
+  timeZone,
+  error,
+  hint,
+}: FieldProps & { value: string; onChange: (iso: string) => void; timeZone: string }) {
+  return (
+    <TextField
+      label={label}
+      type="datetime-local"
+      error={error}
+      hint={hint}
+      value={toLocalInputValue(value, timeZone)}
+      onChange={(event) => {
+        const iso = fromLocalInputValue(event.target.value, timeZone);
+        if (iso) onChange(iso);
+      }}
+    />
   );
 }

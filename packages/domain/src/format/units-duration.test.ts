@@ -28,6 +28,8 @@ describe('formatAgo', () => {
     [10_000, 'just now'],
     [2_880_000, '48m ago'],
     [8_040_000, '2h 14m ago'],
+    [90_000_000, '1 day ago'],
+    [345_600_000, '4 days ago'],
   ])('%i → %s', (ms, expected) => expect(formatAgo(ms)).toBe(expected));
 });
 

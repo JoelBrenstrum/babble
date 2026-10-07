@@ -20,7 +20,9 @@ export function formatTimer(ms: number): string {
 
 export function formatAgo(ms: number): string {
   if (ms < 60_000) return 'just now';
-  return `${formatDuration(ms, { seconds: false })} ago`;
+  if (ms < 24 * 3_600_000) return `${formatDuration(ms, { seconds: false })} ago`;
+  const days = Math.floor(ms / (24 * 3_600_000));
+  return `${days} ${days === 1 ? 'day' : 'days'} ago`;
 }
 
 function pad(value: number): string {

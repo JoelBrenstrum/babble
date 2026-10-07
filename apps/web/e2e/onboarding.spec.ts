@@ -1,21 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { setSignupMode } from './db';
-import { waitForMagicLink } from './mailpit';
+import { signIn, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 test('a new parent signs in with a magic link and sets up their family', async ({ page }, testInfo) => {
-  const email = `john+${Date.now()}-${testInfo.project.name}@example.com`;
-
   await page.goto('/');
   await expect(page).toHaveURL(/\/sign-in/);
-  await page.getByLabel('Email').fill(email);
-  const requestedAt = new Date(Date.now() - 1000);
-  await page.getByRole('button', { name: /email me a sign-in link/i }).click();
-  await expect(page.getByRole('heading', { name: 'Check your email' })).toBeVisible();
-
-  await page.goto(await waitForMagicLink(email, requestedAt));
+  await signIn(page, uniqueEmail('john', testInfo.project.name));
 
   await expect(page.getByRole('heading', { name: 'Set up your family' })).toBeVisible();
   await page.getByLabel('Your name').fill('John');

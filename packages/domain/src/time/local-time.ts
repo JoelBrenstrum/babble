@@ -67,3 +67,20 @@ export function dayKeyFor(iso: string, timeZone: string, dayStartMinutes: number
   const p = partsIn(shifted, timeZone);
   return `${p.year}-${p.month}-${p.day}`;
 }
+
+export function dayWindow(dayKey: string, timeZone: string, dayStartMinutes: number): { start: Date; end: Date } {
+  const midnight = fromLocalInputValue(`${dayKey}T00:00`, timeZone)!;
+  const nextMidnight = fromLocalInputValue(`${shiftDay(dayKey, 1)}T00:00`, timeZone)!;
+  const offset = dayStartMinutes * 60_000;
+  return { start: new Date(Date.parse(midnight) + offset), end: new Date(Date.parse(nextMidnight) + offset) };
+}
+
+export function formatShortDate(iso: string, timeZone: string): string {
+  const parts: Record<string, string> = {};
+  for (const part of new Intl.DateTimeFormat('en-NZ', { timeZone, day: 'numeric', month: 'short' }).formatToParts(
+    new Date(iso),
+  )) {
+    parts[part.type] = part.value;
+  }
+  return `${parts.day} ${parts.month}`;
+}
