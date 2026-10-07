@@ -323,7 +323,7 @@ describe('Huckleberry export fixtures', () => {
     const result = parseHuckleberryCsv(fixture('real-week.csv'), { timeZone: 'Pacific/Auckland' });
     for (const event of result.events) {
       if (event.type !== 'breast_feed') continue;
-      const total = event.segments.reduce((sum, s) => sum + Date.parse(s.endedAt) - Date.parse(s.startedAt), 0);
+      const total = event.segments.reduce((sum, s) => sum + Date.parse(s.endedAt!) - Date.parse(s.startedAt), 0);
       expect(Date.parse(event.endedAt!) - Date.parse(event.startedAt)).toBe(total);
     }
   });

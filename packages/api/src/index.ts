@@ -7,3 +7,4 @@ export * from './queries';
 export type * from './types';
 export type { Database } from './database.types';
 export * from './onboarding';
+export * from './events';

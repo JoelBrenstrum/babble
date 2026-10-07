@@ -16,6 +16,7 @@ export function fakeClient(respond: (request: RecordedRequest) => { status?: num
     };
     requests.push(request);
     const { status = 200, body } = respond(request);
+    if (status === 204) return new Response(null, { status });
     return new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
   };
   const client = createBabbleClient(

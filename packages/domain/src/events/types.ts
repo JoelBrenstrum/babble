@@ -29,7 +29,7 @@ export type Mood = 'happy' | 'upset';
 export interface TimedSegment {
   side: Side;
   startedAt: string;
-  endedAt: string;
+  endedAt: string | null;
 }
 
 export interface SleepDetails {
@@ -89,3 +89,26 @@ export type EventDraft =
   | (EventBase & { type: 'custom'; details: CustomDetails });
 
 export type EventType = EventDraft['type'];
+
+export type SessionState = 'running' | 'paused' | 'ended';
+
+export type EventSource = 'manual' | 'huckleberry_csv';
+
+export interface EventMeta {
+  id: string;
+  babyId: string;
+  createdBy: string | null;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  source: EventSource;
+  sessionState: SessionState | null;
+}
+
+export type BabyEvent = EventDraft & EventMeta;
+
+export type EventOfType<T extends EventType> = Extract<BabyEvent, { type: T }>;
+
+export type DraftOfType<T extends EventType> = Extract<EventDraft, { type: T }>;
+
+export type Units = 'metric' | 'imperial';

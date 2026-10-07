@@ -13,3 +13,25 @@ export {
 export { babyAgeLabel } from './format/baby-age';
 export { clockToMinutes, minutesToClock, todayInTimeZone } from './format/time-of-day';
 export { TRACKERS, type Tracker, type TrackerKey } from './trackers';
+export { emptyDraft, isInstant } from './events/drafts';
+export {
+  describeEvent,
+  summariseLatest,
+  type DescriptionPart,
+  type EventDescription,
+  type PartTone,
+} from './events/describe';
+export { groupByDay, type DayGroup } from './events/group';
+export { otherSide, segmentTotals, type SegmentLike, type SegmentTotals } from './events/segments';
+export { hasErrors, validateDraft, type DraftErrors } from './events/validate';
+export { formatAgo, formatDuration, formatTimer } from './format/duration';
+export { formatLength, formatVolume, formatWeight, lengthToMm, volumeToMl, weightToGrams } from './format/units';
+export {
+  dayKeyFor,
+  formatDayLabel,
+  formatTimeOfDay,
+  fromLocalInputValue,
+  shiftDay,
+  toLocalInputValue,
+} from './time/local-time';
+export { summariseDay, type DaySummary } from './events/day-summary';
