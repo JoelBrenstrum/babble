@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEV_ACCOUNTS, DEV_PASSWORD, requestMagicLink, signInWithPassword } from './auth';
+import { DEV_ACCOUNTS, DEV_PASSWORD, requestMagicLink, signInWithPassword, signUpWithPassword } from './auth';
 import { BabbleError } from './errors';
 import {
   acceptInvite,
@@ -66,6 +66,40 @@ describe('signInWithPassword', () => {
       body: { error: 'invalid_grant', error_description: 'Invalid login credentials' },
     }));
     await expect(signInWithPassword(client, { email: 'x@example.com', password: 'nope' })).rejects.toThrow();
+  });
+});
+
+describe('signUpWithPassword', () => {
+  it('signs up with the invite code as metadata and reports when no session came back', async () => {
+    const { client, requests } = fakeClient(() => ({ body: { id: 'u', email: 'jane@example.com' } }));
+    const result = await signUpWithPassword(client, {
+      email: ' jane@example.com ',
+      password: 'correct horse',
+      redirectTo: 'https://babble.test/auth/callback',
+      inviteCode: 'k7q4md',
+    });
+    expect(requests[0]!.url.pathname).toBe('/auth/v1/signup');
+    expect(requests[0]!.body).toMatchObject({
+      email: 'jane@example.com',
+      password: 'correct horse',
+      data: { invite_code: 'K7Q-4MD' },
+    });
+    expect(result).toEqual({ needsConfirmation: true });
+  });
+
+  it('reports an immediate session when confirmation is off', async () => {
+    const { client } = fakeClient(() => ({
+      body: { access_token: 'a', refresh_token: 'r', expires_in: 3600, token_type: 'bearer', user: { id: 'u' } },
+    }));
+    expect(
+      await signUpWithPassword(client, {
+        email: 'x@example.com',
+        password: 'longenough',
+        redirectTo: 'https://b.test',
+      }),
+    ).toEqual({
+      needsConfirmation: false,
+    });
   });
 });
 

@@ -3,6 +3,7 @@ import { waitForMagicLink } from './mailpit';
 
 export async function signIn(page: Page, email: string) {
   await page.goto('/sign-in');
+  await page.getByRole('button', { name: /email me a sign-in link$/i }).click();
   await page.getByLabel('Email').fill(email);
   const requestedAt = new Date(Date.now() - 1000);
   await page.getByRole('button', { name: /email me a sign-in link/i }).click();

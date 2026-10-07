@@ -4,6 +4,7 @@ import {
   requestMagicLink,
   signInWithGoogle,
   signInWithPassword,
+  signUpWithPassword,
   toBabbleError,
 } from '@babble/api';
 import { useQuery } from '@tanstack/react-query';
@@ -51,6 +52,16 @@ export default function SignIn() {
           settings={settings.data}
           googleEnabled={config.googleAuthEnabled}
           initialInviteCode={params.invite}
+          onPasswordSignIn={(credentials) => signInWithPassword(client, credentials)}
+          onSignUp={async ({ email, password, inviteCode }) => {
+            const { needsConfirmation } = await signUpWithPassword(client, {
+              email,
+              password,
+              redirectTo: AUTH_REDIRECT,
+              inviteCode,
+            });
+            if (needsConfirmation) setSentTo(email.trim());
+          }}
           onMagicLink={async ({ email, inviteCode }) => {
             try {
               await requestMagicLink(client, { email, redirectTo: AUTH_REDIRECT, inviteCode });

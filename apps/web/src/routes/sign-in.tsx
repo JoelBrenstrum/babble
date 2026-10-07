@@ -1,4 +1,10 @@
-import { instanceSettingsQuery, requestMagicLink, signInWithGoogle, signInWithPassword } from '@babble/api';
+import {
+  instanceSettingsQuery,
+  requestMagicLink,
+  signInWithGoogle,
+  signInWithPassword,
+  signUpWithPassword,
+} from '@babble/api';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
@@ -52,6 +58,21 @@ function SignInPage() {
         settings={settings}
         googleEnabled={babble.config.googleAuthEnabled}
         initialInviteCode={initialInviteCode}
+        onPasswordSignIn={async (credentials) => {
+          await signInWithPassword(babble.client, credentials);
+          await navigate({ to: '/' });
+        }}
+        onSignUp={async ({ email, password, inviteCode }) => {
+          if (inviteCode) writeStorage(storageKeys.pendingInvite, inviteCode);
+          const { needsConfirmation } = await signUpWithPassword(babble.client, {
+            email,
+            password,
+            redirectTo,
+            inviteCode,
+          });
+          if (needsConfirmation) setSentTo(email.trim());
+          else await navigate({ to: '/' });
+        }}
         onMagicLink={async ({ email, inviteCode }) => {
           if (inviteCode) writeStorage(storageKeys.pendingInvite, inviteCode);
           await requestMagicLink(babble.client, { email, redirectTo, inviteCode });

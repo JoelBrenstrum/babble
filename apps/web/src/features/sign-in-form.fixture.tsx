@@ -3,6 +3,7 @@ import { CenteredPage } from '#/components/shell/centered-page';
 import { SignInForm } from './sign-in-form';
 
 const wait = () => new Promise<void>((resolve) => setTimeout(resolve, 800));
+const handlers = { onPasswordSignIn: wait, onSignUp: wait, onMagicLink: wait, onGoogle: wait };
 
 function Page({ children }: { children: React.ReactNode }) {
   return (
@@ -14,31 +15,25 @@ function Page({ children }: { children: React.ReactNode }) {
 }
 
 export default {
-  'Open sign-up': (
+  'Sign in': (
     <Page>
-      <SignInForm settings={openSignup} googleEnabled onMagicLink={wait} onGoogle={wait} />
+      <SignInForm settings={openSignup} googleEnabled {...handlers} />
     </Page>
   ),
-  'Invite-only': (
+  'Create account with invite': (
+    <Page>
+      <SignInForm settings={inviteOnlySignup} googleEnabled={false} initialInviteCode="K7Q-4MD" {...handlers} />
+    </Page>
+  ),
+  'Wrong password': (
     <Page>
       <SignInForm
         settings={inviteOnlySignup}
         googleEnabled={false}
-        initialInviteCode="K7Q-4MD"
-        onMagicLink={wait}
-        onGoogle={wait}
-      />
-    </Page>
-  ),
-  'Server rejects sign-up': (
-    <Page>
-      <SignInForm
-        settings={inviteOnlySignup}
-        googleEnabled={false}
-        onMagicLink={() =>
-          Promise.reject(new Error('This Babble server is invite-only. Ask a family member for an invite code.'))
+        {...handlers}
+        onPasswordSignIn={() =>
+          Promise.reject(new Error("That email and password don't match. Try again, or use a sign-in link instead."))
         }
-        onGoogle={wait}
       />
     </Page>
   ),
