@@ -1,5 +1,5 @@
 import { eventQuery, latestEventsQuery, queryKeys, resumeFeed, runningEventsQuery, toBabbleError } from '@babble/api';
-import { canResumeFeed, entryAuthorText, isSessionType, latestFeed, trackerFor } from '@babble/domain';
+import { canResumeFeed, entryAuthorText, importedNote, isSessionType, latestFeed, trackerFor } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
@@ -59,6 +59,7 @@ function EditEventContent({
   if (event.data.endedAt === null && isSessionType(event.data.type)) return <Redirect href={`/sessions/${id}`} />;
 
   const tracker = trackerFor(event.data.type);
+  const note = importedNote(event.data);
   return (
     <Screen>
       <ScreenHeader
@@ -110,9 +111,7 @@ function EditEventContent({
           imported: event.data.source === 'huckleberry_csv',
         })}
       </Text>
-      {event.data.source === 'huckleberry_csv' && (
-        <StatusMessage tone="info">Imported from Huckleberry. Side order and downtime aren't known.</StatusMessage>
-      )}
+      {note && <StatusMessage tone="info">{note}</StatusMessage>}
       <Card className="p-5">
         <EventForm
           key={event.data.updatedAt}

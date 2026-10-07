@@ -1,7 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { parseHuckleberryCsv } from './import';
-import { summariseImport } from './summary';
+import { makeEvent } from '../events/test-events';
+import { importedNote, summariseImport } from './summary';
 
 const fixture = (name: string) => readFileSync(new URL(`./__fixtures__/${name}`, import.meta.url), 'utf8');
 
@@ -31,5 +32,14 @@ describe('summariseImport', () => {
       skipped: 0,
       warnings: 0,
     });
+  });
+});
+
+describe('importedNote', () => {
+  it('explains missing sides and downtime only on imported feeds and pumps', () => {
+    expect(importedNote(makeEvent('breast_feed', { source: 'huckleberry_csv' }))).toMatch(/Side order and downtime/);
+    expect(importedNote(makeEvent('pump', { source: 'huckleberry_csv' }))).not.toBeNull();
+    expect(importedNote(makeEvent('sleep', { source: 'huckleberry_csv' }))).toBeNull();
+    expect(importedNote(makeEvent('breast_feed'))).toBeNull();
   });
 });

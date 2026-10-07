@@ -1,4 +1,4 @@
-import type { EventType } from '../events/types';
+import type { BabyEvent, EventType } from '../events/types';
 import type { HuckleberryImport } from './import';
 
 export interface ImportSummary {
@@ -27,4 +27,10 @@ export function summariseImport(result: HuckleberryImport): ImportSummary {
     skipped: result.skipped.length,
     warnings: result.warnings.length,
   };
+}
+
+export function importedNote(event: Pick<BabyEvent, 'type' | 'source'>): string | null {
+  if (event.source !== 'huckleberry_csv') return null;
+  if (event.type !== 'breast_feed' && event.type !== 'pump') return null;
+  return "Imported from Huckleberry. Side order and downtime aren't known.";
 }

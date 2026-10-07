@@ -24,6 +24,7 @@ export interface DaySummary {
   nappies: number;
   wet: number;
   dirty: number;
+  both: number;
   lastNappyAt: string | null;
   pumps: number;
   pumpMl: number;
@@ -55,6 +56,7 @@ export function summariseDay(
     nappies: 0,
     wet: 0,
     dirty: 0,
+    both: 0,
     lastNappyAt: null,
     pumps: 0,
     pumpMl: 0,
@@ -98,6 +100,7 @@ export function summariseDay(
         summary.nappies += 1;
         if (event.details.wet) summary.wet += 1;
         if (event.details.dirty) summary.dirty += 1;
+        if (event.details.wet && event.details.dirty) summary.both += 1;
         if (!summary.lastNappyAt || event.startedAt > summary.lastNappyAt) summary.lastNappyAt = event.startedAt;
         break;
       case 'pump': {

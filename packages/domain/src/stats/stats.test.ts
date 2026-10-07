@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
-import { gapsBetween, rangeDays, statsReport, weeklyBars, type StatsSettings } from './stats';
+import { gapsBetween, rangeDays, statsReport, topSegment, weeklyBars, type StatsSettings } from './stats';
 
 const settings: StatsSettings = {
   timeZone: 'UTC',
@@ -23,6 +23,14 @@ describe('rangeDays', () => {
       '2026-10-07',
       '2026-10-08',
     ]);
+  });
+});
+
+describe('topSegment', () => {
+  it('finds the highest segment with a value', () => {
+    expect(topSegment([3, 0])).toBe(0);
+    expect(topSegment([3, 2])).toBe(1);
+    expect(topSegment([0, 0])).toBe(-1);
   });
 });
 
@@ -112,7 +120,14 @@ describe('statsReport', () => {
     expect(sleep).toMatchObject({ series: ['Night', 'Naps'], weekly: false, max: 7 });
     expect(sleep.bars.map((bar) => bar.label)).toEqual(keys);
     expect(sleep.bars[1]!.values).toEqual([5, 2]);
-    expect(report.cards.find((card) => card.key === 'nappies')!.colours).toEqual(['mustard']);
+    const nappies = report.cards.find((card) => card.key === 'nappies')!;
+    expect(nappies.colours).toEqual(['mustard']);
+    expect(nappies.chart.series).toEqual(['Wet', 'Both', 'Dirty']);
+    expect(nappies.chart.bars.map((bar) => bar.values)).toEqual([
+      [0, 0, 0],
+      [0, 1, 0],
+      [1, 0, 0],
+    ]);
   });
 
   it('starts from the first logged day, so empty days before it do not lower the averages', () => {

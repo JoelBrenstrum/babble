@@ -12,7 +12,7 @@ describe('latestMeta', () => {
     expect(latestMeta(byType('nappy'), now, 'metric', 'Pacific/Auckland')).toBe(
       'Last 48m ago · Wet · Medium · Dirty · Medium',
     );
-    expect(latestMeta(byType('bottle'), now, 'metric', 'Pacific/Auckland')).toBe('Last 4h 48m ago · 90 ml formula');
+    expect(latestMeta(byType('bottle'), now, 'metric', 'Pacific/Auckland')).toBe('Last 5h 00m ago · 90 ml formula');
     expect(latestMeta(byType('growth'), now, 'metric', 'Pacific/Auckland')).toBe('3.42 kg · 2 Oct');
   });
 

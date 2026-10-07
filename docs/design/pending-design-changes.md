@@ -28,8 +28,8 @@ Paste everything below this line into Claude Design.
 >   - figure tiles (surface background, caption label, semibold value) in 3 columns on desktop and 2 on phones;
 >   - a chart: a legend row with small rounded squares on the left and "max 15h" (or "weekly avg, max 7.4h") in caption ink-3 on the right; then a 128px-tall stacked bar chart, one bar per day with 3px gaps, rounded tops and a hairline baseline; then the first and last dates ("28 Sep", "7 Oct") under the corners. Hovering a bar on web shows "7 Oct: Night 5h, Naps 4.5h".
 > - **Sleep:** Per day 10h 27m · Night 5h 30m · Naps per day 3.4 · Longest stretch 5h 22m · Wake window 1h 32m. Chart: Night (sleep) under Naps (sleep at 45%).
-> - **Feeds:** Per day 8.6 · Average gap 2h 26m · Left / right 53% / 47% · Downtime per feed 1m · Bottle per day — (dash when none). Chart: Breast (feed-right) under Bottle (bottle).
-> - **Nappies:** Wet per day 4.7 · Dirty per day 4. Chart: Wet (nappy at 45%) under Dirty (nappy). Below the chart, "Recent poo colours, newest first" and a wrapping row of 20px poo swatches.
+> - **Feeds:** Per day 8.6 · Average gap 2h 26m · Left / right 53% / 47% · Downtime per feed 1m · Bottle per day — (dash when none). Chart: Bottle (bottle) at the bottom with Breast (feed-right) on top. Only the topmost non-empty segment of each bar gets the rounded top.
+> - **Nappies:** Wet per day 4.7 · Dirty per day 4. Chart: three stacks, bottom to top: Wet only (nappy at 35%), Both wet and dirty (nappy at 65%), Dirty only (nappy); legend "Wet · Both · Dirty". Below the chart, "Recent poo colours, newest first" and a wrapping row of 20px poo swatches.
 > - **Pump:** Per day 210 ml · Sessions per day 2 · Left / right 105 ml / 105 ml. Chart: one pump-coloured series.
 > - **Empty state:** the chart-column icon tile, "Nothing to chart yet", "Stats for sleep, feeds and nappies appear once you start logging."
 

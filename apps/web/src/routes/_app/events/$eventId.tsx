@@ -8,7 +8,7 @@ import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm, toDraft } from '#/features/events/event-form';
-import { canResumeFeed, isSessionType, latestFeed, trackerFor } from '@babble/domain';
+import { canResumeFeed, importedNote, isSessionType, latestFeed, trackerFor } from '@babble/domain';
 import { useTrackingSettings } from '#/lib/use-events';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { Button } from '#/components/ui/button';
@@ -60,6 +60,7 @@ function EditEvent() {
   }
 
   const tracker = trackerFor(event.data.type);
+  const note = importedNote(event.data);
   const done = () => {
     if (router.history.length > 1) router.history.back();
     else void navigate({ to: '/track/$type', params: { type: tracker.key } });
@@ -119,9 +120,7 @@ function EditEvent() {
         timeZone={baby.timezone}
         imported={event.data.source === 'huckleberry_csv'}
       />
-      {event.data.source === 'huckleberry_csv' && (
-        <StatusMessage tone="info">Imported from Huckleberry. Side order and downtime aren't known.</StatusMessage>
-      )}
+      {note && <StatusMessage tone="info">{note}</StatusMessage>}
       <Card className="p-5">
         <EventForm
           key={event.data.updatedAt}

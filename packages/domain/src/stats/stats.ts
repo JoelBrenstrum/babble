@@ -86,6 +86,11 @@ export function weeklyBars(bars: readonly ChartBar[]): ChartBar[] {
   return weeks;
 }
 
+export function topSegment(values: readonly number[]): number {
+  for (let index = values.length - 1; index >= 0; index -= 1) if (values[index]! > 0) return index;
+  return -1;
+}
+
 function chart(unit: string, series: string[], bars: ChartBar[]): StatsCard['chart'] {
   const grouped = weeklyBars(bars);
   const max = grouped.reduce(
@@ -219,8 +224,8 @@ export function statsReport(
       ],
       chart: chart(
         '',
-        ['Breast', 'Bottle'],
-        bars((day) => [day.feeds - day.bottles, day.bottles]),
+        ['Bottle', 'Breast'],
+        bars((day) => [day.bottles, day.feeds - day.bottles]),
       ),
     },
     {
@@ -232,8 +237,8 @@ export function statsReport(
       ],
       chart: chart(
         '',
-        ['Wet', 'Dirty'],
-        bars((day) => [day.nappies - day.dirty, day.dirty]),
+        ['Wet', 'Both', 'Dirty'],
+        bars((day) => [day.wet - day.both, day.both, day.dirty - day.both]),
       ),
       colours,
     },

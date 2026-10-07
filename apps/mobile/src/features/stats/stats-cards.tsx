@@ -1,4 +1,4 @@
-import { formatShortDate, type StatsCard } from '@babble/domain';
+import { formatShortDate, topSegment, type StatsCard } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import { Card } from '@/components/card';
@@ -9,8 +9,13 @@ type InkToken = '--on-sleep' | '--on-feed-right' | '--on-nappy' | '--on-pump';
 
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkToken; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
-  feeds: { icon: Heart, tile: 'bg-feed-right-soft', ink: '--on-feed-right', series: ['bg-feed-right', 'bg-bottle'] },
-  nappies: { icon: Droplets, tile: 'bg-nappy-soft', ink: '--on-nappy', series: ['bg-nappy/45', 'bg-nappy'] },
+  feeds: { icon: Heart, tile: 'bg-feed-right-soft', ink: '--on-feed-right', series: ['bg-bottle', 'bg-feed-right'] },
+  nappies: {
+    icon: Droplets,
+    tile: 'bg-nappy-soft',
+    ink: '--on-nappy',
+    series: ['bg-nappy/35', 'bg-nappy/65', 'bg-nappy'],
+  },
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump', series: ['bg-pump'] },
 };
 
@@ -79,7 +84,7 @@ function StatsCardView({ card }: { card: StatsCard }) {
               {bar.values.map((value, index) => (
                 <View
                   key={index}
-                  className={look.series[index]}
+                  className={`${look.series[index]} ${index === topSegment(bar.values) ? 'rounded-t-sm' : ''}`}
                   style={{ height: chart.max ? `${(value / chart.max) * 100}%` : 0 }}
                 />
               ))}

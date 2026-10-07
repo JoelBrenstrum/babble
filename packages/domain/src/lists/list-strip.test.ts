@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import { formatWeightChange } from '../format/units';
-import { listStrip, sinceItem, stripKind, stripWindow, type StripContext } from './list-strip';
+import { listStrip, sinceItem, sinceReference, stripKind, stripWindow, type StripContext } from './list-strip';
 
 const context: StripContext = {
   now: new Date('2026-10-08T12:00:00Z'),
@@ -65,6 +65,15 @@ describe('stripWindow', () => {
   });
 });
 
+describe('sinceReference', () => {
+  it('times feeds from their start and everything else from its end', () => {
+    expect(sinceReference(breastFeed('2026-10-08T09:00:00Z', '2026-10-08T09:30:00Z', 'left'))).toBe(
+      '2026-10-08T09:00:00Z',
+    );
+    expect(sinceReference(sleep('2026-10-08T09:00:00Z', '2026-10-08T10:30:00Z'))).toBe('2026-10-08T10:30:00Z');
+  });
+});
+
 describe('sinceItem', () => {
   it('shows the time since the last entry ended', () => {
     expect(sinceItem('nappy', [nappy('2026-10-08T10:40:00Z', true, false)], context)).toEqual({
@@ -107,7 +116,7 @@ describe('listStrip', () => {
       breastFeed('2026-10-08T09:00:00Z', '2026-10-08T09:30:00Z', 'left'),
     ];
     expect(listStrip('feeds', events, context)).toEqual([
-      { label: 'Last feed', value: '2h 30m', note: 'ago · 9:30 am' },
+      { label: 'Last feed', value: '3h 00m', note: 'ago · 9:00 am' },
       { label: 'Today', value: '1', note: 'avg 1.5' },
       { label: 'Next side', value: 'Right' },
     ]);

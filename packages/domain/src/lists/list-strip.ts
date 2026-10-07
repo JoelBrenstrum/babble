@@ -74,6 +74,11 @@ export function stripWindow(now: Date, timeZone: string, dayStartMinutes: number
   };
 }
 
+export function sinceReference(event: BabyEvent): string {
+  if (event.type === 'breast_feed' || event.type === 'bottle') return event.startedAt;
+  return event.endedAt ?? event.startedAt;
+}
+
 export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context: StripContext): StripItem {
   const latest = events.reduce<BabyEvent | null>(
     (newest, event) => (!newest || event.startedAt > newest.startedAt ? event : newest),
@@ -89,7 +94,7 @@ export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context
   }
   const label = LAST_LABEL[kind];
   if (!latest) return { label, value: '—' };
-  const at = latest.endedAt ?? latest.startedAt;
+  const at = sinceReference(latest);
   const ms = context.now.getTime() - Date.parse(at);
   if (ms < 60_000) return { label, value: 'Just now' };
   if (ms < DAY_MS) {

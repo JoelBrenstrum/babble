@@ -75,6 +75,7 @@ describe('summariseDay', () => {
       nappies: 2,
       wet: 2,
       dirty: 1,
+      both: 1,
       lastNappyAt: '2026-10-06T11:00:00Z',
       pumps: 1,
       pumpMl: 110,

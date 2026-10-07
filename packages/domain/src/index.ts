@@ -110,11 +110,12 @@ export {
   type NapPromptContent,
   type NapPromptOption,
 } from './events/feed-rules';
-export { summariseImport, type ImportSummary } from './huckleberry/summary';
+export { importedNote, summariseImport, type ImportSummary } from './huckleberry/summary';
 export {
   gapsBetween,
   rangeDays,
   statsReport,
+  topSegment,
   weeklyBars,
   type ChartBar,
   type StatsCard,
@@ -135,6 +136,7 @@ export {
 export {
   listStrip,
   sinceItem,
+  sinceReference,
   stripKind,
   stripWindow,
   type StripContext,

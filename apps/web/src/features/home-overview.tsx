@@ -3,6 +3,7 @@ import {
   formatAgo,
   formatDuration,
   formatShortDate,
+  sinceReference,
   summariseLatest,
   TRACKERS,
   type BabyEvent,
@@ -32,7 +33,7 @@ export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units
     const [first] = summariseLatest(event, now, units).split(' · ');
     return `${first} · ${formatShortDate(event.startedAt, timeZone)}`;
   }
-  const reference = event.endedAt ?? event.startedAt;
+  const reference = sinceReference(event);
   const detail = summariseLatest(event, now, units);
   return `Last ${formatAgo(now.getTime() - Date.parse(reference))}${detail ? ` · ${detail}` : ''}`;
 }
