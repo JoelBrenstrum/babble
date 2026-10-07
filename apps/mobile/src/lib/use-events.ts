@@ -1,4 +1,5 @@
 import {
+  clock,
   babySettingsQuery,
   deleteEvent,
   endSession,
@@ -67,7 +68,7 @@ export function useAutoEndStaleSessions(client: BabbleClient, babyId: string) {
   const running = useQuery(runningEventsQuery(client, babyId)).data;
   useEffect(() => {
     const check = () => {
-      const stale = staleSessions(running ?? [], new Date(), autoEndPausedMinutes);
+      const stale = staleSessions(running ?? [], clock.now(), autoEndPausedMinutes);
       if (stale.length === 0) return;
       void Promise.all(stale.map((event) => endSession(client, event.id))).then(() =>
         refreshEvents(queryClient, babyId),
@@ -139,7 +140,7 @@ export function useSessionAction(client: BabbleClient, babyId: string) {
     onMutate: async ({ event, action }) => {
       await queryClient.cancelQueries({ queryKey: runningKey });
       const previous = queryClient.getQueryData<BabyEvent[]>(runningKey);
-      const next = applySessionAction(event, action, new Date());
+      const next = applySessionAction(event, action, clock.now());
       queryClient.setQueryData<BabyEvent[]>(runningKey, (current) =>
         (current ?? []).flatMap((item) => (item.id !== event.id ? [item] : next.endedAt ? [] : [next])),
       );

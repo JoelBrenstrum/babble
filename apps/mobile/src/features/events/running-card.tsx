@@ -17,7 +17,7 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { useTokenColor } from '@/lib/theme';
-import { queryKeys } from '@babble/api';
+import { clock, queryKeys } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNapPrompt } from '@/features/nap-prompt';
 import { useDiscardSession, useSessionAction } from '@/lib/use-events';
@@ -54,8 +54,8 @@ export function RunningCard({
   }
 
   function requestDiscard() {
-    if (!discardNeedsConfirmation(event, new Date())) return discardNow();
-    const elapsed = formatDuration(Date.now() - Date.parse(event.startedAt), { seconds: false });
+    if (!discardNeedsConfirmation(event, clock.now())) return discardNow();
+    const elapsed = formatDuration(clock.now().getTime() - Date.parse(event.startedAt), { seconds: false });
     Alert.alert(`Discard this ${noun}?`, `It's been running for ${elapsed}. You can undo straight after.`, [
       { text: `Keep ${noun}`, style: 'cancel' },
       { text: 'Discard', style: 'destructive', onPress: discardNow },
@@ -113,7 +113,7 @@ export function RunningCard({
   function finish() {
     const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
     const ended = action.mutateAsync({ event, action: { kind: 'end' } });
-    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, feedEndTime(event, new Date())));
+    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, feedEndTime(event, clock.now())));
     if (event.type === 'pump') {
       ended
         .then(() => router.push({ pathname: '/events/[id]', params: { id: event.id, finish: '1' } }))

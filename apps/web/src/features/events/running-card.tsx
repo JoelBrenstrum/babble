@@ -19,7 +19,7 @@ import { Button } from '#/components/ui/button';
 import { cn } from '#/lib/cn';
 import { useNapPrompt } from '#/features/nap-prompt';
 import { useDiscardSession, useSessionAction } from '#/lib/use-events';
-import { queryKeys } from '@babble/api';
+import { clock, queryKeys } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNow } from '#/lib/use-now';
 
@@ -49,7 +49,7 @@ export function RunningCard({
   const noun = sessionNoun(event.type);
 
   function requestDiscard() {
-    if (discardNeedsConfirmation(event, new Date())) setConfirming(true);
+    if (discardNeedsConfirmation(event, clock.now())) setConfirming(true);
     else confirmDiscard();
   }
 
@@ -109,7 +109,7 @@ export function RunningCard({
   function finish() {
     const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
     const ended = action.mutateAsync({ event, action: { kind: 'end' } });
-    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, feedEndTime(event, new Date())));
+    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, feedEndTime(event, clock.now())));
     if (event.type === 'pump') {
       ended
         .then(() => navigate({ to: '/events/$eventId', params: { eventId: event.id }, search: { finish: true } }))

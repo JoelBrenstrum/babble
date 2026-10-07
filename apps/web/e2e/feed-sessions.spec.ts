@@ -74,3 +74,14 @@ test('a feed can be edited segment by segment', async ({ page }, testInfo) => {
   await expect(page.getByText('L 8m')).toBeVisible();
   await expect(page.getByText('R 12m')).toBeVisible();
 });
+
+test('timers stay accurate when the device clock is wrong', async ({ page }, testInfo) => {
+  await page.clock.install({ time: new Date(Date.now() - 2 * 60_000) });
+  await page.clock.resume();
+  await newFamily(page, testInfo.project.name);
+  await startFeed(page);
+  await expect(page.getByText('Feeding · Left')).toBeVisible();
+  await page.waitForTimeout(3000);
+  const timer = page.locator('.tabular.text-timer-lg').first();
+  await expect(timer).toHaveText(/^0:0[1-9]$/);
+});

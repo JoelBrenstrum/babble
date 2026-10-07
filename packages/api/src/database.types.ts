@@ -546,6 +546,7 @@ export type Database = {
         Returns: undefined;
       };
       save_event: { Args: { event: Json }; Returns: string };
+      server_time: { Args: Record<PropertyKey, never>; Returns: string };
       start_session: {
         Args: {
           session_type: Database['public']['Enums']['event_type'];

@@ -1,4 +1,4 @@
-import { runningEventsQuery } from '@babble/api';
+import { clock, runningEventsQuery } from '@babble/api';
 import { emptyDraft, napPromptOnFeedEnd, napPromptOnFeedStart, type EventDraft, type Side } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
@@ -70,7 +70,7 @@ function NewEntry() {
             babyId={baby.id}
             timeZone={baby.timezone}
             units={units}
-            initial={pastDraft(eventType, new Date())}
+            initial={pastDraft(eventType, clock.now())}
             onSaved={(draft) => {
               if (draft.type !== 'bottle') return;
               showNapPrompt(
@@ -97,7 +97,7 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
 
   function begin(side?: Side) {
     setError(null);
-    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, new Date().toISOString()));
+    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, clock.now().toISOString()));
     start.mutate(
       { type, side },
       {

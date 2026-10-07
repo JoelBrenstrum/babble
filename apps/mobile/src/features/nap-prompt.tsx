@@ -1,4 +1,4 @@
-import { endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
+import { clock, endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
 import { napPromptContent, type NapAction, type NapPrompt } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { Moon } from 'lucide-react-native';
@@ -33,7 +33,7 @@ export function NapPromptProvider({
   const queryClient = useQueryClient();
   const toast = useToast();
   const moonColor = useTokenColor('--on-sleep');
-  const content = prompt ? napPromptContent(prompt, babyName, timeZone, new Date()) : null;
+  const content = prompt ? napPromptContent(prompt, babyName, timeZone, clock.now()) : null;
 
   function close() {
     setPrompt(null);

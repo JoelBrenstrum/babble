@@ -1,5 +1,5 @@
 import 'react-native-url-polyfill/auto';
-import { createBabbleClient, type BabbleClient } from '@babble/api';
+import { createBabbleClient, syncClock, type BabbleClient } from '@babble/api';
 import { ConfigError, type PublicConfig } from '@babble/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
@@ -74,12 +74,19 @@ function ConfiguredProvider({
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') void queryClient.invalidateQueries();
     });
     // Supabase only refreshes tokens while the app is in the foreground on React Native.
+    void syncClock(client);
+    const clockTimer = setInterval(() => void syncClock(client), 10 * 60_000);
     const appState = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void client.auth.startAutoRefresh();
-      else void client.auth.stopAutoRefresh();
+      if (state === 'active') {
+        void client.auth.startAutoRefresh();
+        void syncClock(client);
+      } else {
+        void client.auth.stopAutoRefresh();
+      }
     });
     return () => {
       data.subscription.unsubscribe();
+      clearInterval(clockTimer);
       appState.remove();
     };
   }, [client, queryClient]);

@@ -1,4 +1,4 @@
-import { endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
+import { clock, endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
 import { napPromptContent, type NapAction, type NapPrompt } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { Moon } from 'lucide-react';
@@ -70,7 +70,7 @@ function NapPromptDialog({
     return () => document.removeEventListener('keydown', escape);
   }, [onClose]);
 
-  const { title, body, options } = napPromptContent(prompt, babyName, timeZone, new Date());
+  const { title, body, options } = napPromptContent(prompt, babyName, timeZone, clock.now());
 
   async function choose(label: string, action: NapAction) {
     if (!action) return onClose();

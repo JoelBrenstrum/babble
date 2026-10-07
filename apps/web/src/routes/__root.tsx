@@ -1,5 +1,5 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
-import { toBabbleError } from '@babble/api';
+import { syncClock, toBabbleError } from '@babble/api';
 import {
   HeadContent,
   Outlet,
@@ -66,6 +66,18 @@ function RootDocument({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient, babble } = Route.useRouteContext();
   const router = useRouter();
+
+  useEffect(() => {
+    const sync = () => void syncClock(babble.client);
+    const onVisible = () => document.visibilityState === 'visible' && sync();
+    sync();
+    const id = setInterval(sync, 10 * 60_000);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [babble]);
 
   useEffect(() => {
     const { data } = babble.client.auth.onAuthStateChange((event) => {

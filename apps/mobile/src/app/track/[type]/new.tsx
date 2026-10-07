@@ -1,4 +1,4 @@
-import { runningEventsQuery, toBabbleError } from '@babble/api';
+import { clock, runningEventsQuery, toBabbleError } from '@babble/api';
 import {
   emptyDraft,
   napPromptOnFeedEnd,
@@ -74,7 +74,7 @@ function NewEntryContent({
             babyId={baby.id}
             timeZone={baby.timezone}
             units={units}
-            initial={pastDraft(eventType, new Date())}
+            initial={pastDraft(eventType, clock.now())}
             onSaved={(draft) => {
               if (draft.type !== 'bottle') return;
               showNapPrompt(
@@ -102,7 +102,7 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
 
   function begin(side?: Side) {
     setError(null);
-    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, new Date().toISOString()));
+    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, clock.now().toISOString()));
     start.mutate(
       { type, side },
       {
