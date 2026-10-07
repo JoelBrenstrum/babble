@@ -89,3 +89,13 @@ Paste everything below this line into Claude Design.
 > - Done card: "134 entries imported", "N were already in Babble and left as they were." when relevant, and a "Go to Home" button.
 > - Entry point: Settings gains a "Data" section with a row "Import from Huckleberry · Bring in your history from a Huckleberry CSV export" and a chevron.
 > - Category list rows for imported entries end with a small neutral "Imported" chip instead of the caregiver avatar.
+
+---
+
+## 2026-10-08 · Passwords
+
+Paste everything below this line into Claude Design.
+
+> Add two small screens/sections in the Sage system:
+> - **Choose a new password** (reached from a password-recovery link): centred page like the other account screens, title "Choose a new password", subtitle "For jane@example.com.", fields "New password" (hint "At least 8 characters.") and "Confirm password" (error "The passwords don't match."), primary button "Save password".
+> - **Settings → Account**: a secondary "Change password" button above "Sign out"; it expands in place into the same two fields with "Save password" and a ghost "Cancel", and shows a success status "Password saved." afterwards.

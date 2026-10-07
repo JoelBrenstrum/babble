@@ -1,5 +1,5 @@
 import type { BabbleClient } from './client';
-import { toBabbleError } from './errors';
+import { BabbleError, toBabbleError } from './errors';
 import { normalizeInviteCode } from './invite-code';
 
 export async function requestMagicLink(
@@ -28,6 +28,50 @@ export async function signInWithGoogle(
   });
   if (error) throw toBabbleError(error);
   return data.url;
+}
+
+export interface AuthRedirect {
+  code: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
+  type: string | null;
+  error: string | null;
+}
+
+export function parseAuthRedirect(href: string): AuthRedirect {
+  const url = new URL(href);
+  const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+  const read = (key: string) => url.searchParams.get(key) ?? hash.get(key);
+  return {
+    code: url.searchParams.get('code'),
+    accessToken: hash.get('access_token'),
+    refreshToken: hash.get('refresh_token'),
+    type: read('type'),
+    error: read('error_description') ?? read('error'),
+  };
+}
+
+// Links sent from the Supabase dashboard (e.g. password recovery) use the implicit flow and put the session in the URL hash.
+export async function completeAuthRedirect(client: BabbleClient, href: string): Promise<{ type: string | null }> {
+  const redirect = parseAuthRedirect(href);
+  if (redirect.error) throw new BabbleError(redirect.error, 'unknown');
+  if (redirect.code) {
+    await exchangeAuthCode(client, redirect.code);
+  } else if (redirect.accessToken && redirect.refreshToken) {
+    const { error } = await client.auth.setSession({
+      access_token: redirect.accessToken,
+      refresh_token: redirect.refreshToken,
+    });
+    if (error) throw toBabbleError(error);
+  } else {
+    throw new BabbleError('This sign-in link is missing its code. Try signing in again.', 'unknown');
+  }
+  return { type: redirect.type };
+}
+
+export async function updatePassword(client: BabbleClient, password: string): Promise<void> {
+  const { error } = await client.auth.updateUser({ password });
+  if (error) throw toBabbleError(error);
 }
 
 export async function exchangeAuthCode(client: BabbleClient, code: string): Promise<void> {

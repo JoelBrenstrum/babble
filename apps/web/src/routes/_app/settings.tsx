@@ -1,4 +1,13 @@
-import { canEdit, createInvite, deleteMyAccount, queryKeys, signOut, toBabbleError, updateBaby } from '@babble/api';
+import {
+  canEdit,
+  createInvite,
+  deleteMyAccount,
+  updatePassword,
+  queryKeys,
+  signOut,
+  toBabbleError,
+  updateBaby,
+} from '@babble/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ChevronRight, LogOut, UserPlus } from 'lucide-react';
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
@@ -10,6 +19,7 @@ import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
 import { DayStartPicker } from '#/features/day-start-picker';
 import { InvitePanel } from '#/features/invite-panel';
+import { PasswordForm } from '#/features/password-form';
 import { TrackingSettings } from '#/features/tracking-settings';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { applyTheme, type ThemePreference } from '#/lib/theme';
@@ -201,6 +211,7 @@ function AccountSection({ email }: { email: string }) {
         <div className="text-body text-ink-2">
           Signed in as <span className="font-semibold text-ink">{email}</span>
         </div>
+        <ChangePassword />
         <Button variant="secondary" className="self-start" onClick={() => leave(() => signOut(babble.client))}>
           <LogOut className="size-5" strokeWidth={2.75} />
           Sign out
@@ -237,5 +248,36 @@ function AccountSection({ email }: { email: string }) {
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
       </Card>
     </section>
+  );
+}
+
+function ChangePassword() {
+  const { babble } = Route.useRouteContext();
+  const [open, setOpen] = useState(false);
+  const [saved, setSaved] = useState(false);
+  if (!open) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Button variant="secondary" className="self-start" onClick={() => setOpen(true)}>
+          Change password
+        </Button>
+        {saved && <StatusMessage tone="success">Password saved.</StatusMessage>}
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-3 rounded-tile border border-line p-4">
+      <PasswordForm
+        submitLabel="Save password"
+        onSubmit={async (password) => {
+          await updatePassword(babble.client, password);
+          setOpen(false);
+          setSaved(true);
+        }}
+      />
+      <Button variant="ghost" className="self-start" onClick={() => setOpen(false)}>
+        Cancel
+      </Button>
+    </div>
   );
 }

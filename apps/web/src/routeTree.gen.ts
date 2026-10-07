@@ -19,6 +19,7 @@ import { Route as AppStatsRouteImport } from './routes/_app/stats'
 import { Route as AppTimelineRouteImport } from './routes/_app/timeline'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
+import { Route as AuthNewPasswordRouteImport } from './routes/auth/new-password'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
 import { Route as OnboardingBabyRouteImport } from './routes/onboarding/baby'
 import { Route as OnboardingDayStartRouteImport } from './routes/onboarding/day-start'
@@ -78,6 +79,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthNewPasswordRoute = AuthNewPasswordRouteImport.update({
+  id: '/auth/new-password',
+  path: '/auth/new-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const JoinCodeRoute = JoinCodeRouteImport.update({
   id: '/join/$code',
   path: '/join/$code',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
   '/onboarding/baby': typeof OnboardingBabyRoute
   '/onboarding/day-start': typeof OnboardingDayStartRoute
@@ -153,6 +160,7 @@ export interface FileRoutesByTo {
   '/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
   '/onboarding/baby': typeof OnboardingBabyRoute
   '/onboarding/day-start': typeof OnboardingDayStartRoute
@@ -175,6 +183,7 @@ export interface FileRoutesById {
   '/_app/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
   '/onboarding/baby': typeof OnboardingBabyRoute
   '/onboarding/day-start': typeof OnboardingDayStartRoute
@@ -198,6 +207,7 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/api/health'
     | '/auth/callback'
+    | '/auth/new-password'
     | '/join/$code'
     | '/onboarding/baby'
     | '/onboarding/day-start'
@@ -217,6 +227,7 @@ export interface FileRouteTypes {
     | '/timeline'
     | '/api/health'
     | '/auth/callback'
+    | '/auth/new-password'
     | '/join/$code'
     | '/onboarding/baby'
     | '/onboarding/day-start'
@@ -238,6 +249,7 @@ export interface FileRouteTypes {
     | '/_app/timeline'
     | '/api/health'
     | '/auth/callback'
+    | '/auth/new-password'
     | '/join/$code'
     | '/onboarding/baby'
     | '/onboarding/day-start'
@@ -256,6 +268,7 @@ export interface RootRouteChildren {
   SignInRoute: typeof SignInRoute
   ApiHealthRoute: typeof ApiHealthRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  AuthNewPasswordRoute: typeof AuthNewPasswordRoute
   JoinCodeRoute: typeof JoinCodeRoute
 }
 
@@ -329,6 +342,13 @@ declare module '@tanstack/react-router' {
       path: '/auth/callback'
       fullPath: '/auth/callback'
       preLoaderRoute: typeof AuthCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/new-password': {
+      id: '/auth/new-password'
+      path: '/auth/new-password'
+      fullPath: '/auth/new-password'
+      preLoaderRoute: typeof AuthNewPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join/$code': {
@@ -447,6 +467,7 @@ const rootRouteChildren: RootRouteChildren = {
   SignInRoute: SignInRoute,
   ApiHealthRoute: ApiHealthRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  AuthNewPasswordRoute: AuthNewPasswordRoute,
   JoinCodeRoute: JoinCodeRoute,
 }
 export const routeTree = rootRouteImport
