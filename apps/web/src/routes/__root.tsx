@@ -15,6 +15,7 @@ import { PageSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { ToastProvider } from '#/components/ui/toast';
 import { loadBabble } from '#/lib/babble';
+import { configProblem } from '#/lib/config-problem';
 import { themeBootScript } from '#/lib/theme';
 import appCss from '../styles.css?url';
 
@@ -100,6 +101,19 @@ function RootComponent() {
 
 function RootError({ error, reset }: ErrorComponentProps) {
   const router = useRouter();
+  const problem = configProblem(error);
+  if (problem) {
+    return (
+      <CenteredPage>
+        <h1 className="mb-4 text-title font-bold">Babble isn't configured yet</h1>
+        <StatusMessage tone="info">{problem}.</StatusMessage>
+        <p className="mt-4 text-body text-ink-2">
+          Whoever runs this server needs to set the missing setting (see <code>.env.example</code>), then restart the
+          app.
+        </p>
+      </CenteredPage>
+    );
+  }
   const message = toBabbleError(error).message;
   return (
     <CenteredPage>

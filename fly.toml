@@ -1,13 +1,13 @@
 # Deploy from the repository root: fly deploy
 # Set secrets first: fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... PUBLIC_URL=https://<app>.fly.dev
-app = "babble"
+app = "babble-app"
 primary_region = "syd"
 
 [build]
   dockerfile = "apps/web/Dockerfile"
 
 [env]
-  GOOGLE_AUTH_ENABLED = "true"
+  GOOGLE_AUTH_ENABLED = "false"
   BILLING_ENABLED = "false"
 
 [http_service]
