@@ -39,3 +39,19 @@ export async function signOut(client: BabbleClient): Promise<void> {
   const { error } = await client.auth.signOut();
   if (error) throw toBabbleError(error);
 }
+
+export async function signInWithPassword(
+  client: BabbleClient,
+  options: { email: string; password: string },
+): Promise<void> {
+  const { error } = await client.auth.signInWithPassword({ email: options.email.trim(), password: options.password });
+  if (error) throw toBabbleError(error);
+}
+
+// Seeded by packages/db/supabase/seed.sql into the local database only.
+export const DEV_ACCOUNTS = [
+  { name: 'John', role: 'owner', email: 'john@babble.dev' },
+  { name: 'Jane', role: 'caregiver', email: 'jane@babble.dev' },
+] as const;
+
+export const DEV_PASSWORD = 'password';

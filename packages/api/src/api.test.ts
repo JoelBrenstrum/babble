@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { requestMagicLink } from './auth';
+import { DEV_ACCOUNTS, DEV_PASSWORD, requestMagicLink, signInWithPassword } from './auth';
 import { BabbleError } from './errors';
 import {
   acceptInvite,
@@ -46,6 +46,26 @@ describe('requestMagicLink', () => {
     ).rejects.toMatchObject({
       code: 'invite_required',
     });
+  });
+});
+
+describe('signInWithPassword', () => {
+  it('signs in a dev account with the password grant', async () => {
+    const { client, requests } = fakeClient(() => ({
+      body: { access_token: 'a', refresh_token: 'r', expires_in: 3600, token_type: 'bearer', user: { id: 'u' } },
+    }));
+    await signInWithPassword(client, { email: DEV_ACCOUNTS[0].email, password: DEV_PASSWORD });
+    expect(requests[0]!.url.pathname).toBe('/auth/v1/token');
+    expect(requests[0]!.url.searchParams.get('grant_type')).toBe('password');
+    expect(requests[0]!.body).toEqual({ email: 'john@babble.dev', password: 'password', gotrue_meta_security: {} });
+  });
+
+  it('maps a bad password to an error', async () => {
+    const { client } = fakeClient(() => ({
+      status: 400,
+      body: { error: 'invalid_grant', error_description: 'Invalid login credentials' },
+    }));
+    await expect(signInWithPassword(client, { email: 'x@example.com', password: 'nope' })).rejects.toThrow();
   });
 });
 

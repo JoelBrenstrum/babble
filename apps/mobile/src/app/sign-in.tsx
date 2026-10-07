@@ -3,6 +3,7 @@ import {
   instanceSettingsQuery,
   requestMagicLink,
   signInWithGoogle,
+  signInWithPassword,
   toBabbleError,
 } from '@babble/api';
 import { useQuery } from '@tanstack/react-query';
@@ -12,6 +13,7 @@ import { useState } from 'react';
 import { View } from 'react-native';
 import { Button } from '@/components/button';
 import { Screen, Title, Wordmark } from '@/components/screen';
+import { DevSignIn } from '@/features/dev-sign-in';
 import { SignInForm } from '@/features/sign-in-form';
 import { useBabble } from '@/lib/babble';
 import { AUTH_REDIRECT } from '@/lib/config';
@@ -66,6 +68,7 @@ export default function SignIn() {
             if (code) await exchangeAuthCode(client, code);
           }}
         />
+        {__DEV__ && <DevSignIn onSignIn={(credentials) => signInWithPassword(client, credentials)} />}
       </View>
     </Screen>
   );

@@ -34,6 +34,8 @@ cp apps/web/.env.example apps/web/.env   # set SUPABASE_ANON_KEY from `supabase 
 pnpm --filter @babble/web dev            # http://localhost:3210
 ```
 
+In development, the sign-in screen (web and mobile) has **Sign in as John / Jane** buttons. They use accounts seeded by `packages/db/supabase/seed.sql` (password `password`), already set up as the Smiths with baby Olivia. `pnpm --filter @babble/db reset` restores them. The buttons are compiled out of production builds, and the seed only runs against the local database.
+
 Magic-link emails are captured locally by Supabase's Mailpit at http://127.0.0.1:54324.
 
 ### Mobile

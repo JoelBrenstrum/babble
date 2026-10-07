@@ -3,6 +3,9 @@ create extension if not exists pgtap with schema extensions;
 
 select plan(38);
 
+-- Start from an empty instance so the first-user rule can be tested; the transaction rolls back.
+delete from auth.users;
+
 create function pg_temp.sign_in_as(user_id uuid)
 returns void
 language plpgsql

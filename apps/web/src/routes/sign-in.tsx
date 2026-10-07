@@ -1,9 +1,10 @@
-import { instanceSettingsQuery, requestMagicLink, signInWithGoogle } from '@babble/api';
+import { instanceSettingsQuery, requestMagicLink, signInWithGoogle, signInWithPassword } from '@babble/api';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, redirect } from '@tanstack/react-router';
+import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
+import { DevSignIn } from '#/features/dev-sign-in';
 import { SignInForm } from '#/features/sign-in-form';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 
@@ -24,6 +25,7 @@ function SignInPage() {
   const { invite } = Route.useSearch();
   const { data: settings } = useSuspenseQuery(instanceSettingsQuery(babble.client));
   const [sentTo, setSentTo] = useState<string | null>(null);
+  const navigate = useNavigate();
   const redirectTo = `${babble.config.publicUrl}/auth/callback`;
   const initialInviteCode = invite ?? readStorage(storageKeys.pendingInvite) ?? undefined;
 
@@ -59,6 +61,14 @@ function SignInPage() {
           await signInWithGoogle(babble.client, { redirectTo });
         }}
       />
+      {import.meta.env.DEV && (
+        <DevSignIn
+          onSignIn={async (credentials) => {
+            await signInWithPassword(babble.client, credentials);
+            await navigate({ to: '/' });
+          }}
+        />
+      )}
     </CenteredPage>
   );
 }
