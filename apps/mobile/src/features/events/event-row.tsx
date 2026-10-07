@@ -68,7 +68,13 @@ export function EventRow({
         ) : (
           description.duration && <Text className="font-sans text-meta text-ink-2">{description.duration}</Text>
         )}
-        {author && <Avatar name={author} />}
+        {event.source === 'huckleberry_csv' ? (
+          <View className="rounded-chip bg-surface px-2 py-0.5">
+            <Text className="font-semibold text-caption text-ink-2">Imported</Text>
+          </View>
+        ) : (
+          author && <Avatar name={author} />
+        )}
       </Pressable>
     </Link>
   );

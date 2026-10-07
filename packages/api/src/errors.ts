@@ -17,6 +17,7 @@ export type BabbleErrorCode =
   | 'invalid_credentials'
   | 'already_registered'
   | 'weak_password'
+  | 'rate_limited'
   | 'network'
   | 'unknown';
 
@@ -28,6 +29,7 @@ const MESSAGES: Record<BabbleErrorCode, string> = {
   invalid_credentials: "That email and password don't match. Try again, or use a sign-in link instead.",
   already_registered: "There's already an account with that email. Sign in instead.",
   weak_password: 'Choose a longer password: at least 8 characters.',
+  rate_limited: 'Too many sign-in emails have been sent recently. Try again later, or sign in with a password.',
   session_conflict: 'Another session of this kind is already running. Finish or discard it first.',
   network: "Couldn't reach the server. Check your connection and try again.",
   unknown: 'Something went wrong. Please try again.',
@@ -52,6 +54,7 @@ function classify(code: string | undefined, message: string, status: number | un
   // GoTrue hides trigger exceptions behind a generic message when a sign-up is rejected by the database.
   if (/database error saving new user/i.test(message)) return 'invite_required';
   if (code === 'P0002') return 'invite_invalid';
+  if (status === 429 || code === 'over_email_send_rate_limit' || /rate limit/i.test(message)) return 'rate_limited';
   if (code === 'invalid_credentials' || /invalid login credentials/i.test(message)) return 'invalid_credentials';
   if (code === 'user_already_exists' || /already registered/i.test(message)) return 'already_registered';
   if (code === 'weak_password' || /password should be at least/i.test(message)) return 'weak_password';

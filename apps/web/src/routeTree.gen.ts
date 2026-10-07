@@ -13,6 +13,7 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppStatsRouteImport } from './routes/_app/stats'
 import { Route as AppTimelineRouteImport } from './routes/_app/timeline'
@@ -45,6 +46,11 @@ const SignInRoute = SignInRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppImportRoute = AppImportRouteImport.update({
+  id: '/import',
+  path: '/import',
   getParentRoute: () => AppRoute,
 } as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/sign-in': typeof SignInRoute
+  '/import': typeof AppImportRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
   '/timeline': typeof AppTimelineRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRouteWithChildren
   '/sign-in': typeof SignInRoute
+  '/import': typeof AppImportRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
   '/timeline': typeof AppTimelineRoute
@@ -161,6 +169,7 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/onboarding': typeof OnboardingRouteWithChildren
   '/sign-in': typeof SignInRoute
+  '/_app/import': typeof AppImportRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/stats': typeof AppStatsRoute
   '/_app/timeline': typeof AppTimelineRoute
@@ -183,6 +192,7 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/sign-in'
+    | '/import'
     | '/settings'
     | '/stats'
     | '/timeline'
@@ -201,6 +211,7 @@ export interface FileRouteTypes {
   to:
     | '/onboarding'
     | '/sign-in'
+    | '/import'
     | '/settings'
     | '/stats'
     | '/timeline'
@@ -221,6 +232,7 @@ export interface FileRouteTypes {
     | '/_app'
     | '/onboarding'
     | '/sign-in'
+    | '/_app/import'
     | '/_app/settings'
     | '/_app/stats'
     | '/_app/timeline'
@@ -275,6 +287,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/import': {
+      id: '/_app/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof AppImportRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/settings': {
@@ -379,6 +398,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppImportRoute: typeof AppImportRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
   AppTimelineRoute: typeof AppTimelineRoute
@@ -390,6 +410,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppImportRoute: AppImportRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,
   AppTimelineRoute: AppTimelineRoute,

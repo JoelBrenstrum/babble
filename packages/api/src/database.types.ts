@@ -512,6 +512,13 @@ export type Database = {
           signup_mode: Database['public']['Enums']['signup_mode'];
         }[];
       };
+      import_events: {
+        Args: { events: Json; target_baby_id: string };
+        Returns: {
+          imported: number;
+          skipped: number;
+        }[];
+      };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
       latest_events: {
         Args: { target_baby_id: string };

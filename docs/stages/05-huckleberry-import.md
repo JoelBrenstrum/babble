@@ -53,3 +53,12 @@ Real exports are never committed. `__fixtures__/real-week.csv` is a real week wi
 ## Tests
 
 `packages/domain/src/huckleberry/import.test.ts`: every row shape, field parsers, malformed rows, unknown types, timezone conversion, source-ref stability, and both fixtures end to end.
+
+## Status (2026-10-07)
+
+- [x] `import_events(baby_id, events)` RPC: batches of up to 500, skips rows whose `(source, source_ref)` already exist, runs as the caller so RLS applies. pgTAP covered.
+- [x] Web import screen (Settings → Data → Import from Huckleberry): choose a CSV, pick the baby and the records' timezone, preview counts/date range/skipped rows/notes, import in batches of 200 with progress, summary with "already in Babble" count.
+- [x] Imported rows show an "Imported" tag instead of an author; their entry screen says "Imported · date".
+- [x] Playwright: import the anonymised fixture, then re-import and confirm nothing is duplicated.
+
+Not built: importing into "a new baby" from the import screen (add the baby first, then import), and the downloadable skipped-rows report.

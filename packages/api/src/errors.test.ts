@@ -8,6 +8,7 @@ describe('toBabbleError', () => {
     [{ code: 'P0002', message: 'This invite code is invalid, used or expired' }, 'invite_invalid'],
     [{ code: 'invalid_credentials', message: 'Invalid login credentials', status: 400 }, 'invalid_credentials'],
     [{ message: 'User already registered', status: 422 }, 'already_registered'],
+    [{ status: 429, code: 'over_email_send_rate_limit', message: 'email rate limit exceeded' }, 'rate_limited'],
     [{ code: 'weak_password', message: 'Password should be at least 8 characters.' }, 'weak_password'],
     [
       { code: '23505', message: 'duplicate key value violates unique constraint "events_one_running_per_type"' },

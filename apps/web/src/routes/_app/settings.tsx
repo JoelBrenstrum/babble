@@ -1,6 +1,6 @@
 import { canEdit, createInvite, deleteMyAccount, queryKeys, signOut, toBabbleError, updateBaby } from '@babble/api';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { LogOut, UserPlus } from 'lucide-react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { ChevronRight, LogOut, UserPlus } from 'lucide-react';
 import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
@@ -48,6 +48,19 @@ function SettingsPage() {
       </section>
 
       <TrackingSettings client={babble.client} babyId={baby.id} disabled={!editable} />
+      <section className="flex flex-col gap-3">
+        <SectionLabel>Data</SectionLabel>
+        <Link
+          to="/import"
+          className="flex min-h-tap items-center justify-between rounded-card bg-raised px-5 py-4 shadow-raised hover:bg-surface"
+        >
+          <span>
+            <span className="block text-row-title font-semibold">Import from Huckleberry</span>
+            <span className="block text-meta text-ink-2">Bring in your history from a Huckleberry CSV export</span>
+          </span>
+          <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
+        </Link>
+      </section>
       <AppearanceSection />
       <AccountSection email={session.user.email ?? ''} />
     </div>

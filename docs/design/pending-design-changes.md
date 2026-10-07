@@ -75,3 +75,17 @@ Paste everything below this line into Claude Design.
 > - Under it, a text link "Forgot your password? Email me a sign-in link", which switches to the existing magic-link layout (Email + "Email me a sign-in link"), with a "Use a password instead" link to go back.
 > - Error example: "That email and password don't match. Try again, or use a sign-in link instead."
 > - Google stays below an "or" divider when it's enabled.
+
+---
+
+## 2026-10-07 · Huckleberry import (as built)
+
+Paste everything below this line into Claude Design.
+
+> Compare `Web.dc.html` `import-1`…`import-5` with what's built and update the design to match:
+> - One page instead of five steps: intro text, a dashed drop zone ("Choose a CSV file" / "Huckleberry export (.csv)", file name once chosen), then two selects side by side: "Import into" (baby) and "Timezone of these records" (hint "Huckleberry exports local times without a timezone.").
+> - Once a file is chosen, the preview appears below: a card "134 entries ready to import" with the date range and a grid of tracker icon + count + plural label; an info note "No downtime data for feeds…"; a neutral note "Safe to re-import…"; collapsible "5 rows skipped" (table of Row / Type / Why) and "1 note about the data".
+> - Primary button "Import 134 entries into Olivia"; while importing it becomes a progress bar with "Importing… 120 of 134".
+> - Done card: "134 entries imported", "N were already in Babble and left as they were." when relevant, and a "Go to Home" button.
+> - Entry point: Settings gains a "Data" section with a row "Import from Huckleberry · Bring in your history from a Huckleberry CSV export" and a chevron.
+> - Category list rows for imported entries end with a small neutral "Imported" chip instead of the caregiver avatar.

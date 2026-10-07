@@ -71,11 +71,17 @@ export function EventRow({
       ) : (
         description.duration && <span className="tabular text-meta text-ink-2">{description.duration}</span>
       )}
-      {author && (
-        <span title={`Logged by ${author}`} className="shrink-0">
-          <Avatar name={author} className="size-7 text-caption" />
-          <span className="sr-only">Logged by {author}</span>
+      {event.source === 'huckleberry_csv' ? (
+        <span className="shrink-0 rounded-chip bg-surface px-2 py-0.5 text-caption font-semibold text-ink-2">
+          Imported
         </span>
+      ) : (
+        author && (
+          <span title={`Logged by ${author}`} className="shrink-0">
+            <Avatar name={author} className="size-7 text-caption" />
+            <span className="sr-only">Logged by {author}</span>
+          </span>
+        )
       )}
     </Link>
   );
