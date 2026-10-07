@@ -57,3 +57,22 @@ Times are shown and entered in the baby's timezone.
 - `api`: row mapping and request shapes
 - pgTAP: RLS on every new table, `save_event` for each type, the single-running-session rule, side switching, pause/resume, end, soft delete
 - Playwright (phone + desktop): start a feed → switch side → pause → resume → finish; log a nappy; edit and delete with undo
+
+## Status (2026-10-07)
+
+Built on branch `stage-1`:
+
+- [x] Migration: `events`, seven detail tables, `timed_segments`, `session_details`, RLS, `save_event`, session RPCs, `latest_events`, realtime publication. 40 new pgTAP assertions (78 in total).
+- [x] Domain: validation, segment totals, row descriptions, day grouping, day windows, day summary, unit and duration formatting, timezone-aware inputs, optimistic `applySessionAction`, tracker helpers.
+- [x] API: row ↔ domain mapping, list/latest/running queries, `saveEvent`, session actions, soft delete/restore, realtime subscription.
+- [x] Web and mobile: Home (running cards, latest per tracker, today strip), category lists grouped by day, add flows (start a timer or log a past entry), full timer screen, edit/delete with undo, realtime sync.
+- [x] Playwright (phone + desktop): breastfeed timer flow; nappy log/edit/delete; undo; a nap started in one browser appears and ends in another.
+- [x] Cosmos fixtures for Home, running cards, rows and every form, on both apps.
+
+Known gaps, deferred:
+
+- Desktop web uses full pages for add/edit rather than the designed list + detail split view and dialogs.
+- Breastfeeds/pumps with more than two segments can't have individual segments edited yet (Stage 2).
+- Rows are deleted from the edit screen (with undo); swipe-to-delete isn't built.
+- The units setting (metric/imperial) exists in the database but has no control in Settings yet.
+- The mobile app is verified by typecheck, unit tests and bundling, not yet on a device or with Maestro.
