@@ -224,8 +224,16 @@ export async function startSession(
   babyId: string,
   type: 'breast_feed' | 'pump' | 'sleep',
   side: Side = 'left',
+  startAt?: string,
 ): Promise<string> {
-  return unwrap(await client.rpc('start_session', { target_baby_id: babyId, session_type: type, start_side: side }));
+  return unwrap(
+    await client.rpc('start_session', {
+      target_baby_id: babyId,
+      session_type: type,
+      start_side: side,
+      ...(startAt ? { start_at: startAt } : {}),
+    }),
+  );
 }
 
 export async function switchSide(client: BabbleClient, eventId: string, side: Side): Promise<void> {
@@ -246,8 +254,16 @@ export async function resumeSession(client: BabbleClient, eventId: string, side?
   if (error) throw toBabbleError(error);
 }
 
-export async function endSession(client: BabbleClient, eventId: string): Promise<void> {
-  const { error } = await client.rpc('end_session', { target_event_id: eventId });
+export async function endSession(client: BabbleClient, eventId: string, endAt?: string): Promise<void> {
+  const { error } = await client.rpc('end_session', { target_event_id: eventId, ...(endAt ? { end_at: endAt } : {}) });
+  if (error) throw toBabbleError(error);
+}
+
+export async function resumeFeed(client: BabbleClient, eventId: string, side?: Side): Promise<void> {
+  const { error } = await client.rpc('resume_feed', {
+    target_event_id: eventId,
+    ...(side ? { resume_side: side } : {}),
+  });
   if (error) throw toBabbleError(error);
 }
 

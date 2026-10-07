@@ -1,5 +1,5 @@
 import { runningEventsQuery } from '@babble/api';
-import { emptyDraft, type EventDraft, type Side } from '@babble/domain';
+import { emptyDraft, napPromptOnFeedEnd, napPromptOnFeedStart, type EventDraft, type Side } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
 import { ChevronLeft, Moon, Play } from 'lucide-react';
@@ -10,6 +10,7 @@ import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventForm } from '#/features/events/event-form';
+import { useNapPrompt } from '#/features/nap-prompt';
 import { isEventType, isSessionType, trackerFor, type SessionType } from '@babble/domain';
 import { useStartSession, useUnits } from '#/lib/use-events';
 import { toBabbleError } from '@babble/api';
@@ -41,6 +42,8 @@ function NewEntry() {
   const units = useUnits(babble.client, baby.id);
   const tracker = trackerFor(eventType);
   const [logPast, setLogPast] = useState(!isSessionType(eventType));
+  const showNapPrompt = useNapPrompt();
+  const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
   const back = () => void navigate({ to: '/track/$type', params: { type: eventType } });
 
   return (
@@ -68,6 +71,13 @@ function NewEntry() {
             timeZone={baby.timezone}
             units={units}
             initial={pastDraft(eventType, new Date())}
+            onSaved={(draft) => {
+              if (draft.type !== 'bottle') return;
+              showNapPrompt(
+                napPromptOnFeedStart(running, draft.startedAt) ??
+                  napPromptOnFeedEnd(running, draft.endedAt ?? draft.startedAt),
+              );
+            }}
             onDone={back}
           />
         </Card>
@@ -80,11 +90,14 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   const { babble, baby } = Route.useRouteContext();
   const navigate = useNavigate();
   const start = useStartSession(babble.client, baby.id);
-  const running = useQuery(runningEventsQuery(babble.client, baby.id)).data?.find((event) => event.type === type);
+  const runningEvents = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
+  const running = runningEvents.find((event) => event.type === type);
+  const showNapPrompt = useNapPrompt();
   const [error, setError] = useState<string | null>(null);
 
   function begin(side?: Side) {
     setError(null);
+    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, new Date().toISOString()));
     start.mutate(
       { type, side },
       {

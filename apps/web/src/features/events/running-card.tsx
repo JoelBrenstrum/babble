@@ -4,6 +4,7 @@ import {
   formatDuration,
   formatTimeOfDay,
   formatTimer,
+  napPromptOnFeedEnd,
   segmentTotals,
   sessionNoun,
   type BabyEvent,
@@ -15,7 +16,10 @@ import { useState } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { cn } from '#/lib/cn';
+import { useNapPrompt } from '#/features/nap-prompt';
 import { useDiscardSession, useSessionAction } from '#/lib/use-events';
+import { queryKeys } from '@babble/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNow } from '#/lib/use-now';
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
@@ -38,6 +42,8 @@ export function RunningCard({
   const now = useNow(1000);
   const action = useSessionAction(client, event.babyId);
   const discard = useDiscardSession(client, event.babyId);
+  const showNapPrompt = useNapPrompt();
+  const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const noun = sessionNoun(event.type);
 
@@ -100,15 +106,14 @@ export function RunningCard({
   const tone = event.type === 'pump' ? 'pump' : 'feed';
 
   function finish() {
-    action.mutate(
-      { event, action: { kind: 'end' } },
-      {
-        onSuccess: () => {
-          if (event.type === 'pump')
-            void navigate({ to: '/events/$eventId', params: { eventId: event.id }, search: { finish: true } });
-        },
-      },
-    );
+    const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
+    const ended = action.mutateAsync({ event, action: { kind: 'end' } });
+    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, new Date().toISOString()));
+    if (event.type === 'pump') {
+      ended
+        .then(() => navigate({ to: '/events/$eventId', params: { eventId: event.id }, search: { finish: true } }))
+        .catch(() => undefined);
+    }
   }
 
   return (

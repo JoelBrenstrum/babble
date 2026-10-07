@@ -57,3 +57,19 @@ export {
 } from './events/session-actions';
 export { entryAuthorText } from './format/entry-author';
 export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input';
+export {
+  editableRowsToSegments,
+  segmentsToEditableRows,
+  summariseSegments,
+  type EditableRow,
+  type SessionRow,
+  type SessionSummary,
+} from './events/session-summary';
+export {
+  canResumeFeed,
+  latestFeed,
+  napPromptOnFeedEnd,
+  napPromptOnFeedStart,
+  staleSessions,
+  type NapPrompt,
+} from './events/feed-rules';

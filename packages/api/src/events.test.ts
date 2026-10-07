@@ -6,7 +6,9 @@ import {
   EVENT_SELECT,
   latestEvents,
   listEvents,
+  resumeFeed,
   rowToEvent,
+  endSession,
   saveEvent,
   startSession,
   switchSide,
@@ -178,6 +180,16 @@ describe('event requests', () => {
     expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
       ['/rest/v1/rpc/start_session', { target_baby_id: 'baby-1', session_type: 'breast_feed', start_side: 'right' }],
       ['/rest/v1/rpc/switch_side', { target_event_id: 'event-1', new_side: 'left' }],
+    ]);
+  });
+
+  it('ends a session at a chosen time and resumes a feed', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await endSession(client, 'nap-1', '2026-10-06T09:00:00Z');
+    await resumeFeed(client, 'feed-1');
+    expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
+      ['/rest/v1/rpc/end_session', { target_event_id: 'nap-1', end_at: '2026-10-06T09:00:00Z' }],
+      ['/rest/v1/rpc/resume_feed', { target_event_id: 'feed-1' }],
     ]);
   });
 

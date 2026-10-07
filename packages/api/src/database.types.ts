@@ -504,7 +504,7 @@ export type Database = {
         }[];
       };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
-      end_session: { Args: { target_event_id: string }; Returns: undefined };
+      end_session: { Args: { end_at?: string; target_event_id: string }; Returns: undefined };
       get_instance_settings: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -537,6 +537,10 @@ export type Database = {
         };
       };
       pause_session: { Args: { target_event_id: string }; Returns: undefined };
+      resume_feed: {
+        Args: { resume_side?: Database['public']['Enums']['side']; target_event_id: string };
+        Returns: undefined;
+      };
       resume_session: {
         Args: { resume_side?: Database['public']['Enums']['side']; target_event_id: string };
         Returns: undefined;
@@ -545,6 +549,7 @@ export type Database = {
       start_session: {
         Args: {
           session_type: Database['public']['Enums']['event_type'];
+          start_at?: string;
           start_side?: Database['public']['Enums']['side'];
           target_baby_id: string;
         };

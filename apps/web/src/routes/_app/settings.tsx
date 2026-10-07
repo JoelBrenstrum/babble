@@ -10,6 +10,7 @@ import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
 import { DayStartPicker } from '#/features/day-start-picker';
 import { InvitePanel } from '#/features/invite-panel';
+import { TrackingSettings } from '#/features/tracking-settings';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { applyTheme, type ThemePreference } from '#/lib/theme';
 import { listTimeZones } from '#/lib/timezones';
@@ -19,7 +20,7 @@ export const Route = createFileRoute('/_app/settings')({ component: SettingsPage
 const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
 
 function SettingsPage() {
-  const { family, session } = Route.useRouteContext();
+  const { family, session, babble, baby } = Route.useRouteContext();
   const editable = canEdit(family, session.user.id);
 
   return (
@@ -46,6 +47,7 @@ function SettingsPage() {
         {editable && <InviteToggle familyId={family.id} />}
       </section>
 
+      <TrackingSettings client={babble.client} babyId={baby.id} disabled={!editable} />
       <AppearanceSection />
       <AccountSection email={session.user.email ?? ''} />
     </div>

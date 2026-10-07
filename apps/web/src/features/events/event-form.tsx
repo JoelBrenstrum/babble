@@ -44,8 +44,10 @@ export function EventForm({
   initial,
   event,
   focusAmounts = false,
+  onSaved,
   onDone,
 }: {
+  onSaved?: (draft: EventDraft) => void;
   client: BabbleClient;
   babyId: string;
   timeZone: string;
@@ -70,6 +72,7 @@ export function EventForm({
     setServerError(null);
     try {
       await save.mutateAsync({ draft, id: event?.id });
+      onSaved?.(draft);
       onDone();
     } catch (caught) {
       setServerError(toBabbleError(caught).message);

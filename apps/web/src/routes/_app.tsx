@@ -2,7 +2,8 @@ import { babyChoices, familiesQuery, resolveOnboarding, type BabyChoice } from '
 import { createFileRoute, Outlet, redirect, useRouter } from '@tanstack/react-router';
 import { AppShell } from '#/components/shell/app-shell';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
-import { useRealtimeEvents } from '#/lib/use-events';
+import { NapPromptProvider } from '#/features/nap-prompt';
+import { useAutoEndStaleSessions, useRealtimeEvents } from '#/lib/use-events';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context }) => {
@@ -28,6 +29,7 @@ function AppLayout() {
   const { family, baby, babble, families } = Route.useRouteContext();
   const router = useRouter();
   useRealtimeEvents(babble.client, baby.id);
+  useAutoEndStaleSessions(babble.client, baby.id);
 
   function selectBaby(choice: BabyChoice) {
     writeStorage(storageKeys.activeFamily, choice.familyId);
@@ -37,7 +39,9 @@ function AppLayout() {
 
   return (
     <AppShell family={family} baby={baby} choices={babyChoices(families)} onSelectBaby={selectBaby}>
-      <Outlet />
+      <NapPromptProvider client={babble.client} babyId={baby.id} babyName={baby.name} timeZone={baby.timezone}>
+        <Outlet />
+      </NapPromptProvider>
     </AppShell>
   );
 }

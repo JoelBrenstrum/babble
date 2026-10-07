@@ -1,4 +1,4 @@
-import { eventQuery } from '@babble/api';
+import { eventQuery, latestEventsQuery, resumeFeed, runningEventsQuery } from '@babble/api';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
@@ -8,8 +8,15 @@ import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm, toDraft } from '#/features/events/event-form';
-import { isSessionType, trackerFor } from '@babble/domain';
-import { useUnits } from '#/lib/use-events';
+import { canResumeFeed, isSessionType, latestFeed, trackerFor } from '@babble/domain';
+import { useTrackingSettings } from '#/lib/use-events';
+import { SessionBreakdown } from '#/features/events/session-breakdown';
+import { Button } from '#/components/ui/button';
+import { useNow } from '#/lib/use-now';
+import { Play } from 'lucide-react';
+import { useState } from 'react';
+import { queryKeys } from '@babble/api';
+import { useQueryClient } from '@tanstack/react-query';
 import { toBabbleError } from '@babble/api';
 
 export const Route = createFileRoute('/_app/events/$eventId')({
@@ -25,7 +32,13 @@ function EditEvent() {
   const { finish } = Route.useSearch();
   const navigate = useNavigate();
   const router = useRouter();
-  const units = useUnits(babble.client, baby.id);
+  const { units, mergeGapMs } = useTrackingSettings(babble.client, baby.id);
+  const latest = useQuery(latestEventsQuery(babble.client, baby.id)).data ?? [];
+  const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
+  const queryClient = useQueryClient();
+  const now = useNow(30_000);
+  const [resuming, setResuming] = useState(false);
+  const [resumeError, setResumeError] = useState<string | null>(null);
   const event = useQuery(eventQuery(babble.client, baby.id, eventId));
 
   if (event.isPending) {
@@ -66,6 +79,39 @@ function EditEvent() {
         <TrackerIcon tracker={tracker} />
         <h1 className="text-title font-bold">{finish ? 'How much did you pump?' : tracker.label}</h1>
       </div>
+      {(event.data.type === 'breast_feed' || event.data.type === 'pump') && event.data.segments.length > 0 && (
+        <SessionBreakdown
+          segments={event.data.segments}
+          mergeGapMs={event.data.source === 'manual' ? mergeGapMs : Number.POSITIVE_INFINITY}
+          now={now}
+          noun={event.data.type === 'pump' ? 'pumping' : 'feeding'}
+        />
+      )}
+      {canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
+        <div className="flex flex-col gap-2">
+          <Button
+            size="lg"
+            loading={resuming}
+            onClick={async () => {
+              setResuming(true);
+              setResumeError(null);
+              try {
+                await resumeFeed(babble.client, eventId);
+                await queryClient.invalidateQueries({ queryKey: queryKeys.events(baby.id), refetchType: 'all' });
+                await navigate({ to: '/sessions/$eventId', params: { eventId } });
+              } catch (caught) {
+                setResumeError(toBabbleError(caught).message);
+                setResuming(false);
+              }
+            }}
+          >
+            {!resuming && <Play className="size-5" strokeWidth={2.75} />}
+            Resume feed
+          </Button>
+          <p className="text-center text-meta text-ink-2">Resume only appears on the most recent feed.</p>
+          {resumeError && <StatusMessage tone="danger">{resumeError}</StatusMessage>}
+        </div>
+      )}
       <EntryAuthor
         author={family.members.find((member) => member.user_id === event.data.createdBy)?.display_name}
         createdAt={event.data.createdAt}
