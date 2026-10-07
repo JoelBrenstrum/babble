@@ -6,6 +6,8 @@ import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { PageSpinner } from '@/components/page-spinner';
 import { useTokenColor } from '@/lib/theme';
+import { useBabble } from '@/lib/babble';
+import { useRealtimeEvents } from '@/lib/use-events';
 import { useOnboarding } from '@/lib/use-onboarding';
 
 export default function TabsLayout() {
@@ -35,43 +37,53 @@ export default function TabsLayout() {
   if (state?.step === 'sign-in') return <Redirect href="/sign-in" />;
   if (state?.step === 'family') return <Redirect href="/onboarding/family" />;
   if (state?.step === 'baby') return <Redirect href="/onboarding/baby" />;
+  if (state?.step !== 'ready') return null;
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: active,
-        tabBarInactiveTintColor: inactive,
-        tabBarStyle: { backgroundColor: surface, borderTopColor: line, height: 84 },
-        tabBarLabelStyle: { fontFamily: 'Figtree-SemiBold', fontSize: 12 },
-        sceneStyle: { backgroundColor: 'transparent' },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{ title: 'Home', tabBarIcon: ({ color }) => <House color={color} size={22} strokeWidth={2.75} /> }}
-      />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ color }) => <History color={color} size={22} strokeWidth={2.75} />,
+    <>
+      <RealtimeEvents babyId={state.baby.id} />
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: active,
+          tabBarInactiveTintColor: inactive,
+          tabBarStyle: { backgroundColor: surface, borderTopColor: line, height: 84 },
+          tabBarLabelStyle: { fontFamily: 'Figtree-SemiBold', fontSize: 12 },
+          sceneStyle: { backgroundColor: 'transparent' },
         }}
-      />
-      <Tabs.Screen
-        name="stats"
-        options={{
-          title: 'Stats',
-          tabBarIcon: ({ color }) => <ChartColumn color={color} size={22} strokeWidth={2.75} />,
-        }}
-      />
-      <Tabs.Screen
-        name="settings"
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <Settings color={color} size={22} strokeWidth={2.75} />,
-        }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{ title: 'Home', tabBarIcon: ({ color }) => <House color={color} size={22} strokeWidth={2.75} /> }}
+        />
+        <Tabs.Screen
+          name="history"
+          options={{
+            title: 'History',
+            tabBarIcon: ({ color }) => <History color={color} size={22} strokeWidth={2.75} />,
+          }}
+        />
+        <Tabs.Screen
+          name="stats"
+          options={{
+            title: 'Stats',
+            tabBarIcon: ({ color }) => <ChartColumn color={color} size={22} strokeWidth={2.75} />,
+          }}
+        />
+        <Tabs.Screen
+          name="settings"
+          options={{
+            title: 'Settings',
+            tabBarIcon: ({ color }) => <Settings color={color} size={22} strokeWidth={2.75} />,
+          }}
+        />
+      </Tabs>
+    </>
   );
+}
+
+function RealtimeEvents({ babyId }: { babyId: string }) {
+  const { client } = useBabble();
+  useRealtimeEvents(client, babyId);
+  return null;
 }

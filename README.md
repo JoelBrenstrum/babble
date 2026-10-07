@@ -48,7 +48,7 @@ pnpm --filter @babble/mobile start
 Component fixtures live next to their components as `*.fixture.tsx`, using shared sample data from `@babble/api/fixtures`. Each playground has a light/dark theme control.
 
 - **Web:** `pnpm --filter @babble/web cosmos` → http://localhost:5000. `cosmos:export` builds a static version.
-- **Mobile:** `pnpm --filter @babble/mobile cosmos` starts the playground on port 5101 and generates `src/cosmos.imports.ts`. In a second terminal, `pnpm --filter @babble/mobile cosmos:app` starts Expo with `EXPO_PUBLIC_COSMOS=1`, which boots the app straight into the Cosmos renderer instead of expo-router; the device connects to the playground over your LAN.
+- **Mobile:** `pnpm --filter @babble/mobile cosmos` starts the playground on port 5101 and generates `src/cosmos.imports.ts`. In another terminal, `pnpm --filter @babble/mobile cosmos:app` starts the app in Cosmos mode (a standalone entry, `src/cosmos-app.tsx`), which connects to the playground over your LAN.
 
 ## Checks
 

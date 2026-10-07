@@ -12,7 +12,18 @@ export {
 } from './huckleberry/import';
 export { babyAgeLabel } from './format/baby-age';
 export { clockToMinutes, minutesToClock, todayInTimeZone } from './format/time-of-day';
-export { TRACKERS, type Tracker, type TrackerKey } from './trackers';
+export {
+  EVENT_TYPES,
+  isEventType,
+  isSessionType,
+  listTypesFor,
+  SESSION_TYPES,
+  trackerFor,
+  TRACKERS,
+  type SessionType,
+  type Tracker,
+  type TrackerKey,
+} from './trackers';
 export { emptyDraft, isInstant } from './events/drafts';
 export {
   describeEvent,

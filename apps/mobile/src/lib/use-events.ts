@@ -23,7 +23,7 @@ import {
 } from '@babble/domain';
 import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { useToast } from '#/components/ui/toast';
+import { useToast } from '@/components/toast';
 import type { SessionType } from '@babble/domain';
 
 export function useRealtimeEvents(client: BabbleClient, babyId: string) {
@@ -65,7 +65,7 @@ export function useDeleteEvent(client: BabbleClient, babyId: string) {
         message: 'Entry deleted',
         action: {
           label: 'Undo',
-          onClick: () => void restoreEvent(client, event.id).then(() => refreshEvents(queryClient, babyId)),
+          onPress: () => void restoreEvent(client, event.id).then(() => refreshEvents(queryClient, babyId)),
         },
       });
     },

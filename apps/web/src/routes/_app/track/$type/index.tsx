@@ -9,7 +9,7 @@ import { Segmented } from '#/components/ui/segmented';
 import { Spinner } from '#/components/ui/spinner';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventRow } from '#/features/events/event-row';
-import { isEventType, listTypesFor, trackerFor } from '#/lib/trackers';
+import { isEventType, listTypesFor, trackerFor } from '@babble/domain';
 import { useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 

@@ -9,7 +9,7 @@ import { Card } from '#/components/ui/card';
 import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventForm } from '#/features/events/event-form';
-import { isEventType, isSessionType, trackerFor, type SessionType } from '#/lib/trackers';
+import { isEventType, isSessionType, trackerFor, type SessionType } from '@babble/domain';
 import { useStartSession, useUnits } from '#/lib/use-events';
 import { toBabbleError } from '@babble/api';
 

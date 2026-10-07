@@ -1,6 +1,5 @@
 import { sampleEvents, sampleRunningFeed } from '@babble/api/fixtures';
 import { describe, expect, it } from 'vitest';
-import { listTypesFor } from '#/lib/trackers';
 import { toDraft } from './events/event-form';
 import { latestMeta } from './home-overview';
 
@@ -20,15 +19,6 @@ describe('latestMeta', () => {
   it('handles running and missing entries', () => {
     expect(latestMeta(sampleRunningFeed(now), now, 'metric', 'Pacific/Auckland')).toBe('In progress');
     expect(latestMeta(undefined, now, 'metric', 'Pacific/Auckland')).toBe('Nothing logged yet');
-  });
-});
-
-describe('listTypesFor', () => {
-  it('combines feeds unless filtered', () => {
-    expect(listTypesFor('breast_feed')).toEqual(['breast_feed', 'bottle']);
-    expect(listTypesFor('bottle', 'bottle')).toEqual(['bottle']);
-    expect(listTypesFor('breast_feed', 'breast')).toEqual(['breast_feed']);
-    expect(listTypesFor('nappy', 'bottle')).toEqual(['nappy']);
   });
 });
 
