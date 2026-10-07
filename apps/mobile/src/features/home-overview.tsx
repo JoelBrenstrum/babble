@@ -47,7 +47,7 @@ export function HomeOverview({
   baby: BabyRow;
   running: BabyEvent[];
   latest: BabyEvent[];
-  summary: DaySummary | null;
+  summary: Pick<DaySummary, 'sleepMs' | 'feeds' | 'nappies'> | null;
   units: Units;
   now: Date;
   renderRunning: (event: BabyEvent) => ReactNode;

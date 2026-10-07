@@ -55,7 +55,7 @@ nappy_details        event_id, wet bool, dirty bool,
                      wet_size enum? (tiny|little|medium|large|massive),
                      poo_size enum? (tiny|little|medium|large|massive),
                      poo_colours enum[] (max 2),
-                     poo_textures enum[] (runny|loose|seedy|pasty|formed|mucousy|hard|pebbles|diarrhea),
+                     poo_textures enum[] (runny|loose|seedy|pasty|formed|mucousy|solid|pebbles|diarrhea),
                      rash bool default false
 
 pump_details         event_id, left_ml?, right_ml?, total_ml?    -- total for "total only" entries

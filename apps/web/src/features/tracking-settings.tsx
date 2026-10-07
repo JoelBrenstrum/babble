@@ -1,5 +1,5 @@
 import { babySettingsQuery, queryKeys, toBabbleError, updateBabySettings, type BabbleClient } from '@babble/api';
-import type { Units } from '@babble/domain';
+import { clockToMinutes, type Units } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Card, SectionLabel } from '#/components/ui/card';
@@ -75,9 +75,57 @@ export function TrackingSettings({
               A paused feed or pump that's been left this long is finished automatically.
             </p>
           </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-label font-semibold">Night</span>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="flex flex-col gap-1 text-meta text-ink-2">
+                From
+                <TimeInput
+                  label="Night starts"
+                  minutes={settings.night_start_minutes}
+                  onChange={(night_start_minutes) => save({ night_start_minutes })}
+                />
+              </label>
+              <label className="flex flex-col gap-1 text-meta text-ink-2">
+                To
+                <TimeInput
+                  label="Night ends"
+                  minutes={settings.night_end_minutes}
+                  onChange={(night_end_minutes) => save({ night_end_minutes })}
+                />
+              </label>
+            </div>
+            <p className="text-meta text-ink-2">Sleep in this window counts as night sleep; the rest are naps.</p>
+          </div>
         </fieldset>
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
       </Card>
     </section>
+  );
+}
+
+function TimeInput({
+  label,
+  minutes,
+  onChange,
+}: {
+  label: string;
+  minutes: number;
+  onChange: (minutes: number) => void;
+}) {
+  const value = `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+  return (
+    <input
+      type="time"
+      aria-label={label}
+      step={900}
+      className="h-tap rounded-button border border-line-strong bg-raised px-3 text-body text-ink"
+      defaultValue={value}
+      key={value}
+      onBlur={(event) => {
+        const next = clockToMinutes(event.target.value);
+        if (next !== null && next !== minutes) onChange(next);
+      }}
+    />
   );
 }

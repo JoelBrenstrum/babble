@@ -47,7 +47,28 @@ export {
   shiftDay,
   toLocalInputValue,
 } from './time/local-time';
-export { summariseDay, type DaySummary } from './events/day-summary';
+export {
+  summariseDay,
+  summariseWeek,
+  type DaySummary,
+  type NightSettings,
+  type WeekSummary,
+} from './events/day-summary';
+export { fractionOf, hourTicks, localInstant, nightIntervals, lastDays, type TimeWindow } from './timeline/days';
+export { bucketByDay, dayLayout, type DayLayout, type TimelineItem } from './timeline/day-layout';
+export {
+  countedDays,
+  daySummaryStrip,
+  dayTotalCards,
+  formatDayRange,
+  nappyKind,
+  weekdayLabel,
+  weekSummaryStrip,
+  weekTableRows,
+  type TotalCard,
+  type TotalKey,
+  type WeekRow,
+} from './timeline/totals';
 export {
   applySessionAction,
   DISCARD_CONFIRM_AFTER_MS,

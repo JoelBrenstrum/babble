@@ -103,7 +103,7 @@ const POO_TEXTURES: Record<string, PooTexture> = {
   solid: 'formed',
   formed: 'formed',
   mucousy: 'mucousy',
-  hard: 'hard',
+  hard: 'solid',
   pebbles: 'pebbles',
   diarrhea: 'diarrhea',
 };

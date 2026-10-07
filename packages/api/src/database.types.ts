@@ -577,7 +577,7 @@ export type Database = {
       family_role: 'owner' | 'caregiver' | 'viewer';
       mood: 'happy' | 'upset';
       poo_colour: 'yellow' | 'mustard' | 'green' | 'dark_green' | 'brown' | 'orange' | 'black' | 'red' | 'white_grey';
-      poo_texture: 'runny' | 'loose' | 'seedy' | 'pasty' | 'formed' | 'mucousy' | 'hard' | 'pebbles' | 'diarrhea';
+      poo_texture: 'runny' | 'loose' | 'seedy' | 'pasty' | 'formed' | 'mucousy' | 'solid' | 'pebbles' | 'diarrhea';
       session_state: 'running' | 'paused' | 'ended';
       side: 'left' | 'right';
       signup_mode: 'open' | 'invite_only';
@@ -709,7 +709,7 @@ export const Constants = {
       family_role: ['owner', 'caregiver', 'viewer'],
       mood: ['happy', 'upset'],
       poo_colour: ['yellow', 'mustard', 'green', 'dark_green', 'brown', 'orange', 'black', 'red', 'white_grey'],
-      poo_texture: ['runny', 'loose', 'seedy', 'pasty', 'formed', 'mucousy', 'hard', 'pebbles', 'diarrhea'],
+      poo_texture: ['runny', 'loose', 'seedy', 'pasty', 'formed', 'mucousy', 'solid', 'pebbles', 'diarrhea'],
       session_state: ['running', 'paused', 'ended'],
       side: ['left', 'right'],
       signup_mode: ['open', 'invite_only'],

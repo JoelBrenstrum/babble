@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="width:1200px;height:900px;border-radius:14px;overflow:hidden;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 0 0 1px rgb(var(--line)), 0 24px 60px rgba(20,22,18,.22)">
+  <div style="flex:none;height:40px;display:flex;align-items:center;gap:14px;padding:0 16px;background:rgb(var(--surface));border-bottom:1px solid rgb(var(--line))">
+    <div style="display:flex;gap:7px"><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--line-strong))"></span><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--line-strong))"></span><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--line-strong))"></span></div>
+    <div style="flex:1;display:flex;justify-content:center"><div style="height:26px;min-width:320px;border-radius:8px;background:rgb(var(--raised));display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:rgb(var(--ink-2))"><i class="icon-lock" style="font-size:12px"></i>babble.home.nz{{ path }}</div></div>
+    <div style="width:57px"></div>
+  </div>
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px">
+    <div style="width:440px;padding:36px;border-radius:28px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised);box-sizing:border-box">
+      <dc-import name="Auth Form" screen="{{ screen }}" hint-size="100%,640px"></dc-import>
+    </div>
+    <span style="display:flex;align-items:center;gap:6px;font-size:14px;color:rgb(var(--ink-2))"><i class="icon-server" style="font-size:15px"></i>Self-hosted at babble.home.nz</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1220,&quot;height&quot;:920},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signin-error&quot;,&quot;signin-create&quot;,&quot;signin-create-short&quot;,&quot;signin-invite&quot;,&quot;signin-magic&quot;,&quot;new-password&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const screen = this.props.screen || 'signin';
+    const path = screen === 'new-password' ? '/reset-password' : screen === 'signin-invite' ? '/join/K7Q-4MD' : '/sign-in';
+    return { screen, path };
+  }
+}
+</script>
+</body>
+</html>

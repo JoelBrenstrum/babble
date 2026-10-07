@@ -25,9 +25,58 @@
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 32px;font-size:15px;line-height:1.55;color:rgb(var(--ink-2))">
       <div><div style="font-weight:700;color:rgb(var(--ink));margin-bottom:6px">Desktop, 1280px and up</div>A 268px sidebar holds the wordmark, baby switcher, running-session card, nav and online caregivers. Pages use two columns: trackers next to the timeline, and list next to detail. Adding an entry opens a dialog instead of a new page. The sidebar card is hidden on Home, where the full card already shows. In Settings the running timer is shown as a top bar instead, so you can compare both treatments.</div>
       <div><div style="font-weight:700;color:rgb(var(--ink));margin-bottom:6px">Tablet, 768–1279px</div>The sidebar shrinks to an 84px icon rail. The running session becomes a pulsing chip with its side and time. Two-column pages split 1fr / 1fr. The settings section list becomes a select above the form. The week table scrolls sideways.</div>
-      <div><div style="font-weight:700;color:rgb(var(--ink));margin-bottom:6px">Phone and PWA, under 768px</div>The rail becomes the bottom tab bar (Home, History, Stats, Settings), and categories open from the Home rows. Detail panels become full screens and dialogs become bottom sheets. Layouts match the native app exactly, so the phone screens below serve both Expo and the PWA.</div>
+      <div><div style="font-weight:700;color:rgb(var(--ink));margin-bottom:6px">Phone and PWA, under 768px</div>The rail becomes the bottom tab bar (Home, Timeline, Stats, Settings), and categories open from the Home rows. Detail panels become full screens and dialogs become bottom sheets. Layouts match the native app exactly, so the phone screens below serve both Expo and the PWA.</div>
     </div>
   </header>
+
+  <section style="display:flex;flex-direction:column;gap:28px;padding:32px;border-radius:28px;background:rgb(var(--raised));border:2px solid rgb(var(--secondary))">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font-size:30px;font-weight:700">Stage 2</h2><span style="font-size:15px;color:rgb(var(--ink-2));max-width:900px;line-height:1.5">Session breakdown and segment editor, Resume feed, the revised nap prompts, Settings → Tracking, Data and Account, password sign-in, the single-page Huckleberry import, and "Started earlier?" on running cards. These replace the matching v1.1 screens below.</span></div>
+    <sc-for list="{{ s2groups }}" as="g" hint-placeholder-count="5">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <span style="font-size:18px;font-weight:700;color:rgb(var(--on-secondary-soft))">{{ g.title }}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:48px 56px">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--secondary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+              <div style="display:flex;gap:24px">
+                <sc-if value="{{ g.isScreen }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Screen" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Screen" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isForms }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isFlows }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isLists }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isAccount }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isWeb }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Web" screen="{{ it.s }}" width="{{ it.w }}" hint-size="1440px,900px"></dc-import></div><div data-theme="dark"><dc-import name="Web" screen="{{ it.s }}" width="{{ it.w }}" hint-size="1440px,900px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isAuth }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Web Auth" screen="{{ it.s }}" hint-size="1200px,900px"></dc-import></div><div data-theme="dark"><dc-import name="Web Auth" screen="{{ it.s }}" hint-size="1200px,900px"></dc-import></div></sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:28px;padding:32px;border-radius:28px;background:rgb(var(--raised));border:2px solid rgb(var(--primary))">
+    <div style="display:flex;flex-direction:column;gap:6px"><h2 style="margin:0;font-size:30px;font-weight:700">v1.2 changes</h2><span style="font-size:15px;color:rgb(var(--ink-2));max-width:900px;line-height:1.5">History is renamed Timeline, babies have a switcher, running sessions can be discarded, entries show who logged them, and there is a new start step. The sample family is now Olivia (11 days) and Jacob (14 months). Changes also apply to the screens further down.</span></div>
+    <sc-for list="{{ v12groups }}" as="g" hint-placeholder-count="5">
+      <div style="display:flex;flex-direction:column;gap:18px">
+        <span style="font-size:18px;font-weight:700;color:rgb(var(--on-primary-soft))">{{ g.title }}</span>
+        <div style="display:flex;flex-wrap:wrap;gap:48px 56px">
+          <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+              <div style="display:flex;gap:24px">
+                <sc-if value="{{ g.isScreen }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Screen" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Screen" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isForms }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isFlows }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isLists }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isAccount }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+                <sc-if value="{{ g.isWeb }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Web" screen="{{ it.s }}" width="{{ it.w }}" hint-size="1440px,900px"></dc-import></div><div data-theme="dark"><dc-import name="Web" screen="{{ it.s }}" width="{{ it.w }}" hint-size="1440px,900px"></dc-import></div></sc-if>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-for>
+  </section>
 
   <section style="display:flex;flex-direction:column;gap:28px">
     <h2 style="margin:0;font-size:30px;font-weight:700">Phone · forms and timers</h2>
@@ -106,12 +155,39 @@
 class Component extends DCLogic {
   renderVals() {
     const L = (arr, p) => arr.map(([s, title, note], i) => ({ s, title, note: note || '', n: p + String(i + 1).padStart(2, '0') }));
+    const G = (title, kind, arr, p, w) => ({ title, isScreen: kind === 'screen', isForms: kind === 'forms', isFlows: kind === 'flows', isLists: kind === 'lists', isAccount: kind === 'account', isWeb: kind === 'web', isAuth: kind === 'auth', items: L(arr, p).map(it => ({ ...it, w: w || 'desktop' })) });
+    const s2groups = [
+      G('Session breakdown, segment editor and Resume', 'flows', [['feed-detail', 'Breastfeed entry · Resume'], ['feed-edit', 'Edit segments'], ['pump-detail', 'Pump entry'], ['feed-imported', 'Imported feed · sides only']], 'S1.'),
+      G('Timer · paused and started earlier', 'screen', [['timer-paused', 'Paused · live downtime row'], ['home-earlier', 'Started earlier? · open'], ['home-earlier-future', 'Error · in the future'], ['home-earlier-order', 'Error · after first side']], 'S2.'),
+      G('Started line on nap and pump timers', 'forms', [['sleep', 'Nap timer'], ['pump', 'Pump timer']], 'S3.'),
+      G('Nap prompts · phone', 'flows', [['prompt-endnap', 'End nap · with feed-start option'], ['prompt-endnap-simple', 'End nap · simple'], ['prompt-startnap', 'Start nap · with feed-end option'], ['prompt-startnap-simple', 'Start nap · simple']], 'S4.'),
+      G('Nap prompts · desktop', 'web', [['home-endnap', 'End-nap dialog'], ['home-startnap', 'Start-nap dialog']], 'S5.'),
+      G('Settings · phone', 'account', [['settings', 'Tracking'], ['settings-3', 'Data and Account'], ['settings-password', 'Change password · open'], ['settings-password-saved', 'Password saved']], 'S6.'),
+      G('Settings · desktop', 'web', [['settings', 'Tracking, Data, Account']], 'S7.'),
+      G('Sign in · phone', 'account', [['signin', 'Sign in'], ['signin-error', 'Wrong password'], ['signin-create', 'Create account'], ['signin-create-short', 'Password too short'], ['signin-invite', 'From an invite link'], ['signin-magic', 'Sign-in link'], ['new-password', 'Choose a new password']], 'S8.'),
+      G('Sign in · web', 'auth', [['signin', 'Sign in'], ['signin-create-short', 'Create account · too short'], ['signin-invite', 'From an invite link'], ['signin-magic', 'Sign-in link'], ['new-password', 'Choose a new password']], 'S9.'),
+      G('Huckleberry import · desktop', 'web', [['import', 'Choose a file'], ['import-preview', 'Preview'], ['import-progress', 'Importing'], ['import-done', 'Done']], 'S10.'),
+      G('Imported entries in lists', 'lists', [['sleep', 'Imported chip on older rows'], ['growth', 'Growth']], 'S11.')
+    ];
+    const v12groups = [
+      G('Baby switcher', 'screen', [['home-switch', 'Native · Switch baby sheet']], 'N1.'),
+      G('Add a baby to the family', 'account', [['add-baby-family', 'Add a baby to The Smiths'], ['pwa-ios', 'Phone web · header trigger']], 'N2.'),
+      G('Baby switcher · web', 'web', [['home-switcher', 'Desktop · popover from the sidebar']], 'N3.'),
+      G('Baby switcher · tablet', 'web', [['home-switcher', 'Tablet · popover beside the rail']], 'N4.', 'tablet'),
+      G('Discard a running session', 'screen', [['home-discard', 'Over 1 min · inline confirm (phone web)'], ['timer-discard', 'Over 1 min · native alert'], ['home-discarded', 'Discarded · undo toast']], 'N5.'),
+      G('Discard · desktop', 'web', [['home-discard', 'Inline confirm in the running card']], 'N6.'),
+      G('Start step', 'forms', [['start-feed', 'Breastfeed'], ['start-pump', 'Pump'], ['start-sleep', 'Sleep'], ['start-starting', 'Starting…'], ['start-running', 'Already running'], ['growth-keypad', 'Growth · decimal keypad']], 'N7.'),
+      G('Who logged it', 'flows', [['feed-detail', 'Detail · logged by'], ['feed-imported', 'Detail · imported']], 'N8.'),
+      G('Who logged it · lists and empty state', 'lists', [['sleep', 'Rows end with the logger'], ['feeds-empty', 'Category empty state']], 'N9.'),
+      G('Who logged it · desktop', 'web', [['feeds', 'List avatars and detail meta line']], 'N10.')
+    ];
     return {
+      v12groups, s2groups,
       forms: L([['bottle', 'Bottle form'], ['bottle-keypad', 'Bottle · keypad'], ['sleep', 'Sleep timer · running'], ['sleep-details', 'Sleep · how it went'], ['sleep-manual', 'Sleep · manual entry'], ['pump', 'Pump timer'], ['pump-finish', 'Pump · amounts on finish'], ['growth', 'Growth form'], ['growth-error', 'Growth · failed save'], ['custom', 'Custom event']], 'P1.'),
       flows: L([['feed-detail', 'Feed detail · edit'], ['feed-imported', 'Feed detail · imported'], ['prompt-endnap', 'Feed start · End nap?'], ['prompt-startnap', 'Feed end · Start a nap?'], ['notif-lock', 'Feed due notification'], ['home-overdue', 'Home · feed overdue'], ['home-snoozed', 'Home · snoozed'], ['home-live', 'Home · partner live update'], ['home-offline', 'Home · offline']], 'P2.'),
-      lists: L([['sleep', 'Sleep list'], ['nappy', 'Nappy list'], ['pump', 'Pump list'], ['growth', 'Growth list'], ['custom-empty', 'Custom · empty'], ['loading', 'Loading skeleton']], 'P3.'),
-      account: L([['signin', 'Sign in'], ['check-email', 'Check your email'], ['family', 'Create or join family'], ['add-baby', 'Add baby'], ['day-start', 'Day start'], ['invite', 'Invite a caregiver'], ['settings', 'Settings'], ['settings-2', 'Settings · scrolled'], ['delete-confirm', 'Delete account'], ['pwa-ios', 'Install · iOS Safari'], ['pwa-android', 'Install · Android']], 'P4.'),
-      web: L([['home', 'Home', 'Banner across the top, trackers and running card left, today\u2019s timeline right'], ['feeds', 'Feeds · list and detail', 'Selected feed edits in the right panel'], ['feeds-add', 'Feeds · add dialog', 'The add flow opens over the split view'], ['history-day', 'History · day', 'Timeline and totals side by side'], ['history-week', 'History · week', 'Seven full-height days with a daily totals table'], ['import-1', 'Import · upload'], ['import-2', 'Import · baby and timezone'], ['import-3', 'Import · preview'], ['import-4', 'Import · progress'], ['import-5', 'Import · summary'], ['settings', 'Settings', 'Shows the top-bar treatment of the running timer']], 'W.'),
+      lists: L([['sleep', 'Sleep list'], ['nappy', 'Nappy list'], ['pump', 'Pump list'], ['growth', 'Growth list'], ['feeds-empty', 'Breastfeeds · empty'], ['loading', 'Loading skeleton']], 'P3.'),
+      account: L([['signin', 'Sign in'], ['check-email', 'Check your email'], ['family', 'Create or join family'], ['add-baby', 'Add baby'], ['day-start', 'Day start'], ['invite', 'Invite a caregiver'], ['settings', 'Settings · Tracking'], ['settings-2', 'Settings · day, reminders, appearance'], ['settings-3', 'Settings · data and account'], ['delete-confirm', 'Delete account'], ['pwa-ios', 'Install · iOS Safari'], ['pwa-android', 'Install · Android']], 'P4.'),
+      web: L([['home', 'Home', 'Banner across the top, trackers and running card left, today\u2019s timeline right'], ['feeds', 'Feeds · list and detail', 'Selected feed edits in the right panel'], ['feeds-add', 'Feeds · add dialog', 'The add flow opens over the split view'], ['timeline-day', 'Timeline · day', 'Timeline and totals side by side'], ['timeline-week', 'Timeline · week', 'Seven full-height days with a daily totals table'], ['import', 'Import · choose a file'], ['import-preview', 'Import · preview'], ['import-progress', 'Import · importing'], ['import-done', 'Import · done'], ['home-endnap', 'End-nap dialog'], ['home-startnap', 'Start-nap dialog'], ['settings', 'Settings', 'Shows the top-bar treatment of the running timer']], 'W.'),
       tablet: L([['home', 'Home · tablet'], ['feeds', 'Feeds · tablet']], 'T.')
     };
   }

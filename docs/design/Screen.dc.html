@@ -23,14 +23,15 @@
   <sc-if value="{{ is.home }}" hint-placeholder-val="{{ true }}">
     <div style="flex:1;min-height:0;overflow:hidden;padding:4px 20px 0;display:flex;flex-direction:column;gap:14px">
       <div style="display:flex;align-items:center;gap:12px;padding-top:6px">
-        <div style="width:52px;height:52px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-weight:700;font-size:22px">A</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-0.01em">Olivia</div>
-          <div style="font-size:15px;color:rgb(var(--ink-2))">10 days old</div>
+        <div style="cursor:pointer;width:52px;height:52px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-weight:700;font-size:22px">O</div>
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;cursor:pointer">
+          <div style="min-width:0"><div style="font-weight:700;font-size:26px;line-height:1.15;letter-spacing:-0.01em">Olivia</div>
+          <div style="font-size:15px;color:rgb(var(--ink-2))">11 days old</div></div>
+          <i class="icon-chevrons-up-down" style="font-size:20px;color:rgb(var(--ink-3))"></i>
         </div>
         <div style="display:flex">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--bg));display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Jo</div>
-          <div style="width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--bg));margin-left:-10px;display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Ja</div>
+          <div style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--bg));display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Jo</div>
+          <div style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--bg));margin-left:-10px;display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Ja</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:16px;background:rgb(var(--info-soft));color:rgb(var(--on-info))">
@@ -38,20 +39,53 @@
         <div style="flex:1;font-size:16px;font-weight:600">Next feed due in 42m</div>
         <div style="font-size:14px;font-variant-numeric:tabular-nums">~3:54 am</div>
       </div>
+      <sc-if value="{{ showFeedCard }}" hint-placeholder-val="{{ true }}">
       <div style="padding:16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised);display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
           <div style="display:flex;align-items:center;gap:9px;padding:5px 12px 5px 11px;border-radius:999px;background:rgb(var(--feed-right-soft));color:rgb(var(--on-feed-right));font-size:14px;font-weight:600">
             <span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right))"></span></span>Feeding · Right
           </div>
-          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2))"><span style="width:22px;height:22px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Started by Jane</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2));margin-left:auto"><span style="width:22px;height:22px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Started by Jane</div>
+          <div style="width:40px;height:40px;flex:none;margin:-6px -8px -6px 0;border-radius:12px;display:grid;place-items:center;color:rgb(var(--ink-3));cursor:pointer" style-hover="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))" style-active="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))"><i class="icon-trash-2" style="font-size:18px"></i></div>
         </div>
+        <sc-if value="{{ is.discardPanel }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:14px;background:rgb(var(--danger-soft));color:rgb(var(--on-danger))">
+            <div style="font-size:15px;line-height:1.4"><b>Discard this feed?</b> It's been running for 26m. You can undo straight after.</div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));background:rgb(var(--raised));color:rgb(var(--ink));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;cursor:pointer">Keep feed</div>
+              <div style="flex:1;height:48px;border-radius:14px;background:rgb(var(--danger));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;cursor:pointer"><i class="icon-trash-2" style="font-size:18px"></i>Discard</div>
+            </div>
+          </div>
+        </sc-if>
         <div style="font-weight:500;font-size:48px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">12<span style="font-weight:600;font-size:22px;color:rgb(var(--ink-2));margin:0 12px 0 3px;letter-spacing:0">m</span>23<span style="font-weight:600;font-size:22px;color:rgb(var(--ink-2));margin-left:3px;letter-spacing:0">s</span></div>
         <div style="font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Left 10m 32s · total 22m 55s</div>
+        <div style="align-self:flex-start;display:flex;align-items:center;gap:6px;margin:-4px 0 0 -6px;padding:4px 6px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;cursor:pointer;background:{{ ep.lineBg }}" style-hover="background:rgb(var(--ink) / 0.06)" style-active="background:rgb(var(--ink) / 0.1)">Started 2:49 am<i class="icon-pencil" style="font-size:14px"></i></div>
+        <sc-if value="{{ ep.open }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:12px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));box-shadow:var(--shadow-raised)">
+            <span style="font-size:16px;font-weight:700">Started earlier?</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ ep.chips }}" as="ch" hint-placeholder-count="3"><div style="height:40px;padding:0 12px;border-radius:999px;border:1.5px solid rgb(var(--line));background:rgb(var(--bg));display:flex;align-items:center;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="border-color:rgb(var(--primary));background:rgb(var(--primary-soft))">{{ ch }}</div></sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2))">Start time</span>
+              <div style="display:flex;gap:8px">
+                <div style="flex:1.3;height:48px;padding:0 12px;border-radius:12px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;cursor:pointer">Tue 6 Oct<i class="icon-calendar" style="font-size:16px;color:rgb(var(--ink-3))"></i></div>
+                <div style="flex:1;height:48px;padding:0 12px;border-radius:12px;background:rgb(var(--bg));border:{{ ep.border }};box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer">{{ ep.time }}<i class="icon-clock" style="font-size:16px;color:rgb(var(--ink-3))"></i></div>
+              </div>
+              <span style="display:{{ ep.errD }};align-items:center;gap:6px;font-size:13px;color:rgb(var(--on-danger))"><i class="icon-circle-alert" style="font-size:14px"></i>{{ ep.err }}</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;cursor:pointer">Cancel</div>
+              <div style="flex:1;height:48px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;opacity:{{ ep.saveOp }};cursor:{{ ep.saveCur }}">Save start</div>
+            </div>
+          </div>
+        </sc-if>
         <div style="display:flex;gap:10px;margin-top:2px">
-          <div style="flex:1;height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-pause" style="font-size:18px"></i>Pause</div>
-          <div style="flex:1;height:48px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600">Open timer</div>
+          <div style="cursor:pointer;flex:1;height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-pause" style="font-size:18px"></i>Pause</div>
+          <div style="cursor:pointer;flex:1;height:48px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600">Open timer</div>
         </div>
       </div>
+      </sc-if>
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 4px;border-radius:16px;background:rgb(var(--surface))">
         <sc-for list="{{ summary }}" as="s" hint-placeholder-count="3">
           <div style="display:flex;flex-direction:column;gap:2px;padding:0 12px;border-left:{{ s.divider }}">
@@ -60,15 +94,15 @@
           </div>
         </sc-for>
       </div>
-      <div style="display:flex;flex-direction:column;background:rgb(var(--raised));border-radius:16px;border:1px solid rgb(var(--line))">
+      <div style="display:flex;flex-direction:column;background:rgb(var(--raised));border-radius:16px;border:1px solid rgb(var(--line));overflow:hidden">
         <sc-for list="{{ rows }}" as="r" hint-placeholder-count="6">
-          <div style="display:flex;align-items:center;gap:14px;min-height:68px;padding:8px 10px 8px 14px;border-top:{{ r.divider }}">
-            <div style="width:44px;height:44px;flex:none;border-radius:12px;background:{{ r.soft }};color:{{ r.solid }};display:grid;place-items:center"><i class="{{ r.icon }}" style="font-size:22px"></i></div>
+          <div style="display:flex;align-items:center;gap:14px;min-height:68px;padding:8px 10px 8px 14px;border-top:{{ r.divider }};cursor:pointer" style-hover="background:rgb(var(--surface))">
+            <div style="cursor:pointer;width:44px;height:44px;flex:none;border-radius:12px;background:{{ r.soft }};color:{{ r.solid }};display:grid;place-items:center"><i class="{{ r.icon }}" style="font-size:22px"></i></div>
             <div style="flex:1;min-width:0">
               <div style="font-size:17px;font-weight:600;line-height:1.3">{{ r.title }}</div>
               <div style="font-size:14px;color:{{ r.metaColor }};font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ r.meta }}</div>
             </div>
-            <div style="width:48px;height:48px;flex:none;border-radius:50%;background:{{ r.soft }};color:{{ r.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
+            <div style="width:48px;height:48px;flex:none;border-radius:50%;background:{{ r.soft }};color:{{ r.on }};border:1.5px solid transparent;box-sizing:border-box;display:grid;place-items:center;cursor:pointer" style-hover="border-color:currentColor"><i class="icon-plus" style="font-size:22px"></i></div>
           </div>
         </sc-for>
       </div>
@@ -78,14 +112,16 @@
   <sc-if value="{{ is.timer }}" hint-placeholder-val="{{ false }}">
     <div style="flex:1;min-height:0;padding:0 20px 30px;display:flex;flex-direction:column;gap:16px">
       <div style="display:flex;align-items:center;gap:12px;height:52px">
-        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+        <div style="cursor:pointer;width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
         <div style="flex:1;font-weight:700;font-size:21px">Breastfeed</div>
         <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2));padding:5px 10px 5px 5px;border-radius:999px;background:rgb(var(--surface))"><span style="width:24px;height:24px;border-radius:50%;background:rgb(var(--raised));display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Jane · 2:49</div>
+        <div style="width:44px;height:44px;flex:none;border-radius:12px;display:grid;place-items:center;color:rgb(var(--ink-3));cursor:pointer" style-hover="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))" style-active="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))"><i class="icon-trash-2" style="font-size:20px"></i></div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0 4px">
-        <div style="display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--on-feed-right))"><span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right))"></span></span>Right side</div>
+        <div style="display:flex;align-items:center;gap:9px;font-size:14px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--on-feed-right))"><span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--feed-right))"></span></span>{{ tm.label }}</div>
         <div style="font-weight:500;font-size:74px;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">12<span style="font-weight:600;font-size:28px;color:rgb(var(--ink-2));margin:0 10px 0 4px;letter-spacing:0">m</span>23<span style="font-weight:600;font-size:28px;color:rgb(var(--ink-2));margin-left:4px;letter-spacing:0">s</span></div>
-        <div style="font-size:16px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Total feeding 22m 55s</div>
+        <div style="font-size:16px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ tm.sub }}</div>
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)" style-active="background:rgb(var(--ink) / 0.1)">Started 2:49 am<i class="icon-pencil" style="font-size:14px"></i></div>
       </div>
       <div style="padding:6px 16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised)">
         <sc-for list="{{ segs }}" as="sg" hint-placeholder-count="3">
@@ -96,24 +132,24 @@
             <span style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ sg.color }};min-width:80px;text-align:right">{{ sg.time }}</span>
           </div>
         </sc-for>
-        <div style="border-top:1px solid rgb(var(--line));padding:12px 0 8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Total feeding <span style="color:rgb(var(--ink));font-weight:600">22m 55s</span> · lost 3m 02s</div>
+        <div style="border-top:1px solid rgb(var(--line));padding:12px 0 8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Total feeding <span style="color:rgb(var(--ink));font-weight:600">22m 55s</span> · {{ tm.lost }}</div>
       </div>
       <div style="flex:1"></div>
       <div style="display:flex;gap:12px">
-        <div style="flex:1;height:132px;border-radius:16px;background:rgb(var(--feed-left-soft));color:rgb(var(--on-feed-left));border:2px solid rgb(var(--feed-left) / 0.45);box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+        <div style="cursor:pointer;flex:1;height:132px;border-radius:16px;background:rgb(var(--feed-left-soft));color:rgb(var(--on-feed-left));border:2px solid rgb(var(--feed-left) / 0.45);box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
           <span style="font-weight:700;font-size:40px;line-height:1">L</span>
           <span style="font-size:15px;font-weight:600">Left</span>
           <span style="font-size:14px;font-variant-numeric:tabular-nums">10m 32s</span>
         </div>
-        <div style="flex:1;height:132px;border-radius:16px;background:rgb(var(--feed-right));color:rgb(var(--ink-on-solid));box-shadow:0 0 0 5px rgb(var(--feed-right) / 0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
+        <div style="cursor:pointer;flex:1;height:132px;border-radius:16px;background:rgb(var(--feed-right));color:rgb(var(--ink-on-solid));box-shadow:0 0 0 5px rgb(var(--feed-right) / 0.22);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px">
           <span style="font-weight:700;font-size:40px;line-height:1">R</span>
-          <span style="font-size:15px;font-weight:700">Right · on</span>
+          <span style="font-size:15px;font-weight:700">{{ tm.rState }}</span>
           <span style="font-size:14px;font-variant-numeric:tabular-nums">12m 23s</span>
         </div>
       </div>
       <div style="display:flex;gap:12px">
-        <div style="flex:1;height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-pause" style="font-size:20px"></i>Pause</div>
-        <div style="flex:1;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-check" style="font-size:20px"></i>Finish</div>
+        <div style="cursor:pointer;flex:1;height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="{{ tm.pauseIcon }}" style="font-size:20px"></i>{{ tm.pause }}</div>
+        <div style="cursor:pointer;flex:1;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-check" style="font-size:20px"></i>Finish</div>
       </div>
     </div>
   </sc-if>
@@ -122,7 +158,7 @@
     <div style="flex:1;min-height:0;padding:0 20px 30px;display:flex;flex-direction:column;gap:18px">
       <div style="display:flex;align-items:center;gap:12px;height:52px">
         <div style="flex:1;font-weight:700;font-size:21px">Log nappy</div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-x" style="font-size:22px"></i></div>
+        <div style="cursor:pointer;width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-x" style="font-size:22px"></i></div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between;min-height:48px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
         <span style="font-size:16px;color:rgb(var(--ink-2))">Time</span>
@@ -130,7 +166,7 @@
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:4px;border-radius:16px;background:rgb(var(--surface))">
         <sc-for list="{{ nappyTypes }}" as="nt" hint-placeholder-count="4">
-          <div style="height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:{{ nt.weight }};background:{{ nt.bg }};color:{{ nt.color }};box-shadow:{{ nt.shadow }}"><i class="{{ nt.icon }}" style="font-size:16px"></i>{{ nt.label }}</div>
+          <div style="cursor:pointer;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:{{ nt.weight }};background:{{ nt.bg }};color:{{ nt.color }};box-shadow:{{ nt.shadow }}"><i class="{{ nt.icon }}" style="font-size:16px"></i>{{ nt.label }}</div>
         </sc-for>
       </div>
       <div style="display:flex;flex-direction:column;gap:12px">
@@ -166,21 +202,21 @@
         </div>
       </div>
       <div style="flex:1"></div>
-      <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-check" style="font-size:20px"></i>Save nappy</div>
+      <div style="cursor:pointer;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-check" style="font-size:20px"></i>Save nappy</div>
     </div>
   </sc-if>
 
   <sc-if value="{{ is.feeds }}" hint-placeholder-val="{{ false }}">
     <div style="flex:1;min-height:0;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:14px">
       <div style="display:flex;align-items:center;gap:12px;height:52px">
-        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+        <div style="cursor:pointer;width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
         <div style="flex:1;font-weight:700;font-size:21px">Feeds</div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
+        <div style="cursor:pointer;width:48px;height:48px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:16px;background:rgb(var(--surface))">
-        <div style="height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:700;background:rgb(var(--raised));box-shadow:var(--shadow-raised)">All</div>
-        <div style="height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:500;color:rgb(var(--ink-2))">Breast</div>
-        <div style="height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:500;color:rgb(var(--ink-2))">Bottle</div>
+        <div style="cursor:pointer;height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:700;background:rgb(var(--raised));box-shadow:var(--shadow-raised)">All</div>
+        <div style="cursor:pointer;height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:500;color:rgb(var(--ink-2))">Breast</div>
+        <div style="cursor:pointer;height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:500;color:rgb(var(--ink-2))">Bottle</div>
       </div>
       <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
         <div style="display:flex;flex-direction:column;gap:8px">
@@ -200,6 +236,7 @@
                     </sc-for>
                   </div>
                   <span style="font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ r.total }}</span>
+                  <span style="width:28px;height:28px;flex:none;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:11px;font-weight:700;color:rgb(var(--ink-2))">{{ r.who }}</span>
                 </div>
               </div>
             </sc-for>
@@ -212,16 +249,16 @@
   <sc-if value="{{ is.history }}" hint-placeholder-val="{{ false }}">
     <div style="flex:1;min-height:0;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:12px">
       <div style="display:flex;align-items:center;justify-content:space-between;height:52px">
-        <div style="font-weight:700;font-size:26px">History</div>
+        <div style="font-weight:700;font-size:26px">Timeline</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface));width:156px">
-          <div style="height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ seg.dayW }};background:{{ seg.dayBg }};color:{{ seg.dayC }};box-shadow:{{ seg.dayS }}">Day</div>
-          <div style="height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ seg.weekW }};background:{{ seg.weekBg }};color:{{ seg.weekC }};box-shadow:{{ seg.weekS }}">Week</div>
+          <div style="cursor:pointer;height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ seg.dayW }};background:{{ seg.dayBg }};color:{{ seg.dayC }};box-shadow:{{ seg.dayS }}">Day</div>
+          <div style="cursor:pointer;height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ seg.weekW }};background:{{ seg.weekBg }};color:{{ seg.weekC }};box-shadow:{{ seg.weekS }}">Week</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between">
-        <div style="width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:20px"></i></div>
+        <div style="cursor:pointer;width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:20px"></i></div>
         <span style="font-size:16px;font-weight:600">{{ rangeLabel }}</span>
-        <div style="width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-right" style="font-size:20px"></i></div>
+        <div style="cursor:pointer;width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-right" style="font-size:20px"></i></div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 4px;border-radius:16px;background:rgb(var(--surface))">
         <sc-for list="{{ histSummary }}" as="s" hint-placeholder-count="3">
@@ -314,23 +351,64 @@
       </sc-for>
     </div>
   </sc-if>
+
+  <sc-if value="{{ is.discarded }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:16px;right:16px;bottom:100px;display:flex;align-items:center;gap:12px;padding:6px 6px 6px 16px;border-radius:16px;background:rgb(var(--raised));box-shadow:var(--shadow-toast);border:1px solid rgb(var(--line))">
+      <i class="icon-trash-2" style="font-size:18px;color:rgb(var(--ink-2))"></i>
+      <span style="flex:1;font-size:15px;font-weight:600">Feed discarded</span>
+      <div style="height:48px;padding:0 16px;border-radius:12px;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:flex;align-items:center;gap:6px;font-size:15px;font-weight:700;cursor:pointer"><i class="icon-undo-2" style="font-size:17px"></i>Undo</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ is.switcher }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.45)"></div>
+    <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:6px">
+      <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong));margin-bottom:6px"></span>
+      <span style="font-size:20px;font-weight:700;padding:0 4px 6px">Switch baby</span>
+      <sc-for list="{{ babies }}" as="b" hint-placeholder-count="2">
+        <div style="display:flex;align-items:center;gap:14px;min-height:64px;padding:0 12px;border-radius:14px;background:{{ b.rowBg }};cursor:pointer" style-hover="background:rgb(var(--surface))">
+          <span style="width:44px;height:44px;flex:none;border-radius:50%;background:{{ b.soft }};color:{{ b.on }};display:grid;place-items:center;font-size:19px;font-weight:700">{{ b.initial }}</span>
+          <div style="flex:1;line-height:1.3"><div style="font-size:17px;font-weight:700">{{ b.name }}</div><div style="font-size:14px;color:rgb(var(--ink-2))">{{ b.age }}</div></div>
+          <i class="{{ b.check }}" style="font-size:22px;color:rgb(var(--primary))"></i>
+        </div>
+      </sc-for>
+      <div style="height:1px;background:rgb(var(--line));margin:4px 0"></div>
+      <div style="display:flex;align-items:center;gap:14px;min-height:64px;padding:0 12px;border-radius:14px;cursor:pointer;color:rgb(var(--on-primary-soft))" style-hover="background:rgb(var(--surface))">
+        <span style="width:44px;height:44px;flex:none;border-radius:50%;border:2px dashed rgb(var(--primary));box-sizing:border-box;color:rgb(var(--primary));display:grid;place-items:center"><i class="icon-plus" style="font-size:20px"></i></span>
+        <span style="font-size:17px;font-weight:700">Add a baby</span>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ is.alert }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.4);display:grid;place-items:center">
+      <div style="width:280px;border-radius:16px;background:rgb(var(--raised));box-shadow:var(--shadow-toast);overflow:hidden;text-align:center">
+        <div style="padding:20px 18px 16px;display:flex;flex-direction:column;gap:6px"><span style="font-size:17px;font-weight:700">Discard this feed?</span><span style="font-size:14px;color:rgb(var(--ink-2));line-height:1.4">It's been running for 26m. You can undo straight after.</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-top:1px solid rgb(var(--line))">
+          <div style="height:48px;display:grid;place-items:center;font-size:17px;font-weight:600;color:rgb(var(--on-primary-soft));border-right:1px solid rgb(var(--line));cursor:pointer">Keep feed</div>
+          <div style="height:48px;display:grid;place-items:center;font-size:17px;font-weight:700;color:rgb(var(--on-danger));cursor:pointer">Discard</div>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;timer&quot;,&quot;nappy&quot;,&quot;feeds&quot;,&quot;day&quot;,&quot;week&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;home-earlier&quot;,&quot;home-earlier-future&quot;,&quot;home-earlier-order&quot;,&quot;home-switch&quot;,&quot;home-discard&quot;,&quot;home-discarded&quot;,&quot;timer&quot;,&quot;timer-paused&quot;,&quot;timer-discard&quot;,&quot;nappy&quot;,&quot;feeds&quot;,&quot;timeline-day&quot;,&quot;timeline-week&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const s = this.props.screen || 'home';
     const c = n => `rgb(var(--${n}))`;
     const line = `1px solid ${c('line')}`;
-    const is = { home: s === 'home', timer: s === 'timer', nappy: s === 'nappy', feeds: s === 'feeds', day: s === 'day', week: s === 'week' };
+    const is = { home: s === 'home' || s.startsWith('home-'), timer: s.startsWith('timer'), nappy: s === 'nappy', feeds: s === 'feeds', day: s === 'timeline-day', week: s === 'timeline-week',
+      discardPanel: s === 'home-discard', discarded: s === 'home-discarded', switcher: s === 'home-switch', alert: s === 'timer-discard', paused: s === 'timer-paused' };
     is.history = is.day || is.week;
     const tabSel = is.home ? 0 : (is.feeds || is.history) ? 1 : -1;
-    const tabs = [['icon-house', 'Home'], ['icon-history', 'History'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
+    const tabs = [['icon-house', 'Home'], ['icon-history', 'Timeline'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
       .map(([icon, label], i) => ({ icon, label, color: i === tabSel ? c('on-primary-soft') : c('ink-3'), weight: i === tabSel ? 700 : 500, pill: i === tabSel ? c('primary-soft') : 'transparent' }));
     const strip = arr => arr.map(([label, value], i) => ({ label, value, divider: i ? line : 'none' }));
 
     const rows = [
-      ['feed-right', 'icon-heart', 'Breastfeed', 'In progress · R 12m 23s', true],
+      is.discarded ? ['feed-right', 'icon-heart', 'Breastfeed', 'Last 2h 14m ago (R)', false] : ['feed-right', 'icon-heart', 'Breastfeed', 'In progress · R 12m 23s', true],
       ['sleep', 'icon-moon', 'Sleep', 'Awake 1h 05m · nap was 1h 40m'],
       ['nappy', 'icon-droplets', 'Nappy', 'Last 48m ago · Wet'],
       ['bottle', 'icon-milk', 'Bottle', 'Last 2h 14m ago · 60 ml'],
@@ -344,6 +422,17 @@ class Component extends DCLogic {
       { label: 'Downtime', time: '3m 02s', dot: 'transparent', dotBorder: `2px dashed ${c('session-downtime')}`, ring: 'none', color: c('ink-2'), weight: 500, tag: 'idle', tagColor: c('on-session-downtime'), divider: line },
       { label: 'Right', time: '12m 23s', dot: c('feed-right'), dotBorder: 'none', ring: `0 0 0 4px rgb(var(--feed-right) / 0.25)`, color: c('ink'), weight: 600, tag: 'running', tagColor: c('on-feed-right'), divider: line }
     ];
+    if (is.paused) {
+      Object.assign(segs[2], { ring: 'none', tag: '' });
+      segs.push({ label: 'Downtime', time: '1m 12s', dot: 'transparent', dotBorder: `2px dashed ${c('session-downtime')}`, ring: `0 0 0 4px rgb(var(--session-downtime) / 0.3)`, color: c('ink'), weight: 600, tag: 'idle · counting', tagColor: c('on-session-downtime'), divider: line });
+    }
+    const tm = is.paused ? { label: 'Paused', sub: 'Paused for 1m 12s', lost: 'lost 4m 14s', rState: 'Right · last', pause: 'Resume', pauseIcon: 'icon-play' }
+      : { label: 'Right side', sub: 'Total feeding 22m 55s', lost: 'lost 3m 02s', rState: 'Right · on', pause: 'Pause', pauseIcon: 'icon-pause' };
+    const epOpen = s.startsWith('home-earlier');
+    const epErr = { 'home-earlier-future': "The start can't be in the future.", 'home-earlier-order': 'The start must be before the first side ended.' }[s] || '';
+    const ep = { open: epOpen, lineBg: epOpen ? 'rgb(var(--ink) / 0.06)' : 'transparent', chips: ['5 min earlier', '10 min earlier', '15 min earlier'],
+      time: { 'home-earlier-future': '3:20 am', 'home-earlier-order': '3:02 am' }[s] || '2:49 am',
+      border: epErr ? `2px solid ${c('danger')}` : `1px solid ${c('line')}`, err: epErr, errD: epErr ? 'flex' : 'none', saveOp: 0.45, saveCur: 'not-allowed' };
 
     const nappyTypes = [['Wet', 'icon-droplet'], ['Dirty', 'icon-circle-dot'], ['Both', 'icon-layers'], ['Dry', 'icon-sun']].map(([label, icon]) => {
       const on = label === 'Both';
@@ -366,7 +455,7 @@ class Component extends DCLogic {
       pause: t => ({ text: t, bg: c('session-downtime-soft'), color: c('on-session-downtime'), icon: 'icon-pause' }),
       bottle: t => ({ text: t, bg: c('bottle-soft'), color: c('on-bottle'), icon: 'icon-milk' })
     };
-    const mkRows = arr => arr.map(([time, parts, total, swiped], i) => ({ time, parts, total, divider: i ? line : 'none', behind: swiped ? 'flex' : 'none', tx: swiped ? 'translateX(-92px)' : 'none' }));
+    const mkRows = arr => arr.map(([time, parts, total, swiped], i) => ({ time, parts, total, who: ['Ja', 'Jo', 'Jo', 'Ja', 'Jo'][i % 5], divider: i ? line : 'none', behind: swiped ? 'flex' : 'none', tx: swiped ? 'translateX(-92px)' : 'none' }));
     const groups = [
       { title: 'Today', sub: 'Tue 6 Oct', totals: '2 feeds · 44m', rows: mkRows([
         ['02:49', [P.L('10m'), P.R('12m'), P.pause('3m')], '22m'],
@@ -409,7 +498,9 @@ class Component extends DCLogic {
     const weekTicks = [0, 6, 12, 18, 24].map(h => ({ top: px(h * WH), label: String(h % 24).padStart(2, '0') }));
 
     return {
-      is, tabs, rows, segs, nappyTypes, swatches, sizes, textures, groups, seg,
+      is, tm, ep, tabs, rows, segs, nappyTypes, swatches, sizes, textures, groups, seg,
+      showFeedCard: !is.discarded,
+      babies: [['O', 'Olivia', '11 days', 'primary', true], ['J', 'Jacob', '14 months', 'secondary', false]].map(([initial, name, age, k, on]) => ({ initial, name, age, soft: c(k + '-soft'), on: c('on-' + k), check: on ? 'icon-check' : '', rowBg: on ? c('primary-soft') + '' : 'transparent' })),
       showTabs: is.home || is.feeds || is.history,
       summary: strip([['Sleep today', '9h 40m'], ['Feeds', '7'], ['Nappies', '6']]),
       histSummary: is.day ? strip([['Sleep', '14h 20m'], ['Feeds', '8'], ['Nappies', '7']]) : strip([['Avg sleep', '14h 05m'], ['Longest', '3h 40m'], ['Feeds/day', '8.6']]),

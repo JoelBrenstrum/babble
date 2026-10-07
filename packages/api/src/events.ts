@@ -192,6 +192,21 @@ export async function listEvents(
   return (rows as unknown as EventRow[]).map(rowToEvent);
 }
 
+export const LONGEST_SESSION_MS = 24 * 3_600_000;
+
+export function eventRangeBounds(from: string, to: string): { since: string; before: string } {
+  return { since: new Date(Date.parse(from) - LONGEST_SESSION_MS).toISOString(), before: to };
+}
+
+export async function listEventsBetween(
+  client: BabbleClient,
+  babyId: string,
+  from: string,
+  to: string,
+): Promise<BabyEvent[]> {
+  return listEvents(client, babyId, { ...eventRangeBounds(from, to), limit: 1000 });
+}
+
 export async function getEvent(client: BabbleClient, id: string): Promise<BabyEvent> {
   const row = unwrap(await client.from('events').select(EVENT_SELECT).eq('id', id).single());
   return rowToEvent(row as unknown as EventRow);

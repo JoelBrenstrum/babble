@@ -14,7 +14,7 @@ const TEXTURES: { value: PooTexture; label: string }[] = [
   { value: 'pasty', label: 'Pasty' },
   { value: 'formed', label: 'Formed' },
   { value: 'mucousy', label: 'Mucousy' },
-  { value: 'hard', label: 'Hard' },
+  { value: 'solid', label: 'Solid' },
 ];
 
 export function NappyForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'nappy'>>) {

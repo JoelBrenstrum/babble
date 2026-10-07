@@ -1,6 +1,6 @@
 import type { BabbleClient } from './client';
 import type { EventType } from '@babble/domain';
-import { getEvent, latestEvents, listEvents, runningEvents } from './events';
+import { getEvent, latestEvents, listEvents, listEventsBetween, runningEvents } from './events';
 import { checkInvite, getBabySettings, getInstanceSettings, listFamilies } from './families';
 
 export const queryKeys = {
@@ -13,6 +13,7 @@ export const queryKeys = {
   latestEvents: (babyId: string) => ['events', babyId, 'latest'] as const,
   runningEvents: (babyId: string) => ['events', babyId, 'running'] as const,
   eventsSince: (babyId: string, since: string) => ['events', babyId, 'since', since] as const,
+  eventsBetween: (babyId: string, from: string, to: string) => ['events', babyId, 'between', from, to] as const,
   event: (babyId: string, id: string) => ['events', babyId, 'event', id] as const,
 };
 
@@ -60,4 +61,11 @@ export function eventsSinceQuery(client: BabbleClient, babyId: string, since: st
 
 export function eventQuery(client: BabbleClient, babyId: string, id: string) {
   return { queryKey: queryKeys.event(babyId, id), queryFn: () => getEvent(client, id) };
+}
+
+export function eventsBetweenQuery(client: BabbleClient, babyId: string, from: string, to: string) {
+  return {
+    queryKey: queryKeys.eventsBetween(babyId, from, to),
+    queryFn: () => listEventsBetween(client, babyId, from, to),
+  };
 }

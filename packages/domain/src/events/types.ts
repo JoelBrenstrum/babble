@@ -5,7 +5,8 @@ export type Size = 'tiny' | 'little' | 'medium' | 'large' | 'massive';
 export type PooColour =
   'yellow' | 'mustard' | 'green' | 'dark_green' | 'brown' | 'orange' | 'black' | 'red' | 'white_grey';
 
-export type PooTexture = 'runny' | 'loose' | 'seedy' | 'pasty' | 'formed' | 'mucousy' | 'hard' | 'pebbles' | 'diarrhea';
+export type PooTexture =
+  'runny' | 'loose' | 'seedy' | 'pasty' | 'formed' | 'mucousy' | 'solid' | 'pebbles' | 'diarrhea';
 
 export type BottleContent = 'breast_milk' | 'formula' | 'mixed' | 'other';
 

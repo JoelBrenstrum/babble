@@ -21,13 +21,13 @@
   </div>
   <div style="flex:1;min-height:0;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:14px">
     <div style="display:flex;align-items:center;gap:12px;height:52px;flex:none">
-      <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+      <div style="cursor:pointer;width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
       <div style="flex:1;display:flex;align-items:center;gap:10px;font-weight:700;font-size:21px"><span style="width:32px;height:32px;border-radius:10px;background:{{ cat.soft }};color:{{ cat.solid }};display:grid;place-items:center"><i class="{{ cat.icon }}" style="font-size:17px"></i></span>{{ cat.title }}</div>
-      <div style="width:48px;height:48px;border-radius:50%;background:{{ cat.soft }};color:{{ cat.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
+      <div style="cursor:pointer;width:48px;height:48px;border-radius:50%;background:{{ cat.soft }};color:{{ cat.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
     </div>
     <sc-if value="{{ hasSeg }}" hint-placeholder-val="{{ true }}">
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:16px;background:rgb(var(--surface));flex:none">
-        <sc-for list="{{ segOpts }}" as="o" hint-placeholder-count="3"><div style="height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }}">{{ o.label }}</div></sc-for>
+        <sc-for list="{{ segOpts }}" as="o" hint-placeholder-count="3"><div style="cursor:pointer;height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }}">{{ o.label }}</div></sc-for>
       </div>
     </sc-if>
 
@@ -53,12 +53,9 @@
 
     <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
       <div style="flex:1;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:14px;padding:0 8px 80px">
-        <span style="width:64px;height:64px;border-radius:50%;background:rgb(var(--custom-soft));color:rgb(var(--custom));display:grid;place-items:center"><i class="icon-sparkles" style="font-size:28px"></i></span>
-        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:21px;font-weight:700">No custom events yet</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45;text-wrap:pretty">Track anything else here, like baths, tummy time or vitamin drops.</span></div>
-        <div style="display:flex;flex-wrap:wrap;gap:8px">
-          <sc-for list="{{ emptySugg }}" as="e" hint-placeholder-count="3"><div style="height:40px;padding:0 13px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;background:rgb(var(--raised));border:1.5px solid rgb(var(--line));box-sizing:border-box"><i class="icon-plus" style="font-size:14px"></i>{{ e }}</div></sc-for>
-        </div>
-        <div style="height:56px;padding:0 22px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-plus" style="font-size:20px"></i>Log custom event</div>
+        <span style="width:64px;height:64px;border-radius:50%;background:{{ cat.soft }};color:{{ cat.solid }};display:grid;place-items:center"><i class="{{ cat.icon }}" style="font-size:28px"></i></span>
+        <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:21px;font-weight:700">No breastfeeds yet</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45;text-wrap:pretty">Entries you log will show up here, grouped by day.</span></div>
+        <div style="height:56px;padding:0 22px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:17px;font-weight:600;cursor:pointer"><i class="icon-plus" style="font-size:20px"></i>Log breastfeed</div>
       </div>
     </sc-if>
 
@@ -80,6 +77,8 @@
                   </sc-for>
                 </div>
                 <span style="font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;white-space:nowrap">{{ r.total }}</span>
+                <span style="width:28px;height:28px;flex:none;border-radius:50%;background:rgb(var(--surface));display:{{ r.avD }};place-items:center;font-size:11px;font-weight:700;color:rgb(var(--ink-2))">{{ r.who }}</span>
+                <span style="height:24px;padding:0 8px;flex:none;border-radius:999px;background:rgb(var(--surface));color:rgb(var(--ink-2));display:{{ r.chipD }};align-items:center;gap:4px;font-size:12px;font-weight:700"><i class="icon-file-input" style="font-size:12px"></i>Imported</span>
               </div>
             </div>
           </sc-for>
@@ -92,7 +91,7 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sleep&quot;,&quot;nappy&quot;,&quot;pump&quot;,&quot;growth&quot;,&quot;custom-empty&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;sleep&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sleep&quot;,&quot;nappy&quot;,&quot;pump&quot;,&quot;growth&quot;,&quot;feeds-empty&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;sleep&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const s = this.props.screen || 'sleep';
@@ -102,7 +101,7 @@ class Component extends DCLogic {
     const neutral = (text, icon) => ({ text, bg: c('surface'), color: c('ink-2'), border: 'none', icon: icon || '', sw: 'transparent', swD: 'none' });
     const idle = t => ({ text: t, bg: c('session-downtime-soft'), color: c('on-session-downtime'), border: `1.5px dashed ${c('session-downtime')}`, icon: '', sw: 'transparent', swD: 'none' });
     const poo = (a, b) => b ? `linear-gradient(135deg, rgb(var(--poo-${a})) 50%, rgb(var(--poo-${b})) 50%)` : `rgb(var(--poo-${a}))`;
-    const rows = arr => arr.map(([time, parts, total, swiped], i) => ({ time, parts, total, divider: i ? line : 'none', behind: swiped ? 'flex' : 'none', tx: swiped ? 'translateX(-92px)' : 'none' }));
+    const rows = arr => arr.map(([time, parts, total, swiped, imp], i) => ({ time, parts, total, avD: imp ? 'none' : 'grid', chipD: imp ? 'inline-flex' : 'none', who: ['Ja', 'Jo', 'Jo', 'Ja', 'Jo'][i % 5], divider: i ? line : 'none', behind: swiped ? 'flex' : 'none', tx: swiped ? 'translateX(-92px)' : 'none' }));
     const seg = (labels) => labels.map((label, i) => ({ label, w: i ? 500 : 700, bg: i ? 'transparent' : c('raised'), c: i ? c('ink-2') : c('ink'), s: i ? 'none' : 'var(--shadow-raised)' }));
     const cats = {
       sleep: { k: 'sleep', icon: 'icon-moon', title: 'Sleep', seg: ['All', 'Naps', 'Night'], groups: [
@@ -113,8 +112,8 @@ class Component extends DCLogic {
           ['20:24', [pill('sleep', 'Cot'), neutral('Upset → happy')], '3h 10m'],
           ['18:00', [pill('sleep', 'Held')], '1h 06m', true],
           ['15:30', [pill('sleep', 'Pram')], '54m'],
-          ['13:00', [pill('sleep', 'Car'), pill('sleep', 'Swing')], '1h 12m'],
-          ['09:30', [pill('sleep', 'Bassinet')], '2h 06m']]) }] },
+          ['13:00', [pill('sleep', 'Car'), pill('sleep', 'Swing')], '1h 12m', false, true],
+          ['09:30', [pill('sleep', 'Bassinet')], '2h 06m', false, true]]) }] },
       nappy: { k: 'nappy', icon: 'icon-droplets', title: 'Nappies', seg: ['All', 'Wet', 'Dirty'], groups: [
         { title: 'Today', sub: 'Tue 6 Oct', totals: '3 · 2 wet · 2 dirty', rows: rows([
           ['02:24', [pill('nappy', 'Wet', { icon: 'icon-droplet' })], 'Medium'],
@@ -139,23 +138,23 @@ class Component extends DCLogic {
         { title: 'Fri 2 Oct', sub: 'Midwife visit', totals: '', rows: rows([
           ['11:00', [pill('growth', '3.38 kg', { icon: 'icon-weight' }), pill('growth', '50.5 cm', { icon: 'icon-ruler' }), pill('growth', 'Head 34.5', { icon: 'icon-circle-dashed' })], '']]) },
         { title: 'Mon 28 Sep', sub: '', totals: '', rows: rows([
-          ['09:40', [pill('growth', '3.21 kg', { icon: 'icon-weight' })], '', true]]) },
-        { title: 'Birth', sub: 'Sat 26 Sep', totals: '', rows: rows([
+          ['09:40', [pill('growth', '3.21 kg', { icon: 'icon-weight' })], '', true, true]]) },
+        { title: 'Birth', sub: 'Fri 25 Sep', totals: '', rows: rows([
           ['06:12', [pill('growth', '3.30 kg', { icon: 'icon-weight' }), pill('growth', '50.0 cm', { icon: 'icon-ruler' }), pill('growth', 'Head 34.0', { icon: 'icon-circle-dashed' })], '']]) }] },
-      custom: { k: 'custom', icon: 'icon-sparkles', title: 'Custom', seg: null, groups: [] },
+      feeds: { k: 'feed-right', icon: 'icon-heart', title: 'Breastfeeds', seg: null, groups: [] },
       loading: { k: 'feed-right', icon: 'icon-heart', title: 'Feeds', seg: ['All', 'Breast', 'Bottle'], groups: [] }
     };
-    const key = s === 'custom-empty' ? 'custom' : s;
+    const key = s === 'feeds-empty' ? 'feeds' : s;
     const d = cats[key] || cats.sleep;
-    const tabs = [['icon-house', 'Home'], ['icon-history', 'History'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
+    const tabs = [['icon-house', 'Home'], ['icon-history', 'Timeline'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
       .map(([icon, label], i) => ({ icon, label, color: i === 1 ? c('on-primary-soft') : c('ink-3'), weight: i === 1 ? 700 : 500, pill: i === 1 ? c('primary-soft') : 'transparent' }));
     const sk = n => Array.from({ length: n }, (_, i) => ({ divider: i ? line : 'none', w1: [70, 56, 84, 62][i % 4] + 'px', w2: [62, 74, 50, 70][i % 4] + 'px' }));
     return {
       cat: { title: d.title, icon: d.icon, solid: c(d.k), soft: c(d.k + '-soft'), on: c('on-' + d.k) },
       hasSeg: !!d.seg, segOpts: seg(d.seg || []),
       groups: d.groups, tabs,
-      isLoading: s === 'loading', isEmpty: s === 'custom-empty',
-      skel: [sk(3), sk(4)], emptySugg: ['Bath', 'Tummy time', 'Vitamin D']
+      isLoading: s === 'loading', isEmpty: s === 'feeds-empty',
+      skel: [sk(3), sk(4)]
     };
   }
 }

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:14px;color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif">
+  <sc-if value="{{ showBrand }}" hint-placeholder-val="{{ true }}">
+    <span style="font-family:Caprasimo, serif;font-size:44px;line-height:1;color:rgb(var(--primary));padding:4px 0 6px">Babble</span>
+  </sc-if>
+  <sc-if value="{{ heading.show }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:4px"><span style="font-size:28px;font-weight:700;line-height:1.2">{{ heading.title }}</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45">{{ heading.sub }}</span></div>
+  </sc-if>
+  <sc-if value="{{ showSeg }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
+      <sc-for list="{{ seg }}" as="o" hint-placeholder-count="2"><div style="height:44px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }};cursor:pointer">{{ o.label }}</div></sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:rgb(var(--danger-soft));color:rgb(var(--on-danger));border:1px solid rgb(var(--danger) / 0.35)">
+      <i class="icon-circle-alert" style="font-size:18px;color:rgb(var(--danger));margin-top:1px"></i>
+      <span style="font-size:14px;line-height:1.45">That email and password don't match. Try again, or use a sign-in link instead.</span>
+    </div>
+  </sc-if>
+  <sc-for list="{{ fields }}" as="f" hint-placeholder-count="2">
+    <div style="display:flex;flex-direction:column;gap:6px">
+      <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">{{ f.label }}</span>
+      <div style="display:flex;align-items:center;gap:10px;height:52px;padding:0 14px 0 16px;border-radius:14px;background:rgb(var(--raised));border:{{ f.border }};box-sizing:border-box">
+        <span style="flex:1;font-size:17px;font-weight:{{ f.w }};color:{{ f.vc }};letter-spacing:{{ f.ls }}">{{ f.value }}</span>
+        <span style="font-size:13px;font-weight:600;color:rgb(var(--on-success));display:{{ f.tagD }};align-items:center;gap:4px"><i class="icon-link" style="font-size:14px"></i>{{ f.tag }}</span>
+        <i class="{{ f.trail }}" style="font-size:19px;color:rgb(var(--ink-3));cursor:pointer"></i>
+      </div>
+      <span style="display:{{ f.msgD }};align-items:center;gap:6px;font-size:13px;color:{{ f.msgC }};line-height:1.4"><i class="{{ f.msgIcon }}" style="font-size:14px"></i>{{ f.msg }}</span>
+    </div>
+  </sc-for>
+  <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;opacity:{{ ctaOp }};cursor:{{ ctaCursor }};margin-top:4px"><i class="{{ ctaIcon }}" style="font-size:19px"></i>{{ cta }}</div>
+  <sc-if value="{{ hasLink }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;justify-content:center;flex-wrap:wrap;gap:4px;font-size:15px;color:rgb(var(--ink-2))"><span>{{ linkPre }}</span><span style="font-weight:700;color:rgb(var(--on-primary-soft));text-decoration:underline;text-underline-offset:3px;cursor:pointer">{{ linkAct }}</span></div>
+  </sc-if>
+  <sc-if value="{{ hasGoogle }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:12px;font-size:14px;color:rgb(var(--ink-3))"><span style="flex:1;height:1px;background:rgb(var(--line))"></span>or<span style="flex:1;height:1px;background:rgb(var(--line))"></span></div>
+    <div style="height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:10px;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:rgb(var(--surface))"><span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--ink-2));display:grid;place-items:center;font-size:13px;font-weight:700;box-sizing:border-box">G</span>Continue with Google</div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:360,&quot;height&quot;:760},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signin-error&quot;,&quot;signin-create&quot;,&quot;signin-create-short&quot;,&quot;signin-invite&quot;,&quot;signin-magic&quot;,&quot;new-password&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen || 'signin';
+    const c = n => `rgb(var(--${n}))`;
+    const line = `1px solid ${c('line')}`;
+    const create = s.startsWith('signin-create') || s === 'signin-invite';
+    const magic = s === 'signin-magic', newPw = s === 'new-password';
+    const seg = ['Sign in', 'Create account'].map((label, i) => {
+      const on = create ? i === 1 : i === 0;
+      return { label, w: on ? 700 : 500, bg: on ? c('raised') : 'transparent', c: on ? c('ink') : c('ink-2'), s: on ? 'var(--shadow-raised)' : 'none' };
+    });
+    const hint = (msg) => ({ msg, msgD: 'flex', msgC: c('ink-2'), msgIcon: '' });
+    const err = (msg) => ({ msg, msgD: 'flex', msgC: c('on-danger'), msgIcon: 'icon-circle-alert' });
+    const none = { msg: '', msgD: 'none', msgC: c('ink-2'), msgIcon: '' };
+    const field = (label, value, o = {}) => ({ label, value, vc: o.ph ? c('ink-3') : c('ink'), w: o.ph ? 400 : 600, ls: o.pw ? '0.12em' : '0', trail: o.pw ? 'icon-eye' : '', tag: o.tag || '', tagD: o.tag ? 'flex' : 'none',
+      border: o.error ? `2px solid ${c('danger')}` : o.focus ? `2px solid ${c('primary')}` : line, ...(o.m || none) });
+    const email = field('Email', 'jane@example.com');
+    let fields, cta = 'Sign in', ctaIcon = '', ctaOp = 1, linkPre = 'Forgot your password?', linkAct = 'Email me a sign-in link', hasLink = true;
+    if (newPw) {
+      fields = [field('New password', '••••••••••', { pw: true, m: hint('At least 8 characters.') }), field('Confirm password', '•••••••••', { pw: true, error: true, focus: true, m: err("The passwords don't match.") })];
+      cta = 'Save password'; hasLink = false;
+    } else if (magic) {
+      fields = [field('Email', 'jane@example.com', { focus: true })];
+      cta = 'Email me a sign-in link'; ctaIcon = 'icon-mail'; linkPre = ''; linkAct = 'Use a password instead';
+    } else if (s === 'signin-create-short') {
+      fields = [email, field('Password', '••••', { pw: true, focus: true, error: true, m: err('Use at least 8 characters.') })];
+      cta = 'Create account'; ctaOp = 0.45; hasLink = false;
+    } else if (create) {
+      fields = [email, field('Password', '•••••••••••', { pw: true, m: hint('At least 8 characters.') })];
+      if (s === 'signin-invite') fields.push(field('Invite code', 'K7Q-4MD', { tag: 'From your link', m: hint('Ask someone in your family for a code from Settings.') }));
+      cta = 'Create account'; hasLink = false;
+    } else {
+      fields = [email, field('Password', '••••••••••', { pw: true, error: s === 'signin-error' })];
+    }
+    return {
+      seg, fields, cta, ctaIcon, ctaOp, ctaCursor: ctaOp < 1 ? 'not-allowed' : 'pointer', linkPre, linkAct, hasLink,
+      showBrand: !newPw, showSeg: !magic && !newPw, hasError: s === 'signin-error', hasGoogle: !newPw,
+      heading: newPw ? { show: true, title: 'Choose a new password', sub: 'For jane@example.com.' } : magic ? { show: true, title: 'Sign in with a link', sub: "We'll email you a link that signs you in on this device." } : { show: false, title: '', sub: '' }
+    };
+  }
+}
+</script>
+</body>
+</html>

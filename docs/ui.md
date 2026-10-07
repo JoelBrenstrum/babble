@@ -137,7 +137,7 @@ Type:    [ Wet ] [ Dirty ] [ Both ] [ Dry ]
 Wet:     tiny · little · medium · large · massive        (optional)
 Colour:  ● ● ● ● ● ● ● ● ●   (pick up to 2; shown as a split swatch)
 Size:    tiny · little · medium · large · massive
-Texture: runny · seedy · pasty · formed · mucousy · hard  (pick any)
+Texture: runny · seedy · pasty · formed · mucousy · solid  (pick any)
 Rash:    [ ]
 Time:    now ▾          Notes
                          [Save]
@@ -161,9 +161,9 @@ Title (with suggestions from past titles), description, start time, optional dur
 
 Date switcher (‹ Tue 7 Oct ›). A vertical timeline from day start to day start, with coloured blocks for sleep, feeds and pumps and markers for nappies. Totals per tracker below. Tapping a block opens that event. On desktop, the timeline and totals sit side by side.
 
-## 13. Timeline: Week
+## 13. Timeline: 7d
 
-7 columns on desktop or 7 rows on a phone, each a 24h strip of sleep and feed blocks. Below, daily totals: sleep hours, feed count, nappies. Swipe or arrows to move between weeks.
+The last 7 days (ending today, or on the chosen day) as 7 columns on every screen size, each a 24h strip of sleep blocks, feed ticks and nappy dots; tap a column to open that day. A summary strip (average sleep, longest stretch, feeds/day) above, and a daily totals table with an average column below. Arrows move back and forward 7 days at a time.
 
 ## 14. Settings
 

@@ -6,6 +6,7 @@ import {
   EVENT_SELECT,
   latestEvents,
   listEvents,
+  listEventsBetween,
   resumeFeed,
   rowToEvent,
   endSession,
@@ -156,6 +157,14 @@ describe('event requests', () => {
     expect(params.get('type')).toBe('in.(bottle,breast_feed)');
     expect(params.get('order')).toBe('started_at.desc');
     expect(params.get('limit')).toBe('20');
+  });
+
+  it('reads a time range, reaching back a day for sessions that started earlier', async () => {
+    const { client, requests } = fakeClient(() => ({ body: [] }));
+    await listEventsBetween(client, 'baby-1', '2026-10-06T00:00:00.000Z', '2026-10-07T00:00:00.000Z');
+    const params = requests[0]!.url.searchParams;
+    expect(params.getAll('started_at')).toEqual(['lt.2026-10-07T00:00:00.000Z', 'gte.2026-10-05T00:00:00.000Z']);
+    expect(params.get('limit')).toBe('1000');
   });
 
   it('reads the latest events through the RPC with embedded details', async () => {

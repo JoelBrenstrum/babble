@@ -1,6 +1,6 @@
 # Babble Design (Claude Design export)
 
-Exported from Claude Design on 2026-10-07. Direction: **"Sage"** (design system v1, screens v1.1), derived from the Organic system. See [ui.md](../ui.md) for which file holds which screen.
+Exported from Claude Design on 2026-10-08. Direction: **"Sage"** (design system v1, screens v1.1), derived from the Organic system. See [ui.md](../ui.md) for which file holds which screen.
 
 ## Files
 
@@ -11,9 +11,11 @@ Exported from Claude Design on 2026-10-07. Direction: **"Sage"** (design system 
 | `Phone Forms.dc.html` | Bottle, sleep, pump, growth and custom forms and timers |
 | `Phone Flows.dc.html` | Feed detail/edit, imported feed, nap prompts, reminder notification, Home states |
 | `Phone Lists.dc.html` | Sleep, nappy, pump and growth lists, empty and loading states |
+| `Auth Form.dc.html` | Sign in / create account, magic link and choose-a-new-password screens |
+| `Web Auth.dc.html` | The same auth screens at desktop width |
 | `Phone Account.dc.html` | Sign-in, onboarding, invite, settings, delete account, PWA install |
-| `Web.dc.html` | Desktop and tablet web: home, feeds split view, add dialog, history, import, settings |
-| `Screen.dc.html` | Phone screens. `screen` prop: `home`, `timer`, `nappy`, `feeds`, `day`, `week` |
+| `Web.dc.html` | Desktop and tablet web: home, feeds split view, add dialog, timeline, import, settings |
+| `Screen.dc.html` | Phone screens. `screen` prop: `home`, `timer`, `nappy`, `feeds`, `day`, `week` (Timeline) |
 | `Phone.dc.html` | Home + breastfeed timer in a phone frame |
 | `Babble Directions.dc.html` | The three explored directions (Clay, Sage, Lamplight). Sage was chosen. |
 | `tokens/babble-tokens.css` | **Source of truth for tokens.** CSS variables as RGB channels, light + dark, plus poo swatches, fonts and motion |

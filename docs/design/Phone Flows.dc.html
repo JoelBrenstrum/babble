@@ -22,47 +22,86 @@
 
   <sc-if value="{{ is.detail }}" hint-placeholder-val="{{ true }}">
     <div style="flex:1;min-height:0;overflow:hidden;padding:0 20px;display:flex;flex-direction:column;gap:14px">
-      <div style="display:flex;align-items:center;gap:12px;height:52px">
-        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:22px"></i></div>
-        <div style="flex:1;display:flex;flex-direction:column;line-height:1.2"><span style="font-weight:700;font-size:21px">Breastfeed</span><span style="font-size:14px;color:rgb(var(--ink-2))">{{ detailDate }}</span></div>
-        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--danger-soft));color:rgb(var(--on-danger));display:grid;place-items:center"><i class="icon-trash-2" style="font-size:20px"></i></div>
+      <div style="display:flex;align-items:center;gap:12px;height:52px;flex:none">
+        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;cursor:pointer"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+        <div style="flex:1;display:flex;flex-direction:column;line-height:1.2"><span style="font-weight:700;font-size:21px">{{ dTitle }}</span><span style="font-size:14px;color:rgb(var(--ink-2))">{{ detailDate }}</span></div>
+        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--danger-soft));color:rgb(var(--on-danger));display:grid;place-items:center;cursor:pointer"><i class="icon-trash-2" style="font-size:20px"></i></div>
       </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;font-size:14px;color:rgb(var(--ink-2))"><span style="width:28px;height:28px;flex:none;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:11px;font-weight:700"><i class="{{ metaIcon }}" style="font-size:14px"></i>{{ metaAv }}</span>{{ metaText }}</div>
       <sc-if value="{{ is.imported }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:rgb(var(--info-soft));color:rgb(var(--on-info))">
           <i class="icon-file-input" style="font-size:19px;color:rgb(var(--info));margin-top:1px"></i>
           <div style="font-size:14px;line-height:1.4"><b>Imported from Huckleberry.</b> No downtime data, and side order isn't known, so only side totals are shown.</div>
         </div>
       </sc-if>
-      <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+      <sc-if value="{{ canResume }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;cursor:pointer"><i class="icon-play" style="font-size:19px"></i>Resume feed</div>
+          <span style="font-size:13px;color:rgb(var(--ink-2));text-align:center">Resume only appears on the most recent feed.</span>
+        </div>
+      </sc-if>
+      <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line));cursor:pointer">
         <span style="flex:1;font-size:16px;color:rgb(var(--ink-2))">Started</span>
         <span style="font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ startLabel }}</span>
         <i class="icon-pencil" style="font-size:17px;color:rgb(var(--primary))"></i>
       </div>
-      <div style="display:flex;flex-direction:column;gap:8px">
-        <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">{{ segTitle }}</span>
-        <div style="border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
-          <sc-for list="{{ editSegs }}" as="sg" hint-placeholder-count="3">
-            <div style="display:flex;align-items:center;gap:10px;min-height:64px;padding:0 8px 0 12px;border-top:{{ sg.divider }}">
-              <div style="height:44px;min-width:92px;padding:0 10px;border-radius:12px;display:flex;align-items:center;gap:6px;background:{{ sg.bg }};color:{{ sg.c }};border:{{ sg.border }};box-sizing:border-box;font-size:15px;font-weight:700"><span style="width:10px;height:10px;border-radius:50%;background:{{ sg.dot }};border:{{ sg.dotBorder }};box-sizing:border-box"></span>{{ sg.label }}<i class="{{ sg.caret }}" style="font-size:15px;margin-left:auto"></i></div>
-              <div style="flex:1;height:44px;padding:0 12px;border-radius:12px;background:rgb(var(--surface));display:flex;align-items:center;justify-content:space-between;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ sg.tc }}">{{ sg.time }}<i class="icon-pencil" style="font-size:15px;color:rgb(var(--ink-3))"></i></div>
-              <div style="width:44px;height:44px;border-radius:12px;display:{{ sg.delD }};place-items:center;color:rgb(var(--on-danger))"><i class="icon-trash-2" style="font-size:18px"></i></div>
+      <sc-if value="{{ showBreakdown }}" hint-placeholder-val="{{ true }}">
+        <div style="padding:6px 16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised)">
+          <sc-for list="{{ bd.rows }}" as="sg" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:12px;height:48px;border-top:{{ sg.divider }}">
+              <span style="width:12px;height:12px;flex:none;border-radius:50%;background:{{ sg.dot }};border:{{ sg.dotBorder }};box-sizing:border-box"></span>
+              <span style="flex:1;font-size:16px;font-weight:{{ sg.weight }};color:{{ sg.color }}">{{ sg.label }}</span>
+              <span style="font-size:12px;font-weight:600;color:rgb(var(--on-session-downtime))">{{ sg.tag }}</span>
+              <span style="font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ sg.color }};min-width:80px;text-align:right">{{ sg.time }}</span>
             </div>
           </sc-for>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid rgb(var(--line));padding:12px 0 8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums"><span>{{ bd.label }} <b style="color:rgb(var(--ink))">{{ bd.total }}</b></span><span>{{ bd.lost }}</span></div>
         </div>
-        <sc-if value="{{ canAdd }}" hint-placeholder-val="{{ true }}">
-          <div style="height:48px;border-radius:14px;border:1.5px dashed rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;font-weight:600;color:rgb(var(--ink-2))"><i class="icon-plus" style="font-size:17px"></i>Add segment</div>
-        </sc-if>
-      </div>
-      <div style="display:flex;justify-content:space-between;font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;padding:0 4px"><span>Total feeding <b style="color:rgb(var(--ink))">{{ totalFeed }}</b></span><span>{{ totalLost }}</span></div>
-      <div style="min-height:64px;padding:14px 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line));font-size:16px;color:rgb(var(--ink-3));box-sizing:border-box">Add a note</div>
+      </sc-if>
+      <sc-if value="{{ is.edit }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Segments</span>
+          <div style="border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+            <sc-for list="{{ edRows }}" as="er" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:8px;min-height:64px;padding:0 6px 0 10px;border-top:{{ er.divider }}">
+                <sc-if value="{{ er.isSide }}" hint-placeholder-val="{{ true }}">
+                  <div style="width:92px;flex:none;display:flex;gap:6px">
+                    <div style="width:43px;height:43px;border-radius:50%;background:{{ er.lBg }};color:{{ er.lC }};border:{{ er.lBorder }};box-sizing:border-box;display:grid;place-items:center;font-size:16px;font-weight:700;cursor:pointer">L</div>
+                    <div style="width:43px;height:43px;border-radius:50%;background:{{ er.rBg }};color:{{ er.rC }};border:{{ er.rBorder }};box-sizing:border-box;display:grid;place-items:center;font-size:16px;font-weight:700;cursor:pointer">R</div>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ er.isIdle }}" hint-placeholder-val="{{ false }}">
+                  <div style="width:92px;flex:none;display:flex;align-items:center;gap:8px;padding-left:4px;font-size:15px;font-weight:700;color:rgb(var(--on-session-downtime))"><span style="width:12px;height:12px;border-radius:50%;border:2px dashed rgb(var(--session-downtime));box-sizing:border-box"></span>Idle</div>
+                </sc-if>
+                <div style="flex:1;display:flex;align-items:center;justify-content:flex-end;gap:4px;font-variant-numeric:tabular-nums">
+                  <span style="width:50px;height:44px;border-radius:10px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:grid;place-items:center;font-size:17px;font-weight:600">{{ er.m }}</span><span style="font-size:14px;color:rgb(var(--ink-2));margin-right:6px">m</span>
+                  <span style="width:50px;height:44px;border-radius:10px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:grid;place-items:center;font-size:17px;font-weight:600">{{ er.s }}</span><span style="font-size:14px;color:rgb(var(--ink-2))">s</span>
+                </div>
+                <div style="width:40px;height:40px;flex:none;border-radius:12px;display:grid;place-items:center;color:rgb(var(--ink-3));cursor:pointer" style-hover="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))"><i class="icon-trash-2" style="font-size:17px"></i></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:8px">
+            <div style="height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgb(var(--line));background:rgb(var(--raised));display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;cursor:pointer" style-hover="border-color:rgb(var(--line-strong))"><i class="icon-plus" style="font-size:15px"></i>Add side</div>
+            <div style="height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgb(var(--line));background:rgb(var(--raised));display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;cursor:pointer" style-hover="border-color:rgb(var(--line-strong))"><i class="icon-plus" style="font-size:15px"></i>Add downtime</div>
+          </div>
+          <span style="font-size:13px;color:rgb(var(--ink-2))">Times are recalculated in order from the start time.</span>
+          <div style="display:flex;justify-content:space-between;font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;padding:2px 4px 0"><span>{{ bd.label }} <b style="color:rgb(var(--ink))">{{ bd.total }}</b></span><span>{{ bd.lost }}</span></div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ showNote }}" hint-placeholder-val="{{ true }}">
+        <div style="min-height:64px;padding:14px 16px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line));font-size:16px;color:rgb(var(--ink-3));box-sizing:border-box">Add a note</div>
+      </sc-if>
       <div style="flex:1"></div>
-      <sc-if value="{{ canResume }}" hint-placeholder-val="{{ true }}"><span style="font-size:13px;color:rgb(var(--ink-3));text-align:center">Resume only appears on the most recent feed.</span></sc-if>
     </div>
     <div style="flex:none;padding:12px 20px 30px;display:flex;gap:12px">
-      <sc-if value="{{ canResume }}" hint-placeholder-val="{{ true }}">
-        <div style="flex:1;height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-play" style="font-size:19px"></i>Resume feed</div>
+      <sc-if value="{{ is.edit }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:rgb(var(--on-primary-soft));cursor:pointer" style-hover="background:rgb(var(--primary-soft))">Cancel</div>
+        <div style="flex:1;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;cursor:pointer"><i class="icon-check" style="font-size:20px"></i>Save</div>
       </sc-if>
-      <div style="flex:1;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-check" style="font-size:20px"></i>Save</div>
+      <sc-if value="{{ showBreakdown }}" hint-placeholder-val="{{ true }}">
+        <div style="flex:1;height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="icon-pencil" style="font-size:18px"></i>Edit segments</div>
+      </sc-if>
     </div>
   </sc-if>
 
@@ -82,9 +121,9 @@
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px">
-          <sc-for list="{{ snoozes }}" as="z" hint-placeholder-count="3"><div style="height:48px;border-radius:12px;background:rgb(var(--surface));display:flex;align-items:center;justify-content:center;gap:5px;font-size:15px;font-weight:600"><i class="icon-alarm-clock" style="font-size:15px;color:rgb(var(--ink-2))"></i>{{ z }}</div></sc-for>
+          <sc-for list="{{ snoozes }}" as="z" hint-placeholder-count="3"><div style="cursor:pointer;height:48px;border-radius:12px;background:rgb(var(--surface));display:flex;align-items:center;justify-content:center;gap:5px;font-size:15px;font-weight:600"><i class="icon-alarm-clock" style="font-size:15px;color:rgb(var(--ink-2))"></i>{{ z }}</div></sc-for>
         </div>
-        <div style="height:48px;border-radius:12px;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:700"><i class="icon-play" style="font-size:16px"></i>Start feed · Left</div>
+        <div style="cursor:pointer;height:48px;border-radius:12px;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:700"><i class="icon-play" style="font-size:16px"></i>Start feed · Left</div>
       </div>
       <div style="flex:1"></div>
       <div style="width:134px;height:5px;border-radius:3px;background:rgb(var(--ink));margin-bottom:10px"></div>
@@ -94,11 +133,11 @@
   <sc-if value="{{ is.home }}" hint-placeholder-val="{{ false }}">
     <div style="flex:1;min-height:0;overflow:hidden;padding:4px 20px 0;display:flex;flex-direction:column;gap:14px">
       <div style="display:flex;align-items:center;gap:12px;padding-top:6px">
-        <div style="width:52px;height:52px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-weight:700;font-size:22px">A</div>
-        <div style="flex:1;min-width:0"><div style="font-weight:700;font-size:26px;line-height:1.15">Olivia</div><div style="font-size:15px;color:rgb(var(--ink-2))">10 days old</div></div>
+        <div style="cursor:pointer;width:52px;height:52px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-weight:700;font-size:22px">O</div>
+        <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px;cursor:pointer"><div><div style="font-weight:700;font-size:26px;line-height:1.15">Olivia</div><div style="font-size:15px;color:rgb(var(--ink-2))">11 days old</div></div><i class="icon-chevrons-up-down" style="font-size:20px;color:rgb(var(--ink-3))"></i></div>
         <div style="display:flex">
-          <div style="width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--bg));display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Jo</div>
-          <div style="width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid {{ jaRing }};margin-left:-10px;display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Ja</div>
+          <div style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid rgb(var(--bg));display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Jo</div>
+          <div style="cursor:pointer;width:36px;height:36px;border-radius:50%;background:rgb(var(--surface));border:2px solid {{ jaRing }};margin-left:-10px;display:grid;place-items:center;font-size:13px;font-weight:700;color:rgb(var(--ink-2))">Ja</div>
         </div>
       </div>
       <sc-if value="{{ hasBanner }}" hint-placeholder-val="{{ true }}">
@@ -109,7 +148,7 @@
           </div>
           <sc-if value="{{ banner.hasActions }}" hint-placeholder-val="{{ false }}">
             <div style="display:flex;gap:8px">
-              <sc-for list="{{ banner.actions }}" as="a" hint-placeholder-count="2"><div style="flex:1;height:44px;border-radius:12px;background:{{ a.bg }};color:{{ a.c }};display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:700"><i class="{{ a.icon }}" style="font-size:16px"></i>{{ a.label }}</div></sc-for>
+              <sc-for list="{{ banner.actions }}" as="a" hint-placeholder-count="2"><div style="cursor:pointer;flex:1;height:44px;border-radius:12px;background:{{ a.bg }};color:{{ a.c }};display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:700"><i class="{{ a.icon }}" style="font-size:16px"></i>{{ a.label }}</div></sc-for>
             </div>
           </sc-if>
         </div>
@@ -118,21 +157,22 @@
         <div style="padding:16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:{{ cardShadow }};display:flex;flex-direction:column;gap:10px">
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
             <div style="display:flex;align-items:center;gap:9px;padding:5px 12px 5px 11px;border-radius:999px;background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep));font-size:14px;font-weight:600"><span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep))"></span></span>Napping</div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2))"><span style="width:22px;height:22px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Started by Jane</div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2));margin-left:auto"><span style="width:22px;height:22px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Started by Jane</div>
+            <div style="width:40px;height:40px;flex:none;margin:-6px -8px -6px 0;border-radius:12px;display:grid;place-items:center;color:rgb(var(--ink-3));cursor:pointer" style-hover="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))" style-active="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))"><i class="icon-trash-2" style="font-size:18px"></i></div>
           </div>
           <div style="font-weight:500;font-size:48px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">{{ napTime }}</div>
-          <div style="font-size:14px;color:rgb(var(--ink-2))">{{ napSince }}</div>
+          <div style="align-self:flex-start;display:flex;align-items:center;gap:6px;margin-left:-6px;padding:4px 6px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)" style-active="background:rgb(var(--ink) / 0.1)">{{ napSince }}<i class="icon-pencil" style="font-size:14px"></i></div>
         </div>
       </sc-if>
-      <div style="display:flex;flex-direction:column;background:rgb(var(--raised));border-radius:16px;border:1px solid rgb(var(--line))">
+      <div style="display:flex;flex-direction:column;background:rgb(var(--raised));border-radius:16px;border:1px solid rgb(var(--line));overflow:hidden">
         <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
-          <div style="display:flex;align-items:center;gap:14px;min-height:68px;padding:8px 10px 8px 14px;border-top:{{ r.divider }}">
-            <div style="width:44px;height:44px;flex:none;border-radius:12px;background:{{ r.soft }};color:{{ r.solid }};display:grid;place-items:center"><i class="{{ r.icon }}" style="font-size:22px"></i></div>
+          <div style="display:flex;align-items:center;gap:14px;min-height:68px;padding:8px 10px 8px 14px;border-top:{{ r.divider }};cursor:pointer" style-hover="background:rgb(var(--surface))">
+            <div style="cursor:pointer;width:44px;height:44px;flex:none;border-radius:12px;background:{{ r.soft }};color:{{ r.solid }};display:grid;place-items:center"><i class="{{ r.icon }}" style="font-size:22px"></i></div>
             <div style="flex:1;min-width:0">
               <div style="font-size:17px;font-weight:600;line-height:1.3">{{ r.title }}</div>
               <div style="display:flex;align-items:center;gap:6px;font-size:14px;color:{{ r.metaC }};font-variant-numeric:tabular-nums;white-space:nowrap"><i class="{{ r.metaIcon }}" style="font-size:14px"></i>{{ r.meta }}</div>
             </div>
-            <div style="width:48px;height:48px;flex:none;border-radius:50%;background:{{ r.soft }};color:{{ r.on }};display:grid;place-items:center"><i class="icon-plus" style="font-size:22px"></i></div>
+            <div style="width:48px;height:48px;flex:none;border-radius:50%;background:{{ r.soft }};color:{{ r.on }};border:1.5px solid transparent;box-sizing:border-box;display:grid;place-items:center;cursor:pointer" style-hover="border-color:currentColor"><i class="icon-plus" style="font-size:22px"></i></div>
           </div>
         </sc-for>
       </div>
@@ -160,20 +200,20 @@
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;feed-detail&quot;,&quot;feed-imported&quot;,&quot;prompt-endnap&quot;,&quot;prompt-startnap&quot;,&quot;notif-lock&quot;,&quot;home-overdue&quot;,&quot;home-snoozed&quot;,&quot;home-live&quot;,&quot;home-offline&quot;],&quot;default&quot;:&quot;feed-detail&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;feed-detail&quot;,&quot;feed-edit&quot;,&quot;feed-imported&quot;,&quot;pump-detail&quot;,&quot;prompt-endnap&quot;,&quot;prompt-endnap-simple&quot;,&quot;prompt-startnap&quot;,&quot;prompt-startnap-simple&quot;,&quot;notif-lock&quot;,&quot;home-overdue&quot;,&quot;home-snoozed&quot;,&quot;home-live&quot;,&quot;home-offline&quot;],&quot;default&quot;:&quot;feed-detail&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const s = this.props.screen || 'feed-detail';
     const c = n => `rgb(var(--${n}))`;
     const line = `1px solid ${c('line')}`;
-    const is = { detail: s.startsWith('feed'), imported: s === 'feed-imported', lock: s === 'notif-lock', prompt: s.startsWith('prompt'), live: s === 'home-live', offline: s === 'home-offline' };
+    const is = { detail: s.startsWith('feed') || s === 'pump-detail', imported: s === 'feed-imported', lock: s === 'notif-lock', prompt: s.startsWith('prompt'), live: s === 'home-live', offline: s === 'home-offline' };
     is.home = !is.detail && !is.lock;
     const side = (k, label, time, i, opts = {}) => ({ label, time, divider: i ? line : 'none', bg: c(k + '-soft'), c: c('on-' + k), border: 'none', dot: c(k), dotBorder: 'none', caret: 'icon-chevron-down', tc: c('ink'), delD: opts.noDel ? 'none' : 'grid' });
     const idle = (time, i) => ({ label: 'Idle', time, divider: i ? line : 'none', bg: c('session-downtime-soft'), c: c('on-session-downtime'), border: `1.5px dashed ${c('session-downtime')}`, dot: 'transparent', dotBorder: `2px dashed ${c('session-downtime')}`, caret: '', tc: c('ink-2'), delD: 'grid' });
     const editSegs = is.imported
       ? [side('feed-left', 'Left', '10m 00s', 0, { noDel: true }), side('feed-right', 'Right', '12m 00s', 1, { noDel: true })]
       : [side('feed-left', 'Left', '10m 32s', 0), idle('3m 02s', 1), side('feed-right', 'Right', '12m 23s', 2)];
-    const tabs = [['icon-house', 'Home'], ['icon-history', 'History'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
+    const tabs = [['icon-house', 'Home'], ['icon-history', 'Timeline'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
       .map(([icon, label], i) => ({ icon, label, color: i === 0 ? c('on-primary-soft') : c('ink-3'), weight: i === 0 ? 700 : 500, pill: i === 0 ? c('primary-soft') : 'transparent' }));
     const row = (k, icon, title, meta, i, o = {}) => ({ icon, title, meta, solid: c(k), soft: c(k + '-soft'), on: c('on-' + k), metaC: o.metaC || c('ink-2'), metaIcon: o.metaIcon || '', divider: i ? line : 'none' });
     const overdueish = s === 'home-overdue';
@@ -193,23 +233,40 @@ class Component extends DCLogic {
     };
     const banner = banners[s] || banners['home-live'];
     const btn = (label, sub, kind) => ({ label, sub, h: sub ? '64px' : (kind === 'primary' ? '56px' : '52px'), bg: kind === 'primary' ? c('primary') : 'transparent', c: kind === 'primary' ? c('on-primary') : kind === 'ghost' ? c('on-primary-soft') : c('ink'), border: kind === 'secondary' ? `1.5px solid ${c('line-strong')}` : 'none' });
+    const P1 = [btn('End nap now', '', 'primary'), btn('End at feed start (3:12 am)', '', 'secondary'), btn('Keep sleeping', '', 'ghost')];
+    const P2 = [btn('Start nap now', '', 'primary'), btn('Asleep since feed end (3:34 am)', '', 'secondary'), btn('Not now', '', 'ghost')];
+    const endNap = { icon: 'icon-moon', title: "End Olivia's nap?", sub: 'A nap has been running since 1:58 am.' };
+    const startNap = { icon: 'icon-moon', title: 'Is Olivia asleep?', sub: 'Start a nap so the timer is already running when they wake.' };
     const prompts = {
-      'prompt-endnap': { icon: 'icon-moon', title: 'End nap?', sub: 'You\u2019re starting a feed. Napping 1h 12m since 1:58 am.', btns: [btn('End now', '3:12 am', 'primary'), btn('End at feed start', '3:05 am', 'secondary'), btn('Keep sleeping', '', 'ghost')] },
-      'prompt-startnap': { icon: 'icon-moon', title: 'Start a nap?', sub: 'Feed finished · 22m 55s', btns: [btn('Start now', '', 'primary'), btn('Started at feed end', '3:34 am', 'secondary'), btn('Not now', '', 'ghost')] }
+      'prompt-endnap': { ...endNap, btns: P1 }, 'prompt-endnap-simple': { ...endNap, btns: [P1[0], P1[2]] },
+      'prompt-startnap': { ...startNap, btns: P2 }, 'prompt-startnap-simple': { ...startNap, btns: [P2[0], P2[2]] }
     };
+    const isPump = s === 'pump-detail';
+    is.edit = s === 'feed-edit';
+    const bRow = (k, label, time, i) => ({ label, time, dot: c(k), dotBorder: 'none', color: c('ink'), weight: 600, tag: '', divider: i ? line : 'none' });
+    const iRow = (time, i) => ({ label: 'Downtime', time, dot: 'transparent', dotBorder: `2px dashed ${c('session-downtime')}`, color: c('ink-2'), weight: 500, tag: 'idle', divider: i ? line : 'none' });
+    const bd = isPump ? { rows: [bRow('pump', 'Left', '8m 10s', 0), iRow('1m 20s', 1), bRow('pump', 'Right', '9m 45s', 2)], label: 'Total pumping', total: '17m 55s', lost: 'lost 1m 20s' }
+      : is.imported ? { rows: [bRow('feed-left', 'Left', '10m 00s', 0), bRow('feed-right', 'Right', '12m 00s', 1)], label: 'Total feeding', total: '22m 00s', lost: '' }
+      : { rows: [bRow('feed-left', 'Left', '10m 32s', 0), iRow('3m 02s', 1), bRow('feed-right', 'Right', '12m 23s', 2)], label: 'Total feeding', total: '22m 55s', lost: 'lost 3m 02s' };
+    const tg = (k, on) => on ? { bg: c(k), c: c('ink-on-solid'), border: 'none' } : { bg: 'transparent', c: c('ink-2'), border: `1.5px solid ${c('line-strong')}` };
+    const eSide = (side, m, sec, i) => { const l = tg('feed-left', side === 'L'), r = tg('feed-right', side === 'R'); return { isSide: true, isIdle: false, m, s: sec, divider: i ? line : 'none', lBg: l.bg, lC: l.c, lBorder: l.border, rBg: r.bg, rC: r.c, rBorder: r.border }; };
+    const edRows = [eSide('L', '10', '32', 0), { isSide: false, isIdle: true, m: '3', s: '02', divider: line }, eSide('R', '12', '23', 2)];
     return {
       is, tabs, rows, banner, prompt: prompts[s] || prompts['prompt-endnap'],
-      clock: is.lock ? '' : (s === 'prompt-startnap' ? '3:36' : '3:12'),
+      clock: is.lock ? '' : (s.startsWith('prompt-startnap') ? '3:36' : '3:12'),
+      bd, edRows, showBreakdown: !is.edit, showNote: !is.edit, dTitle: isPump ? 'Pump' : is.edit ? 'Edit breastfeed' : 'Breastfeed',
       netIcon: is.offline ? 'icon-wifi-off' : 'icon-wifi',
       editSegs, segTitle: is.imported ? 'Side totals' : 'Segments',
-      detailDate: is.imported ? 'Mon 28 Sep' : 'Today · most recent',
-      startLabel: is.imported ? '14:02' : '2:49 am',
-      canAdd: !is.imported, canResume: !is.imported,
+      detailDate: is.imported ? 'Mon 28 Sep' : isPump ? 'Today · 1:30 am' : 'Today · most recent',
+      metaAv: is.imported ? '' : isPump ? 'Jo' : 'Ja', metaIcon: is.imported ? 'icon-file-input' : '',
+      metaText: is.imported ? 'Imported · 28 Sep, 2:24 pm' : isPump ? 'Logged by Joel · 6 Oct, 1:49 am' : is.edit ? 'Logged by Jane · 6 Oct, 3:12 am · edited' : 'Logged by Jane · 6 Oct, 3:12 am',
+      startLabel: is.imported ? '14:02' : isPump ? '1:30 am' : '2:49 am',
+      canAdd: !is.imported, canResume: s === 'feed-detail',
       totalFeed: is.imported ? '22m' : '22m 55s', totalLost: is.imported ? 'Downtime unknown' : 'lost 3m 02s',
       snoozes: ['15m', '30m', '1h'],
-      hasBanner: s !== 'prompt-startnap' && s !== 'prompt-endnap',
-      hasSleepCard: is.live || s === 'prompt-endnap',
-      napTime: is.live ? '0m 04s' : '1h 12m', napSince: is.live ? 'Since 3:12 am · Bassinet' : 'Since 1:58 am',
+      hasBanner: !is.prompt,
+      hasSleepCard: is.live || s.startsWith('prompt-endnap'),
+      napTime: is.live ? '0m 04s' : '1h 12m', napSince: is.live ? 'Started 3:12 am' : 'Started 1:58 am',
       cardShadow: is.live ? `0 0 0 2px ${c('sleep')}, var(--shadow-raised)` : 'var(--shadow-raised)',
       jaRing: is.live ? c('sleep') : c('bg')
     };

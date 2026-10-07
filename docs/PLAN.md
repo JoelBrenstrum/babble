@@ -20,7 +20,7 @@ Babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding an
 | 0     | [Foundations](stages/00-foundations.md)               | Monorepo, both app shells, Supabase + RLS, auth, families, self-host compose                      |
 | 1     | [Core tracking](stages/01-core-tracking.md)           | All trackers, home, category lists, realtime. Huckleberry parity on mobile and the phone web app. |
 | 2     | [Feed and pump sessions](stages/02-feed-sessions.md)  | Downtime breakdown, merge threshold, resume latest feed, feed ↔ nap prompts                       |
-| 3     | [Timeline](stages/03-timeline.md)                     | Timeline day and week views, day start, night window                                              |
+| 3     | [Timeline](stages/03-timeline.md)                     | Timeline day and 7-day views, day start, night window. Built.                                     |
 | 4     | [Reminders](stages/04-reminders.md)                   | Feed-due reminders through Web Push and Expo push                                                 |
 | 5     | [Huckleberry import](stages/05-huckleberry-import.md) | CSV import. Parser done and tested; screen and RPC to do. Can run in parallel with Stage 2.       |
 | 6     | [Food intake](stages/06-food-intake.md)               | Parked                                                                                            |
