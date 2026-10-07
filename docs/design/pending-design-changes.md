@@ -60,3 +60,18 @@ Paste everything below this line into Claude Design.
 > - On desktop web these are centred dialogs; on phones they're bottom sheets with a grab handle and a moon icon tile in sleep-soft.
 >
 > **5. Settings → Tracking** (new section between Caregivers and Appearance): a Units segmented control ("Metric (ml, kg, cm)" / "Imperial (oz, lb, in)"), a stepper "Ignore gaps shorter than [15] sec" with the hint "Short pauses, like switching sides, won't show as downtime.", and a stepper "Finish paused feeds after [30] min" with the hint "A paused feed or pump that's been left this long is finished automatically."
+
+---
+
+## 2026-10-07 · Email and password sign-in
+
+Paste everything below this line into Claude Design.
+
+> Update the sign-in screen in `Phone Account.dc.html` (`signin`) and its web equivalent:
+> - At the top, a segmented control: **Sign in** | **Create account**.
+> - Fields: Email, Password. In Create account mode the password hint says "At least 8 characters." and turns into an error "Use at least 8 characters." while it's too short; the primary button is disabled until it's valid.
+> - On invite-only servers, Create account adds an "Invite code" field with the hint "Ask someone in your family for a code from Settings." Opening an invite link lands directly on Create account with the code filled in.
+> - Primary button: "Sign in" or "Create account".
+> - Under it, a text link "Forgot your password? Email me a sign-in link", which switches to the existing magic-link layout (Email + "Email me a sign-in link"), with a "Use a password instead" link to go back.
+> - Error example: "That email and password don't match. Try again, or use a sign-in link instead."
+> - Google stays below an "or" divider when it's enabled.
