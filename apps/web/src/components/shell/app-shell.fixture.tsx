@@ -1,4 +1,6 @@
+import { babyChoices } from '@babble/api';
 import { sampleBaby, sampleEvents, sampleFamily, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
+import { useState } from 'react';
 import { RunningCard } from '#/features/events/running-card';
 import { HomeOverview } from '#/features/home-overview';
 import { fixtureClient } from '#/fixtures/client';
@@ -6,12 +8,23 @@ import { FixtureRouter } from '#/fixtures/router';
 import { AppShell } from './app-shell';
 
 const now = new Date();
+const choices = babyChoices([sampleFamily]);
+
+function Shell({ children }: { children: React.ReactNode }) {
+  const [babyId, setBabyId] = useState(sampleBaby.id);
+  const baby = choices.find((choice) => choice.baby.id === babyId)!.baby;
+  return (
+    <AppShell family={sampleFamily} baby={baby} choices={choices} onSelectBaby={(choice) => setBabyId(choice.baby.id)}>
+      {children}
+    </AppShell>
+  );
+}
 
 function Home({ running }: { running: ReturnType<typeof sampleRunningFeed>[] }) {
   return (
     <div className="-m-6">
       <FixtureRouter>
-        <AppShell family={sampleFamily} baby={sampleBaby}>
+        <Shell>
           <HomeOverview
             baby={sampleBaby}
             now={now}
@@ -29,7 +42,7 @@ function Home({ running }: { running: ReturnType<typeof sampleRunningFeed>[] }) 
               />
             )}
           />
-        </AppShell>
+        </Shell>
       </FixtureRouter>
     </div>
   );
@@ -41,7 +54,7 @@ export default {
   'Home · empty': (
     <div className="-m-6">
       <FixtureRouter>
-        <AppShell family={sampleFamily} baby={sampleBaby}>
+        <Shell>
           <HomeOverview
             baby={sampleBaby}
             now={now}
@@ -51,7 +64,7 @@ export default {
             summary={null}
             renderRunning={() => null}
           />
-        </AppShell>
+        </Shell>
       </FixtureRouter>
     </div>
   ),

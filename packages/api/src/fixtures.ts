@@ -12,6 +12,13 @@ export const sampleBaby: BabyRow = {
   updated_at: '2026-09-26T09:00:00Z',
 };
 
+export const sampleSibling: BabyRow = {
+  ...sampleBaby,
+  id: 'baby-jacob',
+  name: 'Jacob',
+  birth_date: '2025-08-03',
+};
+
 export const sampleMembers: FamilyMemberRow[] = [
   {
     family_id: 'family-smith',
@@ -35,7 +42,7 @@ export const sampleFamily: Family = {
   plan: 'free',
   created_at: '2026-09-26T09:00:00Z',
   members: sampleMembers,
-  babies: [sampleBaby],
+  babies: [sampleBaby, sampleSibling],
 };
 
 export const openSignup: InstanceSettings = { signupMode: 'open', hasUsers: true };

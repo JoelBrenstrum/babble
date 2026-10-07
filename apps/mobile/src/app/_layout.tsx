@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '@/components/toast';
+import { ActiveBabyProvider } from '@/lib/active-baby';
 import { BabbleProvider } from '@/lib/babble';
 import { useAppFonts } from '@/lib/fonts';
 import { ThemeRoot } from '@/lib/theme';
@@ -30,12 +31,14 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <BabbleProvider>
-            <ThemeRoot>
-              <ToastProvider>
-                <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
-                <StatusBar style="auto" />
-              </ToastProvider>
-            </ThemeRoot>
+            <ActiveBabyProvider>
+              <ThemeRoot>
+                <ToastProvider>
+                  <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
+                  <StatusBar style="auto" />
+                </ToastProvider>
+              </ThemeRoot>
+            </ActiveBabyProvider>
           </BabbleProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

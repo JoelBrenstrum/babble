@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canEdit, memberRole, resolveOnboarding } from './onboarding';
+import { babyChoices, canEdit, memberRole, resolveOnboarding } from './onboarding';
 import type { BabyRow, Family } from './types';
 
 const baby = (id: string): BabyRow => ({
@@ -84,5 +84,22 @@ describe('roles', () => {
   it('lets owners and caregivers edit', () => {
     expect(canEdit(family('f'), 'john')).toBe(true);
     expect(canEdit(family('f'), 'gran')).toBe(false);
+  });
+});
+
+describe('babyChoices', () => {
+  it('lists every baby across families, oldest first within a family', () => {
+    const older = { ...baby('jacob'), birth_date: '2025-08-01' };
+    const younger = baby('olivia');
+    const choices = babyChoices([family('smiths', [younger, older]), family('grandparents', [baby('cousin')])]);
+    expect(choices.map((choice) => [choice.familyName, choice.baby.name])).toEqual([
+      ['smiths', 'jacob'],
+      ['smiths', 'olivia'],
+      ['grandparents', 'cousin'],
+    ]);
+  });
+
+  it('is empty without babies', () => {
+    expect(babyChoices([family('empty')])).toEqual([]);
   });
 });

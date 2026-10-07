@@ -1,4 +1,4 @@
-import type { BabyRow, Family } from '@babble/api';
+import type { BabyChoice, BabyRow, Family } from '@babble/api';
 import {
   formatAgo,
   formatDuration,
@@ -38,7 +38,11 @@ export function HomeOverview({
   units,
   now,
   renderRunning,
+  choices,
+  onSelectBaby,
 }: {
+  choices?: readonly BabyChoice[];
+  onSelectBaby?: (choice: BabyChoice) => void;
   family: Family;
   baby: BabyRow;
   running: BabyEvent[];
@@ -51,7 +55,7 @@ export function HomeOverview({
   const iconColor = useTokenColor('--ink');
   return (
     <View className="gap-4">
-      <BabyHeader family={family} baby={baby} />
+      <BabyHeader family={family} baby={baby} choices={choices} onSelect={onSelectBaby} />
       {running.map((event) => (
         <View key={event.id}>{renderRunning(event)}</View>
       ))}

@@ -32,3 +32,6 @@ insert into public.family_members (family_id, user_id, role, display_name) value
 insert into public.babies (id, family_id, name, birth_date, timezone, day_start_minutes)
 values ('44444444-4444-4444-4444-444444444444', '33333333-3333-3333-3333-333333333333', 'Olivia',
         current_date - 11, 'Pacific/Auckland', 420);
+insert into public.babies (id, family_id, name, birth_date, timezone, day_start_minutes)
+values ('55555555-5555-5555-5555-555555555555', '33333333-3333-3333-3333-333333333333', 'Jacob',
+        current_date - 430, 'Pacific/Auckland', 420);

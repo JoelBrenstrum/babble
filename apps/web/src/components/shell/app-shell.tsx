@@ -1,10 +1,10 @@
-import type { BabyRow, Family } from '@babble/api';
-import { babyAgeLabel, todayInTimeZone } from '@babble/domain';
+import type { BabyChoice, BabyRow, Family } from '@babble/api';
 import { Link } from '@tanstack/react-router';
 import { ChartColumn, History, House, Settings, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Wordmark } from '#/components/ui/wordmark';
+import { BabySwitcher } from './baby-switcher';
 import { cn } from '#/lib/cn';
 
 interface NavItem {
@@ -20,8 +20,19 @@ const NAV: readonly NavItem[] = [
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
-export function AppShell({ family, baby, children }: { family: Family; baby: BabyRow; children: ReactNode }) {
-  const age = babyAgeLabel(baby.birth_date, todayInTimeZone(baby.timezone));
+export function AppShell({
+  family,
+  baby,
+  choices,
+  onSelectBaby,
+  children,
+}: {
+  family: Family;
+  baby: BabyRow;
+  choices: readonly BabyChoice[];
+  onSelectBaby: (choice: BabyChoice) => void;
+  children: ReactNode;
+}) {
   return (
     <div className="min-h-dvh bg-bg md:pl-[84px] xl:pl-[268px]">
       <aside className="fixed inset-y-0 left-0 hidden w-[84px] flex-col border-r border-line bg-raised md:flex xl:w-[268px]">
@@ -29,14 +40,11 @@ export function AppShell({ family, baby, children }: { family: Family; baby: Bab
           <Wordmark className="hidden text-[28px] xl:inline" />
           <span className="font-brand text-[28px] text-primary xl:hidden">b</span>
         </div>
-        <div className="mx-3 mb-4 flex items-center gap-3 rounded-card bg-surface p-3 xl:mx-4">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary text-heading font-bold text-on-primary">
-            {baby.name[0]}
-          </span>
-          <div className="hidden min-w-0 xl:block">
-            <div className="truncate text-row-title font-bold">{baby.name}</div>
-            <div className="text-meta text-ink-2">{age}</div>
-          </div>
+        <div className="mx-3 mb-4 hidden xl:mx-4 xl:block">
+          <BabySwitcher choices={choices} activeId={baby.id} onSelect={onSelectBaby} layout="sidebar" />
+        </div>
+        <div className="mx-3 mb-4 xl:hidden">
+          <BabySwitcher choices={choices} activeId={baby.id} onSelect={onSelectBaby} layout="rail" />
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3 xl:px-4" aria-label="Main">
           {NAV.map((item) => (
@@ -63,13 +71,7 @@ export function AppShell({ family, baby, children }: { family: Family; baby: Bab
       </aside>
 
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur md:hidden">
-        <span className="grid size-10 place-items-center rounded-full bg-primary text-heading font-bold text-on-primary">
-          {baby.name[0]}
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-row-title font-bold">{baby.name}</div>
-          <div className="text-meta text-ink-2">{age}</div>
-        </div>
+        <BabySwitcher choices={choices} activeId={baby.id} onSelect={onSelectBaby} layout="header" />
         <div className="flex -space-x-2">
           {family.members.map((member) => (
             <Avatar key={member.user_id} name={member.display_name} className="ring-2 ring-bg" />

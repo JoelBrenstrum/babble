@@ -7,7 +7,8 @@ import { HomeOverview } from '@/features/home-overview';
 import { useBabble } from '@/lib/babble';
 import { useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
-import { useReadyState } from '@/lib/use-onboarding';
+import { useActiveBaby } from '@/lib/active-baby';
+import { useOnboarding, useReadyState } from '@/lib/use-onboarding';
 
 export default function Home() {
   const ready = useReadyState();
@@ -28,6 +29,8 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
   const running = useQuery(runningEventsQuery(client, baby.id));
   const latest = useQuery(latestEventsQuery(client, baby.id));
   const recent = useQuery(eventsSinceQuery(client, baby.id, since));
+  const { choices } = useOnboarding();
+  const active = useActiveBaby();
 
   return (
     <Screen edges={['top']}>
@@ -39,6 +42,8 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
         running={running.data ?? []}
         latest={latest.data ?? []}
         summary={recent.data ? summariseDay(recent.data, { start: window.start, end: now }) : null}
+        choices={choices}
+        onSelectBaby={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}
         renderRunning={(event) => (
           <RunningCard event={event} client={client} timeZone={baby.timezone} members={family.members} compact />
         )}

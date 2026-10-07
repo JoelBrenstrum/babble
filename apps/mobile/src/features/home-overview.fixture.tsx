@@ -1,4 +1,5 @@
 import { sampleBaby, sampleEvents, sampleFamily, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
+import { babyChoices } from '@babble/api';
 import type { BabyEvent } from '@babble/domain';
 import { fixtureClient } from '@/fixtures/client';
 import { RunningCard } from './events/running-card';
@@ -11,6 +12,8 @@ function Home({ running }: { running: BabyEvent[] }) {
     <HomeOverview
       family={sampleFamily}
       baby={sampleBaby}
+      choices={babyChoices([sampleFamily])}
+      onSelectBaby={() => undefined}
       now={now}
       units="metric"
       running={running}

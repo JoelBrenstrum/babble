@@ -1,6 +1,6 @@
 import { addBaby, familiesQuery, queryKeys, resolveOnboarding, toBabbleError } from '@babble/api';
 import { todayInTimeZone } from '@babble/domain';
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { useMemo, useState, type FormEvent } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
@@ -10,6 +10,9 @@ import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { detectTimeZone, listTimeZones } from '#/lib/timezones';
 
 export const Route = createFileRoute('/onboarding/baby')({
+  validateSearch: (search: Record<string, unknown>): { mode?: 'add' } => ({
+    mode: search.mode === 'add' ? 'add' : undefined,
+  }),
   beforeLoad: async ({ context }) => {
     const families = await context.queryClient.ensureQueryData(familiesQuery(context.babble.client));
     const state = resolveOnboarding({
@@ -26,6 +29,8 @@ export const Route = createFileRoute('/onboarding/baby')({
 
 function BabyStep() {
   const { babble, queryClient, family } = Route.useRouteContext();
+  const { mode } = Route.useSearch();
+  const adding = mode === 'add';
   const navigate = useNavigate();
   const detected = useMemo(detectTimeZone, []);
   const timeZones = useMemo(listTimeZones, []);
@@ -47,9 +52,10 @@ function BabyStep() {
         timezone,
         dayStartMinutes: 0,
       });
+      writeStorage(storageKeys.activeFamily, family.id);
       writeStorage(storageKeys.activeBaby, baby.id);
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
-      await navigate({ to: '/onboarding/day-start' });
+      await navigate({ to: adding ? '/' : '/onboarding/day-start' });
     } catch (caught) {
       setError(toBabbleError(caught).message);
       setSubmitting(false);
@@ -57,9 +63,11 @@ function BabyStep() {
   }
 
   return (
-    <CenteredPage step="Step 2 of 4">
-      <h1 className="text-title font-bold">Add your baby</h1>
-      <p className="mb-8 mt-2 text-body text-ink-2">You can add more babies later in Settings.</p>
+    <CenteredPage step={adding ? undefined : 'Step 2 of 4'}>
+      <h1 className="text-title font-bold">{adding ? `Add a baby to ${family.name}` : 'Add your baby'}</h1>
+      <p className="mb-8 mt-2 text-body text-ink-2">
+        {adding ? 'Everyone in the family will see them straight away.' : 'You can add more babies later.'}
+      </p>
       <form onSubmit={submit} className="flex flex-col gap-5">
         <TextField label="Name" value={name} onChange={(event) => setName(event.target.value)} />
         <TextField
@@ -83,8 +91,13 @@ function BabyStep() {
         </SelectField>
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
         <Button type="submit" size="lg" disabled={!name.trim() || !birthDate} loading={submitting}>
-          {submitting ? 'Adding baby…' : 'Continue'}
+          {submitting ? 'Adding baby…' : adding ? 'Add baby' : 'Continue'}
         </Button>
+        {adding && (
+          <Link to="/" className="self-center text-body font-semibold text-ink-2 hover:text-ink">
+            Cancel
+          </Link>
+        )}
       </form>
     </CenteredPage>
   );

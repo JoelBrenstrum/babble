@@ -33,3 +33,17 @@ export function canEdit(family: Family, userId: string): boolean {
   const role = memberRole(family, userId);
   return role === 'owner' || role === 'caregiver';
 }
+
+export interface BabyChoice {
+  baby: BabyRow;
+  familyId: string;
+  familyName: string;
+}
+
+export function babyChoices(families: Family[]): BabyChoice[] {
+  return families.flatMap((family) =>
+    [...family.babies]
+      .sort((a, b) => a.birth_date.localeCompare(b.birth_date) || a.name.localeCompare(b.name))
+      .map((baby) => ({ baby, familyId: family.id, familyName: family.name })),
+  );
+}
