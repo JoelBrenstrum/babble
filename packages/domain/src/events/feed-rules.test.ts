@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   canResumeFeed,
+  feedEndTime,
   latestFeed,
   napPromptContent,
   napPromptOnFeedEnd,
@@ -108,17 +109,40 @@ describe('napPromptContent', () => {
     expect(content.options.map((option) => option.label)).toEqual(['End nap now', 'Keep sleeping']);
   });
 
+  it('only offers "asleep since feed end" when the feed ended a while ago', () => {
+    const content = napPromptContent({ kind: 'start-nap', feedEndedAt: NOW.toISOString() }, 'Olivia', 'UTC', NOW);
+    expect(content.options.map((option) => option.label)).toEqual(['Start nap now', 'Not now']);
+  });
+
   it('asks whether the baby is asleep after a feed', () => {
-    const content = napPromptContent({ kind: 'start-nap', feedEndedAt: '2026-10-06T15:34:00Z' }, 'Olivia', 'UTC', NOW);
+    const content = napPromptContent({ kind: 'start-nap', feedEndedAt: '2026-10-06T11:34:00Z' }, 'Olivia', 'UTC', NOW);
     expect(content.title).toBe('Is Olivia asleep?');
     expect(content.options).toEqual([
       { label: 'Start nap now', action: { kind: 'start-nap' }, primary: true },
       {
-        label: 'Asleep since feed end (3:34 pm)',
-        action: { kind: 'start-nap', at: '2026-10-06T15:34:00Z' },
+        label: 'Asleep since feed end (11:34 am)',
+        action: { kind: 'start-nap', at: '2026-10-06T11:34:00Z' },
         primary: false,
       },
       { label: 'Not now', action: null, primary: false },
     ]);
+  });
+});
+
+describe('feedEndTime', () => {
+  it('uses the last segment end for a paused feed', () => {
+    const paused = makeEvent('breast_feed', {
+      endedAt: null,
+      segments: [{ side: 'left', startedAt: '2026-10-06T11:00:00Z', endedAt: '2026-10-06T11:20:00Z' }],
+    });
+    expect(feedEndTime(paused, NOW)).toBe('2026-10-06T11:20:00Z');
+  });
+
+  it('uses now while a side is still running', () => {
+    const running = makeEvent('breast_feed', {
+      endedAt: null,
+      segments: [{ side: 'left', startedAt: '2026-10-06T11:00:00Z', endedAt: null }],
+    });
+    expect(feedEndTime(running, NOW)).toBe(NOW.toISOString());
   });
 });

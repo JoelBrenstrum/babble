@@ -4,6 +4,7 @@ import {
   formatDuration,
   formatTimeOfDay,
   formatTimer,
+  feedEndTime,
   napPromptOnFeedEnd,
   segmentTotals,
   sessionNoun,
@@ -112,7 +113,7 @@ export function RunningCard({
   function finish() {
     const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
     const ended = action.mutateAsync({ event, action: { kind: 'end' } });
-    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, new Date().toISOString()));
+    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, feedEndTime(event, new Date())));
     if (event.type === 'pump') {
       ended
         .then(() => router.push({ pathname: '/events/[id]', params: { id: event.id, finish: '1' } }))

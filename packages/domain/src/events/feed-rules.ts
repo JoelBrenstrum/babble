@@ -43,6 +43,9 @@ export function napPromptOnFeedEnd(running: readonly BabyEvent[], feedEndedAt: s
   return napRunning ? null : { kind: 'start-nap', feedEndedAt };
 }
 
+// Within this window, "now" and the feed's own start/end time are effectively the same choice.
+const SAME_MOMENT_MS = 2 * 60_000;
+
 export type NapAction = { kind: 'end-nap'; napId: string; at?: string } | { kind: 'start-nap'; at?: string } | null;
 
 export interface NapPromptOption {
@@ -59,7 +62,7 @@ export interface NapPromptContent {
 
 export function napPromptContent(prompt: NapPrompt, babyName: string, timeZone: string, now: Date): NapPromptContent {
   if (prompt.kind === 'end-nap') {
-    const startedJustNow = now.getTime() - Date.parse(prompt.feedStartedAt) < 2 * 60_000;
+    const startedJustNow = now.getTime() - Date.parse(prompt.feedStartedAt) < SAME_MOMENT_MS;
     return {
       title: `End ${babyName}'s nap?`,
       body: `A nap has been running since ${formatTimeOfDay(prompt.nap.startedAt, timeZone)}.`,
@@ -78,17 +81,33 @@ export function napPromptContent(prompt: NapPrompt, babyName: string, timeZone: 
       ],
     };
   }
+  const endedJustNow = now.getTime() - Date.parse(prompt.feedEndedAt) < SAME_MOMENT_MS;
   return {
     title: `Is ${babyName} asleep?`,
     body: 'Start a nap so the timer is already running when they wake.',
     options: [
       { label: 'Start nap now', action: { kind: 'start-nap' }, primary: true },
-      {
-        label: `Asleep since feed end (${formatTimeOfDay(prompt.feedEndedAt, timeZone)})`,
-        action: { kind: 'start-nap', at: prompt.feedEndedAt },
-        primary: false,
-      },
+      ...(endedJustNow
+        ? []
+        : [
+            {
+              label: `Asleep since feed end (${formatTimeOfDay(prompt.feedEndedAt, timeZone)})`,
+              action: { kind: 'start-nap', at: prompt.feedEndedAt } as NapAction,
+              primary: false,
+            },
+          ]),
       { label: 'Not now', action: null, primary: false },
     ],
   };
+}
+
+export function feedEndTime(event: BabyEvent, now: Date): string {
+  if (event.type !== 'breast_feed' && event.type !== 'pump') return now.toISOString();
+  const open = event.segments.some((segment) => segment.endedAt === null);
+  if (open) return now.toISOString();
+  const lastEnd = event.segments.reduce<string | null>(
+    (latest, segment) => (segment.endedAt && (!latest || segment.endedAt > latest) ? segment.endedAt : latest),
+    null,
+  );
+  return lastEnd ?? now.toISOString();
 }

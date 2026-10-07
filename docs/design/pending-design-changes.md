@@ -56,7 +56,7 @@ Paste everything below this line into Claude Design.
 >
 > **4. Nap prompts**: as designed, but the options are:
 > - End-nap sheet: title "End Olivia's nap?", body "A nap has been running since 1:58 am.", options **End nap now** (primary), **End at feed start (3:12 am)** (secondary; only when the feed started more than two minutes ago, e.g. a logged bottle), **Keep sleeping** (ghost).
-> - Start-nap sheet: title "Is Olivia asleep?", body "Start a nap so the timer is already running when they wake.", options **Start nap now** (primary), **Asleep since feed end (3:34 am)** (secondary), **Not now** (ghost).
+> - Start-nap sheet: title "Is Olivia asleep?", body "Start a nap so the timer is already running when they wake.", options **Start nap now** (primary), **Asleep since feed end (3:34 am)** (secondary; only when the feed ended more than two minutes ago, e.g. a paused feed finished later or a bottle logged after the fact), **Not now** (ghost). Show both variants.
 > - On desktop web these are centred dialogs; on phones they're bottom sheets with a grab handle and a moon icon tile in sleep-soft.
 >
 > **5. Settings → Tracking** (new section between Caregivers and Appearance): a Units segmented control ("Metric (ml, kg, cm)" / "Imperial (oz, lb, in)"), a stepper "Ignore gaps shorter than [15] sec" with the hint "Short pauses, like switching sides, won't show as downtime.", and a stepper "Finish paused feeds after [30] min" with the hint "A paused feed or pump that's been left this long is finished automatically."

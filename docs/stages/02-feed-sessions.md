@@ -12,6 +12,7 @@
 - **Feed ↔ nap prompts** (confirmed requirement, designed in `design/Phone Flows.dc.html`: `prompt-endnap`, `prompt-startnap`):
   - **Starting a feed while a nap is running** (starting a breastfeed timer, or logging a bottle) asks "End Olivia's nap?" with **End now**, **End at feed start** and **Keep sleeping**.
   - **Finishing a feed** (finishing a breastfeed, or saving a bottle) asks "Is Olivia asleep?" with **Start nap now**, **Asleep since feed end (3:34 am)** and **Not now**. Not asked if a nap is already running.
+  - The "at feed start/end" options only appear when that time is more than two minutes before now (a paused feed finished later, or a past bottle); otherwise they'd be the same as "now". A finished breastfeed's end is when its last side stopped, not when Finish was tapped.
   - Pumping never prompts, since it's the parent's session rather than the baby's.
   - The prompt is a bottom sheet on phones and a dialog on desktop, and it never blocks: dismissing it does nothing.
 

@@ -67,6 +67,7 @@ export {
 } from './events/session-summary';
 export {
   canResumeFeed,
+  feedEndTime,
   latestFeed,
   napPromptContent,
   napPromptOnFeedEnd,
