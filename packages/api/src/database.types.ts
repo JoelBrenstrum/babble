@@ -88,6 +88,114 @@ export type Database = {
           },
         ];
       };
+      bottle_details: {
+        Row: {
+          amount_left_ml: number | null;
+          amount_ml: number | null;
+          content: Database['public']['Enums']['bottle_content'];
+          event_id: string;
+        };
+        Insert: {
+          amount_left_ml?: number | null;
+          amount_ml?: number | null;
+          content?: Database['public']['Enums']['bottle_content'];
+          event_id: string;
+        };
+        Update: {
+          amount_left_ml?: number | null;
+          amount_ml?: number | null;
+          content?: Database['public']['Enums']['bottle_content'];
+          event_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'bottle_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      custom_details: {
+        Row: {
+          description: string;
+          event_id: string;
+          title: string;
+        };
+        Insert: {
+          description?: string;
+          event_id: string;
+          title: string;
+        };
+        Update: {
+          description?: string;
+          event_id?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'custom_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      events: {
+        Row: {
+          baby_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ended_at: string | null;
+          id: string;
+          notes: string | null;
+          source: Database['public']['Enums']['event_source'];
+          source_ref: string | null;
+          started_at: string;
+          type: Database['public']['Enums']['event_type'];
+          updated_at: string;
+        };
+        Insert: {
+          baby_id: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ended_at?: string | null;
+          id?: string;
+          notes?: string | null;
+          source?: Database['public']['Enums']['event_source'];
+          source_ref?: string | null;
+          started_at: string;
+          type: Database['public']['Enums']['event_type'];
+          updated_at?: string;
+        };
+        Update: {
+          baby_id?: string;
+          created_at?: string;
+          created_by?: string | null;
+          deleted_at?: string | null;
+          ended_at?: string | null;
+          id?: string;
+          notes?: string | null;
+          source?: Database['public']['Enums']['event_source'];
+          source_ref?: string | null;
+          started_at?: string;
+          type?: Database['public']['Enums']['event_type'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'events_baby_id_fkey';
+            columns: ['baby_id'];
+            isOneToOne: false;
+            referencedRelation: 'babies';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       families: {
         Row: {
           created_at: string;
@@ -185,6 +293,195 @@ export type Database = {
           },
         ];
       };
+      growth_details: {
+        Row: {
+          event_id: string;
+          head_circumference_mm: number | null;
+          length_mm: number | null;
+          weight_g: number | null;
+        };
+        Insert: {
+          event_id: string;
+          head_circumference_mm?: number | null;
+          length_mm?: number | null;
+          weight_g?: number | null;
+        };
+        Update: {
+          event_id?: string;
+          head_circumference_mm?: number | null;
+          length_mm?: number | null;
+          weight_g?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'growth_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      nappy_details: {
+        Row: {
+          dirty: boolean;
+          event_id: string;
+          poo_colours: Database['public']['Enums']['poo_colour'][];
+          poo_size: Database['public']['Enums']['size'] | null;
+          poo_textures: Database['public']['Enums']['poo_texture'][];
+          rash: boolean;
+          wet: boolean;
+          wet_size: Database['public']['Enums']['size'] | null;
+        };
+        Insert: {
+          dirty?: boolean;
+          event_id: string;
+          poo_colours?: Database['public']['Enums']['poo_colour'][];
+          poo_size?: Database['public']['Enums']['size'] | null;
+          poo_textures?: Database['public']['Enums']['poo_texture'][];
+          rash?: boolean;
+          wet?: boolean;
+          wet_size?: Database['public']['Enums']['size'] | null;
+        };
+        Update: {
+          dirty?: boolean;
+          event_id?: string;
+          poo_colours?: Database['public']['Enums']['poo_colour'][];
+          poo_size?: Database['public']['Enums']['size'] | null;
+          poo_textures?: Database['public']['Enums']['poo_texture'][];
+          rash?: boolean;
+          wet?: boolean;
+          wet_size?: Database['public']['Enums']['size'] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'nappy_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      pump_details: {
+        Row: {
+          event_id: string;
+          left_ml: number | null;
+          right_ml: number | null;
+          total_ml: number | null;
+        };
+        Insert: {
+          event_id: string;
+          left_ml?: number | null;
+          right_ml?: number | null;
+          total_ml?: number | null;
+        };
+        Update: {
+          event_id?: string;
+          left_ml?: number | null;
+          right_ml?: number | null;
+          total_ml?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'pump_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      session_details: {
+        Row: {
+          event_id: string;
+          state: Database['public']['Enums']['session_state'];
+        };
+        Insert: {
+          event_id: string;
+          state?: Database['public']['Enums']['session_state'];
+        };
+        Update: {
+          event_id?: string;
+          state?: Database['public']['Enums']['session_state'];
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'session_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      sleep_details: {
+        Row: {
+          end_moods: Database['public']['Enums']['mood'][];
+          event_id: string;
+          fall_asleep: Database['public']['Enums']['fall_asleep'] | null;
+          locations: Database['public']['Enums']['sleep_location'][];
+          start_moods: Database['public']['Enums']['mood'][];
+          woken_by_carer: boolean;
+        };
+        Insert: {
+          end_moods?: Database['public']['Enums']['mood'][];
+          event_id: string;
+          fall_asleep?: Database['public']['Enums']['fall_asleep'] | null;
+          locations?: Database['public']['Enums']['sleep_location'][];
+          start_moods?: Database['public']['Enums']['mood'][];
+          woken_by_carer?: boolean;
+        };
+        Update: {
+          end_moods?: Database['public']['Enums']['mood'][];
+          event_id?: string;
+          fall_asleep?: Database['public']['Enums']['fall_asleep'] | null;
+          locations?: Database['public']['Enums']['sleep_location'][];
+          start_moods?: Database['public']['Enums']['mood'][];
+          woken_by_carer?: boolean;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'sleep_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      timed_segments: {
+        Row: {
+          ended_at: string | null;
+          event_id: string;
+          id: string;
+          side: Database['public']['Enums']['side'];
+          started_at: string;
+        };
+        Insert: {
+          ended_at?: string | null;
+          event_id: string;
+          id?: string;
+          side: Database['public']['Enums']['side'];
+          started_at: string;
+        };
+        Update: {
+          ended_at?: string | null;
+          event_id?: string;
+          id?: string;
+          side?: Database['public']['Enums']['side'];
+          started_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'timed_segments_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -207,6 +504,7 @@ export type Database = {
         }[];
       };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      end_session: { Args: { target_event_id: string }; Returns: undefined };
       get_instance_settings: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -215,10 +513,73 @@ export type Database = {
         }[];
       };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
+      latest_events: {
+        Args: { target_baby_id: string };
+        Returns: {
+          baby_id: string;
+          created_at: string;
+          created_by: string | null;
+          deleted_at: string | null;
+          ended_at: string | null;
+          id: string;
+          notes: string | null;
+          source: Database['public']['Enums']['event_source'];
+          source_ref: string | null;
+          started_at: string;
+          type: Database['public']['Enums']['event_type'];
+          updated_at: string;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'events';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
+      pause_session: { Args: { target_event_id: string }; Returns: undefined };
+      resume_session: {
+        Args: { resume_side?: Database['public']['Enums']['side']; target_event_id: string };
+        Returns: undefined;
+      };
+      save_event: { Args: { event: Json }; Returns: string };
+      start_session: {
+        Args: {
+          session_type: Database['public']['Enums']['event_type'];
+          start_side?: Database['public']['Enums']['side'];
+          target_baby_id: string;
+        };
+        Returns: string;
+      };
+      switch_side: {
+        Args: { new_side: Database['public']['Enums']['side']; target_event_id: string };
+        Returns: undefined;
+      };
     };
     Enums: {
+      bottle_content: 'breast_milk' | 'formula' | 'mixed' | 'other';
+      event_source: 'manual' | 'huckleberry_csv';
+      event_type: 'sleep' | 'breast_feed' | 'bottle' | 'nappy' | 'pump' | 'growth' | 'custom';
+      fall_asleep: 'under_10_min' | '10_to_20_min' | 'long_time';
       family_role: 'owner' | 'caregiver' | 'viewer';
+      mood: 'happy' | 'upset';
+      poo_colour: 'yellow' | 'mustard' | 'green' | 'dark_green' | 'brown' | 'orange' | 'black' | 'red' | 'white_grey';
+      poo_texture: 'runny' | 'loose' | 'seedy' | 'pasty' | 'formed' | 'mucousy' | 'hard' | 'pebbles' | 'diarrhea';
+      session_state: 'running' | 'paused' | 'ended';
+      side: 'left' | 'right';
       signup_mode: 'open' | 'invite_only';
+      size: 'tiny' | 'little' | 'medium' | 'large' | 'massive';
+      sleep_location:
+        | 'cot'
+        | 'bassinet'
+        | 'pram'
+        | 'car'
+        | 'swing'
+        | 'held'
+        | 'nursing'
+        | 'bottle'
+        | 'co_sleep'
+        | 'next_to_carer'
+        | 'other';
       units: 'metric' | 'imperial';
     };
     CompositeTypes: {
@@ -327,8 +688,31 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      bottle_content: ['breast_milk', 'formula', 'mixed', 'other'],
+      event_source: ['manual', 'huckleberry_csv'],
+      event_type: ['sleep', 'breast_feed', 'bottle', 'nappy', 'pump', 'growth', 'custom'],
+      fall_asleep: ['under_10_min', '10_to_20_min', 'long_time'],
       family_role: ['owner', 'caregiver', 'viewer'],
+      mood: ['happy', 'upset'],
+      poo_colour: ['yellow', 'mustard', 'green', 'dark_green', 'brown', 'orange', 'black', 'red', 'white_grey'],
+      poo_texture: ['runny', 'loose', 'seedy', 'pasty', 'formed', 'mucousy', 'hard', 'pebbles', 'diarrhea'],
+      session_state: ['running', 'paused', 'ended'],
+      side: ['left', 'right'],
       signup_mode: ['open', 'invite_only'],
+      size: ['tiny', 'little', 'medium', 'large', 'massive'],
+      sleep_location: [
+        'cot',
+        'bassinet',
+        'pram',
+        'car',
+        'swing',
+        'held',
+        'nursing',
+        'bottle',
+        'co_sleep',
+        'next_to_carer',
+        'other',
+      ],
       units: ['metric', 'imperial'],
     },
   },
