@@ -6,6 +6,7 @@ import { ChevronLeft, Moon, Play } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
+import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventForm } from '#/features/events/event-form';
@@ -90,6 +91,18 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
         onSuccess: (eventId) => void navigate({ to: '/sessions/$eventId', params: { eventId } }),
         onError: (caught) => setError(toBabbleError(caught).message),
       },
+    );
+  }
+
+  if (start.isPending || start.isSuccess) {
+    return (
+      <div
+        role="status"
+        className="flex h-36 items-center justify-center gap-3 rounded-card bg-raised text-body text-ink-2 shadow-raised"
+      >
+        <Spinner className="size-6 text-primary" />
+        Starting…
+      </div>
     );
   }
 

@@ -9,12 +9,12 @@ All screens are in light and dark. The `.dc.html` files take a `screen` prop (sh
 | Screen                                                                                                                                        | Design                                                                                                                                                                       |
 | --------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Overview + responsive rules                                                                                                                   | `design/Babble Screens v1.1.dc.html`                                                                                                                                         |
-| Home, breastfeed timer, nappy form, feeds list, history day/week (phone)                                                                      | `design/Screen.dc.html` (`home`, `timer`, `nappy`, `feeds`, `day`, `week`), `design/Phone.dc.html`                                                                           |
+| Home, breastfeed timer, nappy form, feeds list, timeline day/week (phone)                                                                     | `design/Screen.dc.html` (`home`, `timer`, `nappy`, `feeds`, `day`, `week`), `design/Phone.dc.html`                                                                           |
 | Bottle (+ keypad), sleep timer / details / manual, pump timer + finish sheet, growth (+ error state), custom event                            | `design/Phone Forms.dc.html` (`bottle`, `bottle-keypad`, `sleep`, `sleep-details`, `sleep-manual`, `pump`, `pump-finish`, `growth`, `growth-error`, `custom`)                |
 | Feed detail/edit + resume, imported feed, end-nap / start-nap prompts, reminder notification, overdue / snoozed / live-partner / offline Home | `design/Phone Flows.dc.html` (`feed-detail`, `feed-imported`, `prompt-endnap`, `prompt-startnap`, `notif-lock`, `home-overdue`, `home-snoozed`, `home-live`, `home-offline`) |
 | Sleep, nappy, pump, growth lists, empty state, loading                                                                                        | `design/Phone Lists.dc.html` (`sleep`, `nappy`, `pump`, `growth`, `custom-empty`, `loading`)                                                                                 |
 | Sign in, check email, family, add baby, day start, invite, settings, delete account, PWA install (iOS / Android)                              | `design/Phone Account.dc.html` (`signin`, `check-email`, `family`, `add-baby`, `day-start`, `invite`, `settings`, `settings-2`, `delete-confirm`, `pwa-ios`, `pwa-android`)  |
-| Web desktop / tablet: home, feeds split view, add-feed dialog, history day/week, import steps 1–5, settings                                   | `design/Web.dc.html` (`home`, `feeds`, `feeds-add`, `history-day`, `history-week`, `import-1`…`import-5`, `settings`; `desktop` / `tablet`)                                  |
+| Web desktop / tablet: home, feeds split view, add-feed dialog, timeline day/week, import steps 1–5, settings                                  | `design/Web.dc.html` (`home`, `feeds`, `feeds-add`, `history-day`, `history-week`, `import-1`…`import-5`, `settings`; `desktop` / `tablet`)                                  |
 | Components and tokens                                                                                                                         | `design/Babble Design System.dc.html`                                                                                                                                        |
 
 **Responsive rules (from the design):**
@@ -44,8 +44,8 @@ All screens are in light and dark. The `.dc.html` files take a `screen` prop (sh
 
 ## Global
 
-- **Phone size, on Expo and on the web PWA:** bottom tabs **Home · History · Stats · Settings**. The web app at phone width must be as fast to log with as the native app, because self-hosters only have the web app.
-- **Desktop web:** left sidebar (Home, Feeds, Sleep, Nappies, Pump, Growth, Custom, History, Stats, Settings). Category lists open as a list + detail split view. Home shows today's timeline next to the tracker rows.
+- **Phone size, on Expo and on the web PWA:** bottom tabs **Home · Timeline · Stats · Settings**. The web app at phone width must be as fast to log with as the native app, because self-hosters only have the web app.
+- **Desktop web:** left sidebar (Home, Feeds, Sleep, Nappies, Pump, Growth, Custom, Timeline, Stats, Settings). Category lists open as a list + detail split view. Home shows today's timeline next to the tracker rows.
 - Stats is hidden until Phase 2.
 - Dark mode follows the system, with an optional "dark at night" mode. Large touch targets for one-handed use. Every destructive action has an undo toast. All times are editable.
 - Timers show elapsed time computed from `started_at`, so they're correct on every device.
@@ -157,11 +157,11 @@ Weight, length and head circumference, each optional. Date. Units follow setting
 
 Title (with suggestions from past titles), description, start time, optional duration or end time, plus an optional timer.
 
-## 12. History: Daily
+## 12. Timeline: Day
 
 Date switcher (‹ Tue 7 Oct ›). A vertical timeline from day start to day start, with coloured blocks for sleep, feeds and pumps and markers for nappies. Totals per tracker below. Tapping a block opens that event. On desktop, the timeline and totals sit side by side.
 
-## 13. History: Weekly
+## 13. Timeline: Week
 
 7 columns on desktop or 7 rows on a phone, each a 24h strip of sleep and feed blocks. Below, daily totals: sleep hours, feed count, nappies. Swipe or arrows to move between weeks.
 

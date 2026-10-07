@@ -44,3 +44,15 @@ export function applySessionAction(event: BabyEvent, action: SessionAction, now:
     }
   }
 }
+
+export const DISCARD_CONFIRM_AFTER_MS = 60_000;
+
+export function discardNeedsConfirmation(event: Pick<BabyEvent, 'startedAt'>, now: Date): boolean {
+  return now.getTime() - Date.parse(event.startedAt) >= DISCARD_CONFIRM_AFTER_MS;
+}
+
+export function sessionNoun(type: BabyEvent['type']): string {
+  if (type === 'sleep') return 'nap';
+  if (type === 'pump') return 'pump';
+  return 'feed';
+}

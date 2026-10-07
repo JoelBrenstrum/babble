@@ -1,7 +1,7 @@
 import { eventQuery, runningEventsQuery, toBabbleError } from '@babble/api';
 import { formatDuration, formatTimeOfDay, segmentTotals } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Link, Navigate } from '@tanstack/react-router';
+import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 import { Card, SectionLabel } from '#/components/ui/card';
 import { Spinner } from '#/components/ui/spinner';
@@ -17,6 +17,7 @@ function SessionPage() {
   const running = useQuery(runningEventsQuery(babble.client, baby.id));
   const fallback = useQuery({ ...eventQuery(babble.client, baby.id, eventId), enabled: running.isSuccess });
   const now = useNow(1000);
+  const navigate = useNavigate();
   const event = running.data?.find((item) => item.id === eventId) ?? fallback.data;
 
   if (!event) {
@@ -31,6 +32,16 @@ function SessionPage() {
       <StatusMessage tone="danger">
         {fallback.error ? toBabbleError(fallback.error).message : 'Session not found.'}
       </StatusMessage>
+    );
+  }
+  if (event.deletedAt) {
+    return (
+      <div className="mx-auto flex max-w-xl flex-col gap-4">
+        <StatusMessage tone="info">This session was discarded.</StatusMessage>
+        <Link to="/" className="font-semibold text-primary underline">
+          Back to Home
+        </Link>
+      </div>
     );
   }
   if (event.endedAt !== null) return <Navigate to="/events/$eventId" params={{ eventId }} replace />;
@@ -49,7 +60,13 @@ function SessionPage() {
         </h1>
         <span className="ml-auto text-meta text-ink-2">started {formatTimeOfDay(event.startedAt, baby.timezone)}</span>
       </div>
-      <RunningCard event={event} client={babble.client} timeZone={baby.timezone} members={family.members} />
+      <RunningCard
+        event={event}
+        client={babble.client}
+        timeZone={baby.timezone}
+        members={family.members}
+        onDiscarded={() => void navigate({ to: '/' })}
+      />
       {segments.length > 0 && (
         <section className="flex flex-col gap-2">
           <SectionLabel>Session</SectionLabel>

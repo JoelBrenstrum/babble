@@ -1,8 +1,8 @@
 import { eventQuery, toBabbleError } from '@babble/api';
-import { isSessionType, trackerFor } from '@babble/domain';
+import { entryAuthorText, isSessionType, trackerFor } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator } from 'react-native';
+import { ActivityIndicator, Text } from 'react-native';
 import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
@@ -18,18 +18,18 @@ export default function EditEvent() {
   const { id, finish } = useLocalSearchParams<{ id: string; finish?: string }>();
   const ready = useReadyState();
   if (!ready || !id) return null;
-  return <EditEventContent id={id} finish={finish === '1'} baby={ready.baby} />;
+  return <EditEventContent id={id} finish={finish === '1'} baby={ready.baby} family={ready.family} />;
 }
 
 function EditEventContent({
   id,
   finish,
   baby,
+  family,
 }: {
   id: string;
   finish: boolean;
-  baby: NonNullable<ReturnType<typeof useReadyState>>['baby'];
-}) {
+} & Pick<NonNullable<ReturnType<typeof useReadyState>>, 'baby' | 'family'>) {
   const { client } = useBabble();
   const units = useUnits(client, baby.id);
   const event = useQuery(eventQuery(client, baby.id, id));
@@ -55,6 +55,15 @@ function EditEventContent({
         title={finish ? 'How much did you pump?' : tracker.label}
         icon={<TrackerIcon tracker={tracker} />}
       />
+      <Text className="mb-3 font-sans text-meta text-ink-2">
+        {entryAuthorText({
+          author: family.members.find((member) => member.user_id === event.data.createdBy)?.display_name,
+          createdAt: event.data.createdAt,
+          updatedAt: event.data.updatedAt,
+          timeZone: baby.timezone,
+          imported: event.data.source === 'huckleberry_csv',
+        })}
+      </Text>
       {event.data.source === 'huckleberry_csv' && (
         <StatusMessage tone="info">Imported from Huckleberry. Side order and downtime aren't known.</StatusMessage>
       )}

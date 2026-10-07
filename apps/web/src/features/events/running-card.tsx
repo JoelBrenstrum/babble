@@ -1,11 +1,21 @@
 import type { BabbleClient, FamilyMemberRow } from '@babble/api';
-import { formatDuration, formatTimeOfDay, formatTimer, segmentTotals, type BabyEvent, type Side } from '@babble/domain';
+import {
+  discardNeedsConfirmation,
+  formatDuration,
+  formatTimeOfDay,
+  formatTimer,
+  segmentTotals,
+  sessionNoun,
+  type BabyEvent,
+  type Side,
+} from '@babble/domain';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Moon, Pause, Play, Square } from 'lucide-react';
+import { Moon, Pause, Play, Square, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { cn } from '#/lib/cn';
-import { useSessionAction } from '#/lib/use-events';
+import { useDiscardSession, useSessionAction } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
@@ -16,15 +26,40 @@ export function RunningCard({
   timeZone,
   members,
   compact = false,
+  onDiscarded,
 }: {
   event: BabyEvent;
   client: BabbleClient;
   timeZone: string;
   members: FamilyMemberRow[];
   compact?: boolean;
+  onDiscarded?: () => void;
 }) {
   const now = useNow(1000);
   const action = useSessionAction(client, event.babyId);
+  const discard = useDiscardSession(client, event.babyId);
+  const [confirming, setConfirming] = useState(false);
+  const noun = sessionNoun(event.type);
+
+  function requestDiscard() {
+    if (discardNeedsConfirmation(event, new Date())) setConfirming(true);
+    else confirmDiscard();
+  }
+
+  function confirmDiscard() {
+    setConfirming(false);
+    discard.mutate(event);
+    onDiscarded?.();
+  }
+
+  const discardControls = confirming ? (
+    <DiscardConfirm
+      noun={noun}
+      elapsed={formatDuration(now.getTime() - Date.parse(event.startedAt), { seconds: false })}
+      onKeep={() => setConfirming(false)}
+      onDiscard={confirmDiscard}
+    />
+  ) : null;
   const navigate = useNavigate();
   const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
@@ -32,7 +67,15 @@ export function RunningCard({
     const elapsed = now.getTime() - Date.parse(event.startedAt);
     return (
       <Shell tone="sleep" compact={compact}>
-        <Header title="Napping" startedBy={startedBy} eventId={event.id} compact={compact} />
+        <Header
+          title="Napping"
+          startedBy={startedBy}
+          eventId={event.id}
+          compact={compact}
+          noun={noun}
+          onDiscard={requestDiscard}
+        />
+        {discardControls}
         <div className="tabular text-timer-lg font-medium text-on-sleep">{formatTimer(elapsed)}</div>
         <div className="text-meta text-ink-2">Since {formatTimeOfDay(event.startedAt, timeZone)}</div>
         <Button
@@ -75,7 +118,10 @@ export function RunningCard({
         startedBy={startedBy}
         eventId={event.id}
         compact={compact}
+        noun={noun}
+        onDiscard={requestDiscard}
       />
+      {discardControls}
       <div className="flex items-baseline gap-3">
         <span className="tabular text-timer-lg font-medium">
           {paused ? formatTimer(totals.activeMs) : formatTimer(currentMs)}
@@ -171,11 +217,15 @@ function Header({
   startedBy,
   eventId,
   compact,
+  noun,
+  onDiscard,
 }: {
   title: string;
   startedBy?: string;
   eventId: string;
   compact: boolean;
+  noun: string;
+  onDiscard: () => void;
 }) {
   return (
     <div className="flex items-center gap-3">
@@ -199,6 +249,47 @@ function Header({
           Open
         </Link>
       )}
+      <button
+        type="button"
+        aria-label={`Discard ${noun}`}
+        title={`Discard ${noun}`}
+        onClick={onDiscard}
+        className="-mr-2 grid size-10 place-items-center rounded-full text-ink-3 hover:bg-danger-soft hover:text-on-danger"
+      >
+        <Trash2 className="size-5" strokeWidth={2.5} />
+      </button>
+    </div>
+  );
+}
+
+function DiscardConfirm({
+  noun,
+  elapsed,
+  onKeep,
+  onDiscard,
+}: {
+  noun: string;
+  elapsed: string;
+  onKeep: () => void;
+  onDiscard: () => void;
+}) {
+  return (
+    <div
+      role="alertdialog"
+      aria-label={`Discard this ${noun}?`}
+      className="flex flex-col gap-3 rounded-tile bg-danger-soft p-4"
+    >
+      <p className="text-body text-on-danger">
+        <strong>Discard this {noun}?</strong> It's been running for {elapsed}. You can undo straight after.
+      </p>
+      <div className="grid grid-cols-2 gap-3">
+        <Button variant="secondary" onClick={onKeep}>
+          Keep {noun}
+        </Button>
+        <Button variant="destructive" onClick={onDiscard}>
+          Discard
+        </Button>
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { Card } from '#/components/ui/card';
 import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
+import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm, toDraft } from '#/features/events/event-form';
 import { isSessionType, trackerFor } from '@babble/domain';
 import { useUnits } from '#/lib/use-events';
@@ -19,7 +20,7 @@ export const Route = createFileRoute('/_app/events/$eventId')({
 });
 
 function EditEvent() {
-  const { babble, baby } = Route.useRouteContext();
+  const { babble, baby, family } = Route.useRouteContext();
   const { eventId } = Route.useParams();
   const { finish } = Route.useSearch();
   const navigate = useNavigate();
@@ -65,6 +66,13 @@ function EditEvent() {
         <TrackerIcon tracker={tracker} />
         <h1 className="text-title font-bold">{finish ? 'How much did you pump?' : tracker.label}</h1>
       </div>
+      <EntryAuthor
+        author={family.members.find((member) => member.user_id === event.data.createdBy)?.display_name}
+        createdAt={event.data.createdAt}
+        updatedAt={event.data.updatedAt}
+        timeZone={baby.timezone}
+        imported={event.data.source === 'huckleberry_csv'}
+      />
       {event.data.source === 'huckleberry_csv' && (
         <StatusMessage tone="info">Imported from Huckleberry. Side order and downtime aren't known.</StatusMessage>
       )}

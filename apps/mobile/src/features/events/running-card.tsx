@@ -1,10 +1,21 @@
 import type { BabbleClient, FamilyMemberRow } from '@babble/api';
-import { formatDuration, formatTimeOfDay, formatTimer, segmentTotals, type BabyEvent, type Side } from '@babble/domain';
+import {
+  discardNeedsConfirmation,
+  formatDuration,
+  formatTimeOfDay,
+  formatTimer,
+  segmentTotals,
+  sessionNoun,
+  type BabyEvent,
+  type Side,
+} from '@babble/domain';
 import { router } from 'expo-router';
-import { Pressable, Text, View } from 'react-native';
+import { Trash2 } from 'lucide-react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
-import { useSessionAction } from '@/lib/use-events';
+import { useTokenColor } from '@/lib/theme';
+import { useDiscardSession, useSessionAction } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
@@ -15,15 +26,34 @@ export function RunningCard({
   timeZone,
   members,
   compact = false,
+  onDiscarded,
 }: {
   event: BabyEvent;
   client: BabbleClient;
   timeZone: string;
   members: FamilyMemberRow[];
   compact?: boolean;
+  onDiscarded?: () => void;
 }) {
   const now = useNow(1000);
   const action = useSessionAction(client, event.babyId);
+  const discard = useDiscardSession(client, event.babyId);
+  const trashColor = useTokenColor('--ink-3');
+  const noun = sessionNoun(event.type);
+
+  function discardNow() {
+    discard.mutate(event);
+    onDiscarded?.();
+  }
+
+  function requestDiscard() {
+    if (!discardNeedsConfirmation(event, new Date())) return discardNow();
+    const elapsed = formatDuration(Date.now() - Date.parse(event.startedAt), { seconds: false });
+    Alert.alert(`Discard this ${noun}?`, `It's been running for ${elapsed}. You can undo straight after.`, [
+      { text: `Keep ${noun}`, style: 'cancel' },
+      { text: 'Discard', style: 'destructive', onPress: discardNow },
+    ]);
+  }
   const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
   const header = (title: string) => (
@@ -40,6 +70,14 @@ export function RunningCard({
           <Text className="font-semibold text-meta text-primary">Open</Text>
         </Pressable>
       )}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Discard ${noun}`}
+        onPress={requestDiscard}
+        className="size-10 items-center justify-center rounded-full active:bg-danger-soft"
+      >
+        <Trash2 size={20} color={trashColor} strokeWidth={2.5} />
+      </Pressable>
     </View>
   );
 

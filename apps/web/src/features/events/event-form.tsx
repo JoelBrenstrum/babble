@@ -102,7 +102,10 @@ export function EventForm({
             variant="ghost"
             className="text-danger"
             loading={remove.isPending}
-            onClick={() => remove.mutate(event, { onSuccess: onDone })}
+            onClick={() => {
+              remove.mutate(event);
+              onDone();
+            }}
           >
             <Trash2 className="size-5" strokeWidth={2.75} />
             Delete

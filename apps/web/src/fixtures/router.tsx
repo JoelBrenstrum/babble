@@ -8,7 +8,7 @@ import {
 } from '@tanstack/react-router';
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-const PATHS = ['/', '/history', '/stats', '/settings'] as const;
+const PATHS = ['/', '/timeline', '/stats', '/settings'] as const;
 const FixtureContent = createContext<ReactNode>(null);
 
 function RenderContent() {

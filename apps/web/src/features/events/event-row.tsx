@@ -1,6 +1,8 @@
 import { describeEvent, formatTimeOfDay, type BabyEvent, type PartTone, type Units } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { Pause } from 'lucide-react';
+import type { FamilyMemberRow } from '@babble/api';
+import { Avatar } from '#/components/ui/avatar';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
 
@@ -22,7 +24,9 @@ export function EventRow({
   units,
   now,
   showTitle = false,
+  members = [],
 }: {
+  members?: FamilyMemberRow[];
   event: BabyEvent;
   timeZone: string;
   units: Units;
@@ -30,6 +34,7 @@ export function EventRow({
   showTitle?: boolean;
 }) {
   const description = describeEvent(event, now, units);
+  const author = members.find((member) => member.user_id === event.createdBy)?.display_name;
   const href = description.running && event.type !== 'bottle' ? '/sessions/$eventId' : '/events/$eventId';
   return (
     <Link
@@ -65,6 +70,12 @@ export function EventRow({
         <span className="text-meta font-bold text-primary">Running</span>
       ) : (
         description.duration && <span className="tabular text-meta text-ink-2">{description.duration}</span>
+      )}
+      {author && (
+        <span title={`Logged by ${author}`} className="shrink-0">
+          <Avatar name={author} className="size-7 text-caption" />
+          <span className="sr-only">Logged by {author}</span>
+        </span>
       )}
     </Link>
   );

@@ -98,7 +98,14 @@ export function EventForm({
         {save.isPending ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
       </Button>
       {event && (
-        <Button variant="ghost" loading={remove.isPending} onPress={() => remove.mutate(event, { onSuccess: onDone })}>
+        <Button
+          variant="ghost"
+          loading={remove.isPending}
+          onPress={() => {
+            remove.mutate(event);
+            onDone();
+          }}
+        >
           Delete
         </Button>
       )}

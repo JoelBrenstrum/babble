@@ -20,7 +20,7 @@ Babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding an
 | 0     | [Foundations](stages/00-foundations.md)               | Monorepo, both app shells, Supabase + RLS, auth, families, self-host compose                      |
 | 1     | [Core tracking](stages/01-core-tracking.md)           | All trackers, home, category lists, realtime. Huckleberry parity on mobile and the phone web app. |
 | 2     | [Feed and pump sessions](stages/02-feed-sessions.md)  | Downtime breakdown, merge threshold, resume latest feed, feed ↔ nap prompts                       |
-| 3     | [History](stages/03-history.md)                       | Daily and weekly views, day start, night window                                                   |
+| 3     | [Timeline](stages/03-timeline.md)                     | Timeline day and week views, day start, night window                                              |
 | 4     | [Reminders](stages/04-reminders.md)                   | Feed-due reminders through Web Push and Expo push                                                 |
 | 5     | [Huckleberry import](stages/05-huckleberry-import.md) | CSV import. Parser done and tested; screen and RPC to do. Can run in parallel with Stage 2.       |
 | 6     | [Food intake](stages/06-food-intake.md)               | Parked                                                                                            |
@@ -30,24 +30,29 @@ Each stage ends with something usable on both apps. A stage's plan is fleshed ou
 
 ## Decision log
 
-| Topic              | Outcome                                                                                                                                                                         |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Web + mobile       | TanStack Start web + Expo mobile. No Expo web.                                                                                                                                  |
-| Backend            | Supabase, using only features available when self-hosted                                                                                                                        |
-| Deployment         | Self-hosted and hosted from one codebase. No store app for self-hosted; the web app must work well on a phone (PWA).                                                            |
-| License            | AGPL-3.0                                                                                                                                                                        |
-| Downtime           | Derived from segments, never stored. Merge threshold is configurable, default 15s (5s was too tight for re-latching). Same-side gaps above the threshold show as separate rows. |
-| Pumping            | L/R timed segments with downtime, the same as breastfeeding                                                                                                                     |
-| Resume             | Latest feed only                                                                                                                                                                |
-| Feed reminder      | Measured from the start of the last feed, breast **or** bottle                                                                                                                  |
-| Feed → nap prompt  | Offers "start at feed end" as well as "now"                                                                                                                                     |
-| Huckleberry import | CSV only. The unofficial API was dropped. Tummy time and Bath import as custom events.                                                                                          |
-| Sign-in            | Email magic link + Google to start. Apple sign-in is added when the iOS app ships.                                                                                              |
-| Hosting (family)   | The same web Docker image, pointed at **Supabase Cloud**. Initially on Fly.io at a `*.fly.dev` domain; Unraid remains an option.                                                |
-| Reminders          | Snooze included in Stage 4. Quiet hours later.                                                                                                                                  |
-| Mobile             | Bundle ID `com.brenstrum.babble`. No Apple Developer account for now: Android dev builds, and the PWA on iPhone.                                                                |
-| Food intake        | Separate from baby events. The whole feature is parked until late.                                                                                                              |
-| Quick-add nappy    | Build it small (long-press for one-tap with undo). Backlog.                                                                                                                     |
+| Topic              | Outcome                                                                                                                                                                                                      |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Web + mobile       | TanStack Start web + Expo mobile. No Expo web.                                                                                                                                                               |
+| Backend            | Supabase, using only features available when self-hosted                                                                                                                                                     |
+| Deployment         | Self-hosted and hosted from one codebase. No store app for self-hosted; the web app must work well on a phone (PWA).                                                                                         |
+| License            | AGPL-3.0                                                                                                                                                                                                     |
+| Downtime           | Derived from segments, never stored. Merge threshold is configurable, default 15s (5s was too tight for re-latching). Same-side gaps above the threshold show as separate rows.                              |
+| Pumping            | L/R timed segments with downtime, the same as breastfeeding                                                                                                                                                  |
+| Resume             | Latest feed only                                                                                                                                                                                             |
+| Feed reminder      | Measured from the start of the last feed, breast **or** bottle                                                                                                                                               |
+| Feed → nap prompt  | Offers "start at feed end" as well as "now"                                                                                                                                                                  |
+| Huckleberry import | CSV only. The unofficial API was dropped. Tummy time and Bath import as custom events.                                                                                                                       |
+| Sign-in            | Email magic link + Google to start. Apple sign-in is added when the iOS app ships.                                                                                                                           |
+| Hosting (family)   | The same web Docker image, pointed at **Supabase Cloud**. Initially on Fly.io at a `*.fly.dev` domain; Unraid remains an option.                                                                             |
+| Reminders          | Snooze included in Stage 4. Quiet hours later.                                                                                                                                                               |
+| Mobile             | Bundle ID `com.brenstrum.babble`. No Apple Developer account for now: Android dev builds, and the PWA on iPhone.                                                                                             |
+| Food intake        | Separate from baby events. The whole feature is parked until late.                                                                                                                                           |
+| Babies             | Any number of babies per family (and across families); switch with a dropdown in the sidebar/header (web) or the Home header (mobile). The choice is remembered per device.                                  |
+| Discarding timers  | A running feed, pump or nap can be discarded from its card. Under a minute it's immediate; after a minute it asks to confirm. Undo is always offered.                                                        |
+| Entry authors      | List rows show who logged each entry; the entry screen shows "Logged by Jane · 6 Oct, 3:12 am · edited".                                                                                                     |
+| Naming             | "History" is called **Timeline** everywhere.                                                                                                                                                                 |
+| Design changes     | UI changes made in code are logged as paste-ready Claude Design prompts in [design/pending-design-changes.md](design/pending-design-changes.md); the Claude Design project stays the visual source of truth. |
+| Quick-add nappy    | Build it small (long-press for one-tap with undo). Backlog.                                                                                                                                                  |
 
 ## Open questions
 

@@ -30,6 +30,6 @@ test('switching babies keeps their entries separate', async ({ page }) => {
   await page.getByRole('option', { name: /Olivia/ }).click();
   await expect(switcher).toContainText('Olivia');
   await page.goto('/track/nappy');
-  await expect(page.getByRole('heading', { name: 'Nappies' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nappies', exact: true })).toBeVisible();
   await expect(page.getByText(note)).toHaveCount(0);
 });

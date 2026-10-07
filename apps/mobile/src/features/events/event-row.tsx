@@ -1,6 +1,8 @@
 import { describeEvent, formatTimeOfDay, type BabyEvent, type PartTone, type Units } from '@babble/domain';
 import { Link } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
+import type { FamilyMemberRow } from '@babble/api';
+import { Avatar } from '@/components/avatar';
 import { PooSwatch } from '@/components/poo-swatch';
 
 const PART_STYLES: Record<PartTone, [string, string]> = {
@@ -22,7 +24,9 @@ export function EventRow({
   now,
   showTitle = false,
   divider = false,
+  members = [],
 }: {
+  members?: FamilyMemberRow[];
   event: BabyEvent;
   timeZone: string;
   units: Units;
@@ -31,6 +35,7 @@ export function EventRow({
   divider?: boolean;
 }) {
   const description = describeEvent(event, now, units);
+  const author = members.find((member) => member.user_id === event.createdBy)?.display_name;
   const href =
     description.running && event.type !== 'bottle'
       ? (`/sessions/${event.id}` as const)
@@ -38,7 +43,7 @@ export function EventRow({
   return (
     <Link href={href} asChild>
       <Pressable
-        accessibilityLabel={`${description.title} at ${formatTimeOfDay(event.startedAt, timeZone)}`}
+        accessibilityLabel={`${description.title} at ${formatTimeOfDay(event.startedAt, timeZone)}${author ? `, logged by ${author}` : ''}`}
         className={`min-h-tap flex-row items-center gap-3 px-4 py-3 active:bg-surface ${divider ? 'border-t border-line' : ''}`}
       >
         <Text className="w-16 font-semibold text-meta text-ink-2">{formatTimeOfDay(event.startedAt, timeZone)}</Text>
@@ -63,6 +68,7 @@ export function EventRow({
         ) : (
           description.duration && <Text className="font-sans text-meta text-ink-2">{description.duration}</Text>
         )}
+        {author && <Avatar name={author} />}
       </Pressable>
     </Link>
   );

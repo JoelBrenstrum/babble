@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { applySessionAction } from './session-actions';
+import { applySessionAction, discardNeedsConfirmation, sessionNoun } from './session-actions';
 import { makeEvent } from './test-events';
 
 const NOW = new Date('2026-10-06T10:20:00Z');
@@ -49,5 +49,21 @@ describe('applySessionAction', () => {
   it('leaves finished events alone', () => {
     const done = { ...running, endedAt: '2026-10-06T10:10:00Z' };
     expect(applySessionAction(done, { kind: 'switch', side: 'right' }, NOW)).toBe(done);
+  });
+});
+
+describe('discardNeedsConfirmation', () => {
+  it('confirms once a session has run for a minute', () => {
+    const startedAt = '2026-10-06T10:00:00Z';
+    expect(discardNeedsConfirmation({ startedAt }, new Date('2026-10-06T10:00:59Z'))).toBe(false);
+    expect(discardNeedsConfirmation({ startedAt }, new Date('2026-10-06T10:01:00Z'))).toBe(true);
+  });
+});
+
+describe('sessionNoun', () => {
+  it('names sessions the way parents do', () => {
+    expect(sessionNoun('sleep')).toBe('nap');
+    expect(sessionNoun('breast_feed')).toBe('feed');
+    expect(sessionNoun('pump')).toBe('pump');
   });
 });

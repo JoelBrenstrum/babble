@@ -25,6 +25,10 @@ Exported from Claude Design on 2026-10-07. Direction: **"Sage"** (design system 
 
 To view the designs, open a `.dc.html` file in a browser. Fonts and icons load from Google Fonts and unpkg.
 
+## Keeping the design in sync
+
+UI changes made in code are logged in [pending-design-changes.md](pending-design-changes.md) as a prompt to paste into Claude Design. After applying it there, re-export and replace this folder (keeping this README and that file).
+
 ## How it maps into the code
 
 - `packages/tokens` (Stage 0) is generated from `tokens/`:

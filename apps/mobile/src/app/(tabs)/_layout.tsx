@@ -57,9 +57,9 @@ export default function TabsLayout() {
           options={{ title: 'Home', tabBarIcon: ({ color }) => <House color={color} size={22} strokeWidth={2.75} /> }}
         />
         <Tabs.Screen
-          name="history"
+          name="timeline"
           options={{
-            title: 'History',
+            title: 'Timeline',
             tabBarIcon: ({ color }) => <History color={color} size={22} strokeWidth={2.75} />,
           }}
         />

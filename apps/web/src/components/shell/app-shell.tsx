@@ -8,14 +8,14 @@ import { BabySwitcher } from './baby-switcher';
 import { cn } from '#/lib/cn';
 
 interface NavItem {
-  to: '/' | '/history' | '/stats' | '/settings';
+  to: '/' | '/timeline' | '/stats' | '/settings';
   label: string;
   icon: LucideIcon;
 }
 
 const NAV: readonly NavItem[] = [
   { to: '/', label: 'Home', icon: House },
-  { to: '/history', label: 'History', icon: History },
+  { to: '/timeline', label: 'Timeline', icon: History },
   { to: '/stats', label: 'Stats', icon: ChartColumn },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];

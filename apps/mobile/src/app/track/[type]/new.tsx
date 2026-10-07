@@ -12,7 +12,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { Screen } from '@/components/screen';
@@ -21,6 +21,7 @@ import { StatusMessage } from '@/components/status-message';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventForm } from '@/features/events/event-form';
 import { useBabble } from '@/lib/babble';
+import { useTokenColor } from '@/lib/theme';
 import { useStartSession, useUnits } from '@/lib/use-events';
 import { useReadyState } from '@/lib/use-onboarding';
 
@@ -82,6 +83,7 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
   const start = useStartSession(client, babyId);
   const running = useQuery(runningEventsQuery(client, babyId)).data?.find((event) => event.type === type);
   const [error, setError] = useState<string | null>(null);
+  const spinnerColor = useTokenColor('--primary');
   const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
 
   function begin(side?: Side) {
@@ -92,6 +94,15 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
         onSuccess: (eventId) => router.replace(`/sessions/${eventId}`),
         onError: (caught) => setError(toBabbleError(caught).message),
       },
+    );
+  }
+
+  if (start.isPending || start.isSuccess) {
+    return (
+      <Card className="h-36 flex-row items-center justify-center gap-3">
+        <ActivityIndicator color={spinnerColor} />
+        <Text className="font-sans text-body text-ink-2">Starting…</Text>
+      </Card>
     );
   }
 

@@ -48,4 +48,12 @@ export {
   toLocalInputValue,
 } from './time/local-time';
 export { summariseDay, type DaySummary } from './events/day-summary';
-export { applySessionAction, type SessionAction } from './events/session-actions';
+export {
+  applySessionAction,
+  DISCARD_CONFIRM_AFTER_MS,
+  discardNeedsConfirmation,
+  sessionNoun,
+  type SessionAction,
+} from './events/session-actions';
+export { entryAuthorText } from './format/entry-author';
+export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input';

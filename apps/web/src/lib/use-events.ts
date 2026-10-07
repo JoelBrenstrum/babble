@@ -15,6 +15,7 @@ import {
 } from '@babble/api';
 import {
   applySessionAction,
+  sessionNoun,
   type BabyEvent,
   type EventDraft,
   type SessionAction,
@@ -109,6 +110,39 @@ export function useSessionAction(client: BabbleClient, babyId: string) {
       );
       queryClient.setQueryData(queryKeys.event(babyId, event.id), next);
       return { previous };
+    },
+    onError: (error, _, context) => {
+      if (context?.previous) queryClient.setQueryData(runningKey, context.previous);
+      toast({ message: toBabbleError(error).message });
+    },
+    onSettled: () => refreshEvents(queryClient, babyId),
+  });
+}
+
+export function useDiscardSession(client: BabbleClient, babyId: string) {
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  const runningKey = queryKeys.runningEvents(babyId);
+
+  return useMutation({
+    mutationFn: (event: BabyEvent) => deleteEvent(client, event.id),
+    onMutate: async (event) => {
+      await queryClient.cancelQueries({ queryKey: runningKey });
+      const previous = queryClient.getQueryData<BabyEvent[]>(runningKey);
+      queryClient.setQueryData<BabyEvent[]>(runningKey, (current) =>
+        (current ?? []).filter((item) => item.id !== event.id),
+      );
+      return { previous };
+    },
+    onSuccess: (_, event) => {
+      const noun = sessionNoun(event.type);
+      toast({
+        message: `${noun[0]!.toUpperCase()}${noun.slice(1)} discarded`,
+        action: {
+          label: 'Undo',
+          onClick: () => void restoreEvent(client, event.id).then(() => refreshEvents(queryClient, babyId)),
+        },
+      });
     },
     onError: (error, _, context) => {
       if (context?.previous) queryClient.setQueryData(runningKey, context.previous);

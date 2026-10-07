@@ -34,16 +34,16 @@ export default function TrackerList() {
   const ready = useReadyState();
   if (!type || !isEventType(type)) return <Redirect href="/" />;
   if (!ready) return null;
-  return <TrackerListContent eventType={type} baby={ready.baby} />;
+  return <TrackerListContent eventType={type} baby={ready.baby} family={ready.family} />;
 }
 
 function TrackerListContent({
   eventType,
   baby,
+  family,
 }: {
   eventType: TrackerKey;
-  baby: NonNullable<ReturnType<typeof useReadyState>>['baby'];
-}) {
+} & Pick<NonNullable<ReturnType<typeof useReadyState>>, 'baby' | 'family'>) {
   const { client } = useBabble();
   const now = useNow(30_000);
   const units = useUnits(client, baby.id);
@@ -113,6 +113,7 @@ function TrackerListContent({
                 <EventRow
                   key={event.id}
                   event={event}
+                  members={family.members}
                   timeZone={baby.timezone}
                   units={units}
                   now={now}

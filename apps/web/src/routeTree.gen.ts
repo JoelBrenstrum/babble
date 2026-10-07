@@ -13,9 +13,9 @@ import { Route as AppRouteImport } from './routes/_app'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
-import { Route as AppHistoryRouteImport } from './routes/_app/history'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppStatsRouteImport } from './routes/_app/stats'
+import { Route as AppTimelineRouteImport } from './routes/_app/timeline'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
@@ -47,11 +47,6 @@ const AppIndexRoute = AppIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppRoute,
 } as any)
-const AppHistoryRoute = AppHistoryRouteImport.update({
-  id: '/history',
-  path: '/history',
-  getParentRoute: () => AppRoute,
-} as any)
 const AppSettingsRoute = AppSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
@@ -60,6 +55,11 @@ const AppSettingsRoute = AppSettingsRouteImport.update({
 const AppStatsRoute = AppStatsRouteImport.update({
   id: '/stats',
   path: '/stats',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppTimelineRoute = AppTimelineRouteImport.update({
+  id: '/timeline',
+  path: '/timeline',
   getParentRoute: () => AppRoute,
 } as any)
 const ApiHealthRoute = ApiHealthRouteImport.update({
@@ -122,9 +122,9 @@ export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/sign-in': typeof SignInRoute
-  '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
+  '/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$code': typeof JoinCodeRoute
@@ -140,9 +140,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRouteWithChildren
   '/sign-in': typeof SignInRoute
-  '/history': typeof AppHistoryRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
+  '/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$code': typeof JoinCodeRoute
@@ -161,9 +161,9 @@ export interface FileRoutesById {
   '/_app': typeof AppRouteWithChildren
   '/onboarding': typeof OnboardingRouteWithChildren
   '/sign-in': typeof SignInRoute
-  '/_app/history': typeof AppHistoryRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/stats': typeof AppStatsRoute
+  '/_app/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$code': typeof JoinCodeRoute
@@ -183,9 +183,9 @@ export interface FileRouteTypes {
     | '/'
     | '/onboarding'
     | '/sign-in'
-    | '/history'
     | '/settings'
     | '/stats'
+    | '/timeline'
     | '/api/health'
     | '/auth/callback'
     | '/join/$code'
@@ -201,9 +201,9 @@ export interface FileRouteTypes {
   to:
     | '/onboarding'
     | '/sign-in'
-    | '/history'
     | '/settings'
     | '/stats'
+    | '/timeline'
     | '/api/health'
     | '/auth/callback'
     | '/join/$code'
@@ -221,9 +221,9 @@ export interface FileRouteTypes {
     | '/_app'
     | '/onboarding'
     | '/sign-in'
-    | '/_app/history'
     | '/_app/settings'
     | '/_app/stats'
+    | '/_app/timeline'
     | '/api/health'
     | '/auth/callback'
     | '/join/$code'
@@ -277,13 +277,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppIndexRouteImport
       parentRoute: typeof AppRoute
     }
-    '/_app/history': {
-      id: '/_app/history'
-      path: '/history'
-      fullPath: '/history'
-      preLoaderRoute: typeof AppHistoryRouteImport
-      parentRoute: typeof AppRoute
-    }
     '/_app/settings': {
       id: '/_app/settings'
       path: '/settings'
@@ -296,6 +289,13 @@ declare module '@tanstack/react-router' {
       path: '/stats'
       fullPath: '/stats'
       preLoaderRoute: typeof AppStatsRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/timeline': {
+      id: '/_app/timeline'
+      path: '/timeline'
+      fullPath: '/timeline'
+      preLoaderRoute: typeof AppTimelineRouteImport
       parentRoute: typeof AppRoute
     }
     '/api/health': {
@@ -379,9 +379,9 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
-  AppHistoryRoute: typeof AppHistoryRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
+  AppTimelineRoute: typeof AppTimelineRoute
   AppIndexRoute: typeof AppIndexRoute
   AppEventsEventIdRoute: typeof AppEventsEventIdRoute
   AppSessionsEventIdRoute: typeof AppSessionsEventIdRoute
@@ -390,9 +390,9 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppHistoryRoute: AppHistoryRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,
+  AppTimelineRoute: AppTimelineRoute,
   AppIndexRoute: AppIndexRoute,
   AppEventsEventIdRoute: AppEventsEventIdRoute,
   AppSessionsEventIdRoute: AppSessionsEventIdRoute,

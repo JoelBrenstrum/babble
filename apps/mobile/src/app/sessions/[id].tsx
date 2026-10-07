@@ -1,7 +1,7 @@
 import { eventQuery, runningEventsQuery } from '@babble/api';
 import { formatDuration, formatTimeOfDay, segmentTotals } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { Redirect, useLocalSearchParams } from 'expo-router';
+import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card, SectionLabel } from '@/components/card';
 import { Screen } from '@/components/screen';
@@ -29,6 +29,7 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
   const event = running.data?.find((item) => item.id === id) ?? fallback.data;
 
   if (!event) return <ActivityIndicator size="large" color={spinnerColor} className="flex-1 bg-bg" />;
+  if (event.deletedAt) return <Redirect href="/" />;
   if (event.endedAt !== null) return <Redirect href={`/events/${id}`} />;
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
@@ -44,7 +45,13 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
         }
       />
       <View className="gap-6">
-        <RunningCard event={event} client={client} timeZone={baby.timezone} members={family.members} />
+        <RunningCard
+          event={event}
+          client={client}
+          timeZone={baby.timezone}
+          members={family.members}
+          onDiscarded={() => router.replace('/')}
+        />
         {segments.length > 0 && (
           <View className="gap-2">
             <SectionLabel>Session</SectionLabel>

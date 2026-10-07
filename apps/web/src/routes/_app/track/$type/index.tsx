@@ -41,7 +41,7 @@ function dayTotals(events: BabyEvent[]): string {
 }
 
 function TrackerList() {
-  const { babble, baby, eventType } = Route.useRouteContext();
+  const { babble, baby, family, eventType } = Route.useRouteContext();
   const { filter = eventType === 'bottle' ? 'bottle' : eventType === 'breast_feed' ? 'breast' : 'all' } =
     Route.useSearch();
   const navigate = useNavigate();
@@ -118,6 +118,7 @@ function TrackerList() {
               <EventRow
                 key={event.id}
                 event={event}
+                members={family.members}
                 timeZone={baby.timezone}
                 units={units}
                 now={now}

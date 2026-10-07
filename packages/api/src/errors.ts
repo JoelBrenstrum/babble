@@ -9,13 +9,14 @@ export class BabbleError extends Error {
 }
 
 export type BabbleErrorCode =
-  'invite_required' | 'invite_invalid' | 'not_signed_in' | 'forbidden' | 'network' | 'unknown';
+  'invite_required' | 'invite_invalid' | 'not_signed_in' | 'forbidden' | 'session_conflict' | 'network' | 'unknown';
 
 const MESSAGES: Record<BabbleErrorCode, string> = {
   invite_required: 'This Babble server is invite-only. Ask a family member for an invite code.',
   invite_invalid: 'That invite code is invalid, already used or expired.',
   not_signed_in: 'You need to sign in again.',
   forbidden: "You don't have permission to do that.",
+  session_conflict: 'Another session of this kind is already running. Finish or discard it first.',
   network: "Couldn't reach the server. Check your connection and try again.",
   unknown: 'Something went wrong. Please try again.',
 };
@@ -39,6 +40,7 @@ function classify(code: string | undefined, message: string, status: number | un
   // GoTrue hides trigger exceptions behind a generic message when a sign-up is rejected by the database.
   if (/database error saving new user/i.test(message)) return 'invite_required';
   if (code === 'P0002') return 'invite_invalid';
+  if (code === '23505' && /events_one_running_per_type/.test(message)) return 'session_conflict';
   if (/not signed in/i.test(message) || status === 401) return 'not_signed_in';
   if (code === '42501' || status === 403) return 'forbidden';
   if (/failed to fetch|fetch failed|network request failed|load failed/i.test(message)) return 'network';
