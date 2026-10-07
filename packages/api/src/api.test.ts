@@ -140,6 +140,7 @@ describe('families API', () => {
         birthDate: '2026-09-26',
         timezone: 'Pacific/Auckland',
         dayStartMinutes: 420,
+        sex: 'female',
       }),
     ).toEqual(baby);
     expect(requests[0]!.method).toBe('POST');
@@ -149,6 +150,7 @@ describe('families API', () => {
       birth_date: '2026-09-26',
       timezone: 'Pacific/Auckland',
       day_start_minutes: 420,
+      sex: 'female',
     });
   });
 

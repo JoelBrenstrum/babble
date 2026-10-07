@@ -182,13 +182,15 @@ export function draftToPayload(
 export async function listEvents(
   client: BabbleClient,
   babyId: string,
-  options: { types?: EventType[]; before?: string; since?: string; limit?: number } = {},
+  options: { types?: EventType[]; before?: string; since?: string; limit?: number; offset?: number } = {},
 ): Promise<BabyEvent[]> {
   let query = client.from('events').select(EVENT_SELECT).eq('baby_id', babyId).is('deleted_at', null);
   if (options.types?.length) query = query.in('type', options.types);
   if (options.before) query = query.lt('started_at', options.before);
   if (options.since) query = query.gte('started_at', options.since);
-  const rows = unwrap(await query.order('started_at', { ascending: false }).limit(options.limit ?? 50));
+  const limit = options.limit ?? 50;
+  const offset = options.offset ?? 0;
+  const rows = unwrap(await query.order('started_at', { ascending: false }).range(offset, offset + limit - 1));
   return (rows as unknown as EventRow[]).map(rowToEvent);
 }
 
@@ -204,7 +206,13 @@ export async function listEventsBetween(
   from: string,
   to: string,
 ): Promise<BabyEvent[]> {
-  return listEvents(client, babyId, { ...eventRangeBounds(from, to), limit: 1000 });
+  const pageSize = 1000;
+  const events: BabyEvent[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const page = await listEvents(client, babyId, { ...eventRangeBounds(from, to), limit: pageSize, offset });
+    events.push(...page);
+    if (page.length < pageSize) return events;
+  }
 }
 
 export async function getEvent(client: BabbleClient, id: string): Promise<BabyEvent> {

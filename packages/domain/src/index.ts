@@ -36,7 +36,15 @@ export { groupByDay, type DayGroup } from './events/group';
 export { otherSide, segmentTotals, type SegmentLike, type SegmentTotals } from './events/segments';
 export { hasErrors, validateDraft, type DraftErrors } from './events/validate';
 export { formatAgo, formatDuration, formatTimer } from './format/duration';
-export { formatLength, formatVolume, formatWeight, lengthToMm, volumeToMl, weightToGrams } from './format/units';
+export {
+  formatLength,
+  formatVolume,
+  formatWeight,
+  formatWeightChange,
+  lengthToMm,
+  volumeToMl,
+  weightToGrams,
+} from './format/units';
 export {
   dayKeyFor,
   dayWindow,
@@ -103,3 +111,33 @@ export {
   type NapPromptOption,
 } from './events/feed-rules';
 export { summariseImport, type ImportSummary } from './huckleberry/summary';
+export {
+  gapsBetween,
+  rangeDays,
+  statsReport,
+  weeklyBars,
+  type ChartBar,
+  type StatsCard,
+  type StatsRange,
+  type StatsReport,
+  type StatsSettings,
+} from './stats/stats';
+export {
+  ageInMonths,
+  formatPercentile,
+  growthReport,
+  type BabySex,
+  type ChartPoint,
+  type GrowthChart,
+  type GrowthMeasure,
+  type GrowthReport,
+} from './growth/growth';
+export {
+  listStrip,
+  sinceItem,
+  stripKind,
+  stripWindow,
+  type StripContext,
+  type StripItem,
+  type StripKind,
+} from './lists/list-strip';

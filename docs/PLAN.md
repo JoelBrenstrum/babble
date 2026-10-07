@@ -24,7 +24,7 @@ Babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding an
 | 4     | [Reminders](stages/04-reminders.md)                   | Feed-due reminders through Web Push and Expo push                                                 |
 | 5     | [Huckleberry import](stages/05-huckleberry-import.md) | CSV import. Parser done and tested; screen and RPC to do. Can run in parallel with Stage 2.       |
 | 6     | [Food intake](stages/06-food-intake.md)               | Parked                                                                                            |
-| 7     | [Stats](stages/07-stats.md)                           | Phase 2 insights                                                                                  |
+| 7     | [Stats](stages/07-stats.md)                           | Ranged averages and charts for sleep, feeds, nappies, pump. Built; WHO growth percentiles later.  |
 
 Each stage ends with something usable on both apps. A stage's plan is fleshed out in detail (edge cases, test tables, screen states) when the stage begins.
 

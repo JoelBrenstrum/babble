@@ -9,11 +9,12 @@ import {
   summariseDay,
   summariseWeek,
   lastDays,
+  listStrip,
   weekTableRows,
 } from '@babble/domain';
 import { FixtureRouter } from '#/fixtures/router';
 import { DayTimeline } from './day-timeline';
-import { DayTotals, WeekTable } from './totals';
+import { DayTotals, SummaryStrip, WeekTable } from './totals';
 import { WeekTimeline } from './week-timeline';
 
 const now = new Date();
@@ -63,5 +64,24 @@ export default {
         />
       </div>
     </FixtureRouter>
+  ),
+  'List strips': (
+    <div className="flex max-w-sm flex-col gap-3 p-4">
+      {(['feeds', 'sleep', 'nappy', 'pump'] as const).map((kind) => (
+        <SummaryStrip
+          key={kind}
+          items={listStrip(kind, events, {
+            now,
+            timeZone: timezone,
+            dayStartMinutes: 0,
+            nightStartMinutes: 19 * 60,
+            nightEndMinutes: 7 * 60,
+            units: 'metric',
+            birthDate: sampleBaby.birth_date,
+            sex: 'female',
+          })}
+        />
+      ))}
+    </div>
   ),
 };

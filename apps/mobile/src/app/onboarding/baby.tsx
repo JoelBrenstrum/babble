@@ -1,3 +1,4 @@
+import type { BabySex } from '@babble/domain';
 import { addBaby, queryKeys, toBabbleError } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
@@ -9,6 +10,7 @@ import { Screen, Title } from '@/components/screen';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
 import { DateField } from '@/features/date-field';
+import { SexField } from '@/features/sex-field';
 import { detectTimeZone, TimezoneField } from '@/features/timezone-field';
 import { useActiveBaby } from '@/lib/active-baby';
 import { useBabble } from '@/lib/babble';
@@ -24,6 +26,7 @@ export default function BabyStep() {
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [timezone, setTimezone] = useState(detectTimeZone);
+  const [sex, setSex] = useState<BabySex | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -36,7 +39,7 @@ export default function BabyStep() {
     setError(null);
     setSubmitting(true);
     try {
-      const baby = await addBaby(client, { familyId: family.id, name, birthDate, timezone, dayStartMinutes: 0 });
+      const baby = await addBaby(client, { familyId: family.id, name, birthDate, timezone, dayStartMinutes: 0, sex });
       active.select({ familyId: family.id, babyId: baby.id });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace(adding ? '/' : '/onboarding/day-start');
@@ -56,6 +59,7 @@ export default function BabyStep() {
       <View className="gap-5">
         <TextField label="Name" value={name} onChangeText={setName} />
         <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={new Date()} />
+        <SexField value={sex} onChange={setSex} />
         <TimezoneField value={timezone} onChange={setTimezone} />
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
         <Button size="lg" onPress={submit} loading={submitting} disabled={!name.trim() || !birthDate}>

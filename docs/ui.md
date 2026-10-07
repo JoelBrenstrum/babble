@@ -46,13 +46,12 @@ All screens are in light and dark. The `.dc.html` files take a `screen` prop (sh
 
 - **Phone size, on Expo and on the web PWA:** bottom tabs **Home · Timeline · Stats · Settings**. The web app at phone width must be as fast to log with as the native app, because self-hosters only have the web app.
 - **Desktop web:** left sidebar (Home, Feeds, Sleep, Nappies, Pump, Growth, Custom, Timeline, Stats, Settings). Category lists open as a list + detail split view. Home shows today's timeline next to the tracker rows.
-- Stats is hidden until Phase 2.
 - Dark mode follows the system, with an optional "dark at night" mode. Large touch targets for one-handed use. Every destructive action has an undo toast. All times are editable.
 - Timers show elapsed time computed from `started_at`, so they're correct on every device.
 
 ## 1. Onboarding / Auth
 
-Sign in (magic link / Apple / Google) → create or join a family (via invite code) → add baby (name, birth date, timezone auto-detected) → set day start (default midnight) → Home.
+Sign in (magic link / Apple / Google) → create or join a family (via invite code) → add baby (name, birth date, sex (optional, for WHO growth percentiles), timezone auto-detected) → set day start (default midnight) → Home.
 Self-hosted with `SIGNUP_MODE=invite_only`: sign-up requires an invite link.
 Web prompts "Add to Home Screen" on phones once the user is signed in.
 
@@ -84,6 +83,14 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 ## 3. Category list (one design, configured per tracker)
 
 - Header: tracker name, filter (e.g. Feed: All / Breast / Bottle), **+**
+- Summary strip under the header: three figures, each with a small note. Tapping it opens Stats. "Today" figures note the average over the last 7 finished days.
+  - Feeds and Breast: Last feed (or Feeding for) · Today · Next side
+  - Bottle: Last bottle · Today (ml) · Per bottle
+  - Sleep: Awake for (or Asleep for) · Today · Naps
+  - Nappies: Last change · Wet today · Dirty today, with the latest poo colour
+  - Pump: Last pump (or Pumping for) · Today (ml) · Left / right today
+  - Growth: Weight and Length with their WHO percentile · Change since the previous weight
+  - Custom: Last · Today · 7 days
 - Rows grouped by day, using the baby's day start:
   - Feed: `14:02 · L 10m · R 12m · ⏸ 7m`
   - Pump: `11:30 · L 12m 80ml · R 10m 70ml · ⏸ 2m`
@@ -167,7 +174,7 @@ The last 7 days (ending today, or on the chosen day) as 7 columns on every scree
 
 ## 14. Settings
 
-Baby profile · Caregivers & invites · Day start time · Units · Feed reminders (interval for the baby, opt-in for me) · Downtime merge threshold · Auto-end paused sessions after · Import from Huckleberry (web) · Export data · Theme · Account (delete account).
+Baby profile (name, birth date, sex, timezone) · Caregivers & invites · Day start time · Units · Feed reminders (interval for the baby, opt-in for me) · Downtime merge threshold · Auto-end paused sessions after · Import from Huckleberry (web) · Export data · Theme · Account (delete account).
 
 ## 15. Import (Stage 5, web only)
 
@@ -179,4 +186,4 @@ To be designed when the stage starts.
 
 ## 17. Stats (Phase 2)
 
-Cards with charts per tracker, and a range picker (7d / 30d / all). See [Stage 7](stages/07-stats.md).
+A range picker (7d / 30d / All) and one card per tracker: figure tiles (daily averages over finished days) and a stacked bar chart per day, weekly averages for long ranges. Nappies also show recent poo colours. Pump appears only when there was pumping. A Growth card (all entries, not range-limited) charts weight, length and head against the WHO percentile curves and shows the latest percentile; without a sex it asks for one in Settings. See [Stage 7](stages/07-stats.md).

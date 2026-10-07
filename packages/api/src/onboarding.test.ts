@@ -9,6 +9,7 @@ const baby = (id: string): BabyRow => ({
   birth_date: '2026-09-26',
   timezone: 'Pacific/Auckland',
   day_start_minutes: 0,
+  sex: null,
   created_at: '',
   updated_at: '',
 });

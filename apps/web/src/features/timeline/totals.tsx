@@ -1,6 +1,7 @@
-import { weekdayLabel, type TotalCard, type TotalKey, type WeekRow } from '@babble/domain';
+import { weekdayLabel, type StripItem, type TotalCard, type TotalKey, type WeekRow } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
 import { Card } from '#/components/ui/card';
+import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
 
 const TONES: Record<TotalKey, { icon: LucideIcon; tile: string }> = {
@@ -20,13 +21,17 @@ const ROW_DOT: Record<WeekRow['key'], string> = {
   pump: 'bg-pump',
 };
 
-export function SummaryStrip({ items }: { items: { label: string; value: string }[] }) {
+export function SummaryStrip({ items, className }: { items: StripItem[]; className?: string }) {
   return (
-    <div className="grid grid-cols-3 divide-x divide-line rounded-card bg-surface py-2.5">
+    <div className={cn('grid grid-cols-3 divide-x divide-line rounded-card bg-surface py-2.5', className)}>
       {items.map((item) => (
-        <div key={item.label} className="flex flex-col px-3">
+        <div key={item.label} className="flex min-w-0 flex-col px-3">
           <span className="text-meta text-ink-2">{item.label}</span>
-          <span className="tabular text-heading font-bold">{item.value}</span>
+          <span className="flex items-center gap-1.5">
+            <span className="tabular text-heading font-bold">{item.value}</span>
+            {item.swatch && <PooSwatch colours={[item.swatch]} className="size-4" />}
+          </span>
+          {item.note && <span className="tabular text-caption text-ink-3">{item.note}</span>}
         </div>
       ))}
     </div>

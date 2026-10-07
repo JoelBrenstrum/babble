@@ -37,7 +37,9 @@ test('a breastfeed timer switches sides, pauses, resumes and finishes', async ({
   await expect(page.getByRole('button', { name: 'Save changes' })).toBeVisible();
 
   await page.goto('/track/breast_feed');
-  await expect(page.getByText('Today')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Today' })).toBeVisible();
+  await expect(page.getByText('Next side')).toBeVisible();
+  await expect(page.getByText('Left', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /Breastfeed/ }).filter({ visible: true })).toHaveCount(1);
 });
 
@@ -97,4 +99,22 @@ test('a nap started on one device appears on another', async ({ page, browser },
   await expect(otherPage.getByText('Napping')).toHaveCount(0);
   await expect(page.getByText('Napping')).toHaveCount(0, { timeout: 10_000 });
   await other.close();
+});
+
+test('each list shows a summary strip that opens stats', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+
+  await page.getByRole('link', { name: 'Log nappy' }).click();
+  await page.getByRole('radio', { name: 'Both' }).click();
+  await page.getByRole('checkbox', { name: 'Mustard' }).click();
+  await page.getByRole('button', { name: 'Save' }).click();
+
+  await page.goto('/track/nappy');
+  await expect(page.getByText('Last change')).toBeVisible();
+  await expect(page.getByText('Just now')).toBeVisible();
+  await expect(page.getByText('Wet today')).toBeVisible();
+  await expect(page.getByText('Dirty today')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Open stats' }).click();
+  await expect(page).toHaveURL(/\/stats/);
 });

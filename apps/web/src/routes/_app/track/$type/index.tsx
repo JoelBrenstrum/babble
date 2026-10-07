@@ -1,5 +1,15 @@
-import { eventListQuery } from '@babble/api';
-import { dayKeyFor, formatDayLabel, formatDuration, groupByDay, segmentTotals, type BabyEvent } from '@babble/domain';
+import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
+import {
+  dayKeyFor,
+  formatDayLabel,
+  formatDuration,
+  groupByDay,
+  listStrip,
+  segmentTotals,
+  stripKind,
+  stripWindow,
+  type BabyEvent,
+} from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
@@ -9,6 +19,7 @@ import { Segmented } from '#/components/ui/segmented';
 import { Spinner } from '#/components/ui/spinner';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventRow } from '#/features/events/event-row';
+import { SummaryStrip } from '#/features/timeline/totals';
 import { isEventType, listTypesFor, trackerFor } from '@babble/domain';
 import { useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
@@ -53,6 +64,22 @@ function TrackerList() {
   const isFeed = eventType === 'breast_feed' || eventType === 'bottle';
   const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
   const groups = groupByDay(events.data ?? [], baby.timezone, baby.day_start_minutes);
+  const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
+  const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
+  const recent = useQuery(eventsBetweenQuery(babble.client, baby.id, stripRange.from, stripRange.to));
+  const strip =
+    events.data?.length && recent.data && settings
+      ? listStrip(stripKind(eventType, filter), [...recent.data, ...events.data], {
+          now,
+          timeZone: baby.timezone,
+          dayStartMinutes: baby.day_start_minutes,
+          nightStartMinutes: settings.night_start_minutes,
+          nightEndMinutes: settings.night_end_minutes,
+          units,
+          birthDate: baby.birth_date,
+          sex: baby.sex,
+        })
+      : null;
 
   return (
     <div className="flex flex-col gap-5">
@@ -80,6 +107,13 @@ function TrackerList() {
             { value: 'bottle', label: 'Bottle' },
           ]}
         />
+      )}
+
+      {strip && (
+        <div className="relative rounded-card hover:opacity-90">
+          <SummaryStrip items={strip} />
+          <Link to="/stats" aria-label="Open stats" className="absolute inset-0 rounded-card" />
+        </div>
       )}
 
       {events.isPending && (

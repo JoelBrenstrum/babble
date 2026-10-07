@@ -1,11 +1,12 @@
 import { addBaby, familiesQuery, queryKeys, resolveOnboarding, toBabbleError } from '@babble/api';
-import { todayInTimeZone } from '@babble/domain';
+import { todayInTimeZone, type BabySex } from '@babble/domain';
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { useMemo, useState, type FormEvent } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
 import { SelectField, TextField } from '#/components/ui/field';
 import { StatusMessage } from '#/components/ui/status';
+import { SexField } from '#/features/sex-field';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { detectTimeZone, listTimeZones } from '#/lib/timezones';
 
@@ -37,6 +38,7 @@ function BabyStep() {
   const [name, setName] = useState('');
   const [birthDate, setBirthDate] = useState('');
   const [timezone, setTimezone] = useState(detected);
+  const [sex, setSex] = useState<BabySex | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -51,6 +53,7 @@ function BabyStep() {
         birthDate,
         timezone,
         dayStartMinutes: 0,
+        sex,
       });
       writeStorage(storageKeys.activeFamily, family.id);
       writeStorage(storageKeys.activeBaby, baby.id);
@@ -77,6 +80,7 @@ function BabyStep() {
           value={birthDate}
           onChange={(event) => setBirthDate(event.target.value)}
         />
+        <SexField value={sex} onChange={setSex} />
         <SelectField
           label="Timezone"
           hint="Detected from this device. Times stay correct when you travel."

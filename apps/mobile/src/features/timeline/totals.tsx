@@ -1,7 +1,8 @@
-import { weekdayLabel, type TotalCard, type TotalKey, type WeekRow } from '@babble/domain';
+import { weekdayLabel, type StripItem, type TotalCard, type TotalKey, type WeekRow } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { Card } from '@/components/card';
+import { PooSwatch } from '@/components/poo-swatch';
 import { useTokenColor } from '@/lib/theme';
 
 const TONES: Record<
@@ -24,13 +25,17 @@ const ROW_DOT: Record<WeekRow['key'], string> = {
   pump: 'bg-pump',
 };
 
-export function SummaryStrip({ items }: { items: { label: string; value: string }[] }) {
+export function SummaryStrip({ items }: { items: StripItem[] }) {
   return (
     <View className="flex-row rounded-card bg-surface py-2.5">
       {items.map((item, index) => (
         <View key={item.label} className={`flex-1 px-3 ${index ? 'border-l border-line' : ''}`}>
           <Text className="font-sans text-meta text-ink-2">{item.label}</Text>
-          <Text className="font-bold text-heading text-ink">{item.value}</Text>
+          <View className="flex-row items-center gap-1.5">
+            <Text className="font-bold text-heading text-ink">{item.value}</Text>
+            {item.swatch && <PooSwatch colours={[item.swatch]} />}
+          </View>
+          {item.note && <Text className="font-sans text-caption text-ink-3">{item.note}</Text>}
         </View>
       ))}
     </View>

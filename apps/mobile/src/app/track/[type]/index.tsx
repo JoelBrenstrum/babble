@@ -1,10 +1,13 @@
-import { eventListQuery } from '@babble/api';
+import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
 import {
   dayKeyFor,
   formatDayLabel,
   groupByDay,
   isEventType,
+  listStrip,
   listTypesFor,
+  stripKind,
+  stripWindow,
   trackerFor,
   type TrackerKey,
 } from '@babble/domain';
@@ -21,6 +24,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { Segmented } from '@/components/segmented';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventRow } from '@/features/events/event-row';
+import { SummaryStrip } from '@/features/timeline/totals';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useUnits } from '@/lib/use-events';
@@ -55,6 +59,22 @@ function TrackerListContent({
   const tracker = trackerFor(eventType);
   const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
   const groups = groupByDay(events.data ?? [], baby.timezone, baby.day_start_minutes);
+  const settings = useQuery(babySettingsQuery(client, baby.id)).data;
+  const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
+  const recent = useQuery(eventsBetweenQuery(client, baby.id, stripRange.from, stripRange.to));
+  const strip =
+    events.data?.length && recent.data && settings
+      ? listStrip(stripKind(eventType, filter), [...recent.data, ...events.data], {
+          now,
+          timeZone: baby.timezone,
+          dayStartMinutes: baby.day_start_minutes,
+          nightStartMinutes: settings.night_start_minutes,
+          nightEndMinutes: settings.night_end_minutes,
+          units,
+          birthDate: baby.birth_date,
+          sex: baby.sex,
+        })
+      : null;
   const plusColor = useTokenColor('--on-primary');
   const spinnerColor = useTokenColor('--primary');
 
@@ -89,6 +109,11 @@ function TrackerListContent({
               { value: 'bottle', label: 'Bottle' },
             ]}
           />
+        )}
+        {strip && (
+          <Pressable accessibilityRole="link" accessibilityHint="Opens stats" onPress={() => router.push('/stats')}>
+            <SummaryStrip items={strip} />
+          </Pressable>
         )}
         {events.isPending && <ActivityIndicator size="large" color={spinnerColor} className="py-16" />}
         {events.data?.length === 0 && (

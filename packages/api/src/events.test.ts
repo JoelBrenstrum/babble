@@ -164,7 +164,18 @@ describe('event requests', () => {
     await listEventsBetween(client, 'baby-1', '2026-10-06T00:00:00.000Z', '2026-10-07T00:00:00.000Z');
     const params = requests[0]!.url.searchParams;
     expect(params.getAll('started_at')).toEqual(['lt.2026-10-07T00:00:00.000Z', 'gte.2026-10-05T00:00:00.000Z']);
+    expect(params.get('offset')).toBe('0');
     expect(params.get('limit')).toBe('1000');
+  });
+
+  it('pages through ranges longer than one request', async () => {
+    let call = 0;
+    const { client, requests } = fakeClient(() => ({
+      body: call++ === 0 ? Array.from({ length: 1000 }, () => row({})) : [row({})],
+    }));
+    const events = await listEventsBetween(client, 'baby-1', '2026-01-01T00:00:00.000Z', '2026-10-07T00:00:00.000Z');
+    expect(events).toHaveLength(1001);
+    expect(requests.map((request) => request.url.searchParams.get('offset'))).toEqual(['0', '1000']);
   });
 
   it('reads the latest events through the RPC with embedded details', async () => {

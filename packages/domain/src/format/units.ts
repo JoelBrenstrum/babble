@@ -10,6 +10,20 @@ export function formatWeight(grams: number, units: Units): string {
   return `${Math.floor(totalOunces / 16)} lb ${totalOunces % 16} oz`;
 }
 
+export function formatWeightChange(grams: number, units: Units): string {
+  const sign = grams < 0 ? '−' : '+';
+  const size = Math.abs(grams);
+  if (units === 'metric') {
+    if (Math.round(size) === 0) return '0 g';
+    return size < 1000 ? `${sign}${Math.round(size)} g` : `${sign}${(size / 1000).toFixed(2)} kg`;
+  }
+  const totalOunces = Math.round((size / GRAMS_PER_POUND) * 16);
+  if (totalOunces === 0) return '0 oz';
+  return totalOunces < 16
+    ? `${sign}${totalOunces} oz`
+    : `${sign}${Math.floor(totalOunces / 16)} lb ${totalOunces % 16} oz`;
+}
+
 export function formatLength(mm: number, units: Units): string {
   if (units === 'metric') return `${trimZero((mm / 10).toFixed(1))} cm`;
   return `${trimZero((mm / MM_PER_INCH).toFixed(1))} in`;

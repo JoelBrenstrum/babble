@@ -57,6 +57,7 @@ export async function addBaby(client: BabbleClient, baby: NewBaby): Promise<Baby
         birth_date: baby.birthDate,
         timezone: baby.timezone,
         day_start_minutes: baby.dayStartMinutes,
+        sex: baby.sex ?? null,
       })
       .select()
       .single(),
@@ -66,7 +67,7 @@ export async function addBaby(client: BabbleClient, baby: NewBaby): Promise<Baby
 export async function updateBaby(
   client: BabbleClient,
   babyId: string,
-  patch: Partial<Pick<BabyRow, 'name' | 'birth_date' | 'timezone' | 'day_start_minutes'>>,
+  patch: Partial<Pick<BabyRow, 'name' | 'birth_date' | 'timezone' | 'day_start_minutes' | 'sex'>>,
 ): Promise<BabyRow> {
   return unwrap(await client.from('babies').update(patch).eq('id', babyId).select().single());
 }

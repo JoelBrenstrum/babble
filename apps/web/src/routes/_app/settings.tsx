@@ -14,6 +14,7 @@ import { useCallback, useMemo, useState, type FormEvent } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { Card, SectionLabel } from '#/components/ui/card';
+import { SexField } from '#/features/sex-field';
 import { SelectField, TextField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
@@ -84,6 +85,7 @@ function BabySection({ disabled }: { disabled: boolean }) {
   const [birthDate, setBirthDate] = useState(baby.birth_date);
   const [timezone, setTimezone] = useState(baby.timezone);
   const [dayStart, setDayStart] = useState(baby.day_start_minutes);
+  const [sex, setSex] = useState(baby.sex);
   const [status, setStatus] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
 
   async function save(event: FormEvent) {
@@ -95,6 +97,7 @@ function BabySection({ disabled }: { disabled: boolean }) {
         birth_date: birthDate,
         timezone,
         day_start_minutes: dayStart,
+        sex,
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       setStatus({ tone: 'success', text: 'Saved.' });
@@ -118,6 +121,7 @@ function BabySection({ disabled }: { disabled: boolean }) {
                 onChange={(event) => setBirthDate(event.target.value)}
               />
             </div>
+            <SexField value={sex} onChange={setSex} />
             <SelectField label="Timezone" value={timezone} onChange={(event) => setTimezone(event.target.value)}>
               {timeZones.map((zone) => (
                 <option key={zone} value={zone}>

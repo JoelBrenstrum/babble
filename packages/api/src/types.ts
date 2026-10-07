@@ -37,4 +37,5 @@ export interface NewBaby {
   birthDate: string;
   timezone: string;
   dayStartMinutes: number;
+  sex?: BabyRow['sex'];
 }

@@ -25,6 +25,7 @@ import { DateField } from '@/features/date-field';
 import { DayStartPicker } from '@/features/day-start-picker';
 import { InvitePanel } from '@/features/invite-panel';
 import { TrackingSettings } from '@/features/tracking-settings';
+import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
 import { useBabble } from '@/lib/babble';
 import { loadThemePreference, saveThemePreference, type ThemePreference } from '@/lib/theme-preference';
@@ -59,6 +60,7 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
   const [birthDate, setBirthDate] = useState(baby.birth_date);
   const [timezone, setTimezone] = useState(baby.timezone);
   const [dayStart, setDayStart] = useState(baby.day_start_minutes);
+  const [sex, setSex] = useState(baby.sex);
   const [status, setStatus] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
 
   async function save() {
@@ -69,6 +71,7 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
         birth_date: birthDate,
         timezone,
         day_start_minutes: dayStart,
+        sex,
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       setStatus({ tone: 'success', text: 'Saved.' });
@@ -83,6 +86,7 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
       <Card className={`gap-5 p-5 ${disabled ? 'opacity-60' : ''}`} pointerEvents={disabled ? 'none' : 'auto'}>
         <TextField label="Name" value={name} onChangeText={setName} />
         <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={new Date()} />
+        <SexField value={sex} onChange={setSex} />
         <TimezoneField value={timezone} onChange={setTimezone} />
         <View className="gap-2">
           <Text className="font-semibold text-label text-ink">Day starts at</Text>

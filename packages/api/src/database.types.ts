@@ -11,6 +11,7 @@ export type Database = {
           family_id: string;
           id: string;
           name: string;
+          sex: Database['public']['Enums']['baby_sex'] | null;
           timezone: string;
           updated_at: string;
         };
@@ -21,6 +22,7 @@ export type Database = {
           family_id: string;
           id?: string;
           name: string;
+          sex?: Database['public']['Enums']['baby_sex'] | null;
           timezone: string;
           updated_at?: string;
         };
@@ -31,6 +33,7 @@ export type Database = {
           family_id?: string;
           id?: string;
           name?: string;
+          sex?: Database['public']['Enums']['baby_sex'] | null;
           timezone?: string;
           updated_at?: string;
         };
@@ -570,6 +573,7 @@ export type Database = {
       };
     };
     Enums: {
+      baby_sex: 'female' | 'male';
       bottle_content: 'breast_milk' | 'formula' | 'mixed' | 'other';
       event_source: 'manual' | 'huckleberry_csv';
       event_type: 'sleep' | 'breast_feed' | 'bottle' | 'nappy' | 'pump' | 'growth' | 'custom';
@@ -702,6 +706,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      baby_sex: ['female', 'male'],
       bottle_content: ['breast_milk', 'formula', 'mixed', 'other'],
       event_source: ['manual', 'huckleberry_csv'],
       event_type: ['sleep', 'breast_feed', 'bottle', 'nappy', 'pump', 'growth', 'custom'],

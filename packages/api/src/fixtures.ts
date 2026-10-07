@@ -8,6 +8,7 @@ export const sampleBaby: BabyRow = {
   birth_date: '2026-09-26',
   timezone: 'Pacific/Auckland',
   day_start_minutes: 420,
+  sex: 'female',
   created_at: '2026-09-26T09:00:00Z',
   updated_at: '2026-09-26T09:00:00Z',
 };
@@ -17,6 +18,7 @@ export const sampleSibling: BabyRow = {
   id: 'baby-jacob',
   name: 'Jacob',
   birth_date: '2025-08-03',
+  sex: 'male',
 };
 
 export const sampleMembers: FamilyMemberRow[] = [
