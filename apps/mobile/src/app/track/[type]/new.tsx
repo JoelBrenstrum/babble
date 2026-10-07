@@ -1,6 +1,8 @@
 import { runningEventsQuery, toBabbleError } from '@babble/api';
 import {
   emptyDraft,
+  napPromptOnFeedEnd,
+  napPromptOnFeedStart,
   isEventType,
   isSessionType,
   trackerFor,
@@ -20,6 +22,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { StatusMessage } from '@/components/status-message';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventForm } from '@/features/events/event-form';
+import { useNapPrompt } from '@/features/nap-prompt';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useStartSession, useUnits } from '@/lib/use-events';
@@ -52,6 +55,8 @@ function NewEntryContent({
   const units = useUnits(client, baby.id);
   const tracker = trackerFor(eventType);
   const [logPast, setLogPast] = useState(!isSessionType(eventType));
+  const showNapPrompt = useNapPrompt();
+  const runningEvents = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
 
   return (
     <Screen>
@@ -70,6 +75,13 @@ function NewEntryContent({
             timeZone={baby.timezone}
             units={units}
             initial={pastDraft(eventType, new Date())}
+            onSaved={(draft) => {
+              if (draft.type !== 'bottle') return;
+              showNapPrompt(
+                napPromptOnFeedStart(runningEvents, draft.startedAt) ??
+                  napPromptOnFeedEnd(runningEvents, draft.endedAt ?? draft.startedAt),
+              );
+            }}
             onDone={() => router.back()}
           />
         </Card>
@@ -81,13 +93,16 @@ function NewEntryContent({
 function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: string; onLogPast: () => void }) {
   const { client } = useBabble();
   const start = useStartSession(client, babyId);
-  const running = useQuery(runningEventsQuery(client, babyId)).data?.find((event) => event.type === type);
+  const runningEvents = useQuery(runningEventsQuery(client, babyId)).data ?? [];
+  const running = runningEvents.find((event) => event.type === type);
+  const showNapPrompt = useNapPrompt();
   const [error, setError] = useState<string | null>(null);
   const spinnerColor = useTokenColor('--primary');
   const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
 
   function begin(side?: Side) {
     setError(null);
+    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, new Date().toISOString()));
     start.mutate(
       { type, side },
       {

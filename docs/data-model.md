@@ -88,6 +88,13 @@ Rules:
 
 Downtime is derived rather than stored so that changing the threshold applies to past sessions too, and edits can't leave inconsistent data behind.
 
+## Session RPCs
+
+- `start_session(baby_id, type, side, start_at?)`: idempotent per running type; `start_at` lets a nap start "at feed end".
+- `switch_side`, `pause_session`, `resume_session(event_id, side?)`.
+- `end_session(event_id, end_at?)`: closes the open segment; feeds and pumps end at their last segment, naps at `end_at` (default now).
+- `resume_feed(event_id, side?)`: reopens the most recent feed (breast or bottle) if it's a breastfeed and no feed is running; adds a new segment so the gap shows as downtime.
+
 ## Feeds for reminders
 
 The "last feed" for reminders is the most recent `breast_feed` **or** `bottle` event, measured by `started_at`.

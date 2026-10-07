@@ -6,8 +6,6 @@ import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { PageSpinner } from '@/components/page-spinner';
 import { useTokenColor } from '@/lib/theme';
-import { useBabble } from '@/lib/babble';
-import { useRealtimeEvents } from '@/lib/use-events';
 import { useOnboarding } from '@/lib/use-onboarding';
 
 export default function TabsLayout() {
@@ -41,7 +39,6 @@ export default function TabsLayout() {
 
   return (
     <>
-      <RealtimeEvents babyId={state.baby.id} />
       <Tabs
         screenOptions={{
           headerShown: false,
@@ -80,10 +77,4 @@ export default function TabsLayout() {
       </Tabs>
     </>
   );
-}
-
-function RealtimeEvents({ babyId }: { babyId: string }) {
-  const { client } = useBabble();
-  useRealtimeEvents(client, babyId);
-  return null;
 }

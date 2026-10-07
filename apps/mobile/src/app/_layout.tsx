@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '@/components/toast';
+import { BabyScope } from '@/features/baby-scope';
 import { ActiveBabyProvider } from '@/lib/active-baby';
 import { BabbleProvider } from '@/lib/babble';
 import { useAppFonts } from '@/lib/fonts';
@@ -34,8 +35,10 @@ export default function RootLayout() {
             <ActiveBabyProvider>
               <ThemeRoot>
                 <ToastProvider>
-                  <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
-                  <StatusBar style="auto" />
+                  <BabyScope>
+                    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
+                    <StatusBar style="auto" />
+                  </BabyScope>
                 </ToastProvider>
               </ThemeRoot>
             </ActiveBabyProvider>

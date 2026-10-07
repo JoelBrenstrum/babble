@@ -24,6 +24,7 @@ import { TextField } from '@/components/text-field';
 import { DateField } from '@/features/date-field';
 import { DayStartPicker } from '@/features/day-start-picker';
 import { InvitePanel } from '@/features/invite-panel';
+import { TrackingSettings } from '@/features/tracking-settings';
 import { TimezoneField } from '@/features/timezone-field';
 import { useBabble } from '@/lib/babble';
 import { loadThemePreference, saveThemePreference, type ThemePreference } from '@/lib/theme-preference';
@@ -33,7 +34,7 @@ const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' }
 
 export default function SettingsTab() {
   const ready = useReadyState();
-  const { session } = useBabble();
+  const { session, client } = useBabble();
   if (!ready || !session) return null;
   const editable = canEdit(ready.family, session.user.id);
 
@@ -43,6 +44,7 @@ export default function SettingsTab() {
       <View className="gap-8">
         <BabySection baby={ready.baby} disabled={!editable} />
         <CaregiversSection family={ready.family} userId={session.user.id} editable={editable} />
+        <TrackingSettings client={client} babyId={ready.baby.id} disabled={!editable} />
         <AppearanceSection />
         <AccountSection email={session.user.email ?? ''} />
       </View>

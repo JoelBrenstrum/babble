@@ -68,8 +68,12 @@ export {
 export {
   canResumeFeed,
   latestFeed,
+  napPromptContent,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
   staleSessions,
+  type NapAction,
   type NapPrompt,
+  type NapPromptContent,
+  type NapPromptOption,
 } from './events/feed-rules';

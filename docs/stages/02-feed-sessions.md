@@ -26,3 +26,17 @@
 ## Tests
 
 - Table-driven tests for `summariseSegments`, segment-edit recomputation, and resume eligibility
+
+## Status (2026-10-07)
+
+Built on branch `stage-2`, on web and mobile:
+
+- [x] `summariseSegments` (downtime rows, merge threshold, same-side continuation, live idle time while paused) and the session breakdown on the timer and entry screens: "Total feeding 22m 55s · lost 3m 02s"
+- [x] Segment editor for saved feeds and pumps: change a side, change any side or downtime duration, add or remove rows. Times are recalculated in order from the start (`editableRowsToSegments`).
+- [x] Resume the latest feed: `resume_feed` RPC enforces "most recent feed, nothing else running". The Resume button shows only when that's true.
+- [x] Paused feeds and pumps auto-finish after the configured time (checked by the apps every minute; ends at the last segment end).
+- [x] Feed ↔ nap prompts: starting a breastfeed or logging a bottle during a nap asks "End Olivia's nap?"; finishing a breastfeed or logging a bottle with no nap running asks "Is Olivia asleep?". `start_session` and `end_session` accept a time for "End at feed start" / "Asleep since feed end".
+- [x] Settings → Tracking: units, "ignore gaps shorter than", "finish paused feeds after".
+- [x] Tests: 14 new pgTAP assertions (92 total), domain table tests, web/mobile component tests, Playwright for nap prompts, resume and segment editing.
+
+Deferred: auto-finishing paused sessions happens when an app is open, not on the server (a server job arrives with Stage 4's scheduler).

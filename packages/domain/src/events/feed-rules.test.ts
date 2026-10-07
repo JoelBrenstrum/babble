@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { canResumeFeed, latestFeed, napPromptOnFeedEnd, napPromptOnFeedStart, staleSessions } from './feed-rules';
+import {
+  canResumeFeed,
+  latestFeed,
+  napPromptContent,
+  napPromptOnFeedEnd,
+  napPromptOnFeedStart,
+  staleSessions,
+} from './feed-rules';
 import { makeEvent } from './test-events';
 
 const NOW = new Date('2026-10-06T12:00:00Z');
@@ -72,5 +79,46 @@ describe('nap prompts', () => {
       feedEndedAt: '2026-10-06T12:00:00Z',
     });
     expect(napPromptOnFeedEnd([nap], '2026-10-06T12:00:00Z')).toBeNull();
+  });
+});
+
+describe('napPromptContent', () => {
+  it('offers to end a nap, including at the feed start when that was a while ago', () => {
+    const content = napPromptContent(
+      { kind: 'end-nap', nap, feedStartedAt: '2026-10-06T11:40:00Z' },
+      'Olivia',
+      'UTC',
+      NOW,
+    );
+    expect(content.title).toBe("End Olivia's nap?");
+    expect(content.body).toBe('A nap has been running since 11:30 am.');
+    expect(content.options).toEqual([
+      { label: 'End nap now', action: { kind: 'end-nap', napId: 'nap' }, primary: true },
+      {
+        label: 'End at feed start (11:40 am)',
+        action: { kind: 'end-nap', napId: 'nap', at: '2026-10-06T11:40:00Z' },
+        primary: false,
+      },
+      { label: 'Keep sleeping', action: null, primary: false },
+    ]);
+  });
+
+  it('skips "end at feed start" for a feed that just started', () => {
+    const content = napPromptContent({ kind: 'end-nap', nap, feedStartedAt: NOW.toISOString() }, 'Olivia', 'UTC', NOW);
+    expect(content.options.map((option) => option.label)).toEqual(['End nap now', 'Keep sleeping']);
+  });
+
+  it('asks whether the baby is asleep after a feed', () => {
+    const content = napPromptContent({ kind: 'start-nap', feedEndedAt: '2026-10-06T15:34:00Z' }, 'Olivia', 'UTC', NOW);
+    expect(content.title).toBe('Is Olivia asleep?');
+    expect(content.options).toEqual([
+      { label: 'Start nap now', action: { kind: 'start-nap' }, primary: true },
+      {
+        label: 'Asleep since feed end (3:34 pm)',
+        action: { kind: 'start-nap', at: '2026-10-06T15:34:00Z' },
+        primary: false,
+      },
+      { label: 'Not now', action: null, primary: false },
+    ]);
   });
 });

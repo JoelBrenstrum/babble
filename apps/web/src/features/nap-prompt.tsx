@@ -1,5 +1,5 @@
 import { endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
-import { formatTimeOfDay, type NapPrompt } from '@babble/domain';
+import { napPromptContent, type NapAction, type NapPrompt } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { Moon } from 'lucide-react';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
@@ -43,45 +43,6 @@ export function NapPromptProvider({
   );
 }
 
-interface Choice {
-  label: string;
-  hint?: string;
-  run?: () => Promise<unknown>;
-  primary?: boolean;
-}
-
-export function napPromptChoices(
-  prompt: NapPrompt,
-  actions: { endNap: (at?: string) => Promise<unknown>; startNap: (at?: string) => Promise<unknown> },
-  timeZone: string,
-): { title: (name: string) => string; body: string; choices: Choice[] } {
-  if (prompt.kind === 'end-nap') {
-    const feedStart = formatTimeOfDay(prompt.feedStartedAt, timeZone);
-    const startedJustNow = Date.now() - Date.parse(prompt.feedStartedAt) < 2 * 60_000;
-    return {
-      title: (name) => `End ${name}'s nap?`,
-      body: `A nap has been running since ${formatTimeOfDay(prompt.nap.startedAt, timeZone)}.`,
-      choices: [
-        { label: 'End nap now', run: () => actions.endNap(), primary: true },
-        ...(startedJustNow
-          ? []
-          : [{ label: `End at feed start (${feedStart})`, run: () => actions.endNap(prompt.feedStartedAt) }]),
-        { label: 'Keep sleeping' },
-      ],
-    };
-  }
-  const feedEnd = formatTimeOfDay(prompt.feedEndedAt, timeZone);
-  return {
-    title: (name) => `Is ${name} asleep?`,
-    body: 'Start a nap so the timer is already running when they wake.',
-    choices: [
-      { label: 'Start nap now', run: () => actions.startNap(), primary: true },
-      { label: `Asleep since feed end (${feedEnd})`, run: () => actions.startNap(prompt.feedEndedAt) },
-      { label: 'Not now' },
-    ],
-  };
-}
-
 function NapPromptDialog({
   prompt,
   client,
@@ -109,20 +70,14 @@ function NapPromptDialog({
     return () => document.removeEventListener('keydown', escape);
   }, [onClose]);
 
-  const { title, body, choices } = napPromptChoices(
-    prompt,
-    {
-      endNap: (at) => endSession(client, prompt.kind === 'end-nap' ? prompt.nap.id : '', at),
-      startNap: (at) => startSession(client, babyId, 'sleep', 'left', at),
-    },
-    timeZone,
-  );
+  const { title, body, options } = napPromptContent(prompt, babyName, timeZone, new Date());
 
-  async function choose(choice: Choice) {
-    if (!choice.run) return onClose();
-    setPending(choice.label);
+  async function choose(label: string, action: NapAction) {
+    if (!action) return onClose();
+    setPending(label);
     try {
-      await choice.run();
+      if (action.kind === 'end-nap') await endSession(client, action.napId, action.at);
+      else await startSession(client, babyId, 'sleep', 'left', action.at);
       await queryClient.invalidateQueries({ queryKey: queryKeys.events(babyId), refetchType: 'all' });
       onClose();
     } catch (error) {
@@ -146,22 +101,22 @@ function NapPromptDialog({
             <Moon className="size-5" strokeWidth={2.75} />
           </span>
           <h2 id="nap-prompt-title" className="text-heading font-bold">
-            {title(babyName)}
+            {title}
           </h2>
         </div>
         <p className="text-body text-ink-2">{body}</p>
         <div className="flex flex-col gap-2">
-          {choices.map((choice, index) => (
+          {options.map((option, index) => (
             <Button
-              key={choice.label}
+              key={option.label}
               ref={index === 0 ? firstButton : undefined}
               size="lg"
-              variant={choice.primary ? 'primary' : choice.run ? 'secondary' : 'ghost'}
-              loading={pending === choice.label}
-              disabled={pending !== null && pending !== choice.label}
-              onClick={() => choose(choice)}
+              variant={option.primary ? 'primary' : option.action ? 'secondary' : 'ghost'}
+              loading={pending === option.label}
+              disabled={pending !== null && pending !== option.label}
+              onClick={() => choose(option.label, option.action)}
             >
-              {choice.label}
+              {option.label}
             </Button>
           ))}
         </div>

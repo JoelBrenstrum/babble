@@ -6,6 +6,7 @@ import {
   queryKeys,
   restoreEvent,
   resumeSession,
+  runningEventsQuery,
   saveEvent,
   startSession,
   subscribeToBabyEvents,
@@ -16,6 +17,7 @@ import {
 import {
   applySessionAction,
   sessionNoun,
+  staleSessions,
   type BabyEvent,
   type EventDraft,
   type SessionAction,
@@ -40,8 +42,41 @@ export function useRealtimeEvents(client: BabbleClient, babyId: string) {
   );
 }
 
+export interface TrackingSettings {
+  units: Units;
+  mergeGapMs: number;
+  autoEndPausedMinutes: number;
+}
+
+export function useTrackingSettings(client: BabbleClient, babyId: string): TrackingSettings {
+  const settings = useQuery(babySettingsQuery(client, babyId)).data;
+  return {
+    units: settings?.units ?? 'metric',
+    mergeGapMs: (settings?.downtime_merge_threshold_sec ?? 15) * 1000,
+    autoEndPausedMinutes: settings?.auto_end_paused_session_min ?? 30,
+  };
+}
+
 export function useUnits(client: BabbleClient, babyId: string): Units {
-  return useQuery(babySettingsQuery(client, babyId)).data?.units ?? 'metric';
+  return useTrackingSettings(client, babyId).units;
+}
+
+export function useAutoEndStaleSessions(client: BabbleClient, babyId: string) {
+  const queryClient = useQueryClient();
+  const { autoEndPausedMinutes } = useTrackingSettings(client, babyId);
+  const running = useQuery(runningEventsQuery(client, babyId)).data;
+  useEffect(() => {
+    const check = () => {
+      const stale = staleSessions(running ?? [], new Date(), autoEndPausedMinutes);
+      if (stale.length === 0) return;
+      void Promise.all(stale.map((event) => endSession(client, event.id))).then(() =>
+        refreshEvents(queryClient, babyId),
+      );
+    };
+    check();
+    const id = setInterval(check, 60_000);
+    return () => clearInterval(id);
+  }, [running, autoEndPausedMinutes, client, babyId, queryClient]);
 }
 
 function refreshEvents(queryClient: QueryClient, babyId: string) {

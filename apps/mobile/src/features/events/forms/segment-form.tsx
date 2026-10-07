@@ -1,6 +1,7 @@
-import { formatDuration, segmentTotals, type DraftOfType, type Side, type TimedSegment } from '@babble/domain';
+import { segmentTotals, type DraftOfType, type Side, type TimedSegment } from '@babble/domain';
 import { Text } from 'react-native';
 import { DateTimeField } from '@/components/datetime-field';
+import { SegmentEditor } from '../segment-editor';
 import { Stepper } from '@/components/stepper';
 import { FormSection, shiftDraftStart, type FormProps } from './shared';
 
@@ -32,7 +33,6 @@ export function SegmentTimesFields<D extends DraftOfType<'breast_feed'> | DraftO
   timeZone,
   isNew,
 }: FormProps<D>) {
-  const editableDurations = isNew || draft.segments.length <= 2;
   const minutes = minutesBySide(draft.segments);
 
   function setMinutes(side: Side, value: number | null) {
@@ -49,7 +49,7 @@ export function SegmentTimesFields<D extends DraftOfType<'breast_feed'> | DraftO
         error={errors.startedAt}
         onChange={(startedAt) => onChange(shiftDraftStart(draft, startedAt))}
       />
-      {editableDurations ? (
+      {isNew ? (
         <>
           <Stepper
             label="Left"
@@ -67,9 +67,12 @@ export function SegmentTimesFields<D extends DraftOfType<'breast_feed'> | DraftO
           />
         </>
       ) : (
-        <Text className="rounded-tile bg-surface px-4 py-3 font-sans text-meta text-ink-2">
-          {`${draft.segments.length} timed segments · ${formatDuration(segmentTotals(draft.segments, new Date()).activeMs, { seconds: false })} in total. Editing individual segments arrives in the next update.`}
-        </Text>
+        <SegmentEditor
+          key={draft.startedAt}
+          startedAt={draft.startedAt}
+          segments={draft.segments}
+          onChange={({ segments, endedAt }) => onChange({ ...draft, segments, endedAt })}
+        />
       )}
       {errors.segments && <Text className="font-sans text-meta text-danger">{errors.segments}</Text>}
     </FormSection>

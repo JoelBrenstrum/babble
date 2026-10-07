@@ -39,3 +39,24 @@ Paste everything below this line into Claude Design.
 > - Home tracker rows highlight the whole row on hover, including behind the + button; the + button itself gets a stronger border on hover.
 > - Every clickable control uses the pointer cursor on web.
 > - Growth fields accept numbers only (decimal keypad on phones).
+
+---
+
+## 2026-10-07 · Stage 2: feed sessions
+
+Paste everything below this line into Claude Design.
+
+> Update Babble screens v1.1 for Stage 2. Most of this follows the existing `Phone Flows.dc.html` designs (`feed-detail`, `prompt-endnap`, `prompt-startnap`); these are the differences and additions.
+>
+> **1. Session breakdown card** (timer screen and entry screen for breastfeeds and pumps): rows of Left / Right with their coloured dots, Downtime rows with the dashed neutral dot and an "idle" tag, a "running" tag on the live side, durations right-aligned in tabular figures, and a footer "Total feeding **22m 55s**" with "lost 3m 02s" on the right. Pumps say "Total pumping". While paused, the last row is a live Downtime row that keeps counting. Imported feeds show only side rows (no downtime).
+>
+> **2. Segment editor** (entry screen, replacing the simple Left/Right minute steppers for saved feeds and pumps): a bordered list where each row is either an L/R pair of round toggle buttons (active one solid in its feed colour) or an "Idle" label with the dashed dot, then minutes and seconds inputs (`[ 10 ] m [ 32 ] s`), then a small trash button. Under the list: chip buttons "+ Add side" and "+ Add downtime", and the hint "Times are recalculated in order from the start time."
+>
+> **3. Resume feed**: on the most recent breastfeed's entry screen, a full-width primary "▶ Resume feed" button above the form, with the caption "Resume only appears on the most recent feed."
+>
+> **4. Nap prompts**: as designed, but the options are:
+> - End-nap sheet: title "End Olivia's nap?", body "A nap has been running since 1:58 am.", options **End nap now** (primary), **End at feed start (3:12 am)** (secondary; only when the feed started more than two minutes ago, e.g. a logged bottle), **Keep sleeping** (ghost).
+> - Start-nap sheet: title "Is Olivia asleep?", body "Start a nap so the timer is already running when they wake.", options **Start nap now** (primary), **Asleep since feed end (3:34 am)** (secondary), **Not now** (ghost).
+> - On desktop web these are centred dialogs; on phones they're bottom sheets with a grab handle and a moon icon tile in sleep-soft.
+>
+> **5. Settings → Tracking** (new section between Caregivers and Appearance): a Units segmented control ("Metric (ml, kg, cm)" / "Imperial (oz, lb, in)"), a stepper "Ignore gaps shorter than [15] sec" with the hint "Short pauses, like switching sides, won't show as downtime.", and a stepper "Finish paused feeds after [30] min" with the hint "A paused feed or pump that's been left this long is finished automatically."
