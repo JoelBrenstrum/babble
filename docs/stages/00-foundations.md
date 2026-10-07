@@ -51,9 +51,12 @@ Verified locally:
 - [x] Playwright E2E (phone + desktop): magic-link sign-in via Mailpit → family → baby → day start → invite → Home → Settings (`pnpm --filter @babble/web e2e`)
 - [x] Docker image builds (242 MB) and serves the app
 
-Needs your accounts:
+Deployed (2026-10-07):
 
-- [ ] Create the Supabase Cloud project, push migrations, configure redirect URLs and Google OAuth
-- [ ] Create the Fly app, set secrets, `fly deploy`
+- [x] Supabase Cloud project in Sydney (`ap-southeast-2`); migrations applied with `supabase db push --db-url` through the IPv4 session pooler (the direct database host is IPv6-only). Connection details live in `packages/db/.env.cloud` (gitignored).
+- [x] Fly app `babble-app` in `syd`, live at https://babble-app.fly.dev. Fly's first deploy failed to allocate IPs; fixed with `fly ips allocate-v6` and `fly ips allocate-v4 --shared`.
+- [ ] Supabase Auth URL configuration: Site URL `https://babble-app.fly.dev`, redirects `https://babble-app.fly.dev/auth/callback` and `babble://**` (set in the dashboard)
+- [ ] Custom SMTP (e.g. Resend) so magic links reach people outside the Supabase team
+- [ ] Google OAuth client, then `GOOGLE_AUTH_ENABLED = "true"` in `fly.toml`
 
 Deviation from the plan: `infra/self-host` runs only the web container and points at an existing Supabase (Cloud or the official self-hosting stack), instead of bundling the ~10 Supabase containers itself.

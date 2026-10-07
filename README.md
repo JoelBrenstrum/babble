@@ -62,5 +62,5 @@ pnpm format:check
 
 ## Deploying
 
-- **Fly.io:** `fly deploy` from the repo root (see `fly.toml` for the secrets to set).
+- **Fly.io:** live at https://babble-app.fly.dev. `fly deploy --remote-only` from the repo root (see `fly.toml` for the secrets). Apply new migrations with `pnpm --filter @babble/db exec supabase db push --db-url "$SUPABASE_DB_URL"` using the URL in `packages/db/.env.cloud`.
 - **Self-hosted / Unraid:** see [infra/self-host/README.md](infra/self-host/README.md).
