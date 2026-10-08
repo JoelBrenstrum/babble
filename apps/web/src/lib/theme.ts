@@ -8,6 +8,7 @@ export function resolveTheme(preference: string | null, prefersDark: boolean): '
 export const THEME_COLORS = { light: '#f3f0e8', dark: '#141612' } as const;
 const OVERRIDE_ID = 'theme-color-override';
 
+// Rendered in the document directly because route head() keeps only one meta per name.
 export const themeColorMeta = [
   { name: 'theme-color', content: THEME_COLORS.light, media: '(prefers-color-scheme: light)' },
   { name: 'theme-color', content: THEME_COLORS.dark, media: '(prefers-color-scheme: dark)' },

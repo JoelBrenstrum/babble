@@ -31,7 +31,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       { title: 'Babble' },
       { name: 'description', content: 'A calm, detailed baby tracker for sleep, feeds, nappies and more.' },
-      ...themeColorMeta,
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-title', content: 'Babble' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
@@ -56,6 +55,9 @@ function RootDocument({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
+        {themeColorMeta.map((tag) => (
+          <meta key={tag.media} {...tag} />
+        ))}
       </head>
       <body>
         {children}
