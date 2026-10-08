@@ -15,7 +15,8 @@ Then configure Supabase Auth:
 - **Redirect URLs**: exactly `${PUBLIC_URL}/auth/callback`, plus `babble://auth/callback` if you use the mobile app. Don't add wildcards such as `babble://**` or `exp://**`: another app could catch a sign-in link meant for Babble.
 - **Secure password change** on, so changing a password needs a fresh sign-in.
 - **Confirm email** on if sign-ups are open.
-- Custom **SMTP**, so sign-in emails aren't limited to Supabase's test sender.
+- Custom **SMTP**, so sign-in emails aren't limited to Supabase's test sender. Any provider works; with [Resend](https://resend.com), verify your domain there, create a sending-only API key, and use host `smtp.resend.com`, port `465`, user `resend`, the API key as the password, and a sender on your verified domain. Then raise **Rate Limits → emails per hour** from its default of 2.
+- **Email templates**: on Supabase Cloud, run `SUPABASE_ACCESS_TOKEN=<personal access token> pnpm --filter @babble/db push:email-templates <project-ref>` to upload the templates in `packages/db/supabase/templates/` with the subjects from `config.toml`. Self-hosted Supabase reads them from files instead: mount the folder into the auth container and set the `GOTRUE_MAILER_TEMPLATES_*` URLs.
 - Optionally enable the **Google** provider.
 
 If you self-host Supabase, before exposing it:

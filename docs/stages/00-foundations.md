@@ -56,7 +56,8 @@ Deployed (2026-10-07):
 - [x] Supabase Cloud project in Sydney (`ap-southeast-2`); migrations applied with `supabase db push --db-url` through the IPv4 session pooler (the direct database host is IPv6-only). Connection details live in `packages/db/.env.cloud` (gitignored).
 - [x] Fly app `babble-app` in `syd`, live at https://babble-app.fly.dev. Fly's first deploy failed to allocate IPs; fixed with `fly ips allocate-v6` and `fly ips allocate-v4 --shared`.
 - [ ] Supabase Auth URL configuration: Site URL `https://babble-app.fly.dev`, redirects `https://babble-app.fly.dev/auth/callback` and `babble://**` (set in the dashboard)
-- [ ] Custom SMTP (e.g. Resend) so magic links reach people outside the Supabase team
+- [ ] Custom SMTP through Resend, sending as `babble <hello@babble.brenstrum.com>` (domain verified in Resend, SMTP and rate limit set in the dashboard)
+- [x] Branded auth email templates in `packages/db/supabase/templates/`, used locally via `config.toml`; to be pasted into the cloud dashboard
 - [ ] Google OAuth client, then `GOOGLE_AUTH_ENABLED = "true"` in `fly.toml`
 
 Deviation from the plan: `infra/self-host` runs only the web container and points at an existing Supabase (Cloud or the official self-hosting stack), instead of bundling the ~10 Supabase containers itself.
