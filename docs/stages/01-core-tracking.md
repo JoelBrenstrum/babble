@@ -49,7 +49,7 @@ Times are shown and entered in the baby's timezone.
 
 - Every tracker can be added, edited and deleted on both apps.
 - A timer started on one device is visible and controllable on another within a couple of seconds.
-- The family is logging in Babble instead of Huckleberry.
+- The family is logging in babble instead of Huckleberry.
 
 ## Tests
 

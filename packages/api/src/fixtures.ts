@@ -62,6 +62,8 @@ function meta(id: string, createdBy = 'user-jane') {
     deletedAt: null,
     source: 'manual' as const,
     sessionState: null,
+    endedBy: null,
+    endRecordedAt: null,
     notes: null,
   };
 }
@@ -84,6 +86,7 @@ export function sampleRunningSleep(now: Date): BabyEvent {
   return {
     ...meta('event-running-sleep', 'user-john'),
     type: 'sleep',
+    segments: [],
     startedAt: minutesAgo(now, 72),
     endedAt: null,
     details: { locations: ['bassinet'], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false },
@@ -105,6 +108,7 @@ export function sampleEvents(now: Date): BabyEvent[] {
     {
       ...meta('event-sleep-1', 'user-john'),
       type: 'sleep',
+      segments: [],
       startedAt: minutesAgo(now, 240),
       endedAt: minutesAgo(now, 140),
       details: {

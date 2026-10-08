@@ -1,6 +1,9 @@
-import { toBabbleError, type BabbleClient } from '@babble/api';
+import { eventListQuery, toBabbleError, type BabbleClient } from '@babble/api';
+import { useQuery } from '@tanstack/react-query';
 import {
+  growthPlaceholders,
   hasErrors,
+  needsChoice,
   validateDraft,
   type BabyEvent,
   type DraftErrors,
@@ -31,6 +34,8 @@ export function toDraft(event: BabyEvent): EventDraft {
     deletedAt: _d,
     source: _s,
     sessionState: _st,
+    endedBy: _eb,
+    endRecordedAt: _er,
     ...draft
   } = event;
   return draft as EventDraft;
@@ -63,6 +68,10 @@ export function EventForm({
   const save = useSaveEvent(client, babyId);
   const remove = useDeleteEvent(client, babyId);
   const isNew = !event;
+  const growthEvents = useQuery({
+    ...eventListQuery(client, babyId, ['growth']),
+    enabled: draft.type === 'growth',
+  }).data;
 
   async function submit() {
     const found = validateDraft(draft, new Date());
@@ -87,7 +96,14 @@ export function EventForm({
       {draft.type === 'bottle' && <BottleForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'nappy' && <NappyForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'pump' && <PumpForm {...common} draft={draft} onChange={setDraft} amountsFirst={focusAmounts} />}
-      {draft.type === 'growth' && <GrowthForm {...common} draft={draft} onChange={setDraft} />}
+      {draft.type === 'growth' && (
+        <GrowthForm
+          {...common}
+          draft={draft}
+          onChange={setDraft}
+          previous={growthPlaceholders(growthEvents ?? [], units, timeZone, event?.id)}
+        />
+      )}
       {draft.type === 'custom' && <CustomForm {...common} draft={draft} onChange={setDraft} />}
       <TextField
         label="Notes (optional)"
@@ -97,7 +113,7 @@ export function EventForm({
       />
       {serverError && <StatusMessage tone="danger">{serverError}</StatusMessage>}
       {hasErrors(errors) && <StatusMessage tone="danger">Check the highlighted fields.</StatusMessage>}
-      <Button size="lg" loading={save.isPending} onPress={submit}>
+      <Button size="lg" loading={save.isPending} disabled={needsChoice(draft)} onPress={submit}>
         {save.isPending ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
       </Button>
       {event && (

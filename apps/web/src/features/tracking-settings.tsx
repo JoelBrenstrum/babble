@@ -6,6 +6,7 @@ import { Card, SectionLabel } from '#/components/ui/card';
 import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
 import { Stepper } from '#/components/ui/stepper';
+import { showNativePicker } from '#/lib/native-picker';
 
 export function TrackingSettings({
   client,
@@ -117,6 +118,7 @@ function TimeInput({
   return (
     <input
       type="time"
+      onClick={(event) => showNativePicker(event.currentTarget)}
       aria-label={label}
       step={900}
       className="h-tap rounded-button border border-line-strong bg-raised px-3 text-body text-ink"

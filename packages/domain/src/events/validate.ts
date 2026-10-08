@@ -16,7 +16,8 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
 
   switch (draft.type) {
     case 'nappy': {
-      const { dirty, pooColours, pooSize, pooTextures } = draft.details;
+      const { dirty, pooColours, pooSize, pooTextures, typePending } = draft.details;
+      if (typePending) errors.type = 'Pick wet, dirty, both or dry.';
       if (pooColours.length > 2) errors.pooColours = 'Pick up to two colours.';
       if (!dirty && (pooColours.length > 0 || pooSize || pooTextures.length > 0)) {
         errors.dirty = 'Poo details need a dirty nappy.';
@@ -65,6 +66,10 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
   }
 
   return errors;
+}
+
+export function needsChoice(draft: EventDraft): boolean {
+  return draft.type === 'nappy' && draft.details.typePending === true;
 }
 
 export function hasErrors(errors: DraftErrors): boolean {

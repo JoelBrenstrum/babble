@@ -29,7 +29,7 @@ export function Screen({
 }
 
 export function Wordmark() {
-  return <Text className="font-brand text-[28px] text-primary">Babble</Text>;
+  return <Text className="font-brand text-[28px] text-primary">babble</Text>;
 }
 
 export function Title({ children, subtitle }: { children: string; subtitle?: string }) {

@@ -49,7 +49,7 @@ export function BabbleProvider({ children }: { children: ReactNode }) {
 function ConfigErrorScreen({ message }: { message: string }) {
   return (
     <View className="flex-1 justify-center gap-3 bg-bg px-6">
-      <Text className="font-bold text-title text-ink">Babble isn't configured</Text>
+      <Text className="font-bold text-title text-ink">babble isn't configured</Text>
       <Text className="font-sans text-body text-ink-2">{message.replace(/^(\w+)/, 'EXPO_PUBLIC_$1')}.</Text>
       <Text className="font-sans text-body text-ink-2">
         Copy apps/mobile/.env.example to apps/mobile/.env, fill it in, then restart Expo with `--clear`.

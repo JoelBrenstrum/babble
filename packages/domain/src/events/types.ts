@@ -33,6 +33,11 @@ export interface TimedSegment {
   endedAt: string | null;
 }
 
+export interface SleepStretch {
+  startedAt: string;
+  endedAt: string | null;
+}
+
 export interface SleepDetails {
   locations: SleepLocation[];
   fallAsleep: FallAsleep | null;
@@ -55,6 +60,7 @@ export interface NappyDetails {
   pooColours: PooColour[];
   pooTextures: PooTexture[];
   rash: boolean;
+  typePending?: true;
 }
 
 export interface PumpDetails {
@@ -81,7 +87,7 @@ interface EventBase {
 }
 
 export type EventDraft =
-  | (EventBase & { type: 'sleep'; details: SleepDetails })
+  | (EventBase & { type: 'sleep'; details: SleepDetails; segments: SleepStretch[] })
   | (EventBase & { type: 'breast_feed'; segments: TimedSegment[] })
   | (EventBase & { type: 'bottle'; details: BottleDetails })
   | (EventBase & { type: 'nappy'; details: NappyDetails })
@@ -104,6 +110,8 @@ export interface EventMeta {
   deletedAt: string | null;
   source: EventSource;
   sessionState: SessionState | null;
+  endedBy: string | null;
+  endRecordedAt: string | null;
 }
 
 export type BabyEvent = EventDraft & EventMeta;

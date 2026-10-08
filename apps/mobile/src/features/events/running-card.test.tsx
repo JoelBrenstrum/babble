@@ -1,4 +1,5 @@
-import { sampleBaby, sampleFamily, sampleRunningFeed } from '@babble/api/fixtures';
+import { sampleBaby, sampleFamily, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
+import type { BabyEvent } from '@babble/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
@@ -8,22 +9,26 @@ import { RunningCard } from './running-card';
 
 const mockDeleteEvent = jest.fn().mockResolvedValue(undefined);
 const mockSetSessionStart = jest.fn().mockResolvedValue(undefined);
+const mockEndSession = jest.fn().mockResolvedValue(undefined);
+const mockPauseSession = jest.fn().mockResolvedValue(undefined);
 jest.mock('@babble/api', () => ({
   ...jest.requireActual('@babble/api'),
   deleteEvent: (...args: unknown[]) => mockDeleteEvent(...args),
   setSessionStart: (...args: unknown[]) => mockSetSessionStart(...args),
+  endSession: (...args: unknown[]) => mockEndSession(...args),
+  pauseSession: (...args: unknown[]) => mockPauseSession(...args),
 }));
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-async function renderCard(startedSecondsAgo: number) {
+async function renderCard(startedSecondsAgo: number, sample: (now: Date) => BabyEvent = sampleRunningFeed) {
   const now = new Date();
   const event = {
-    ...sampleRunningFeed(now),
+    ...sample(now),
     startedAt: new Date(now.getTime() - startedSecondsAgo * 1000).toISOString(),
-  };
+  } as BabyEvent;
   const onDiscarded = jest.fn();
   await render(
     <QueryClientProvider
@@ -74,5 +79,28 @@ describe('RunningCard start time', () => {
     await fireEvent.press(screen.getByRole('button', { name: '10 min earlier' }));
     const expected = new Date(Date.parse(event.startedAt) - 10 * 60_000).toISOString();
     await waitFor(() => expect(mockSetSessionStart).toHaveBeenCalledWith(fixtureClient, event.id, expected));
+  });
+});
+
+describe('RunningCard end time', () => {
+  it('ends earlier, but not before the current side started', async () => {
+    const { event } = await renderCard(30 * 60);
+    await fireEvent.press(screen.getByRole('button', { name: 'Ended earlier?' }));
+    expect(screen.getByRole('button', { name: '15 min ago' })).toBeDisabled();
+    const before = Date.now();
+    await fireEvent.press(screen.getByRole('button', { name: '5 min ago' }));
+    await waitFor(() => expect(mockEndSession).toHaveBeenCalledWith(fixtureClient, event.id, expect.any(String)));
+    const at = Date.parse(mockEndSession.mock.calls[0]![2] as string);
+    expect(before - at).toBeGreaterThanOrEqual(5 * 60_000 - 1000);
+    expect(before - at).toBeLessThan(5 * 60_000 + 1000);
+  });
+});
+
+describe('RunningCard nap', () => {
+  it('pauses a nap and shows the baby as awake', async () => {
+    const { event } = await renderCard(30 * 60, sampleRunningSleep);
+    expect(screen.getByText('Napping')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: 'Pause nap' }));
+    await waitFor(() => expect(mockPauseSession).toHaveBeenCalledWith(fixtureClient, event.id));
   });
 });

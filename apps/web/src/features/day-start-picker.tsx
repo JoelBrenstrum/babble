@@ -1,6 +1,7 @@
 import { clockToMinutes, minutesToClock } from '@babble/domain';
 import { Check } from 'lucide-react';
 import { cn } from '#/lib/cn';
+import { showNativePicker } from '#/lib/native-picker';
 
 export function DayStartPicker({ value, onChange }: { value: number; onChange: (minutes: number) => void }) {
   const custom = value !== 0;
@@ -26,6 +27,7 @@ export function DayStartPicker({ value, onChange }: { value: number; onChange: (
             Day starts at
             <input
               type="time"
+              onClick={(event) => showNativePicker(event.currentTarget)}
               aria-label="Day start time"
               step={900}
               className="h-tap rounded-button border border-line-strong bg-raised px-3 text-body text-ink"

@@ -29,6 +29,8 @@ function row(overrides: Partial<EventRow>): EventRow {
     ended_at: '2026-10-06T09:00:00Z',
     notes: null,
     created_by: 'user-1',
+    ended_by: null,
+    end_recorded_at: null,
     source: 'manual',
     source_ref: null,
     created_at: '2026-10-06T09:00:00Z',
@@ -73,6 +75,35 @@ describe('rowToEvent', () => {
         { side: 'left', startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:10:00Z' },
         { side: 'right', startedAt: '2026-10-06T09:12:00Z', endedAt: null },
       ],
+    });
+  });
+
+  it('maps who ended an entry and when they pressed stop', () => {
+    const event = rowToEvent(row({ type: 'sleep', ended_by: 'user-2', end_recorded_at: '2026-10-06T09:30:00Z' }));
+    expect(event).toMatchObject({ endedBy: 'user-2', endRecordedAt: '2026-10-06T09:30:00Z' });
+  });
+
+  it('maps a paused nap into stretches of sleep without sides', () => {
+    const event = rowToEvent(
+      row({
+        type: 'sleep',
+        ended_at: null,
+        session: { event_id: 'event-1', state: 'paused' },
+        segments: [
+          {
+            id: 's1',
+            event_id: 'event-1',
+            side: null,
+            started_at: '2026-10-06T09:00:00Z',
+            ended_at: '2026-10-06T09:40:00Z',
+          },
+        ],
+      }),
+    );
+    expect(event).toMatchObject({
+      type: 'sleep',
+      sessionState: 'paused',
+      segments: [{ startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:40:00Z' }],
     });
   });
 
@@ -232,5 +263,24 @@ describe('event requests', () => {
     expect(requests[0]!.method).toBe('PATCH');
     expect(requests[0]!.url.searchParams.get('id')).toBe('eq.event-1');
     expect(requests[0]!.body).toHaveProperty('deleted_at');
+  });
+});
+
+describe('nap stretches in the payload', () => {
+  it('sends stretches fitted to an edited start and end, and none for an unpaused nap', () => {
+    const nap = {
+      ...emptyDraft('sleep', NOW),
+      startedAt: '2026-10-06T08:50:00Z',
+      endedAt: '2026-10-06T09:30:00Z',
+      segments: [
+        { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:10:00Z' },
+        { startedAt: '2026-10-06T09:20:00Z', endedAt: '2026-10-06T09:40:00Z' },
+      ],
+    };
+    expect(draftToPayload(nap, { babyId: 'b' })).toHaveProperty('segments', [
+      { side: null, started_at: '2026-10-06T08:50:00Z', ended_at: '2026-10-06T09:10:00Z' },
+      { side: null, started_at: '2026-10-06T09:20:00Z', ended_at: '2026-10-06T09:30:00Z' },
+    ]);
+    expect(draftToPayload({ ...nap, segments: [] }, { babyId: 'b' })).not.toHaveProperty('segments');
   });
 });

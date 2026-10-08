@@ -11,9 +11,11 @@ test('a parent can export everything as JSON, including deleted entries', async 
   await onboard(page);
 
   await page.getByRole('link', { name: 'Log nappy' }).click();
+  await page.getByRole('radio', { name: 'Wet' }).click();
   await page.getByRole('button', { name: 'Save' }).click();
   await page.goto('/');
   await page.getByRole('link', { name: 'Log nappy' }).click();
+  await page.getByRole('radio', { name: 'Wet' }).click();
   await page.getByRole('button', { name: 'Save' }).click();
   await page.getByRole('link', { name: /Wet/ }).first().click();
   await page.getByRole('button', { name: 'Delete' }).click();

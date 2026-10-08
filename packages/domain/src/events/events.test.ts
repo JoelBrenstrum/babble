@@ -4,7 +4,8 @@ import { emptyDraft } from './drafts';
 import { groupByDay } from './group';
 import { otherSide, segmentTotals } from './segments';
 import { makeEvent } from './test-events';
-import { hasErrors, validateDraft } from './validate';
+import { withNappyType } from './nappy';
+import { hasErrors, needsChoice, validateDraft } from './validate';
 
 const NOW = new Date('2026-10-06T10:30:00Z');
 
@@ -51,10 +52,19 @@ describe('segmentTotals', () => {
 });
 
 describe('validateDraft', () => {
-  it('accepts a fresh draft of every type except custom and growth', () => {
-    for (const type of ['sleep', 'breast_feed', 'bottle', 'nappy', 'pump'] as const) {
+  it('accepts a fresh draft of every type except custom, growth and nappy', () => {
+    for (const type of ['sleep', 'breast_feed', 'bottle', 'pump'] as const) {
       expect(validateDraft(emptyDraft(type, NOW), NOW)).toEqual({});
     }
+  });
+
+  it('requires a nappy type to be picked', () => {
+    const draft = emptyDraft('nappy', NOW);
+    expect(validateDraft(draft, NOW)).toEqual({ type: 'Pick wet, dirty, both or dry.' });
+    expect(needsChoice(draft)).toBe(true);
+    const picked = { ...draft, details: withNappyType(draft.details, 'dry') };
+    expect(validateDraft(picked, NOW)).toEqual({});
+    expect(needsChoice(picked)).toBe(false);
   });
 
   it('requires a custom title and a growth measurement', () => {
@@ -70,7 +80,8 @@ describe('validateDraft', () => {
   });
 
   it('limits poo colours and requires a dirty nappy for poo details', () => {
-    const draft = emptyDraft('nappy', NOW);
+    const empty = emptyDraft('nappy', NOW);
+    const draft = { ...empty, details: withNappyType(empty.details, 'wet') };
     expect(
       validateDraft(
         { ...draft, details: { ...draft.details, dirty: true, pooColours: ['yellow', 'green', 'brown'] } },
@@ -203,5 +214,26 @@ describe('groupByDay', () => {
       { dayKey: '2026-10-06', items: [events[2], events[1]] },
       { dayKey: '2026-10-05', items: [events[0]] },
     ]);
+  });
+});
+
+describe('describeEvent for naps', () => {
+  it('shows wake-ups and awake time for a nap that was paused', () => {
+    const nap = makeEvent('sleep', {
+      startedAt: '2026-10-06T08:00:00Z',
+      endedAt: '2026-10-06T09:30:00Z',
+      segments: [
+        { startedAt: '2026-10-06T08:00:00Z', endedAt: '2026-10-06T08:50:00Z' },
+        { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:30:00Z' },
+      ],
+    });
+    expect(describeEvent(nap, NOW, 'metric')).toMatchObject({
+      duration: '1h 20m',
+      parts: [
+        { text: '1 wake-up', tone: 'sleep' },
+        { text: 'awake 10m', tone: 'downtime' },
+      ],
+    });
+    expect(describeEvent({ ...nap, segments: [] }, NOW, 'metric')).toMatchObject({ duration: '1h 30m', parts: [] });
   });
 });

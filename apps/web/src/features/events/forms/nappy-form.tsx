@@ -1,12 +1,10 @@
-import type { DraftOfType, PooTexture } from '@babble/domain';
+import { nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
 import { MultiChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
 import { SizeSelector } from '#/components/ui/size-selector';
 import { SwatchPicker } from '#/components/ui/swatch-picker';
 import { FormSection, instantDraft, type FormProps } from './shared';
-
-type Kind = 'wet' | 'dirty' | 'both' | 'dry';
 
 const TEXTURES: { value: PooTexture; label: string }[] = [
   { value: 'runny', label: 'Runny' },
@@ -20,25 +18,13 @@ const TEXTURES: { value: PooTexture; label: string }[] = [
 export function NappyForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'nappy'>>) {
   const details = draft.details;
   const set = (patch: Partial<typeof details>) => onChange({ ...draft, details: { ...details, ...patch } });
-  const kind: Kind = details.wet && details.dirty ? 'both' : details.wet ? 'wet' : details.dirty ? 'dirty' : 'dry';
-
-  function setKind(next: Kind) {
-    const wet = next === 'wet' || next === 'both';
-    const dirty = next === 'dirty' || next === 'both';
-    set({
-      wet,
-      dirty,
-      wetSize: wet ? details.wetSize : null,
-      ...(dirty ? {} : { pooSize: null, pooColours: [], pooTextures: [] }),
-    });
-  }
 
   return (
     <FormSection>
       <Segmented
         label="Type"
-        value={kind}
-        onChange={setKind}
+        value={nappyType(details)}
+        onChange={(type) => onChange({ ...draft, details: withNappyType(details, type) })}
         options={[
           { value: 'wet', label: 'Wet' },
           { value: 'dirty', label: 'Dirty' },

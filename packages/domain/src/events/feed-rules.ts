@@ -31,7 +31,8 @@ export function canResumeFeed(
 export function staleSessions(running: readonly BabyEvent[], now: Date, autoEndMinutes: number): BabyEvent[] {
   const limit = autoEndMinutes * 60_000;
   return running.filter((event) => {
-    if (event.type !== 'breast_feed' && event.type !== 'pump') return false;
+    if (event.type !== 'breast_feed' && event.type !== 'pump' && event.type !== 'sleep') return false;
+    if (event.segments.length === 0 && event.type === 'sleep') return false;
     if (event.segments.some((segment) => segment.endedAt === null)) return false;
     const lastEnd = event.segments.reduce(
       (latest, segment) => Math.max(latest, segment.endedAt ? Date.parse(segment.endedAt) : 0),

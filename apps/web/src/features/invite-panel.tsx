@@ -55,7 +55,7 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
 
   async function share() {
     if (navigator.share) {
-      await navigator.share({ title: 'Join our family on Babble', url: link }).catch(() => undefined);
+      await navigator.share({ title: 'Join our family on babble', url: link }).catch(() => undefined);
     } else {
       await copy(link);
     }

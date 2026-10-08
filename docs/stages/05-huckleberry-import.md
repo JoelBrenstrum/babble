@@ -1,6 +1,6 @@
 # Stage 5: Huckleberry CSV Import
 
-**Goal:** bring our Huckleberry history into Babble. Can start straight after Stage 1, in parallel with Stage 2.
+**Goal:** bring our Huckleberry history into babble. Can start straight after Stage 1, in parallel with Stage 2.
 
 Import is **CSV-only**. The unofficial API was considered and dropped.
 
@@ -57,7 +57,7 @@ Real exports are never committed. `__fixtures__/real-week.csv` is a real week wi
 ## Status (2026-10-07)
 
 - [x] `import_events(baby_id, events)` RPC: batches of up to 500, skips rows whose `(source, source_ref)` already exist, runs as the caller so RLS applies. pgTAP covered.
-- [x] Web import screen (Settings → Data → Import from Huckleberry): choose a CSV, pick the baby and the records' timezone, preview counts/date range/skipped rows/notes, import in batches of 200 with progress, summary with "already in Babble" count.
+- [x] Web import screen (Settings → Data → Import from Huckleberry): choose a CSV, pick the baby and the records' timezone, preview counts/date range/skipped rows/notes, import in batches of 200 with progress, summary with "already in babble" count.
 - [x] Imported rows show an "Imported" tag instead of an author; their entry screen says "Imported · date".
 - [x] Playwright: import the anonymised fixture, then re-import and confirm nothing is duplicated.
 

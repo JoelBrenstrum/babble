@@ -7,6 +7,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 import { cn } from '#/lib/cn';
+import { opensPicker, showNativePicker } from '#/lib/native-picker';
 
 const controlClass =
   'h-tap w-full rounded-button border border-line-strong bg-raised px-4 text-body text-ink placeholder:text-ink-3 aria-[invalid=true]:border-danger';
@@ -33,6 +34,10 @@ export function TextField({
         aria-describedby={hint || error ? `${id}-help` : undefined}
         className={cn(controlClass, className)}
         {...props}
+        onClick={(event) => {
+          if (opensPicker(props.type)) showNativePicker(event.currentTarget);
+          props.onClick?.(event);
+        }}
       />
     </FieldShell>
   );

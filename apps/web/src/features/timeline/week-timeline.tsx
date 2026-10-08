@@ -63,16 +63,29 @@ export function WeekTimeline({
                   style={{ top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac) }}
                 />
               ))}
-              {layout?.feeds.map((item) => (
-                <span
-                  key={item.event.id}
-                  className={cn(
-                    'absolute inset-x-[30%] h-[3px] rounded-full',
-                    item.event.type === 'bottle' ? 'bg-bottle' : 'bg-feed-right',
-                  )}
-                  style={{ top: pct(item.startFrac) }}
-                />
-              ))}
+              {layout?.feeds.map((item) =>
+                item.parts.length > 0 ? (
+                  item.parts.map((part, index) => (
+                    <span
+                      key={`${item.event.id}-${index}`}
+                      className={cn(
+                        'absolute inset-x-[30%] min-h-[3px] rounded-full',
+                        part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right',
+                      )}
+                      style={{ top: pct(part.startFrac), height: pct(part.endFrac - part.startFrac) }}
+                    />
+                  ))
+                ) : (
+                  <span
+                    key={item.event.id}
+                    className={cn(
+                      'absolute inset-x-[30%] h-[3px] rounded-full',
+                      item.event.type === 'bottle' ? 'bg-bottle' : 'bg-feed-right',
+                    )}
+                    style={{ top: pct(item.startFrac) }}
+                  />
+                ),
+              )}
               {layout?.nappies.map((item) => (
                 <span
                   key={item.event.id}

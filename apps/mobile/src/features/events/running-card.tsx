@@ -7,6 +7,7 @@ import {
   napPromptOnFeedEnd,
   segmentTotals,
   sessionNoun,
+  summariseSleep,
   type BabyEvent,
   type Side,
 } from '@babble/domain';
@@ -22,6 +23,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useNapPrompt } from '@/features/nap-prompt';
 import { useDiscardSession, useSessionAction } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
+import { EndTimeButton, EndTimeEditor } from './end-time-editor';
 import { StartTimeButton, StartTimeEditor } from './start-time-editor';
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
@@ -49,6 +51,7 @@ export function RunningCard({
   const trashColor = useTokenColor('--ink-3');
   const noun = sessionNoun(event.type);
   const [editingStart, setEditingStart] = useState(false);
+  const [editingEnd, setEditingEnd] = useState(false);
 
   function discardNow() {
     discard.mutate(event);
@@ -76,6 +79,20 @@ export function RunningCard({
   ) : (
     <StartTimeButton event={event} timeZone={timeZone} onPress={() => setEditingStart(true)} />
   );
+  const endControls = (end: (at?: string) => void) =>
+    editingEnd ? (
+      <EndTimeEditor
+        event={event}
+        timeZone={timeZone}
+        onCancel={() => setEditingEnd(false)}
+        onEnd={(at) => {
+          setEditingEnd(false);
+          end(at);
+        }}
+      />
+    ) : (
+      <EndTimeButton onPress={() => setEditingEnd(true)} />
+    );
   const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
   const header = (title: string) => (
@@ -104,16 +121,38 @@ export function RunningCard({
   );
 
   if (event.type === 'sleep') {
+    const sleep = summariseSleep(event, now);
     return (
       <View className="gap-3 rounded-card bg-sleep-soft p-5">
-        {header('Napping')}
-        <Text className="font-medium text-timer-lg text-on-sleep">
-          {formatTimer(now.getTime() - Date.parse(event.startedAt))}
-        </Text>
+        {header(sleep.paused ? 'Awake · nap paused' : 'Napping')}
+        <View className="flex-row flex-wrap items-baseline gap-x-3">
+          <Text className="font-medium text-timer-lg text-on-sleep">{formatTimer(sleep.asleepMs)}</Text>
+          {sleep.wakeUps > 0 && (
+            <Text className="font-sans text-meta text-ink-2">
+              {`awake ${formatDuration(sleep.awakeMs)} · ${sleep.wakeUps === 1 ? '1 wake-up' : `${sleep.wakeUps} wake-ups`}`}
+            </Text>
+          )}
+        </View>
         {startControls}
-        <Button size="lg" loading={action.isPending} onPress={() => action.mutate({ event, action: { kind: 'end' } })}>
-          End nap
-        </Button>
+        <View className="flex-row gap-3">
+          <Button
+            variant="secondary"
+            size="lg"
+            className="flex-1"
+            onPress={() => action.mutate({ event, action: sleep.paused ? { kind: 'resume' } : { kind: 'pause' } })}
+          >
+            {sleep.paused ? 'Resume nap' : 'Pause nap'}
+          </Button>
+          <Button
+            size="lg"
+            className="flex-1"
+            loading={action.isPending && action.variables?.action.kind === 'end'}
+            onPress={() => action.mutate({ event, action: { kind: 'end' } })}
+          >
+            End nap
+          </Button>
+        </View>
+        {endControls((at) => action.mutate({ event, action: { kind: 'end', at } }))}
       </View>
     );
   }
@@ -125,10 +164,12 @@ export function RunningCard({
   const currentMs = totals.openSegmentStartedAt ? now.getTime() - Date.parse(totals.openSegmentStartedAt) : 0;
   const title = event.type === 'pump' ? 'Pumping' : 'Feeding';
 
-  function finish() {
+  function finish(at?: string) {
     const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
-    const ended = action.mutateAsync({ event, action: { kind: 'end' } });
-    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, feedEndTime(event, clock.now())));
+    const ended = action.mutateAsync({ event, action: { kind: 'end', at } });
+    if (event.type === 'breast_feed') {
+      showNapPrompt(napPromptOnFeedEnd(running, at ?? feedEndTime(event, clock.now())));
+    }
     if (event.type === 'pump') {
       ended
         .then(() => router.push({ pathname: '/events/[id]', params: { id: event.id, finish: '1' } }))
@@ -195,12 +236,13 @@ export function RunningCard({
         <Button
           size="lg"
           className="flex-1"
-          onPress={finish}
+          onPress={() => finish()}
           loading={action.isPending && action.variables?.action.kind === 'end'}
         >
           Finish
         </Button>
       </View>
+      {endControls(finish)}
     </View>
   );
 }

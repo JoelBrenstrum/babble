@@ -1,4 +1,4 @@
-# Babble
+# babble
 
 A calm, detailed baby tracker: sleep, breastfeeds (with per-side segments and downtime), bottles, nappies, pumping, growth and custom events. A TanStack Start web app (also an installable phone PWA) and an Expo mobile app, backed by Supabase.
 
@@ -15,7 +15,7 @@ Planning lives in [docs/PLAN.md](docs/PLAN.md). Licensed under [AGPL-3.0](LICENS
 | `packages/config` | Runtime config parsing and entitlements                                      |
 | `packages/tokens` | Design tokens → web Tailwind theme + NativeWind preset                       |
 | `packages/db`     | Supabase config, migrations and pgTAP tests                                  |
-| `infra/self-host` | Running Babble on your own server                                            |
+| `infra/self-host` | Running babble on your own server                                            |
 
 ## Getting started
 

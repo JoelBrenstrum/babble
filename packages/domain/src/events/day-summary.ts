@@ -1,6 +1,8 @@
-import { nightIntervals, overlapMs, type TimeWindow } from '../timeline/days';
+import { nightIntervals, type TimeWindow } from '../timeline/days';
 import { eventSpan } from '../timeline/day-layout';
 import { segmentTotals } from './segments';
+import { summariseSegments } from './session-summary';
+import { asleepIntervals, asleepWithin } from './sleep-stretches';
 import type { BabyEvent } from './types';
 
 export interface NightSettings {
@@ -19,6 +21,7 @@ export interface DaySummary {
   feeds: number;
   leftMs: number;
   rightMs: number;
+  idleMs: number;
   bottles: number;
   bottleMl: number;
   nappies: number;
@@ -35,7 +38,7 @@ export interface DaySummary {
 export function summariseDay(
   events: readonly BabyEvent[],
   window: TimeWindow,
-  options: { now?: Date; night?: NightSettings } = {},
+  options: { now?: Date; night?: NightSettings; mergeGapMs?: number } = {},
 ): DaySummary {
   const now = options.now && options.now < window.end ? options.now : window.end;
   const nights = options.night
@@ -51,6 +54,7 @@ export function summariseDay(
     feeds: 0,
     leftMs: 0,
     rightMs: 0,
+    idleMs: 0,
     bottles: 0,
     bottleMl: 0,
     nappies: 0,
@@ -71,14 +75,19 @@ export function summariseDay(
 
     switch (event.type) {
       case 'sleep': {
-        const inDay = overlapMs(span, window);
+        const inDay = asleepWithin(event, window, now);
         if (inDay === 0) break;
-        const atNight = nights.reduce((total, night) => total + overlapMs(span, overlapWindow(night, window)), 0);
+        const atNight = nights.reduce(
+          (total, night) => total + asleepWithin(event, overlapWindow(night, window), now),
+          0,
+        );
         summary.sleepMs += inDay;
         summary.nightMs += atNight;
         summary.napMs += inDay - atNight;
         if (startsInDay && !inNight(span.start)) summary.naps += 1;
-        summary.longestSleepMs = Math.max(summary.longestSleepMs, span.end.getTime() - span.start.getTime());
+        for (const stretch of asleepIntervals(event, now)) {
+          summary.longestSleepMs = Math.max(summary.longestSleepMs, stretch.end.getTime() - stretch.start.getTime());
+        }
         break;
       }
       case 'breast_feed': {
@@ -87,6 +96,9 @@ export function summariseDay(
         summary.feeds += 1;
         summary.leftMs += totals.leftMs;
         summary.rightMs += totals.rightMs;
+        if (event.source === 'manual') {
+          summary.idleMs += summariseSegments(event.segments, { mergeGapMs: options.mergeGapMs ?? 0, now }).downtimeMs;
+        }
         break;
       }
       case 'bottle':

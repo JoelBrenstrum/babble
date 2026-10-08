@@ -1,4 +1,6 @@
-import { babyChoices, familiesQuery, resolveOnboarding, type BabyChoice } from '@babble/api';
+import { babyChoices, familiesQuery, resolveOnboarding, runningEventsQuery, type BabyChoice } from '@babble/api';
+import { runningIndicator } from '@babble/domain';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Outlet, redirect, useRouter } from '@tanstack/react-router';
 import { AppShell } from '#/components/shell/app-shell';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
@@ -30,6 +32,7 @@ function AppLayout() {
   const router = useRouter();
   useRealtimeEvents(babble.client, baby.id);
   useAutoEndStaleSessions(babble.client, baby.id);
+  const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
 
   function selectBaby(choice: BabyChoice) {
     writeStorage(storageKeys.activeFamily, choice.familyId);
@@ -38,7 +41,13 @@ function AppLayout() {
   }
 
   return (
-    <AppShell family={family} baby={baby} choices={babyChoices(families)} onSelectBaby={selectBaby}>
+    <AppShell
+      family={family}
+      baby={baby}
+      choices={babyChoices(families)}
+      onSelectBaby={selectBaby}
+      running={runningIndicator(running)}
+    >
       <NapPromptProvider client={babble.client} babyId={baby.id} babyName={baby.name} timeZone={baby.timezone}>
         <Outlet />
       </NapPromptProvider>

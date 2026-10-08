@@ -35,7 +35,8 @@ export {
 } from './events/describe';
 export { groupByDay, type DayGroup } from './events/group';
 export { otherSide, segmentTotals, type SegmentLike, type SegmentTotals } from './events/segments';
-export { hasErrors, validateDraft, type DraftErrors } from './events/validate';
+export { hasErrors, needsChoice, validateDraft, type DraftErrors } from './events/validate';
+export { nappyType, withNappyType, type NappyType } from './events/nappy';
 export { formatAgo, formatDuration, formatTimer } from './format/duration';
 export {
   formatLength,
@@ -64,11 +65,12 @@ export {
   type WeekSummary,
 } from './events/day-summary';
 export { fractionOf, hourTicks, localInstant, nightIntervals, lastDays, type TimeWindow } from './timeline/days';
-export { bucketByDay, dayLayout, type DayLayout, type TimelineItem } from './timeline/day-layout';
+export { bucketByDay, dayLayout, markerShiftPercent, type DayLayout, type TimelineItem } from './timeline/day-layout';
 export {
   countedDays,
   daySummaryStrip,
   dayTotalCards,
+  feedTimeSplit,
   formatDayRange,
   nappyKind,
   weekdayLabel,
@@ -82,13 +84,19 @@ export {
   applySessionAction,
   DISCARD_CONFIRM_AFTER_MS,
   discardNeedsConfirmation,
+  EARLIER_END_OPTIONS_MIN,
   EARLIER_START_OPTIONS_MIN,
+  earlierEnd,
   earlierStart,
+  earliestEnd,
+  endChangeError,
   sessionNoun,
   startChangeError,
+  suggestedEnd,
   type SessionAction,
 } from './events/session-actions';
-export { entryAuthorText } from './format/entry-author';
+export { runningIndicator, type RunningIndicator } from './events/running-indicator';
+export { entryAuthorText, entryEndedText } from './format/entry-author';
 export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input';
 export {
   editableRowsToSegments,
@@ -146,3 +154,11 @@ export {
   type StripItem,
   type StripKind,
 } from './lists/list-strip';
+export { growthInputUnit, growthPlaceholders, toGrowthInput } from './growth/previous';
+export {
+  asleepIntervals,
+  asleepWithin,
+  fitStretches,
+  summariseSleep,
+  type SleepSummary,
+} from './events/sleep-stretches';

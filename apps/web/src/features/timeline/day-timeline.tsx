@@ -2,10 +2,12 @@ import {
   formatDuration,
   formatTimeOfDay,
   formatVolume,
+  markerShiftPercent,
   nappyKind,
   type DayLayout,
   type TimelineItem,
   type Units,
+  summariseSleep,
 } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
 import { PooSwatch } from '#/components/ui/poo-swatch';
@@ -14,6 +16,11 @@ import { TimelineItemLink } from './timeline-item-link';
 
 const pct = (frac: number) => `${(frac * 100).toFixed(3)}%`;
 const LABEL_MIN_FRAC = 0.03;
+
+function markerPosition(item: TimelineItem) {
+  const shift = `min(${item.column * 3.75}rem, ${markerShiftPercent(item.column)}%)`;
+  return { top: pct(item.startFrac), left: shift, maxWidth: `calc(100% - ${shift})` };
+}
 
 function itemLabel(item: TimelineItem, timeZone: string, units: Units): string {
   const { event } = item;
@@ -92,7 +99,7 @@ export function DayTimeline({
           )}
         </div>
         {lanes.map((lane) => (
-          <div key={lane.key} className="relative">
+          <div key={lane.key} className="relative overflow-x-clip">
             {layout[lane.key].map((item) => (
               <Item key={item.event.id} item={item} label={itemLabel(item, timeZone, units)} units={units} />
             ))}
@@ -119,15 +126,27 @@ function Item({ item, label, units }: { item: TimelineItem; label: string; units
         label={label}
         style={span}
         className={cn(
-          'absolute inset-x-0 min-h-1 overflow-hidden bg-sleep px-1.5 py-0.5 text-caption font-bold text-ink-on-solid hover:brightness-110',
+          'absolute inset-x-0 min-h-1 overflow-hidden px-1.5 py-0.5 text-caption font-bold text-ink-on-solid hover:brightness-110',
+          item.parts.length > 0 ? 'border border-dashed border-sleep' : 'bg-sleep',
           roundEnds,
           item.running && 'animate-pulse',
         )}
       >
-        {item.endFrac - item.startFrac > LABEL_MIN_FRAC &&
-          formatDuration((event.endedAt ? Date.parse(event.endedAt) : Date.now()) - Date.parse(event.startedAt), {
-            seconds: false,
-          })}
+        {item.parts.map((part, index) => (
+          <span
+            key={index}
+            className="absolute inset-x-0 min-h-[2px] bg-sleep"
+            style={{
+              top: pct((part.startFrac - item.startFrac) / Math.max(item.endFrac - item.startFrac, 1e-6)),
+              height: pct((part.endFrac - part.startFrac) / Math.max(item.endFrac - item.startFrac, 1e-6)),
+            }}
+          />
+        ))}
+        {item.endFrac - item.startFrac > LABEL_MIN_FRAC && (
+          <span className="relative">
+            {formatDuration(summariseSleep(event, new Date()).asleepMs, { seconds: false })}
+          </span>
+        )}
       </TimelineItemLink>
     );
   }
@@ -141,7 +160,7 @@ function Item({ item, label, units }: { item: TimelineItem; label: string; units
         style={span}
         className={cn(
           'absolute inset-x-0 min-h-1 overflow-hidden hover:brightness-110',
-          event.type === 'pump' ? 'bg-pump/40' : 'bg-session-downtime-soft',
+          event.type === 'pump' ? 'bg-pump/40' : 'border border-dashed border-session-downtime',
           roundEnds,
           item.running && 'animate-pulse',
         )}
@@ -164,14 +183,14 @@ function Item({ item, label, units }: { item: TimelineItem; label: string; units
   }
 
   const marker =
-    'absolute flex h-5 max-w-full -translate-y-1/2 items-center gap-1 truncate rounded-chip border px-1.5 text-caption font-bold hover:brightness-95';
+    'absolute flex h-5 -translate-y-1/2 items-center gap-1 truncate rounded-chip border px-1.5 text-caption font-bold hover:brightness-95';
   if (event.type === 'bottle') {
     return (
       <TimelineItemLink
         event={event}
         running={false}
         label={label}
-        style={{ top: pct(item.startFrac), left: `${item.column * 3.75}rem` }}
+        style={markerPosition(item)}
         className={cn(marker, 'z-[1] border-bottle/50 bg-bottle-soft text-on-bottle')}
       >
         {event.details.amountMl ? formatVolume(event.details.amountMl, units) : 'Bottle'}
@@ -184,7 +203,7 @@ function Item({ item, label, units }: { item: TimelineItem; label: string; units
         event={event}
         running={false}
         label={label}
-        style={{ top: pct(item.startFrac), left: `${item.column * 3.75}rem` }}
+        style={markerPosition(item)}
         className={cn(marker, 'border-nappy/50 bg-nappy-soft text-on-nappy')}
       >
         {event.details.dirty && event.details.pooColours.length > 0 && (

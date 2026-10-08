@@ -15,7 +15,9 @@ const ROW_DOT: Record<WeekRow['key'], string> = {
   sleep: 'bg-sleep',
   longest: 'bg-sleep',
   feeds: 'bg-feed-right',
-  breast: 'bg-feed-left',
+  left: 'bg-feed-left',
+  right: 'bg-feed-right',
+  idle: 'border border-dashed border-session-downtime',
   bottle: 'bg-bottle',
   nappies: 'bg-nappy',
   pump: 'bg-pump',
@@ -52,7 +54,7 @@ export function DayTotals({ cards }: { cards: TotalCard[] }) {
               <span className="flex-1 text-row-title font-semibold">{card.label}</span>
               <span className="tabular text-heading font-bold">{card.value}</span>
             </div>
-            <dl className="grid grid-cols-3 gap-2">
+            <dl className={cn('grid gap-2', card.details.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3')}>
               {card.details.map((detail) => (
                 <div key={detail.label} className="flex flex-col rounded-tile bg-surface px-3 py-2">
                   <dt className="text-caption text-ink-2">{detail.label}</dt>

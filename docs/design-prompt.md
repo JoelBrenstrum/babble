@@ -1,6 +1,6 @@
-# Claude Design prompt: Babble UI theme
+# Claude Design prompt: babble UI theme
 
-Create a design system and UI theme for **Babble**, a baby tracking app for logging sleep, breastfeeds, bottles, nappies, pumping, growth and custom events. Think of it as a calmer, more detailed take on Huckleberry. It is a single Expo (React Native) codebase that also runs on the web, styled with NativeWind (Tailwind), so every token must map cleanly to a Tailwind theme.
+Create a design system and UI theme for **babble**, a baby tracking app for logging sleep, breastfeeds, bottles, nappies, pumping, growth and custom events. Think of it as a calmer, more detailed take on Huckleberry. It is a single Expo (React Native) codebase that also runs on the web, styled with NativeWind (Tailwind), so every token must map cleanly to a Tailwind theme.
 
 ## Who uses it and when
 

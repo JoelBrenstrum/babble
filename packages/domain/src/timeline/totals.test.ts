@@ -3,6 +3,7 @@ import { summariseDay, summariseWeek } from '../events/day-summary';
 import {
   countedDays,
   dayTotalCards,
+  feedTimeSplit,
   formatDayRange,
   nappyKind,
   weekdayLabel,
@@ -37,7 +38,8 @@ describe('dayTotalCards', () => {
       ['Nappies', '7'],
     ]);
     expect(cards[0]!.details[0]).toEqual({ label: 'Naps', value: '6 · 7h 15m' });
-    expect(cards[1]!.details[2]).toEqual({ label: 'Bottle', value: '1 · 90 ml' });
+    expect(cards[1]!.details.map((detail) => detail.label)).toEqual(['Left', 'Right', 'Idle', 'Bottle']);
+    expect(cards[1]!.details[3]).toEqual({ label: 'Bottle', value: '1 · 90 ml' });
     expect(cards[2]!.details[2]).toEqual({ label: 'Last', value: '10:48 pm' });
   });
 
@@ -71,6 +73,11 @@ describe('week summaries', () => {
     });
     expect(rows.find((row) => row.key === 'bottle')!.values).toEqual(['—', '60 ml', null]);
     expect(rows.find((row) => row.key === 'sleep')!.average).toBe('13h 30m');
+    expect(rows.filter((row) => ['left', 'right', 'idle'].includes(row.key)).map((row) => row.label)).toEqual([
+      'Left',
+      'Right',
+      'Idle',
+    ]);
   });
 
   it('averages finished days, or today when the week has just started', () => {
@@ -92,5 +99,18 @@ describe('labels', () => {
     expect(formatDayRange(['2026-09-28', '2026-10-04'])).toBe('28 Sep – 4 Oct');
     expect(formatDayRange(['2026-10-05', '2026-10-11'])).toBe('5 – 11 Oct');
     expect(weekdayLabel('2026-10-05')).toEqual({ weekday: 'Mon', day: '5' });
+  });
+});
+
+describe('feedTimeSplit', () => {
+  it('splits breast time into left, right and idle', () => {
+    expect(feedTimeSplit({ leftMs: 42 * 60_000, rightMs: 38 * 60_000, idleMs: 9 * 60_000 })).toBe(
+      'L 42m · R 38m · idle 9m',
+    );
+  });
+
+  it('leaves out idle under a minute, and shows a dash with no breastfeeds', () => {
+    expect(feedTimeSplit({ leftMs: 600_000, rightMs: 0, idleMs: 20_000 })).toBe('L 10m · R 0m');
+    expect(feedTimeSplit({ leftMs: 0, rightMs: 0, idleMs: 0 })).toBe('—');
   });
 });

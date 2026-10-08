@@ -68,6 +68,7 @@ function TimelinePage() {
       ? null
       : summariseDay(day.events, day.window, {
           now,
+          mergeGapMs: settings && settings.downtime_merge_threshold_sec * 1000,
           night: settings && {
             dayKey: day.dayKey,
             timeZone: baby.timezone,

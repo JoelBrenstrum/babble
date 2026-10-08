@@ -21,6 +21,17 @@ function Harness({ onDraft }: { onDraft: (draft: DraftOfType<'nappy'>) => void }
 }
 
 describe('NappyForm', () => {
+  it('starts with no type picked', async () => {
+    const onDraft = jest.fn();
+    await render(<Harness onDraft={onDraft} />);
+    for (const name of ['Wet', 'Dirty', 'Both', 'Dry']) {
+      expect(screen.getByRole('radio', { name }).props.accessibilityState.checked).toBe(false);
+    }
+    await fireEvent.press(screen.getByRole('radio', { name: 'Dry' }));
+    expect(onDraft.mock.calls.at(-1)![0].details).toMatchObject({ wet: false, dirty: false });
+    expect(onDraft.mock.calls.at(-1)![0].details).not.toHaveProperty('typePending');
+  });
+
   it('only shows poo details for dirty nappies', async () => {
     await render(<Harness onDraft={jest.fn()} />);
     expect(screen.queryByText('Poo colour')).toBeNull();

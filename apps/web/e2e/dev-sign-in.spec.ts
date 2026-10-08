@@ -20,6 +20,7 @@ test('switching babies keeps their entries separate', async ({ page }) => {
 
   const note = `e2e ${Date.now()}`;
   await page.getByRole('link', { name: 'Log nappy' }).click();
+  await page.getByRole('radio', { name: 'Wet' }).click();
   await page.getByLabel('Notes (optional)').fill(note);
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByText(note)).toBeVisible();

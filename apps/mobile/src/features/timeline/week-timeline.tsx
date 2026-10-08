@@ -51,13 +51,23 @@ export function WeekTimeline({
                   style={{ top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac), minHeight: 2 }}
                 />
               ))}
-              {layout?.feeds.map((item) => (
-                <View
-                  key={item.event.id}
-                  className={`absolute inset-x-[30%] h-[3px] rounded-full ${item.event.type === 'bottle' ? 'bg-bottle' : 'bg-feed-right'}`}
-                  style={{ top: pct(item.startFrac) }}
-                />
-              ))}
+              {layout?.feeds.map((item) =>
+                item.parts.length > 0 ? (
+                  item.parts.map((part, index) => (
+                    <View
+                      key={`${item.event.id}-${index}`}
+                      className={`absolute inset-x-[30%] rounded-full ${part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
+                      style={{ top: pct(part.startFrac), height: pct(part.endFrac - part.startFrac), minHeight: 3 }}
+                    />
+                  ))
+                ) : (
+                  <View
+                    key={item.event.id}
+                    className={`absolute inset-x-[30%] h-[3px] rounded-full ${item.event.type === 'bottle' ? 'bg-bottle' : 'bg-feed-right'}`}
+                    style={{ top: pct(item.startFrac) }}
+                  />
+                ),
+              )}
               {layout?.nappies.map((item) => (
                 <View
                   key={item.event.id}

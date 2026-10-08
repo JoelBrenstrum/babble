@@ -152,7 +152,9 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          end_recorded_at: string | null;
           ended_at: string | null;
+          ended_by: string | null;
           id: string;
           notes: string | null;
           source: Database['public']['Enums']['event_source'];
@@ -166,7 +168,9 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          end_recorded_at?: string | null;
           ended_at?: string | null;
+          ended_by?: string | null;
           id?: string;
           notes?: string | null;
           source?: Database['public']['Enums']['event_source'];
@@ -180,7 +184,9 @@ export type Database = {
           created_at?: string;
           created_by?: string | null;
           deleted_at?: string | null;
+          end_recorded_at?: string | null;
           ended_at?: string | null;
+          ended_by?: string | null;
           id?: string;
           notes?: string | null;
           source?: Database['public']['Enums']['event_source'];
@@ -461,21 +467,21 @@ export type Database = {
           ended_at: string | null;
           event_id: string;
           id: string;
-          side: Database['public']['Enums']['side'];
+          side: Database['public']['Enums']['side'] | null;
           started_at: string;
         };
         Insert: {
           ended_at?: string | null;
           event_id: string;
           id?: string;
-          side: Database['public']['Enums']['side'];
+          side?: Database['public']['Enums']['side'] | null;
           started_at: string;
         };
         Update: {
           ended_at?: string | null;
           event_id?: string;
           id?: string;
-          side?: Database['public']['Enums']['side'];
+          side?: Database['public']['Enums']['side'] | null;
           started_at?: string;
         };
         Relationships: [
@@ -533,7 +539,9 @@ export type Database = {
           created_at: string;
           created_by: string | null;
           deleted_at: string | null;
+          end_recorded_at: string | null;
           ended_at: string | null;
+          ended_by: string | null;
           id: string;
           notes: string | null;
           source: Database['public']['Enums']['event_source'];

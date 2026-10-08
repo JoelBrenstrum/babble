@@ -8,6 +8,7 @@ import { formatShortDate, formatTimeOfDay, dayWindow, dayKeyFor, shiftDay } from
 import { lastDays } from '../timeline/days';
 import { bucketByDay } from '../timeline/day-layout';
 import { isSessionType, type TrackerKey } from '../trackers';
+import { summariseSleep } from '../events/sleep-stretches';
 
 export type StripKind = 'feeds' | 'breast' | 'bottle' | 'sleep' | 'nappy' | 'pump' | 'growth' | 'custom';
 
@@ -88,7 +89,12 @@ export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context
   if (running) {
     return {
       label: RUNNING_LABEL[kind] ?? LAST_LABEL[kind],
-      value: formatDuration(context.now.getTime() - Date.parse(running.startedAt), { seconds: false }),
+      value: formatDuration(
+        running.type === 'sleep'
+          ? summariseSleep(running, context.now).asleepMs
+          : context.now.getTime() - Date.parse(running.startedAt),
+        { seconds: false },
+      ),
       note: `since ${formatTimeOfDay(running.startedAt, context.timeZone)}`,
     };
   }

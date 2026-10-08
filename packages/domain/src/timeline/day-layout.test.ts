@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
-import { bucketByDay, dayLayout } from './day-layout';
+import { bucketByDay, dayLayout, markerShiftPercent } from './day-layout';
 
 const window = { start: new Date('2026-10-06T00:00:00Z'), end: new Date('2026-10-07T00:00:00Z') };
 const NOW = new Date('2026-10-06T18:00:00Z');
@@ -66,5 +66,11 @@ describe('bucketByDay', () => {
   it('gives a fall-back day 25 hours', () => {
     const [day] = bucketByDay([], ['2027-04-04'], 'Pacific/Auckland', 0, NOW);
     expect(day!.window.end.getTime() - day!.window.start.getTime()).toBe(25 * 3_600_000);
+  });
+});
+
+describe('markerShiftPercent', () => {
+  it('shifts clustered markers along the lane but never past it', () => {
+    expect([0, 1, 2, 3, 7].map(markerShiftPercent)).toEqual([0, 30, 60, 60, 60]);
   });
 });

@@ -22,7 +22,7 @@ export type BabbleErrorCode =
   | 'unknown';
 
 const MESSAGES: Record<BabbleErrorCode, string> = {
-  invite_required: 'This Babble server is invite-only. Ask a family member for an invite code.',
+  invite_required: 'This babble server is invite-only. Ask a family member for an invite code.',
   invite_invalid: 'That invite code is invalid, already used or expired.',
   not_signed_in: 'You need to sign in again.',
   forbidden: "You don't have permission to do that.",

@@ -1,4 +1,12 @@
-import type { BabyEvent, EventDraft, EventType, Side, SleepDetails, TimedSegment } from '@babble/domain';
+import {
+  fitStretches,
+  type BabyEvent,
+  type EventDraft,
+  type EventType,
+  type Side,
+  type SleepDetails,
+  type TimedSegment,
+} from '@babble/domain';
 import type { BabbleClient } from './client';
 import type { Database, Json } from './database.types';
 import { toBabbleError, unwrap } from './errors';
@@ -29,13 +37,17 @@ export function rowToEvent(row: EventRow): BabyEvent {
     deletedAt: row.deleted_at,
     source: row.source,
     sessionState: row.session?.state ?? null,
+    endedBy: row.ended_by,
+    endRecordedAt: row.end_recorded_at,
     startedAt: row.started_at,
     endedAt: row.ended_at,
     notes: row.notes,
   };
-  const segments: TimedSegment[] = [...(row.segments ?? [])]
-    .sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at))
-    .map((segment) => ({ side: segment.side, startedAt: segment.started_at, endedAt: segment.ended_at }));
+  const ordered = [...(row.segments ?? [])].sort((a, b) => Date.parse(a.started_at) - Date.parse(b.started_at));
+  const segments: TimedSegment[] = ordered.flatMap((segment) =>
+    segment.side ? [{ side: segment.side, startedAt: segment.started_at, endedAt: segment.ended_at }] : [],
+  );
+  const stretches = ordered.map((segment) => ({ startedAt: segment.started_at, endedAt: segment.ended_at }));
 
   switch (row.type) {
     case 'sleep':
@@ -49,6 +61,7 @@ export function rowToEvent(row: EventRow): BabyEvent {
           endMoods: row.sleep?.end_moods ?? [],
           wokenByCarer: row.sleep?.woken_by_carer ?? false,
         },
+        segments: stretches,
       };
     case 'breast_feed':
       return { ...meta, type: 'breast_feed', segments };
@@ -161,8 +174,22 @@ export function draftToPayload(
     list.map((segment) => ({ side: segment.side, started_at: segment.startedAt, ended_at: segment.endedAt }));
 
   switch (draft.type) {
-    case 'sleep':
-      return { ...base, details: sleepDetailsPayload(draft.details) };
+    case 'sleep': {
+      const stretches = fitStretches(draft.segments, draft.startedAt, draft.endedAt);
+      return {
+        ...base,
+        details: sleepDetailsPayload(draft.details),
+        ...(stretches.length > 0
+          ? {
+              segments: stretches.map((stretch) => ({
+                side: null,
+                started_at: stretch.startedAt,
+                ended_at: stretch.endedAt,
+              })),
+            }
+          : {}),
+      };
+    }
     case 'breast_feed':
       return { ...base, segments: segments(draft.segments) };
     case 'bottle':

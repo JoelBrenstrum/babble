@@ -34,6 +34,7 @@ export function dayTotalCards(summary: DaySummary, units: Units, timeZone: strin
       details: [
         { label: 'Left', value: summary.leftMs ? hours(summary.leftMs) : '—' },
         { label: 'Right', value: summary.rightMs ? hours(summary.rightMs) : '—' },
+        { label: 'Idle', value: summary.idleMs ? hours(summary.idleMs) : '—' },
         {
           label: 'Bottle',
           value: summary.bottles ? `${summary.bottles} · ${formatVolume(summary.bottleMl, units)}` : '—',
@@ -92,7 +93,7 @@ export function weekSummaryStrip(week: WeekSummary): { label: string; value: str
 }
 
 export interface WeekRow {
-  key: TotalKey | 'longest' | 'breast' | 'bottle';
+  key: TotalKey | 'longest' | 'left' | 'right' | 'idle' | 'bottle';
   label: string;
   values: (string | null)[];
   average: string;
@@ -113,12 +114,15 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
       average: hours(average((day) => day.longestSleepMs)),
     },
     { key: 'feeds', label: 'Feeds', values: each((day) => String(day.feeds)), average: perDay(week.feedsPerDay) },
-    {
-      key: 'breast',
-      label: 'Breast time',
-      values: each((day) => hours(day.leftMs + day.rightMs)),
-      average: hours(average((day) => day.leftMs + day.rightMs)),
-    },
+    ...(['left', 'right', 'idle'] as const).map((side) => {
+      const pick = (day: DaySummary) => day[`${side}Ms`];
+      return {
+        key: side,
+        label: { left: 'Left', right: 'Right', idle: 'Idle' }[side],
+        values: each((day) => (pick(day) ? hours(pick(day)) : '—')),
+        average: hours(average(pick)),
+      };
+    }),
     {
       key: 'bottle',
       label: 'Bottle',
@@ -132,6 +136,13 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
       average: perDay(week.nappiesPerDay),
     },
   ];
+}
+
+export function feedTimeSplit(time: Pick<DaySummary, 'leftMs' | 'rightMs' | 'idleMs'>): string {
+  if (!time.leftMs && !time.rightMs) return '—';
+  const parts = [`L ${hours(time.leftMs)}`, `R ${hours(time.rightMs)}`];
+  if (time.idleMs >= 60_000) parts.push(`idle ${hours(time.idleMs)}`);
+  return parts.join(' · ');
 }
 
 export function countedDays(dayKeys: readonly string[], todayKey: string): string[] {

@@ -6,7 +6,7 @@ export function Segmented<T extends string>({
   onChange,
   label,
 }: {
-  value: T;
+  value: T | null;
   options: readonly { value: T; label: string }[];
   onChange: (value: T) => void;
   label: string;

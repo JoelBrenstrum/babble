@@ -1,5 +1,13 @@
 import { eventQuery, latestEventsQuery, queryKeys, resumeFeed, runningEventsQuery, toBabbleError } from '@babble/api';
-import { canResumeFeed, entryAuthorText, importedNote, isSessionType, latestFeed, trackerFor } from '@babble/domain';
+import {
+  canResumeFeed,
+  entryAuthorText,
+  entryEndedText,
+  importedNote,
+  isSessionType,
+  latestFeed,
+  trackerFor,
+} from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
@@ -60,6 +68,14 @@ function EditEventContent({
 
   const tracker = trackerFor(event.data.type);
   const note = importedNote(event.data);
+  const memberName = (userId: string | null) =>
+    family.members.find((member) => member.user_id === userId)?.display_name;
+  const ended = entryEndedText({
+    endedBy: memberName(event.data.endedBy),
+    endRecordedAt: event.data.endRecordedAt,
+    startedAt: event.data.startedAt,
+    timeZone: baby.timezone,
+  });
   return (
     <Screen>
       <ScreenHeader
@@ -102,15 +118,19 @@ function EditEventContent({
           {resumeError && <StatusMessage tone="danger">{resumeError}</StatusMessage>}
         </View>
       )}
-      <Text className="mb-3 font-sans text-meta text-ink-2">
-        {entryAuthorText({
-          author: family.members.find((member) => member.user_id === event.data.createdBy)?.display_name,
-          createdAt: event.data.createdAt,
-          updatedAt: event.data.updatedAt,
-          timeZone: baby.timezone,
-          imported: event.data.source === 'huckleberry_csv',
-        })}
-      </Text>
+      <View className="mb-3 gap-1">
+        <Text className="font-sans text-meta text-ink-2">
+          {entryAuthorText({
+            author: memberName(event.data.createdBy),
+            createdAt: event.data.createdAt,
+            updatedAt: event.data.updatedAt,
+            timeZone: baby.timezone,
+            imported: event.data.source === 'huckleberry_csv',
+            timer: event.data.endRecordedAt !== null,
+          })}
+        </Text>
+        {ended && <Text className="font-sans text-meta text-ink-2">{ended}</Text>}
+      </View>
       {note && <StatusMessage tone="info">{note}</StatusMessage>}
       <Card className="p-5">
         <EventForm

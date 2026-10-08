@@ -1,6 +1,6 @@
-# Babble — Plan
+# babble — Plan
 
-Babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding and pumping sessions. It has a TanStack Start web app (which also works as a phone PWA) and an Expo mobile app. It's built for our family first, self-hostable, and ready to be released as a product.
+babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding and pumping sessions. It has a TanStack Start web app (which also works as a phone PWA) and an Expo mobile app. It's built for our family first, self-hostable, and ready to be released as a product.
 
 ## Documents
 

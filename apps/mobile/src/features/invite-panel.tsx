@@ -47,7 +47,7 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
       </View>
       <Button
         className="self-stretch"
-        onPress={() => Share.share({ message: `Join our family on Babble: ${link}`, url: link })}
+        onPress={() => Share.share({ message: `Join our family on babble: ${link}`, url: link })}
       >
         Share invite link
       </Button>

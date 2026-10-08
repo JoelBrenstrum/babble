@@ -41,6 +41,32 @@ describe('summariseDay', () => {
     expect(summariseDay(events, day, { now: new Date('2026-10-06T11:00:00Z') }).sleepMs).toBe(3_600_000);
   });
 
+  it('counts gaps between sides as idle once they pass the merge threshold, except on imported feeds', () => {
+    const feed = makeEvent('breast_feed', {
+      startedAt: '2026-10-06T06:00:00Z',
+      endedAt: '2026-10-06T06:35:00Z',
+      segments: [
+        { side: 'left', startedAt: '2026-10-06T06:00:00Z', endedAt: '2026-10-06T06:10:00Z' },
+        { side: 'right', startedAt: '2026-10-06T06:10:30Z', endedAt: '2026-10-06T06:20:00Z' },
+        { side: 'right', startedAt: '2026-10-06T06:25:00Z', endedAt: '2026-10-06T06:35:00Z' },
+      ],
+    });
+    expect(summariseDay([feed], day, { mergeGapMs: 60_000 }).idleMs).toBe(300_000);
+    expect(summariseDay([{ ...feed, source: 'huckleberry_csv' }], day, { mergeGapMs: 60_000 }).idleMs).toBe(0);
+  });
+
+  it('counts only the time a nap was asleep, and its longest stretch', () => {
+    const nap = makeEvent('sleep', {
+      startedAt: '2026-10-06T08:00:00Z',
+      endedAt: '2026-10-06T09:30:00Z',
+      segments: [
+        { startedAt: '2026-10-06T08:00:00Z', endedAt: '2026-10-06T08:50:00Z' },
+        { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:30:00Z' },
+      ],
+    });
+    expect(summariseDay([nap], day)).toMatchObject({ sleepMs: 80 * 60_000, longestSleepMs: 50 * 60_000 });
+  });
+
   it('totals sides, bottles, nappies and pumps', () => {
     const events = [
       makeEvent('breast_feed', {

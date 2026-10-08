@@ -1,4 +1,4 @@
-# Babble Design (Claude Design export)
+# babble Design (Claude Design export)
 
 Exported from Claude Design on 2026-10-08. Direction: **"Sage"** (design system v1, screens v1.1), derived from the Organic system. See [ui.md](../ui.md) for which file holds which screen.
 
@@ -21,7 +21,7 @@ Exported from Claude Design on 2026-10-08. Direction: **"Sage"** (design system 
 | `tokens/babble-tokens.css` | **Source of truth for tokens.** CSS variables as RGB channels, light + dark, plus poo swatches, fonts and motion |
 | `tokens/babble-tokens.js` | The same tokens as hex values |
 | `tokens/tailwind.config.js` | NativeWind theme extension (type scale, radii, spacing, shadows) |
-| `tokens/shadcn-theme.css` | Maps the Babble tokens onto shadcn/ui variables for the web app (load after `babble-tokens.css`) |
+| `tokens/shadcn-theme.css` | Maps the babble tokens onto shadcn/ui variables for the web app (load after `babble-tokens.css`) |
 | `_ds/organic-*/` | The underlying Organic design system (styles + guide) |
 | `support.js` | Claude Design runtime needed to render the `.dc.html` files |
 

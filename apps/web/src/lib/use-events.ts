@@ -137,7 +137,7 @@ export function useSessionAction(client: BabbleClient, babyId: string) {
         case 'resume':
           return resumeSession(client, event.id, action.side);
         case 'end':
-          return endSession(client, event.id);
+          return endSession(client, event.id, action.at);
         case 'set-start':
           return setSessionStart(client, event.id, action.startedAt);
       }

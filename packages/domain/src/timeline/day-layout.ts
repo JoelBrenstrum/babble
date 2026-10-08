@@ -10,7 +10,7 @@ export interface TimelineItem {
   continuesBefore: boolean;
   continuesAfter: boolean;
   column: number;
-  parts: { side: Side; startFrac: number; endFrac: number }[];
+  parts: { side: Side | null; startFrac: number; endFrac: number }[];
 }
 
 export interface DayLayout {
@@ -62,7 +62,12 @@ export function dayLayout(events: readonly BabyEvent[], window: TimeWindow, now:
       while (columns[column] !== undefined && startFrac - columns[column]! < MARKER_GAP_FRAC) column += 1;
       columns[column] = startFrac;
     }
-    const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
+    const segments: { side: Side | null; startedAt: string; endedAt: string | null }[] =
+      event.type === 'breast_feed' || event.type === 'pump'
+        ? event.segments
+        : event.type === 'sleep'
+          ? event.segments.map((stretch) => ({ ...stretch, side: null }))
+          : [];
     layout[lane].push({
       event,
       startFrac,
@@ -92,4 +97,11 @@ export function bucketByDay(
     const window = dayWindow(dayKey, timeZone, dayStartMinutes);
     return { dayKey, window, events: events.filter((event) => overlapsWindow(event, window, now)) };
   });
+}
+
+const MARKER_SHIFT_PERCENT = 30;
+const MARKER_MAX_SHIFTS = 2;
+
+export function markerShiftPercent(column: number): number {
+  return Math.min(column, MARKER_MAX_SHIFTS) * MARKER_SHIFT_PERCENT;
 }

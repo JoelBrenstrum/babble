@@ -57,6 +57,16 @@ describe('staleSessions', () => {
     expect(staleSessions([paused], NOW, 60)).toEqual([]);
   });
 
+  it('includes paused naps but not naps that were never paused', () => {
+    const pausedNap = makeEvent('sleep', {
+      id: 'paused-nap',
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: null,
+      segments: [{ startedAt: '2026-10-06T10:00:00Z', endedAt: '2026-10-06T11:00:00Z' }],
+    });
+    expect(staleSessions([pausedNap, nap], NOW, 30).map((e) => e.id)).toEqual(['paused-nap']);
+  });
+
   it('ignores running segments and naps', () => {
     const running = {
       ...paused,

@@ -38,7 +38,7 @@ export function ImportPreview({ result, timeZone }: { result: HuckleberryImport;
       )}
       <p className="rounded-tile bg-surface px-4 py-3 text-meta text-ink-2">
         <strong className="text-ink">Safe to re-import.</strong> If you import a newer export later, only entries that
-        aren't already in Babble are added.
+        aren't already in babble are added.
       </p>
 
       {result.skipped.length > 0 && (

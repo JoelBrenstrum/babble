@@ -19,7 +19,9 @@ const ROW_DOT: Record<WeekRow['key'], string> = {
   sleep: 'bg-sleep',
   longest: 'bg-sleep',
   feeds: 'bg-feed-right',
-  breast: 'bg-feed-left',
+  left: 'bg-feed-left',
+  right: 'bg-feed-right',
+  idle: 'border border-dashed border-session-downtime',
   bottle: 'bg-bottle',
   nappies: 'bg-nappy',
   pump: 'bg-pump',
@@ -64,9 +66,12 @@ function TotalCardView({ card }: { card: TotalCard }) {
         <Text className="flex-1 font-semibold text-row-title text-ink">{card.label}</Text>
         <Text className="font-bold text-heading text-ink">{card.value}</Text>
       </View>
-      <View className="flex-row gap-2">
+      <View className="flex-row flex-wrap gap-2">
         {card.details.map((detail) => (
-          <View key={detail.label} className="flex-1 rounded-tile bg-surface px-3 py-2">
+          <View
+            key={detail.label}
+            className={`flex-1 rounded-tile bg-surface px-3 py-2 ${card.details.length === 4 ? 'min-w-[40%]' : ''}`}
+          >
             <Text className="font-sans text-caption text-ink-2">{detail.label}</Text>
             <Text className="font-semibold text-label text-ink">{detail.value}</Text>
           </View>

@@ -75,7 +75,7 @@ function ImportPage() {
           </p>
           {step.skipped > 0 && (
             <p className="text-body text-ink-2">
-              {step.skipped} {step.skipped === 1 ? 'was' : 'were'} already in Babble and left as they were.
+              {step.skipped} {step.skipped === 1 ? 'was' : 'were'} already in babble and left as they were.
             </p>
           )}
           <p className="text-body text-ink-2">Everyone in the family can see them straight away.</p>
@@ -87,7 +87,7 @@ function ImportPage() {
         <>
           <p className="text-body text-ink-2">
             In Huckleberry, export your data as a CSV file, then choose it here. The file is read on this device; only
-            the entries are sent to your Babble server.
+            the entries are sent to your babble server.
           </p>
 
           <label className="flex cursor-pointer flex-col items-center gap-3 rounded-card border-2 border-dashed border-line-strong bg-raised px-6 py-10 text-center hover:border-primary">

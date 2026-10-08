@@ -1,6 +1,7 @@
 import { formatDuration } from '../format/duration';
 import { formatLength, formatVolume, formatWeight } from '../format/units';
 import { segmentTotals } from './segments';
+import { summariseSleep } from './sleep-stretches';
 import type { BabyEvent, PooColour, Size, Units } from './types';
 
 export type PartTone =
@@ -63,8 +64,17 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
         running,
       };
     }
-    case 'sleep':
-      return { title: 'Sleep', parts: [], duration: formatDuration(spanMs, { seconds: false }), running };
+    case 'sleep': {
+      const sleep = summariseSleep(event, now);
+      const parts: DescriptionPart[] =
+        sleep.wakeUps > 0
+          ? [
+              { text: sleep.wakeUps === 1 ? '1 wake-up' : `${sleep.wakeUps} wake-ups`, tone: 'sleep' },
+              { text: `awake ${formatDuration(sleep.awakeMs, { seconds: false })}`, tone: 'downtime' },
+            ]
+          : [];
+      return { title: 'Sleep', parts, duration: formatDuration(sleep.asleepMs, { seconds: false }), running };
+    }
     case 'bottle': {
       const { amountMl, amountLeftMl, content } = event.details;
       const drank = amountMl !== null ? amountMl - (amountLeftMl ?? 0) : null;

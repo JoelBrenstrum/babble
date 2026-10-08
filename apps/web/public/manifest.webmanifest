@@ -1,6 +1,6 @@
 {
-  "name": "Babble",
-  "short_name": "Babble",
+  "name": "babble",
+  "short_name": "babble",
   "description": "A calm, detailed baby tracker for sleep, feeds, nappies and more.",
   "start_url": "/",
   "scope": "/",

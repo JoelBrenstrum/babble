@@ -61,6 +61,8 @@ function EditEvent() {
 
   const tracker = trackerFor(event.data.type);
   const note = importedNote(event.data);
+  const memberName = (userId: string | null) =>
+    family.members.find((member) => member.user_id === userId)?.display_name;
   const done = () => {
     if (router.history.length > 1) router.history.back();
     else void navigate({ to: '/track/$type', params: { type: tracker.key } });
@@ -114,11 +116,18 @@ function EditEvent() {
         </div>
       )}
       <EntryAuthor
-        author={family.members.find((member) => member.user_id === event.data.createdBy)?.display_name}
+        author={memberName(event.data.createdBy)}
         createdAt={event.data.createdAt}
         updatedAt={event.data.updatedAt}
         timeZone={baby.timezone}
         imported={event.data.source === 'huckleberry_csv'}
+        timer={event.data.endRecordedAt !== null}
+        ended={{
+          endedBy: memberName(event.data.endedBy),
+          endRecordedAt: event.data.endRecordedAt,
+          startedAt: event.data.startedAt,
+          timeZone: baby.timezone,
+        }}
       />
       {note && <StatusMessage tone="info">{note}</StatusMessage>}
       <Card className="p-5">

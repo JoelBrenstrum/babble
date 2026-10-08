@@ -127,3 +127,86 @@ Paste everything below this line into Claude Design.
 > - Title "Export data" (row-title, semibold), and under it in meta ink-2: "Download everything as a JSON file: profile, settings and every entry, including deleted ones."
 > - A secondary button with the Lucide `download` icon: "Export Olivia". When the family has more than one baby, a second secondary button: "Export whole family". Buttons sit side by side on web and stacked full width on phones.
 > - While exporting, the pressed button shows its spinner and the other is disabled. Errors show as a danger status under the buttons.
+
+---
+
+## 2026-10-08 · Nappy form starts with no type
+
+Paste everything below this line into Claude Design.
+
+> In the nappy form (`Phone Forms.dc.html` `nappy`, `Web.dc.html` log nappy), the **Type** segmented control (Wet / Dirty / Both / Dry) starts with nothing selected: all four segments show the unselected style, and no wee or poo detail fields are shown yet. The **Save** button is disabled (45% opacity) until a type is picked. Show both states: the fresh form, and the form after tapping Wet (Wet selected, the "Wee size" selector shown, Save enabled). Light and dark.
+
+---
+
+## 2026-10-08 · Brand name in lower case
+
+Paste everything below this line into Claude Design.
+
+> Write the product name as **"babble"**, all lower case, everywhere it appears as text, to match the lower-case "b" logo. That includes the wordmark in the app header, the sign-in and onboarding screens, loading spinners, the browser tab title, the PWA and app icon names, share text ("Join our family on babble"), and copy such as "already in babble" and "babble isn't configured yet". Keep it lower case even at the start of a sentence. Update the design system's wordmark and every screen that shows the name, in light and dark.
+
+---
+
+## 2026-10-08 · Previous growth values as placeholders
+
+Paste everything below this line into Claude Design.
+
+> In the growth form (`Phone Forms.dc.html` `growth`, `Web.dc.html` log growth), each empty measurement field shows the last recorded value as its placeholder in ink-3: Weight "Last: 4.8 kg · 3 Oct", Length "Last: 54 cm · 20 Sept", Head circumference "Last: 37.2 cm · 20 Sept". Fields with nothing recorded before stay blank. Show one mock where weight has been typed (so its placeholder is gone) and the other two still show their placeholders. Light and dark.
+
+---
+
+## 2026-10-08 · Ended earlier? and who ended it
+
+Paste everything below this line into Claude Design.
+
+> On every running card (`Screen.dc.html` timer and sleep timer, the Home running cards, and the web session page), add a small centred text button **"Ended earlier?"** in meta ink-2 under End nap / Finish. Tapping it replaces the button with a panel matching the "Started earlier?" panel (raised tile, shadow-raised):
+>
+> - Title "Ended earlier?" (body, semibold).
+> - Chips: "5 min ago", "10 min ago", "15 min ago", "30 min ago". Chips that would end before the nap or current side started are disabled at 45% opacity.
+> - An "End time" date-time field, with an inline danger error such as "The end can't be before the nap started."
+> - Buttons: secondary **Cancel** and primary **End nap at 2:25 pm** (or "End feed at…", "End pump at…").
+>
+> On the entry detail page (`Phone Forms.dc.html` edit screens, `Web.dc.html` entry edit), the author line under the title becomes two meta ink-2 lines for timed entries: "Started by Jane · 6 Oct, 2:02 pm" (with Jane's avatar), then "Ended by John at 2:32 pm". Entries logged after the fact keep the single "Logged by…" line. Light and dark.
+
+---
+
+## 2026-10-08 · Left, right and idle feed time
+
+Paste everything below this line into Claude Design.
+
+> Split breastfeed time by side everywhere it's drawn or totalled (`Screen.dc.html` `day` and `week`, `Web.dc.html` timeline and stats). Light and dark.
+>
+> - **Day timeline:** each breastfeed block draws its sides in `feed-left` and `feed-right`. The gaps between sides (idle) are a 1px dashed `session-downtime` outline with no fill, instead of a soft fill.
+> - **7-day view:** breastfeeds draw each side as a short bar in its side's colour instead of one `feed-right` tick. Bottles stay as `bottle` ticks.
+> - **Day totals, Feeds card:** four detail tiles, Left / Right / Idle / Bottle, in a 2×2 grid on phones and four across on wider screens.
+> - **Daily totals table (7-day):** the "Breast time" row becomes three rows, Left (feed-left dot), Right (feed-right dot) and Idle (dashed session-downtime outline dot).
+> - **Stats, Feeds card:** a new figure tile, "Breast per day", with a value like "L 42m · R 38m · idle 9m".
+
+---
+
+## 2026-10-08 · Pause and resume a nap
+
+Paste everything below this line into Claude Design.
+
+> On the running sleep card (`Screen.dc.html` sleep timer, Home running card, web session page), replace the single full-width End nap button with two side by side: secondary **Pause nap** (Lucide `pause`) and the sleep-coloured primary **End nap** (Lucide `moon`). Light and dark. Show three states:
+>
+> - **Running, never paused:** title "Napping", big timer of time asleep.
+> - **Paused:** title "Awake · nap paused"; the timer stops at the time asleep, and beside it in meta ink-2 "awake 3m · 1 wake-up" (the awake time keeps ticking). The left button reads **Resume nap** (Lucide `play`).
+> - **Resumed:** title "Napping" again, the timer counting asleep time, with "awake 12m · 2 wake-ups" beside it.
+>
+> In lists (`Phone Lists.dc.html` `sleep`), a paused-and-resumed nap row shows its asleep time on the right and two chips: "2 wake-ups" (sleep-soft) and "awake 12m" (session-downtime-soft with the small pause icon). On the day timeline, such a nap draws its asleep stretches as solid `sleep` blocks inside a 1px dashed `sleep` outline, so the awake gaps read as empty dashed space.
+
+---
+
+## 2026-10-08 · Home tab shows when something is running
+
+Paste everything below this line into Claude Design.
+
+> When any timer is running (nap, breastfeed, pump or a timed custom entry), the **Home** nav item gets a small 10px dot badge at the top right of its icon, in the running tracker's colour (`sleep`, `feed-right`, `pump`, `custom`) with a 2px `raised` ring. It pulses gently, like the live dot on the running card, and stops pulsing (staying solid) when everything running is paused. If two different trackers are running, the dot is split down the middle into both colours. Show it on the phone bottom tab bar (`Screen.dc.html` tab bar, on the Timeline, Stats and Settings tabs), the tablet icon rail and the desktop sidebar (`Web.dc.html`); in the full sidebar it sits at the right end of the Home row. Light and dark.
+
+---
+
+## 2026-10-08 · Clustered timeline markers stay in their lane
+
+Paste everything below this line into Claude Design.
+
+> On the day timeline (`Screen.dc.html` `day`, `Web.dc.html` timeline), when nappies or bottles are logged close together, each later marker is nudged right by 30% of the lane (at most 60%) and shrinks to fit, truncating its label with an ellipsis, so markers never spill past the lane or off the edge of a phone screen. Show three nappies logged within a few minutes on a 390px phone. Light and dark.

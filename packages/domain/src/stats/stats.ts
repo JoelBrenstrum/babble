@@ -5,7 +5,7 @@ import { formatDuration } from '../format/duration';
 import { formatVolume } from '../format/units';
 import { lastDays, type TimeWindow } from '../timeline/days';
 import { bucketByDay } from '../timeline/day-layout';
-import { countedDays } from '../timeline/totals';
+import { countedDays, feedTimeSplit } from '../timeline/totals';
 import { dayKeyFor, shiftDay } from '../time/local-time';
 
 export type StatsRange = '7d' | '30d' | 'all';
@@ -129,6 +129,7 @@ export function statsReport(
       day.dayKey,
       summariseDay(day.events, day.window, {
         now,
+        mergeGapMs: settings.mergeGapMs,
         night: {
           dayKey: day.dayKey,
           timeZone: settings.timeZone,
@@ -210,6 +211,14 @@ export function statsReport(
           value: sideTotal
             ? `${Math.round((leftMs / sideTotal) * 100)}% / ${Math.round((rightMs / sideTotal) * 100)}%`
             : '—',
+        },
+        {
+          label: 'Breast per day',
+          value: feedTimeSplit({
+            leftMs: average((day) => day.leftMs),
+            rightMs: average((day) => day.rightMs),
+            idleMs: average((day) => day.idleMs),
+          }),
         },
         { label: 'Downtime per feed', value: breastFeeds.length ? hours(downtimeMs / breastFeeds.length) : '—' },
         {

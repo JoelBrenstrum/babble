@@ -29,10 +29,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
-      { title: 'Babble' },
+      { title: 'babble' },
       { name: 'description', content: 'A calm, detailed baby tracker for sleep, feeds, nappies and more.' },
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
-      { name: 'apple-mobile-web-app-title', content: 'Babble' },
+      { name: 'apple-mobile-web-app-title', content: 'babble' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },
     ],
     links: [
@@ -115,7 +115,7 @@ function RootError({ error, reset }: ErrorComponentProps) {
   if (problem) {
     return (
       <CenteredPage>
-        <h1 className="mb-4 text-title font-bold">Babble isn't configured yet</h1>
+        <h1 className="mb-4 text-title font-bold">babble isn't configured yet</h1>
         <StatusMessage tone="info">{problem}.</StatusMessage>
         <p className="mt-4 text-body text-ink-2">
           Whoever runs this server needs to set the missing setting (see <code>.env.example</code>), then restart the

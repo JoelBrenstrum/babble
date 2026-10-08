@@ -23,5 +23,5 @@ test('a Huckleberry export imports once and re-imports without duplicates', asyn
   await page.getByLabel('Import into').selectOption({ label: 'Jacob' });
   await page.getByRole('button', { name: /Import 134 entries into Jacob/ }).click();
   await expect(page.getByText('0 entries imported')).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByText('134 were already in Babble and left as they were.')).toBeVisible();
+  await expect(page.getByText('134 were already in babble and left as they were.')).toBeVisible();
 });

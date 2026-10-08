@@ -1,5 +1,6 @@
 import { emptyDraft } from './drafts';
-import type { BabyEvent, DraftOfType, EventMeta, EventType } from './types';
+import { withNappyType } from './nappy';
+import type { BabyEvent, DraftOfType, EventDraft, EventMeta, EventType } from './types';
 
 const META: EventMeta = {
   id: 'event-1',
@@ -10,14 +11,15 @@ const META: EventMeta = {
   deletedAt: null,
   source: 'manual',
   sessionState: null,
+  endedBy: null,
+  endRecordedAt: null,
 };
 
 export function makeEvent<T extends EventType>(
   type: T,
   overrides: Partial<DraftOfType<T>> & Partial<EventMeta> = {},
 ): Extract<BabyEvent, { type: T }> {
-  return { ...emptyDraft(type, new Date('2026-10-06T10:00:00Z')), ...META, ...overrides } as Extract<
-    BabyEvent,
-    { type: T }
-  >;
+  const draft: EventDraft = emptyDraft(type, new Date('2026-10-06T10:00:00Z'));
+  const saved = draft.type === 'nappy' ? { ...draft, details: withNappyType(draft.details, 'wet') } : draft;
+  return { ...saved, ...META, ...overrides } as Extract<BabyEvent, { type: T }>;
 }

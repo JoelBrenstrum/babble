@@ -1,13 +1,13 @@
-# Claude Design prompt: Babble remaining screens + desktop web
+# Claude Design prompt: babble remaining screens + desktop web
 
-Continue the **Babble design system v1 ("Sage")** in this project. Use its existing tokens, components and patterns exactly: the same colours, Figtree type scale, radii, spacing, Lucide icons at stroke 2.75, side toggle, running-timer card, chips, segmented control, stepper, swatch picker, size selector, bottom sheet, undo toast, swipe-to-delete, day group header, tab bar and empty state. **Don't change any tokens.** If a screen needs a new component, build it from the existing tokens and add it to the component sheet.
+Continue the **babble design system v1 ("Sage")** in this project. Use its existing tokens, components and patterns exactly: the same colours, Figtree type scale, radii, spacing, Lucide icons at stroke 2.75, side toggle, running-timer card, chips, segmented control, stepper, swatch picker, size selector, bottom sheet, undo toast, swipe-to-delete, day group header, tab bar and empty state. **Don't change any tokens.** If a screen needs a new component, build it from the existing tokens and add it to the component sheet.
 
 ## Correction to the platform note
 
-Babble is now **two apps that share tokens**:
+babble is now **two apps that share tokens**:
 
 - **Mobile:** Expo (React Native) with NativeWind, for iOS and Android.
-- **Web:** TanStack Start (React) with Tailwind and shadcn/ui (Radix), restyled to the Babble tokens. The web app must also work as an **installable phone PWA**, because self-hosted users only have the web app. At phone width it uses the same layouts as the native app. At desktop width it gets its own richer layouts.
+- **Web:** TanStack Start (React) with Tailwind and shadcn/ui (Radix), restyled to the babble tokens. The web app must also work as an **installable phone PWA**, because self-hosted users only have the web app. At phone width it uses the same layouts as the native app. At desktop width it gets its own richer layouts.
 
 Please update the "One Expo codebase" line in the design system intro.
 

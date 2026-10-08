@@ -51,6 +51,8 @@ test('a nappy can be logged, edited, deleted and restored', async ({ page }, tes
   await newFamily(page, testInfo.project.name);
 
   await page.getByRole('link', { name: 'Log nappy' }).click();
+  await expect(page.getByRole('radio', { checked: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Save' })).toBeDisabled();
   await page.getByRole('radio', { name: 'Both' }).click();
   await page.getByRole('checkbox', { name: 'Mustard' }).click();
   await page.getByRole('checkbox', { name: 'Green', exact: true }).click();
@@ -77,6 +79,7 @@ test('a nappy can be logged, edited, deleted and restored', async ({ page }, tes
 test('undo restores a deleted entry', async ({ page }, testInfo) => {
   await newFamily(page, testInfo.project.name);
   await page.getByRole('link', { name: 'Log nappy' }).click();
+  await page.getByRole('radio', { name: 'Wet' }).click();
   await page.getByRole('button', { name: 'Save' }).click();
   await page.getByRole('link', { name: /Wet/ }).click();
   await page.getByRole('button', { name: 'Delete' }).click();
@@ -148,4 +151,42 @@ test('sleep details saved during a nap show up on another device', async ({ page
   await expect(otherPage.getByLabel('Notes (optional)')).toHaveValue('Went down easily', { timeout: 10_000 });
   await expect(page.getByText('Napping')).toBeVisible();
   await other.close();
+});
+
+test('a nap can be ended earlier, and the entry shows who ended it', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+  await page.getByRole('link', { name: 'Log sleep' }).click();
+  await page.getByRole('button', { name: /start sleep now/i }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Ended earlier?' }).click();
+  await expect(page.getByRole('button', { name: '5 min ago', exact: true })).toBeDisabled();
+  await page.getByRole('button', { name: 'Cancel' }).click();
+  await page.getByRole('button', { name: /change start time/i }).click();
+  await page.getByRole('button', { name: '15 min earlier' }).click();
+
+  await page.getByRole('button', { name: 'Ended earlier?' }).click();
+  await page.getByRole('button', { name: '5 min ago', exact: true }).click();
+
+  await expect(page.getByRole('heading', { name: 'Sleep' })).toBeVisible();
+  await expect(page.getByText(/Started by John · /)).toBeVisible();
+  await expect(page.getByText(/^Ended by John at /)).toBeVisible();
+});
+
+test('a nap can be paused and resumed, and shows its wake-ups', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+  await page.getByRole('link', { name: 'Log sleep' }).click();
+  await page.getByRole('button', { name: /start sleep now/i }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Pause nap' }).click();
+  await expect(page.getByText('Awake · nap paused')).toBeVisible();
+  await expect(page.getByText(/1 wake-up/)).toBeVisible();
+  await page.getByRole('button', { name: 'Resume nap' }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+
+  await page.getByRole('button', { name: 'End nap' }).click();
+  await expect(page.getByRole('heading', { name: 'Sleep' })).toBeVisible();
+  await page.goto('/track/sleep');
+  await expect(page.getByText('1 wake-up').filter({ visible: true }).first()).toBeVisible();
 });

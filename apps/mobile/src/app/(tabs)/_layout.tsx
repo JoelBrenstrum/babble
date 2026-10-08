@@ -1,10 +1,13 @@
-import { queryKeys } from '@babble/api';
-import { useQueryClient } from '@tanstack/react-query';
+import { queryKeys, runningEventsQuery } from '@babble/api';
+import { runningIndicator } from '@babble/domain';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, Tabs } from 'expo-router';
 import { ChartColumn, History, House, Settings } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { PageSpinner } from '@/components/page-spinner';
+import { RunningDot } from '@/components/running-dot';
+import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useOnboarding } from '@/lib/use-onboarding';
 
@@ -15,6 +18,10 @@ export default function TabsLayout() {
   const inactive = useTokenColor('--ink-3');
   const surface = useTokenColor('--raised');
   const line = useTokenColor('--line');
+  const { client } = useBabble();
+  const babyId = state?.step === 'ready' ? state.baby.id : null;
+  const running = useQuery({ ...runningEventsQuery(client, babyId ?? ''), enabled: babyId !== null }).data ?? [];
+  const indicator = runningIndicator(running);
 
   if (loading) return <PageSpinner />;
   if (error) {
@@ -51,7 +58,20 @@ export default function TabsLayout() {
       >
         <Tabs.Screen
           name="index"
-          options={{ title: 'Home', tabBarIcon: ({ color }) => <House color={color} size={22} strokeWidth={2.75} /> }}
+          options={{
+            title: 'Home',
+            tabBarAccessibilityLabel: indicator ? `Home, ${indicator.label.toLowerCase()}` : undefined,
+            tabBarIcon: ({ color }) => (
+              <View>
+                <House color={color} size={22} strokeWidth={2.75} />
+                {indicator && (
+                  <View className="absolute -right-1.5 -top-1 rounded-full border-2 border-raised">
+                    <RunningDot indicator={indicator} />
+                  </View>
+                )}
+              </View>
+            ),
+          }}
         />
         <Tabs.Screen
           name="timeline"

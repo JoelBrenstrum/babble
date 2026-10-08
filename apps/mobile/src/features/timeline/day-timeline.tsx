@@ -2,10 +2,12 @@ import {
   formatDuration,
   formatTimeOfDay,
   formatVolume,
+  markerShiftPercent,
   nappyKind,
   type DayLayout,
   type TimelineItem,
   type Units,
+  summariseSleep,
 } from '@babble/domain';
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
@@ -121,14 +123,23 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => open(item)}
-        className="absolute inset-x-0 overflow-hidden bg-sleep px-1.5 py-0.5"
+        className={`absolute inset-x-0 overflow-hidden px-1.5 py-0.5 ${item.parts.length > 0 ? 'border border-dashed border-sleep' : 'bg-sleep'}`}
         style={[span, corners]}
       >
+        {item.parts.map((part, index) => (
+          <View
+            key={index}
+            className="absolute inset-x-0 bg-sleep"
+            style={{
+              top: pct((part.startFrac - item.startFrac) / Math.max(height, 1e-6)),
+              height: pct((part.endFrac - part.startFrac) / Math.max(height, 1e-6)),
+              minHeight: 2,
+            }}
+          />
+        ))}
         {height > LABEL_MIN_FRAC && (
           <Text className="font-bold text-caption text-ink-on-solid">
-            {formatDuration((event.endedAt ? Date.parse(event.endedAt) : now.getTime()) - Date.parse(event.startedAt), {
-              seconds: false,
-            })}
+            {formatDuration(summariseSleep(event, now).asleepMs, { seconds: false })}
           </Text>
         )}
       </Pressable>
@@ -142,7 +153,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => open(item)}
-        className={`absolute inset-x-0 overflow-hidden ${event.type === 'pump' ? 'bg-pump/40' : 'bg-session-downtime-soft'}`}
+        className={`absolute inset-x-0 overflow-hidden ${event.type === 'pump' ? 'bg-pump/40' : 'border border-dashed border-session-downtime'}`}
         style={[span, corners]}
       >
         {item.parts.map((part, index) => (
@@ -162,7 +173,8 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
 
   const marker = {
     top: pct(item.startFrac),
-    left: item.column * 60,
+    left: `${markerShiftPercent(item.column)}%` as const,
+    maxWidth: `${100 - markerShiftPercent(item.column)}%` as const,
     transform: [{ translateY: -10 }],
   };
   if (event.type === 'bottle') {

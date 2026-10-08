@@ -7,6 +7,7 @@ import {
   napPromptOnFeedEnd,
   segmentTotals,
   sessionNoun,
+  summariseSleep,
   type BabyEvent,
   type Side,
 } from '@babble/domain';
@@ -21,6 +22,7 @@ import { useDiscardSession, useSessionAction } from '#/lib/use-events';
 import { clock, queryKeys } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNow } from '#/lib/use-now';
+import { EndTimeButton, EndTimeEditor } from './end-time-editor';
 import { StartTimeButton, StartTimeEditor } from './start-time-editor';
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
@@ -47,6 +49,7 @@ export function RunningCard({
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const [editingStart, setEditingStart] = useState(false);
+  const [editingEnd, setEditingEnd] = useState(false);
   const noun = sessionNoun(event.type);
 
   function requestDiscard() {
@@ -81,15 +84,30 @@ export function RunningCard({
   ) : (
     <StartTimeButton event={event} timeZone={timeZone} onClick={() => setEditingStart(true)} />
   );
+  const endControls = (end: (at?: string) => void) =>
+    editingEnd ? (
+      <EndTimeEditor
+        event={event}
+        timeZone={timeZone}
+        onCancel={() => setEditingEnd(false)}
+        onEnd={(at) => {
+          setEditingEnd(false);
+          end(at);
+        }}
+      />
+    ) : (
+      <EndTimeButton onClick={() => setEditingEnd(true)} />
+    );
   const navigate = useNavigate();
   const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
   if (event.type === 'sleep') {
-    const elapsed = now.getTime() - Date.parse(event.startedAt);
+    const sleep = summariseSleep(event, now);
+    const ending = action.isPending && action.variables?.action.kind === 'end';
     return (
       <Shell tone="sleep" compact={compact}>
         <Header
-          title="Napping"
+          title={sleep.paused ? 'Awake · nap paused' : 'Napping'}
           startedBy={startedBy}
           eventId={event.id}
           compact={compact}
@@ -97,17 +115,39 @@ export function RunningCard({
           onDiscard={requestDiscard}
         />
         {discardControls}
-        <div className="tabular text-timer-lg font-medium text-on-sleep">{formatTimer(elapsed)}</div>
+        <div className="flex flex-wrap items-baseline gap-x-3">
+          <span className="tabular text-timer-lg font-medium text-on-sleep">{formatTimer(sleep.asleepMs)}</span>
+          {sleep.wakeUps > 0 && (
+            <span className="tabular text-meta text-ink-2">
+              awake {formatDuration(sleep.awakeMs)} · {sleep.wakeUps === 1 ? '1 wake-up' : `${sleep.wakeUps} wake-ups`}
+            </span>
+          )}
+        </div>
         {startControls}
-        <Button
-          size="lg"
-          className="mt-2 w-full bg-sleep text-ink-on-solid hover:bg-on-sleep"
-          loading={action.isPending}
-          onClick={() => action.mutate({ event, action: { kind: 'end' } })}
-        >
-          {!action.isPending && <Moon className="size-5" strokeWidth={2.75} />}
-          End nap
-        </Button>
+        <div className="mt-2 grid grid-cols-2 gap-3">
+          <Button
+            variant="secondary"
+            size="lg"
+            onClick={() => action.mutate({ event, action: sleep.paused ? { kind: 'resume' } : { kind: 'pause' } })}
+          >
+            {sleep.paused ? (
+              <Play className="size-5" strokeWidth={2.75} />
+            ) : (
+              <Pause className="size-5" strokeWidth={2.75} />
+            )}
+            {sleep.paused ? 'Resume nap' : 'Pause nap'}
+          </Button>
+          <Button
+            size="lg"
+            className="bg-sleep text-ink-on-solid hover:bg-on-sleep"
+            loading={ending}
+            onClick={() => action.mutate({ event, action: { kind: 'end' } })}
+          >
+            {!ending && <Moon className="size-5" strokeWidth={2.75} />}
+            End nap
+          </Button>
+        </div>
+        {endControls((at) => action.mutate({ event, action: { kind: 'end', at } }))}
       </Shell>
     );
   }
@@ -120,10 +160,12 @@ export function RunningCard({
   const title = event.type === 'pump' ? 'Pumping' : 'Feeding';
   const tone = event.type === 'pump' ? 'pump' : 'feed';
 
-  function finish() {
+  function finish(at?: string) {
     const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
-    const ended = action.mutateAsync({ event, action: { kind: 'end' } });
-    if (event.type === 'breast_feed') showNapPrompt(napPromptOnFeedEnd(running, feedEndTime(event, clock.now())));
+    const ended = action.mutateAsync({ event, action: { kind: 'end', at } });
+    if (event.type === 'breast_feed') {
+      showNapPrompt(napPromptOnFeedEnd(running, at ?? feedEndTime(event, clock.now())));
+    }
     if (event.type === 'pump') {
       ended
         .then(() => navigate({ to: '/events/$eventId', params: { eventId: event.id }, search: { finish: true } }))
@@ -200,11 +242,16 @@ export function RunningCard({
           {paused ? <Play className="size-5" strokeWidth={2.75} /> : <Pause className="size-5" strokeWidth={2.75} />}
           {paused ? 'Resume' : 'Pause'}
         </Button>
-        <Button size="lg" onClick={finish} loading={action.isPending && action.variables?.action.kind === 'end'}>
+        <Button
+          size="lg"
+          onClick={() => finish()}
+          loading={action.isPending && action.variables?.action.kind === 'end'}
+        >
           <Square className="size-4" strokeWidth={3} />
           Finish
         </Button>
       </div>
+      {endControls(finish)}
     </Shell>
   );
 }

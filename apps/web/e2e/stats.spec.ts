@@ -54,4 +54,9 @@ test('growth is compared with the WHO charts once the sex is set', async ({ page
   await page.goto('/stats');
   await expect(growth.getByText(/^\d+(st|nd|rd|th) percentile$/)).toBeVisible();
   await expect(growth.getByText("Set Olivia's sex in")).toHaveCount(0);
+
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Log growth' }).click();
+  await expect(page.getByLabel('Weight (kg)')).toHaveAttribute('placeholder', /^Last: 4\.1 kg · /);
+  await expect(page.getByLabel('Length (cm)')).not.toHaveAttribute('placeholder');
 });
