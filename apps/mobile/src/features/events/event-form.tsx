@@ -5,16 +5,19 @@ import {
   hasErrors,
   needsChoice,
   validateDraft,
+  withoutPumpAmounts,
   type BabyEvent,
   type DraftErrors,
   type EventDraft,
   type Units,
 } from '@babble/domain';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { CircleAlert, RotateCw } from 'lucide-react-native';
+import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
+import { useTokenColor } from '@/lib/theme';
 import { useDeleteEvent, useSaveEvent } from '@/lib/use-events';
 import { BottleForm } from './forms/bottle-form';
 import { CustomForm } from './forms/custom-form';
@@ -64,7 +67,9 @@ export function EventForm({
 }) {
   const [draft, setDraft] = useState<EventDraft>(initial);
   const [errors, setErrors] = useState<DraftErrors>({});
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ message: string; skipAmounts: boolean } | null>(null);
+  const dangerColor = useTokenColor('--danger');
+  const inkColor = useTokenColor('--ink');
   const save = useSaveEvent(client, babyId);
   const remove = useDeleteEvent(client, babyId);
   const isNew = !event;
@@ -73,17 +78,18 @@ export function EventForm({
     enabled: draft.type === 'growth',
   }).data;
 
-  async function submit() {
-    const found = validateDraft(draft, new Date());
+  async function attempt(skipAmounts: boolean) {
+    const target = skipAmounts ? withoutPumpAmounts(draft) : draft;
+    const found = validateDraft(target, new Date());
     setErrors(found);
     if (hasErrors(found)) return;
-    setServerError(null);
+    setFailure(null);
     try {
-      await save.mutateAsync({ draft, id: event?.id });
-      onSaved?.(draft);
+      await save.mutateAsync({ draft: target, id: event?.id });
+      onSaved?.(target);
       onDone();
     } catch (caught) {
-      setServerError(toBabbleError(caught).message);
+      setFailure({ message: toBabbleError(caught).message, skipAmounts });
     }
   }
 
@@ -111,11 +117,37 @@ export function EventForm({
         value={draft.notes ?? ''}
         onChangeText={(notes) => setDraft({ ...draft, notes: notes || null })}
       />
-      {serverError && <StatusMessage tone="danger">{serverError}</StatusMessage>}
+      {failure && (
+        <View
+          accessibilityRole="alert"
+          className="flex-row items-center gap-3 rounded-tile border border-danger/35 bg-danger-soft py-1.5 pr-1.5 pl-4"
+        >
+          <CircleAlert size={20} color={dangerColor} strokeWidth={2.75} />
+          <View className="flex-1 py-1.5">
+            <Text className="font-sans text-meta text-on-danger">
+              <Text className="font-bold text-on-danger">Couldn't save.</Text> Your entry is kept here.
+            </Text>
+            <Text className="font-sans text-meta text-on-danger opacity-80">{failure.message}</Text>
+          </View>
+          <Button
+            variant="secondary"
+            loading={save.isPending}
+            icon={<RotateCw size={16} color={inkColor} strokeWidth={2.75} />}
+            onPress={() => void attempt(failure.skipAmounts)}
+          >
+            Retry
+          </Button>
+        </View>
+      )}
       {hasErrors(errors) && <StatusMessage tone="danger">Check the highlighted fields.</StatusMessage>}
-      <Button size="lg" loading={save.isPending} disabled={needsChoice(draft)} onPress={submit}>
+      <Button size="lg" loading={save.isPending} disabled={needsChoice(draft)} onPress={() => void attempt(false)}>
         {save.isPending ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
       </Button>
+      {focusAmounts && draft.type === 'pump' && (
+        <Button variant="ghost" size="lg" disabled={save.isPending} onPress={() => void attempt(true)}>
+          Save without amounts
+        </Button>
+      )}
       {event && (
         <Button
           variant="ghost"

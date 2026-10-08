@@ -28,7 +28,7 @@ export interface HomeOverviewProps {
 
 export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units, timeZone: string): string {
   if (!event) return 'Nothing logged yet';
-  if (event.endedAt === null && event.type !== 'bottle') return 'In progress';
+  if (event.endedAt === null && event.type !== 'bottle') return summariseLatest(event, now, units);
   if (event.type === 'growth') {
     const [first] = summariseLatest(event, now, units).split(' · ');
     return `${first} · ${formatShortDate(event.startedAt, timeZone)}`;

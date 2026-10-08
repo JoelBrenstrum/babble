@@ -16,7 +16,7 @@
 </helmet>
 <div style="display:flex;flex-direction:column;gap:14px;color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif">
   <sc-if value="{{ showBrand }}" hint-placeholder-val="{{ true }}">
-    <span style="font-family:Caprasimo, serif;font-size:44px;line-height:1;color:rgb(var(--primary));padding:4px 0 6px">Babble</span>
+    <span style="font-family:Caprasimo, serif;font-size:44px;line-height:1;color:rgb(var(--primary));padding:4px 0 6px">babble</span>
   </sc-if>
   <sc-if value="{{ heading.show }}" hint-placeholder-val="{{ false }}">
     <div style="display:flex;flex-direction:column;gap:6px;padding-bottom:4px"><span style="font-size:28px;font-weight:700;line-height:1.2">{{ heading.title }}</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45">{{ heading.sub }}</span></div>
@@ -60,7 +60,8 @@ class Component extends DCLogic {
     const c = n => `rgb(var(--${n}))`;
     const line = `1px solid ${c('line')}`;
     const create = s.startsWith('signin-create') || s === 'signin-invite';
-    const magic = s === 'signin-magic', newPw = s === 'new-password';
+    const magic = s === 'signin-magic', newPw = s === 'new-password', cont = s.startsWith('continue'), linkErr = s.startsWith('link-error');
+    const errText = { 'link-error': 'This sign-in link has expired. Ask for a new one.', 'link-error-invalid': "This sign-in link isn't valid any more. Ask for a new one.", 'link-error-failed': "This sign-in link didn't work. Try signing in again." }[s];
     const seg = ['Sign in', 'Create account'].map((label, i) => {
       const on = create ? i === 1 : i === 0;
       return { label, w: on ? 700 : 500, bg: on ? c('raised') : 'transparent', c: on ? c('ink') : c('ink-2'), s: on ? 'var(--shadow-raised)' : 'none' };
@@ -72,7 +73,11 @@ class Component extends DCLogic {
       border: o.error ? `2px solid ${c('danger')}` : o.focus ? `2px solid ${c('primary')}` : line, ...(o.m || none) });
     const email = field('Email', 'jane@example.com');
     let fields, cta = 'Sign in', ctaIcon = '', ctaOp = 1, linkPre = 'Forgot your password?', linkAct = 'Email me a sign-in link', hasLink = true;
-    if (newPw) {
+    if (cont) {
+      fields = []; cta = 'Continue'; linkPre = ''; linkAct = 'Cancel';
+    } else if (linkErr) {
+      fields = []; cta = 'Back to sign in'; hasLink = false;
+    } else if (newPw) {
       fields = [field('New password', '••••••••••', { pw: true, m: hint('At least 8 characters.') }), field('Confirm password', '•••••••••', { pw: true, error: true, focus: true, m: err("The passwords don't match.") })];
       cta = 'Save password'; hasLink = false;
     } else if (magic) {
@@ -83,15 +88,15 @@ class Component extends DCLogic {
       cta = 'Create account'; ctaOp = 0.45; hasLink = false;
     } else if (create) {
       fields = [email, field('Password', '•••••••••••', { pw: true, m: hint('At least 8 characters.') })];
-      if (s === 'signin-invite') fields.push(field('Invite code', 'K7Q-4MD', { tag: 'From your link', m: hint('Ask someone in your family for a code from Settings.') }));
+      if (s === 'signin-invite') fields.push(field('Invite code', 'K7Q4M-D2XPA', { tag: 'From your link', m: hint('Ask someone in your family for a code from Settings.') }));
       cta = 'Create account'; hasLink = false;
     } else {
       fields = [email, field('Password', '••••••••••', { pw: true, error: s === 'signin-error' })];
     }
     return {
       seg, fields, cta, ctaIcon, ctaOp, ctaCursor: ctaOp < 1 ? 'not-allowed' : 'pointer', linkPre, linkAct, hasLink,
-      showBrand: !newPw, showSeg: !magic && !newPw, hasError: s === 'signin-error', hasGoogle: !newPw,
-      heading: newPw ? { show: true, title: 'Choose a new password', sub: 'For jane@example.com.' } : magic ? { show: true, title: 'Sign in with a link', sub: "We'll email you a link that signs you in on this device." } : { show: false, title: '', sub: '' }
+      showBrand: !newPw, showSeg: !magic && !newPw && !cont && !linkErr, hasError: s === 'signin-error', hasGoogle: !newPw && !cont && !linkErr,
+      heading: cont ? { show: true, title: 'Continue as jane@example.com?', sub: s === 'continue-switch' ? "You're signed in as john@example.com. This link signs you in as jane@example.com instead." : 'Only continue if you asked for this sign-in link.' } : linkErr ? { show: true, title: "Couldn't sign you in", sub: errText } : newPw ? { show: true, title: 'Choose a new password', sub: 'For jane@example.com.' } : magic ? { show: true, title: 'Sign in with a link', sub: "We'll email you a link that signs you in on this device." } : { show: false, title: '', sub: '' }
     };
   }
 }

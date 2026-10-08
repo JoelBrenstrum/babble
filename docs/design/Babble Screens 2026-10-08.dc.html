@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>body{margin:0;background:#e8e4d9;font-family:Figtree,system-ui,sans-serif}a{color:#56633f;text-underline-offset:3px}a:hover{color:#3d472b}[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div data-theme="light" style="background:rgb(var(--surface));color:rgb(var(--ink));padding:64px 72px 96px;display:flex;flex-direction:column;gap:40px;box-sizing:border-box;min-width:1800px">
+  <header style="display:flex;flex-direction:column;gap:10px;max-width:960px">
+    <div style="font-family:Caprasimo, serif;font-size:56px;line-height:1;color:rgb(var(--primary))">babble</div>
+    <div style="font-size:24px;font-weight:700">8 Oct 2026 updates</div>
+    <div style="font-size:16px;color:rgb(var(--ink-2));line-height:1.5">Timeline 7d, the Stats screen with growth charts, baby sex, summary strips, sign-in link confirmation, Next side, End feed, nap details with pause and resume, export, nappy type first, growth placeholders, Ended earlier and who ended it, left/right/idle feed time, the running dot on Home, and clustered timeline markers. Earlier work is in <a href="Babble Screens v1.1.dc.html">Screens v1.1</a> and the <a href="Babble Design System.dc.html">design system</a>.</div>
+  </header>
+  <sc-for list="{{ groups }}" as="g" hint-placeholder-count="5">
+    <section style="display:flex;flex-direction:column;gap:18px">
+      <span style="font-size:20px;font-weight:700;color:rgb(var(--on-info))">{{ g.title }}</span>
+      <div style="display:flex;flex-wrap:wrap;gap:48px 56px">
+        <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="3">
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--info))">{{ it.n }}</span><span style="font-size:18px;font-weight:700">{{ it.title }}</span></div>
+            <div style="display:flex;gap:24px">
+              <sc-if value="{{ g.isScreen }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Screen" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Screen" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+              <sc-if value="{{ g.isForms }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Forms" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+              <sc-if value="{{ g.isFlows }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Flows" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+              <sc-if value="{{ g.isLists }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Lists" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+              <sc-if value="{{ g.isAccount }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Account" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+              <sc-if value="{{ g.isSleep }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Phone Sleep" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div><div data-theme="dark"><dc-import name="Phone Sleep" screen="{{ it.s }}" hint-size="408px,862px"></dc-import></div></sc-if>
+              <sc-if value="{{ g.isWeb }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Web" screen="{{ it.s }}" width="{{ it.w }}" hint-size="1440px,900px"></dc-import></div><div data-theme="dark"><dc-import name="Web" screen="{{ it.s }}" width="{{ it.w }}" hint-size="1440px,900px"></dc-import></div></sc-if>
+              <sc-if value="{{ g.isAuth }}" hint-placeholder-val="{{ false }}"><div data-theme="light"><dc-import name="Web Auth" screen="{{ it.s }}" hint-size="1200px,900px"></dc-import></div><div data-theme="dark"><dc-import name="Web Auth" screen="{{ it.s }}" hint-size="1200px,900px"></dc-import></div></sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const G = (title, kind, arr, p, w) => ({ title, isScreen: kind === 'screen', isForms: kind === 'forms', isFlows: kind === 'flows', isLists: kind === 'lists', isAccount: kind === 'account', isWeb: kind === 'web', isAuth: kind === 'auth', isSleep: kind === 'sleep',
+      items: arr.map(([s, title], i) => ({ s, title, w: w || 'desktop', n: p + String(i + 1).padStart(2, '0') })) });
+    const groups = [
+      G('Timeline · 7d, left/right/idle, paused nap, clustered nappies, Home dot', 'screen', [['timeline-day', 'Day · idle outlines, paused nap, clustered nappies'], ['timeline-week', '7d · L/R bars, › disabled, paused dot']], 'O1.'),
+      G('Timeline · desktop', 'web', [['timeline-day', 'Day · totals with Left / Right / Idle / Bottle'], ['timeline-week', '7d · Left, Right and Idle rows']], 'O2.'),
+      G('Stats · phone', 'screen', [['stats', 'Stats · split Home dot'], ['stats-growth', 'Growth card'], ['stats-nosex', 'Growth · no sex set'], ['stats-early', 'First day'], ['stats-empty', 'Nothing to chart yet']], 'O3.'),
+      G('Stats · desktop', 'web', [['stats', 'Stats · hover tooltip on the last bar'], ['stats-nosex', 'Growth · no sex set']], 'O4.'),
+      G('Summary strips', 'lists', [['sleep', 'Sleep · asleep · wake-ups row'], ['nappy', 'Nappies'], ['pump', 'Pump'], ['growth', 'Growth'], ['bottle', 'Bottle filter'], ['custom', 'Custom']], 'O5.'),
+      G('Summary strip · feeds', 'screen', [['feeds', 'Feeds'], ['feeds-running', 'Feed running']], 'O6.'),
+      G('Feeds · desktop', 'web', [['feeds', 'Strip, Started by / Ended by, sidebar Home dot']], 'O7.'),
+      G('Feeds · tablet', 'web', [['feeds', 'Rail Home dot']], 'O8.', 'tablet'),
+      G('Nappy form', 'screen', [['nappy-fresh', 'No type yet · Save disabled'], ['nappy-wet', 'Wet · Wee size'], ['nappy', 'Both · Solid texture']], 'O9.'),
+      G('Running sleep', 'sleep', [['running', 'Napping'], ['paused', 'Awake · nap paused'], ['resumed', 'Resumed'], ['ended-earlier', 'Ended earlier?'], ['ended-earlier-error', 'Ended earlier · error'], ['details', 'Details while napping']], 'O10.'),
+      G('Running cards · Ended earlier?', 'screen', [['home', 'Home feed card'], ['timer', 'Breastfeed timer']], 'O11.'),
+      G('Start, pump and growth', 'forms', [['start-feed', 'Next on Left'], ['start-feed-first', 'No previous feed'], ['pump', 'Pump · Ended earlier?'], ['growth', 'Previous values as placeholders']], 'O12.'),
+      G('Prompts and entry authors', 'flows', [['prompt-endfeed', 'End feed?'], ['prompt-endfeed-backdated', 'End feed · nap backdated'], ['home-live', 'Home nap card · Pause nap'], ['feed-detail', 'Started by / Ended by'], ['pump-detail', 'Pump · Started by / Ended by']], 'O13.'),
+      G('End feed · desktop', 'web', [['home-endfeed', 'End feed dialog']], 'O14.'),
+      G('Baby sex, export and settings dot', 'account', [['add-baby', 'Add baby · Sex'], ['add-baby-family', 'Add a baby · Sex'], ['settings-baby', 'Settings → Baby profile'], ['settings-3', 'Export data'], ['settings-export-busy', 'Exporting'], ['settings-export-error', 'Export failed']], 'O15.'),
+      G('Export · desktop', 'web', [['settings', 'Export Olivia / whole family']], 'O16.'),
+      G('Sign-in link confirmation', 'auth', [['continue', 'Continue as…'], ['continue-switch', 'Someone else signed in'], ['link-error', 'Expired'], ['link-error-invalid', 'Not valid'], ['link-error-failed', "Didn't work"]], 'O17.'),
+      G('Phone · continue and invite codes', 'account', [['continue', 'Continue as…'], ['family', '10-character code'], ['invite', 'Invite panel']], 'O18.')
+    ];
+    return { groups };
+  }
+}
+</script>
+</body>
+</html>

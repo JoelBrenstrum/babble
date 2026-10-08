@@ -31,6 +31,11 @@
       </div>
     </sc-if>
 
+    <sc-if value="{{ hasStrip }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 2px;border-radius:16px;background:rgb(var(--surface));cursor:pointer" style-hover="background:rgb(var(--line) / 0.7)">
+        <sc-for list="{{ strip }}" as="s" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:1px;padding:0 10px;border-left:{{ s.divider }};min-width:0"><span style="font-size:13px;color:rgb(var(--ink-2));white-space:nowrap">{{ s.label }}</span><span style="display:flex;align-items:center;gap:6px;font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap">{{ s.value }}<span style="width:16px;height:16px;flex:none;border-radius:50%;background:{{ s.sw }};display:{{ s.swD }};box-shadow:inset 0 0 0 1.5px rgb(var(--swatch-edge) / 0.6)"></span></span><span style="font-size:12px;color:rgb(var(--ink-3));white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.note }}</span></div></sc-for>
+      </div>
+    </sc-if>
     <sc-if value="{{ isLoading }}" hint-placeholder-val="{{ false }}">
       <sc-for list="{{ skel }}" as="g" hint-placeholder-count="2">
         <div style="display:flex;flex-direction:column;gap:8px">
@@ -91,7 +96,7 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sleep&quot;,&quot;nappy&quot;,&quot;pump&quot;,&quot;growth&quot;,&quot;feeds-empty&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;sleep&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sleep&quot;,&quot;nappy&quot;,&quot;pump&quot;,&quot;growth&quot;,&quot;bottle&quot;,&quot;custom&quot;,&quot;feeds-empty&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;sleep&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const s = this.props.screen || 'sleep';
@@ -102,12 +107,12 @@ class Component extends DCLogic {
     const idle = t => ({ text: t, bg: c('session-downtime-soft'), color: c('on-session-downtime'), border: `1.5px dashed ${c('session-downtime')}`, icon: '', sw: 'transparent', swD: 'none' });
     const poo = (a, b) => b ? `linear-gradient(135deg, rgb(var(--poo-${a})) 50%, rgb(var(--poo-${b})) 50%)` : `rgb(var(--poo-${a}))`;
     const rows = arr => arr.map(([time, parts, total, swiped, imp], i) => ({ time, parts, total, avD: imp ? 'none' : 'grid', chipD: imp ? 'inline-flex' : 'none', who: ['Ja', 'Jo', 'Jo', 'Ja', 'Jo'][i % 5], divider: i ? line : 'none', behind: swiped ? 'flex' : 'none', tx: swiped ? 'translateX(-92px)' : 'none' }));
-    const seg = (labels) => labels.map((label, i) => ({ label, w: i ? 500 : 700, bg: i ? 'transparent' : c('raised'), c: i ? c('ink-2') : c('ink'), s: i ? 'none' : 'var(--shadow-raised)' }));
+    const seg = (labels, sel = 0) => labels.map((label, j) => { const i = j === sel ? 0 : 1; return { label, w: i ? 500 : 700, bg: i ? 'transparent' : c('raised'), c: i ? c('ink-2') : c('ink'), s: i ? 'none' : 'var(--shadow-raised)' }; });
     const cats = {
       sleep: { k: 'sleep', icon: 'icon-moon', title: 'Sleep', seg: ['All', 'Naps', 'Night'], groups: [
         { title: 'Today', sub: 'Tue 6 Oct', totals: '2 sleeps · 2h 37m', rows: rows([
           ['01:58', [pill('session-active', 'In progress', { icon: 'icon-play' }), pill('sleep', 'Bassinet')], '1h 12m'],
-          ['00:10', [pill('sleep', 'Bassinet'), neutral('Woken by carer')], '1h 25m']]) },
+          ['00:10', [pill('sleep', '2 wake-ups'), { text: 'awake 12m', bg: c('session-downtime-soft'), color: c('on-session-downtime'), border: 'none', icon: 'icon-pause', sw: 'transparent', swD: 'none' }], '1h 25m']]) },
         { title: 'Yesterday', sub: 'Mon 5 Oct', totals: '8 sleeps · 14h 20m', rows: rows([
           ['20:24', [pill('sleep', 'Cot'), neutral('Upset → happy')], '3h 10m'],
           ['18:00', [pill('sleep', 'Held')], '1h 06m', true],
@@ -142,16 +147,39 @@ class Component extends DCLogic {
         { title: 'Birth', sub: 'Fri 25 Sep', totals: '', rows: rows([
           ['06:12', [pill('growth', '3.30 kg', { icon: 'icon-weight' }), pill('growth', '50.0 cm', { icon: 'icon-ruler' }), pill('growth', 'Head 34.0', { icon: 'icon-circle-dashed' })], '']]) }] },
       feeds: { k: 'feed-right', icon: 'icon-heart', title: 'Breastfeeds', seg: null, groups: [] },
+      bottle: { k: 'bottle', icon: 'icon-milk', title: 'Feeds', seg: ['All', 'Breast', 'Bottle'], segSel: 2, groups: [
+        { title: 'Today', sub: 'Tue 6 Oct', totals: '4 bottles · 360 ml', rows: rows([
+          ['13:30', [pill('bottle', '90 ml', { icon: 'icon-milk' }), neutral('Breast milk')], '12m'],
+          ['10:10', [pill('bottle', '90 ml', { icon: 'icon-milk' }), neutral('Formula')], '15m'],
+          ['06:40', [pill('bottle', '90 ml', { icon: 'icon-milk' }), neutral('Breast milk')], '10m'],
+          ['02:20', [pill('bottle', '90 ml', { icon: 'icon-milk' }), neutral('Left 15 ml')], '14m']]) }] },
+      custom: { k: 'custom', icon: 'icon-sparkles', title: 'Custom', seg: null, groups: [
+        { title: 'Today', sub: 'Tue 6 Oct', totals: '3 events', rows: rows([
+          ['13:40', [pill('custom', 'Tummy time'), neutral('10m')], ''],
+          ['09:15', [pill('custom', 'Vitamin D')], ''],
+          ['07:30', [pill('custom', 'Skin to skin'), neutral('25m')], '']]) },
+        { title: 'Yesterday', sub: 'Mon 5 Oct', totals: '2 events', rows: rows([
+          ['18:10', [pill('custom', 'Bath'), neutral('15m')], ''],
+          ['11:00', [pill('custom', 'Tummy time'), neutral('8m')], '']]) }] },
       loading: { k: 'feed-right', icon: 'icon-heart', title: 'Feeds', seg: ['All', 'Breast', 'Bottle'], groups: [] }
     };
     const key = s === 'feeds-empty' ? 'feeds' : s;
+    const stripData = {
+      sleep: [['Asleep for', '45m', 'since 2:50 pm'], ['Today', '9h 40m', 'avg 11h 05m'], ['Naps', '3', 'avg 3.4']],
+      nappy: [['Last change', '45m', 'ago · 3:00 pm'], ['Wet today', '4', 'avg 5'], ['Dirty today', '2', 'avg 3', 'mustard']],
+      pump: [['Last pump', '3h 10m', 'ago · 12:20 pm'], ['Today', '210 ml', 'avg 180 ml'], ['Left / right', '110 / 100', 'ml today']],
+      growth: [['Weight', '4.30 kg', '51st percentile'], ['Change', '+180 g', 'in 6 days'], ['Length', '55 cm', '48th percentile']],
+      bottle: [['Last bottle', '2h 05m', 'ago · 1:30 pm'], ['Today', '360 ml', 'avg 420 ml'], ['Per bottle', '90 ml', '']],
+      custom: [['Last', '2h 00m', 'ago · 1:40 pm'], ['Today', '3', ''], ['7 days', '14', '']]
+    };
     const d = cats[key] || cats.sleep;
     const tabs = [['icon-house', 'Home'], ['icon-history', 'Timeline'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
       .map(([icon, label], i) => ({ icon, label, color: i === 1 ? c('on-primary-soft') : c('ink-3'), weight: i === 1 ? 700 : 500, pill: i === 1 ? c('primary-soft') : 'transparent' }));
     const sk = n => Array.from({ length: n }, (_, i) => ({ divider: i ? line : 'none', w1: [70, 56, 84, 62][i % 4] + 'px', w2: [62, 74, 50, 70][i % 4] + 'px' }));
     return {
       cat: { title: d.title, icon: d.icon, solid: c(d.k), soft: c(d.k + '-soft'), on: c('on-' + d.k) },
-      hasSeg: !!d.seg, segOpts: seg(d.seg || []),
+      hasSeg: !!d.seg, segOpts: seg(d.seg || [], d.segSel || 0),
+      hasStrip: !!stripData[key], strip: (stripData[key] || []).map(([label, value, note, sw], i) => ({ label, value, note: note || '\u00a0', sw: sw ? `rgb(var(--poo-${sw}))` : 'transparent', swD: sw ? 'block' : 'none', divider: i ? `1px solid ${c('line')}` : 'none' })),
       groups: d.groups, tabs,
       isLoading: s === 'loading', isEmpty: s === 'feeds-empty',
       skel: [sk(3), sk(4)]

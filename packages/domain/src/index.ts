@@ -30,6 +30,7 @@ export {
   describeEvent,
   summariseLatest,
   type DescriptionPart,
+  type PartIcon,
   type EventDescription,
   type PartTone,
 } from './events/describe';
@@ -38,6 +39,7 @@ export { otherSide, segmentTotals, type SegmentLike, type SegmentTotals } from '
 export { hasErrors, needsChoice, validateDraft, type DraftErrors } from './events/validate';
 export { nappyType, withNappyType, type NappyType } from './events/nappy';
 export { formatAgo, formatDuration, formatTimer } from './format/duration';
+export { RESEND_COOLDOWN_MS, resendState, type ResendState } from './format/resend';
 export {
   formatLength,
   formatVolume,
@@ -50,6 +52,7 @@ export {
 export {
   dayKeyFor,
   dayWindow,
+  formatDayDate,
   formatDayLabel,
   formatShortDate,
   formatTimeOfDay,
@@ -123,6 +126,10 @@ export {
 } from './events/feed-rules';
 export { importedNote, summariseImport, type ImportSummary } from './huckleberry/summary';
 export {
+  barAnchor,
+  barReadout,
+  chartDayLabel,
+  chartValue,
   gapsBetween,
   rangeDays,
   statsReport,
@@ -154,6 +161,22 @@ export {
   type StripItem,
   type StripKind,
 } from './lists/list-strip';
+export {
+  dayHeading,
+  dayTotals,
+  listDayGroups,
+  type DayGroupContext,
+  type DayHeading,
+  type ListDayGroup,
+} from './lists/day-groups';
+export {
+  CAUTION_COLOURS,
+  MOOD_LABELS,
+  POO_COLOUR_LABELS,
+  POO_TEXTURE_LABELS,
+  SIZE_LABELS,
+  SLEEP_LOCATION_LABELS,
+} from './events/labels';
 export { growthInputUnit, growthPlaceholders, toGrowthInput } from './growth/previous';
 export {
   asleepIntervals,
@@ -162,3 +185,13 @@ export {
   summariseSleep,
   type SleepSummary,
 } from './events/sleep-stretches';
+export {
+  manualSleepDuration,
+  pausedForMs,
+  pumpFinishSummary,
+  runningSessionLine,
+  runningTone,
+  startContext,
+  withoutPumpAmounts,
+  type RunningTone,
+} from './events/session-context';

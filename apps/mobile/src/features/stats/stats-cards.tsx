@@ -1,6 +1,7 @@
-import { formatShortDate, topSegment, type StatsCard } from '@babble/domain';
+import { barReadout, chartDayLabel, chartValue, topSegment, type StatsCard } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
 import { PooSwatch } from '@/components/poo-swatch';
 import { useTokenColor } from '@/lib/theme';
@@ -19,13 +20,6 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkT
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump', series: ['bg-pump'] },
 };
 
-const dayLabel = (key: string) => formatShortDate(`${key}T12:00:00Z`, 'UTC');
-
-function axisValue(value: number, unit: string): string {
-  const rounded = value >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
-  return unit === 'h' ? `${rounded}h` : unit ? `${rounded} ${unit}` : String(rounded);
-}
-
 export function StatsCards({ cards }: { cards: StatsCard[] }) {
   return (
     <View className="gap-4">
@@ -40,6 +34,8 @@ function StatsCardView({ card }: { card: StatsCard }) {
   const look = LOOK[card.key];
   const color = useTokenColor(look.ink);
   const { chart } = card;
+  const [selected, setSelected] = useState<string | null>(null);
+  const selectedBar = chart.bars.find((bar) => bar.label === selected);
   return (
     <Card className="gap-4 p-5">
       <View className="flex-row items-center gap-3">
@@ -61,40 +57,53 @@ function StatsCardView({ card }: { card: StatsCard }) {
       <View className="gap-1.5">
         <View className="flex-row items-center justify-between">
           <View className="flex-row gap-3">
-            {chart.series.map((name, index) => (
-              <View key={name} className="flex-row items-center gap-1.5">
+            {chart.legend.map((index) => (
+              <View key={index} className="flex-row items-center gap-1.5">
                 <View className={`h-2.5 w-2.5 rounded-sm ${look.series[index]}`} />
-                <Text className="font-sans text-caption text-ink-3">{name}</Text>
+                <Text className="font-sans text-caption text-ink-3">{chart.series[index]}</Text>
               </View>
             ))}
           </View>
           {chart.max > 0 && (
             <Text className="font-sans text-caption text-ink-3">
-              {`${chart.weekly ? 'weekly avg, ' : ''}max ${axisValue(chart.max, chart.unit)}`}
+              {`${chart.weekly ? 'weekly avg, ' : ''}max ${chartValue(chart.max, chart.unit)}`}
             </Text>
           )}
         </View>
+        <Text className={selectedBar ? 'font-semibold text-caption text-ink' : 'font-sans text-caption text-ink-3'}>
+          {selectedBar ? barReadout(chart, selectedBar) : 'Tap a bar to see its day'}
+        </Text>
         <View
-          accessibilityRole="image"
           accessibilityLabel={`${card.title} per day`}
           className="h-32 flex-row items-end gap-[2px] border-b border-line"
         >
-          {chart.bars.map((bar) => (
-            <View key={bar.label} className="h-full flex-1 flex-col-reverse">
-              {bar.values.map((value, index) => (
-                <View
-                  key={index}
-                  className={`${look.series[index]} ${index === topSegment(bar.values) ? 'rounded-t-sm' : ''}`}
-                  style={{ height: chart.max ? `${(value / chart.max) * 100}%` : 0 }}
-                />
-              ))}
-            </View>
-          ))}
+          {chart.bars.map((bar) => {
+            const top = topSegment(bar.values);
+            return (
+              <Pressable
+                key={bar.label}
+                accessibilityRole="button"
+                accessibilityLabel={barReadout(chart, bar)}
+                accessibilityState={{ selected: selectedBar === bar }}
+                onPress={() => setSelected(selectedBar === bar ? null : bar.label)}
+                className={`h-full flex-1 flex-col-reverse ${selectedBar === bar ? 'opacity-80' : ''}`}
+              >
+                {bar.values.map((value, index) => (
+                  <View
+                    key={index}
+                    className={`${look.series[index]} ${index === top ? 'rounded-t-sm' : ''}`}
+                    style={{ height: chart.max ? `${(value / chart.max) * 100}%` : 0 }}
+                  />
+                ))}
+                {top === -1 && <View className="h-px bg-line" />}
+              </Pressable>
+            );
+          })}
         </View>
         {chart.bars.length > 0 && (
           <View className="flex-row justify-between">
-            <Text className="font-sans text-caption text-ink-3">{dayLabel(chart.bars[0]!.label)}</Text>
-            <Text className="font-sans text-caption text-ink-3">{dayLabel(chart.bars.at(-1)!.label)}</Text>
+            <Text className="font-sans text-caption text-ink-3">{chartDayLabel(chart.bars[0]!.label)}</Text>
+            <Text className="font-sans text-caption text-ink-3">{chartDayLabel(chart.bars.at(-1)!.label)}</Text>
           </View>
         )}
       </View>

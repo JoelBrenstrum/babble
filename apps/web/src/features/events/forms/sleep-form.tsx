@@ -1,4 +1,11 @@
-import type { DraftOfType, FallAsleep, Mood, SleepDetails, SleepLocation } from '@babble/domain';
+import {
+  manualSleepDuration,
+  type DraftOfType,
+  type FallAsleep,
+  type Mood,
+  type SleepDetails,
+  type SleepLocation,
+} from '@babble/domain';
 import { MultiChips, SingleChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { FormSection, type FormProps } from './shared';
@@ -74,6 +81,7 @@ export function SleepDetailFields({
 
 export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'sleep'>>) {
   const details = draft.details;
+  const duration = manualSleepDuration(draft.startedAt, draft.endedAt);
   return (
     <FormSection>
       <div className="grid gap-5 sm:grid-cols-2">
@@ -92,6 +100,12 @@ export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<Draft
           onChange={(endedAt) => onChange({ ...draft, endedAt })}
         />
       </div>
+      {duration && (
+        <div className="flex items-center justify-between rounded-tile bg-sleep-soft px-4 py-3 text-on-sleep">
+          <span className="text-body font-semibold">Duration</span>
+          <span className="tabular text-row-title font-bold">{duration}</span>
+        </div>
+      )}
       <SleepDetailFields
         details={details}
         onChange={(patch) => onChange({ ...draft, details: { ...details, ...patch } })}

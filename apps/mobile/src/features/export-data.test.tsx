@@ -34,4 +34,12 @@ describe('ExportData', () => {
     expect(mockExportData).toHaveBeenCalledWith(fixtureClient, sampleFamily, [sampleBaby.id], expect.any(Date));
     expect(JSON.parse(mockWrite.mock.calls[0]![0] as string)).toMatchObject({ format: 'babble-export' });
   });
+
+  it('shows a friendly error when the export fails', async () => {
+    mockExportData.mockRejectedValue(new Error('Network request failed'));
+    await render(<ExportData client={fixtureClient} family={sampleFamily} baby={sampleBaby} />);
+    await fireEvent.press(screen.getByRole('button', { name: `Export ${sampleBaby.name}` }));
+    expect(await screen.findByText("Couldn't export. Check your connection and try again.")).toBeTruthy();
+    expect(screen.queryByText(/Network request failed/)).toBeNull();
+  });
 });

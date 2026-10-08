@@ -44,6 +44,10 @@ export function formatTimeOfDay(iso: string, timeZone: string): string {
 export function formatDayLabel(dayKey: string, todayKey: string): string {
   if (dayKey === todayKey) return 'Today';
   if (dayKey === shiftDay(todayKey, -1)) return 'Yesterday';
+  return formatDayDate(dayKey);
+}
+
+export function formatDayDate(dayKey: string): string {
   const [year, month, day] = dayKey.split('-').map(Number) as [number, number, number];
   const parts: Record<string, string> = {};
   for (const part of new Intl.DateTimeFormat('en-NZ', {

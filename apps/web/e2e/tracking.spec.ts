@@ -59,11 +59,11 @@ test('a nappy can be logged, edited, deleted and restored', async ({ page }, tes
   await expect(page.getByRole('checkbox', { name: 'Brown' })).toBeDisabled();
   await page.getByRole('button', { name: 'Save' }).click();
 
-  await expect(page.getByText('Dirty', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: /Wet/ }).click();
+  await expect(page.getByText('Both', { exact: true })).toBeVisible();
+  await page.getByRole('link', { name: /Both/ }).click();
   await page.getByRole('radio', { name: 'Wet' }).click();
   await page.getByRole('button', { name: 'Save changes' }).click();
-  await expect(page.getByText('Dirty', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Both', { exact: true })).toHaveCount(0);
   await expect(page.getByText('Wet', { exact: true })).toBeVisible();
 
   await page.getByRole('link', { name: /Wet/ }).click();

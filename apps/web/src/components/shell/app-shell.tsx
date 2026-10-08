@@ -1,6 +1,6 @@
 import type { BabyChoice, BabyRow, Family } from '@babble/api';
 import type { RunningIndicator } from '@babble/domain';
-import { Link } from '@tanstack/react-router';
+import { Link, useLocation } from '@tanstack/react-router';
 import { ChartColumn, History, House, Settings, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Avatar } from '#/components/ui/avatar';
@@ -37,6 +37,8 @@ export function AppShell({
   running?: RunningIndicator | null;
   children: ReactNode;
 }) {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const homeDot = pathname === '/' ? null : running;
   return (
     <div className="min-h-dvh bg-bg md:pl-[84px] xl:pl-[268px]">
       <aside className="fixed inset-y-0 left-0 hidden w-[84px] flex-col border-r border-line bg-raised md:flex xl:w-[268px]">
@@ -52,7 +54,7 @@ export function AppShell({
         </div>
         <nav className="flex flex-1 flex-col gap-1 px-3 xl:px-4" aria-label="Main">
           {NAV.map((item) => {
-            const dot = item.to === '/' ? running : null;
+            const dot = item.to === '/' ? homeDot : null;
             return (
               <Link
                 key={item.to}
@@ -100,7 +102,7 @@ export function AppShell({
         className="fixed inset-x-0 bottom-0 z-10 grid h-tab-bar grid-cols-4 border-t border-line bg-raised px-2 pb-[env(safe-area-inset-bottom)] md:hidden"
       >
         {NAV.map((item) => {
-          const dot = item.to === '/' ? running : null;
+          const dot = item.to === '/' ? homeDot : null;
           return (
             <Link
               key={item.to}

@@ -44,7 +44,7 @@ All screens are in light and dark. The `.dc.html` files take a `screen` prop (sh
 
 ## Global
 
-- **Phone size, on Expo and on the web PWA:** bottom tabs **Home · Timeline · Stats · Settings**. While any timer runs, Home gets a dot in the running tracker's colour (split in two when two trackers run) that pulses unless everything is paused; the sidebar and icon rail show the same dot, and partners' timers show via realtime. The web app at phone width must be as fast to log with as the native app, because self-hosters only have the web app.
+- **Phone size, on Expo and on the web PWA:** bottom tabs **Home · Timeline · Stats · Settings**. While any timer runs, Home gets a dot in the running tracker's colour (split in two when two trackers run) that pulses unless everything is paused; the sidebar and icon rail show the same dot, and partners' timers show via realtime. The dot is hidden while you're on Home. The web app at phone width must be as fast to log with as the native app, because self-hosters only have the web app.
 - **Desktop web:** left sidebar (Home, Feeds, Sleep, Nappies, Pump, Growth, Custom, Timeline, Stats, Settings). Category lists open as a list + detail split view. Home shows today's timeline next to the tracker rows.
 - Dark mode follows the system, with an optional "dark at night" mode. Large touch targets for one-handed use. Every destructive action has an undo toast. All times are editable.
 - Timers show elapsed time computed from `started_at`, so they're correct on every device.
@@ -92,12 +92,15 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
   - Growth: Weight and Length with their WHO percentile · Change since the previous weight
   - Custom: Last · Today · 7 days
 - Rows grouped by day, using the baby's day start:
-  - Feed: `14:02 · L 10m · R 12m · ⏸ 7m`
-  - Pump: `11:30 · L 12m 80ml · R 10m 70ml · ⏸ 2m`
-  - Nappy: `09:15 · Dirty · ● green ● yellow · Medium`
+  - Feed: `14:02 · R 12m · ⏸ 7m · L 10m`, sides in the order they happened
+  - Pump: `11:30 · L 12m · 80 ml · R 10m · 70 ml · ⏸ 2m`, total ml on the right
+  - Nappy: `09:15 · [Both] · Seedy · ● Mustard · Check` (Check for red, black or white poo), size on the right
+  - Sleep: wake-ups and awake chips, then location chips (Cot, Bassinet) and mood ("Upset → happy")
+  - Running entries show an "In progress" pill
   - Imported feeds show a small "imported" tag, with no downtime figure
+  - Growth: the entry on the birth date is grouped as "Birth"; notes become the subtitle
 - Swipe left (mobile) or a row menu (web) to delete, with undo. Tap to open detail/edit.
-- Day header shows the day's total (e.g. "6 feeds · 1h 48m").
+- Day header: "Today" with the date underneath ("Tue 6 Oct"), and the day's total on the right per tracker: "2 sleeps · 2h 37m" (time asleep), "3 · 2 wet · 2 dirty", "1 session · 115 ml", "4 bottles · 360 ml", "+40 g since 2 Oct", "3 events". Feeds add "· 90 ml" when bottles are included.
 
 ## 4. Breast feed timer
 
@@ -120,6 +123,9 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 
 - Tapping the inactive side ends the current segment and starts the other side.
 - Tapping the active side pauses. Tapping it again resumes the same side, which adds a new segment and a downtime row if the gap was over the threshold.
+- The start screen has a context line: "Last feed ended on Right, 2h 14m ago. Next side: Left." (or "No breastfeeds logged yet. Start on either side."); pump "Last pump 6h 02m ago · 90 ml."; sleep "Awake 1h 05m since the last nap." If one is already running it shows "Right · 12m 23s · started by Jane" with Open timer.
+- Paused sessions look paused: the live dot turns the downtime colour and stops pulsing, and the timer turns grey. A paused feed or pump shows "Paused for 1m 12s", marks the last side "· last", and the growing idle row reads "idle · counting".
+- Running cards show "Started by Jane" next to the avatar at every width.
 - On the start screen, the suggested side carries a "Next" tag: the opposite of the side the last breastfeed ended on. Both sides stay one tap to start.
 - Start → if a nap is running, show the "End nap?" sheet first (Stage 2).
 - Done → "Start nap?" sheet with "now" or "at feed end" (Stage 2).
@@ -196,4 +202,4 @@ To be designed when the stage starts.
 
 ## 17. Stats (Phase 2)
 
-A range picker (7d / 30d / All) and one card per tracker: figure tiles (daily averages over finished days; Feeds adds "Breast per day", e.g. "L 42m · R 38m · idle 9m") and a stacked bar chart per day, weekly averages for long ranges. Nappies also show recent poo colours. Pump appears only when there was pumping. A Growth card (all entries, not range-limited) charts weight, length and head against the WHO percentile curves and shows the latest percentile; without a sex it asks for one in Settings. See [Stage 7](stages/07-stats.md).
+A range picker (7d / 30d / All) and one card per tracker: figure tiles (daily averages over finished days; Feeds adds "Breast per day", e.g. "L 42m · R 38m · idle 9m") and a stacked bar chart per day, weekly averages for long ranges. Nappies also show recent poo colours. Pump appears only when there was pumping, and its Left / right figure is per day. Hovering or focusing a bar on the web shows a tooltip ("7 Oct: Night 5h, Naps 4.5h"); on Expo, tapping a bar shows the same line above the chart. On the first day, figures read "Today so far" and drop "per day", and per-day-only figures are hidden. A Growth card (all entries, not range-limited) charts weight, length and head against the WHO percentile curves and shows the latest percentile; without a sex it asks for one in Settings. See [Stage 7](stages/07-stats.md).

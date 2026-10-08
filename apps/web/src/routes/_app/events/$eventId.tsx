@@ -8,7 +8,7 @@ import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm, toDraft } from '#/features/events/event-form';
-import { canResumeFeed, importedNote, isSessionType, latestFeed, trackerFor } from '@babble/domain';
+import { canResumeFeed, importedNote, isSessionType, latestFeed, pumpFinishSummary, trackerFor } from '@babble/domain';
 import { useTrackingSettings } from '#/lib/use-events';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { Button } from '#/components/ui/button';
@@ -61,6 +61,7 @@ function EditEvent() {
 
   const tracker = trackerFor(event.data.type);
   const note = importedNote(event.data);
+  const finishSummary = finish ? pumpFinishSummary(event.data, baby.timezone) : null;
   const memberName = (userId: string | null) =>
     family.members.find((member) => member.user_id === userId)?.display_name;
   const done = () => {
@@ -80,7 +81,10 @@ function EditEvent() {
           <ChevronLeft className="size-6" strokeWidth={2.75} />
         </Link>
         <TrackerIcon tracker={tracker} />
-        <h1 className="text-title font-bold">{finish ? 'How much did you pump?' : tracker.label}</h1>
+        <div className="flex flex-col">
+          <h1 className="text-title font-bold">{finish ? 'How much did you pump?' : tracker.label}</h1>
+          {finishSummary && <p className="tabular text-meta text-ink-2">{finishSummary}</p>}
+        </div>
       </div>
       {(event.data.type === 'breast_feed' || event.data.type === 'pump') && event.data.segments.length > 0 && (
         <SessionBreakdown

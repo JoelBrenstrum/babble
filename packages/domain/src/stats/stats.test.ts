@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
-import { gapsBetween, rangeDays, statsReport, topSegment, weeklyBars, type StatsSettings } from './stats';
+import {
+  barAnchor,
+  barReadout,
+  chartValue,
+  gapsBetween,
+  rangeDays,
+  statsReport,
+  topSegment,
+  weeklyBars,
+  type StatsSettings,
+} from './stats';
 
 const settings: StatsSettings = {
   timeZone: 'UTC',
@@ -148,6 +158,21 @@ describe('statsReport', () => {
     expect(todayOnly.cards[2]!.figures[0]!.value).toBe('1');
   });
 
+  it('labels a first day as today so far and drops per-day wording and figures', () => {
+    const todayOnly = statsReport(
+      events.filter((event) => event.id === 'n2'),
+      keys,
+      '2026-10-08',
+      NOW,
+      settings,
+    );
+    const labels = (key: string) =>
+      todayOnly.cards.find((card) => card.key === key)!.figures.map((figure) => figure.label);
+    expect(labels('sleep')).toEqual(['Today so far', 'Night', 'Naps', 'Longest stretch']);
+    expect(labels('feeds')).toEqual(['Today so far', 'Average gap', 'Left / right', 'Bottle']);
+    expect(labels('nappies')).toEqual(['Wet', 'Dirty']);
+  });
+
   it('leaves imported feeds out of downtime, since they have none recorded', () => {
     const imported = events.map((event) =>
       event.id === 'f1' ? { ...event, source: 'huckleberry_csv' as const } : event,
@@ -169,5 +194,66 @@ describe('statsReport', () => {
 
   it('only shows pumping when there was some', () => {
     expect(report.cards.map((card) => card.key)).toEqual(['sleep', 'feeds', 'nappies']);
+  });
+
+  it('averages pumped left and right per day', () => {
+    const pump = (id: string, startedAt: string, leftMl: number, rightMl: number) => {
+      const base = makeEvent('pump');
+      return makeEvent('pump', {
+        id,
+        startedAt,
+        details: { ...base.details, leftMl, rightMl, totalMl: leftMl + rightMl },
+      });
+    };
+    const pumped = statsReport(
+      [...events, pump('p1', '2026-10-06T09:00:00Z', 100, 60), pump('p2', '2026-10-07T09:00:00Z', 60, 40)],
+      keys,
+      '2026-10-08',
+      NOW,
+      settings,
+    );
+    const figures = pumped.cards.find((card) => card.key === 'pump')!.figures;
+    expect(figures.find((item) => item.label === 'Per day')!.value).toBe('130 ml');
+    expect(figures.find((item) => item.label === 'Left / right')!.value).toBe('80 ml / 50 ml');
+  });
+});
+
+describe('barReadout', () => {
+  const report = statsReport(
+    [makeEvent('bottle', { id: 'b1', startedAt: '2026-10-07T13:00:00Z' })],
+    ['2026-10-07', '2026-10-08'],
+    '2026-10-08',
+    NOW,
+    settings,
+  );
+  const chartFor = (key: string) => report.cards.find((card) => card.key === key)!.chart;
+
+  it('reads a bar in legend order with the day and units', () => {
+    const feeds = chartFor('feeds');
+    expect(feeds.legend.map((index) => feeds.series[index])).toEqual(['Breast', 'Bottle']);
+    expect(barReadout(feeds, feeds.bars[0]!)).toBe('7 Oct: Breast 0, Bottle 1');
+    expect(barReadout(chartFor('sleep'), { label: '2026-10-07', values: [5, 4.5] })).toBe('7 Oct: Night 5h, Naps 4.5h');
+  });
+
+  it('leaves out the series name when there is only one, and marks weekly bars', () => {
+    const chart = { unit: 'ml', series: ['Pumped'], legend: [0], bars: [], max: 0, weekly: true };
+    expect(barReadout(chart, { label: '2026-08-24', values: [210] })).toBe('Week of 24 Aug: 210 ml');
+  });
+});
+
+describe('chartValue', () => {
+  it('rounds small values to one decimal and adds the unit', () => {
+    expect(chartValue(4.46, 'h')).toBe('4.5h');
+    expect(chartValue(12.6, '')).toBe('13');
+    expect(chartValue(210, 'ml')).toBe('210 ml');
+  });
+});
+
+describe('barAnchor', () => {
+  it('pins the readout to the near edge so it stays inside the chart', () => {
+    expect(barAnchor(0, 4)).toEqual({ edge: 'left', percent: 0 });
+    expect(barAnchor(3, 4)).toEqual({ edge: 'right', percent: 0 });
+    expect(barAnchor(1, 3)).toEqual({ edge: 'center', percent: 50 });
+    expect(barAnchor(0, 1)).toEqual({ edge: 'left', percent: 0 });
   });
 });

@@ -8,9 +8,9 @@ import { AppShell } from './app-shell';
 
 const choices = babyChoices([sampleFamily]);
 
-async function renderShell(running: ReturnType<typeof runningIndicator>) {
+async function renderShell(running: ReturnType<typeof runningIndicator>, initialPath = '/timeline') {
   render(
-    <FixtureRouter>
+    <FixtureRouter initialPath={initialPath}>
       <AppShell family={sampleFamily} baby={sampleBaby} choices={choices} onSelectBaby={() => {}} running={running}>
         <p>Page</p>
       </AppShell>
@@ -20,10 +20,16 @@ async function renderShell(running: ReturnType<typeof runningIndicator>) {
 }
 
 describe('AppShell', () => {
-  it('marks Home in every nav when a nap is running', async () => {
+  it('marks Home in every nav when a nap is running on another tab', async () => {
     await renderShell(runningIndicator([sampleRunningSleep(new Date())]));
     expect(screen.getAllByRole('link', { name: 'Home, nap running' })).toHaveLength(2);
     expect(screen.getAllByTestId('running-dot').length).toBeGreaterThan(0);
+  });
+
+  it('hides the dot while on Home', async () => {
+    await renderShell(runningIndicator([sampleRunningSleep(new Date())]), '/');
+    expect(screen.queryByTestId('running-dot')).toBeNull();
+    expect(screen.getAllByRole('link', { name: 'Home' })).toHaveLength(2);
   });
 
   it('shows no dot when nothing is running', async () => {

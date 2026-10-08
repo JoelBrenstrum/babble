@@ -1,6 +1,25 @@
-import { describeEvent, formatTimeOfDay, type BabyEvent, type PartTone, type Units } from '@babble/domain';
+import {
+  describeEvent,
+  formatTimeOfDay,
+  type BabyEvent,
+  type PartIcon,
+  type PartTone,
+  type Units,
+} from '@babble/domain';
 import { Link } from '@tanstack/react-router';
-import { Pause } from 'lucide-react';
+import {
+  Circle,
+  CircleDashed,
+  CircleDot,
+  Droplet,
+  Layers,
+  Pause,
+  Play,
+  Ruler,
+  Stethoscope,
+  Weight,
+  type LucideIcon,
+} from 'lucide-react';
 import type { FamilyMemberRow } from '@babble/api';
 import { Avatar } from '#/components/ui/avatar';
 import { PooSwatch } from '#/components/ui/poo-swatch';
@@ -16,6 +35,22 @@ export const PART_STYLES: Record<PartTone, string> = {
   pump: 'bg-pump-soft text-on-pump',
   growth: 'bg-growth-soft text-on-growth',
   custom: 'bg-custom-soft text-on-custom',
+  neutral: 'bg-surface text-ink-2',
+  caution: 'bg-caution-soft text-on-caution',
+  active: 'bg-session-active-soft text-on-session-active',
+};
+
+const PART_ICONS: Record<PartIcon, LucideIcon> = {
+  play: Play,
+  pause: Pause,
+  droplet: Droplet,
+  layers: Layers,
+  'circle-dot': CircleDot,
+  circle: Circle,
+  stethoscope: Stethoscope,
+  weight: Weight,
+  ruler: Ruler,
+  'circle-dashed': CircleDashed,
 };
 
 export function EventRow({
@@ -24,6 +59,7 @@ export function EventRow({
   units,
   now,
   showTitle = false,
+  showNotes = true,
   members = [],
 }: {
   members?: FamilyMemberRow[];
@@ -32,6 +68,7 @@ export function EventRow({
   units: Units;
   now: Date;
   showTitle?: boolean;
+  showNotes?: boolean;
 }) {
   const description = describeEvent(event, now, units);
   const author = members.find((member) => member.user_id === event.createdBy)?.display_name;
@@ -51,25 +88,26 @@ export function EventRow({
         ) : (
           <span className="sr-only">{description.title}</span>
         )}
-        {description.parts.map((part) => (
-          <span
-            key={part.text}
-            className={cn(
-              'inline-flex items-center gap-1.5 rounded-chip px-2.5 py-0.5 text-label font-semibold',
-              PART_STYLES[part.tone],
-            )}
-          >
-            {part.tone === 'downtime' && <Pause className="size-3" strokeWidth={3} />}
-            {part.pooColours && <PooSwatch colours={part.pooColours} className="size-3.5" />}
-            {part.text}
-          </span>
-        ))}
-        {event.notes && <span className="w-full truncate text-meta text-ink-3">{event.notes}</span>}
+        {description.parts.map((part) => {
+          const Icon = part.icon ? PART_ICONS[part.icon] : null;
+          return (
+            <span
+              key={part.text}
+              className={cn(
+                'inline-flex items-center gap-1.5 rounded-chip px-2.5 py-0.5 text-label font-semibold',
+                PART_STYLES[part.tone],
+              )}
+            >
+              {Icon && <Icon aria-hidden className="size-3" strokeWidth={3} />}
+              {part.pooColours && <PooSwatch colours={part.pooColours} className="size-3.5" />}
+              {part.text}
+            </span>
+          );
+        })}
+        {showNotes && event.notes && <span className="w-full truncate text-meta text-ink-3">{event.notes}</span>}
       </span>
-      {description.running ? (
-        <span className="text-meta font-bold text-primary">Running</span>
-      ) : (
-        description.duration && <span className="tabular text-meta text-ink-2">{description.duration}</span>
+      {description.trailing && (
+        <span className="tabular whitespace-nowrap text-meta text-ink-2">{description.trailing}</span>
       )}
       {event.source === 'huckleberry_csv' ? (
         <span className="shrink-0 rounded-chip bg-surface px-2 py-0.5 text-caption font-semibold text-ink-2">

@@ -1,4 +1,5 @@
 import { sampleBaby, sampleFamily, sampleRunningFeed } from '@babble/api/fixtures';
+import type { BabyEvent } from '@babble/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -14,12 +15,12 @@ vi.mock('@babble/api', async (importOriginal) => ({
   deleteEvent: (...args: unknown[]) => deleteEvent(...args),
 }));
 
-function renderCard(startedSecondsAgo: number) {
+function renderCard(startedSecondsAgo: number, sample: (now: Date) => BabyEvent = sampleRunningFeed) {
   const now = new Date();
   const event = {
-    ...sampleRunningFeed(now),
+    ...sample(now),
     startedAt: new Date(now.getTime() - startedSecondsAgo * 1000).toISOString(),
-  };
+  } as BabyEvent;
   const onDiscarded = vi.fn();
   render(
     <QueryClientProvider
@@ -66,5 +67,27 @@ describe('RunningCard discard', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Discard feed' }));
     await userEvent.click(screen.getByRole('button', { name: 'Discard' }));
     expect(deleteEvent).toHaveBeenCalledWith(fixtureClient, event.id);
+  });
+});
+
+function pausedFeed(now: Date): BabyEvent {
+  const feed = sampleRunningFeed(now);
+  if (feed.type !== 'breast_feed') throw new Error('expected a breastfeed');
+  const pausedAt = new Date(now.getTime() - 72_000).toISOString();
+  return { ...feed, segments: feed.segments.map((segment) => ({ ...segment, endedAt: segment.endedAt ?? pausedAt })) };
+}
+
+describe('RunningCard paused', () => {
+  it('shows how long the feed has been paused and marks the last side', async () => {
+    renderCard(26 * 60, pausedFeed);
+    expect(await screen.findByText(/^Paused for 1m 1[23]s$/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Right · last/ })).toBeInTheDocument();
+    expect(document.querySelector('[data-pulse]')).toBeNull();
+  });
+
+  it('pulses while a side is running and names who started it', async () => {
+    renderCard(26 * 60);
+    expect(await screen.findByText('Started by Jane')).toBeInTheDocument();
+    expect(document.querySelector('[data-pulse]')).not.toBeNull();
   });
 });

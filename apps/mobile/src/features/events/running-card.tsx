@@ -5,6 +5,7 @@ import {
   formatTimer,
   feedEndTime,
   napPromptOnFeedEnd,
+  pausedForMs,
   segmentTotals,
   sessionNoun,
   summariseSleep,
@@ -12,7 +13,7 @@ import {
   type Side,
 } from '@babble/domain';
 import { router } from 'expo-router';
-import { Trash2 } from 'lucide-react-native';
+import { Moon, Pause, Play, Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
@@ -49,6 +50,8 @@ export function RunningCard({
   const showNapPrompt = useNapPrompt();
   const queryClient = useQueryClient();
   const trashColor = useTokenColor('--ink-3');
+  const inkColor = useTokenColor('--ink');
+  const onSolidColor = useTokenColor('--ink-on-solid');
   const noun = sessionNoun(event.type);
   const [editingStart, setEditingStart] = useState(false);
   const [editingEnd, setEditingEnd] = useState(false);
@@ -95,11 +98,21 @@ export function RunningCard({
     );
   const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
-  const header = (title: string) => (
+  const header = (title: string, paused: boolean) => (
     <View className="flex-row items-center gap-3">
-      <View className="size-3 rounded-full bg-session-active" />
-      <Text className="flex-1 font-bold text-row-title text-ink">{title}</Text>
-      {startedBy && <Avatar name={startedBy} />}
+      <View
+        testID={paused ? 'session-dot-paused' : 'session-dot-running'}
+        className={`size-3 rounded-full ${paused ? 'bg-session-downtime' : 'bg-session-active'}`}
+      />
+      <Text className="font-bold text-row-title text-ink">{title}</Text>
+      <View className="min-w-0 flex-1 flex-row items-center justify-end gap-2">
+        {startedBy && (
+          <>
+            <Avatar name={startedBy} />
+            <Text numberOfLines={1} className="shrink font-sans text-meta text-ink-2">{`Started by ${startedBy}`}</Text>
+          </>
+        )}
+      </View>
       {compact && (
         <Pressable
           accessibilityRole="link"
@@ -124,9 +137,11 @@ export function RunningCard({
     const sleep = summariseSleep(event, now);
     return (
       <View className="gap-3 rounded-card bg-sleep-soft p-5">
-        {header(sleep.paused ? 'Awake · nap paused' : 'Napping')}
+        {header(sleep.paused ? 'Awake · nap paused' : 'Napping', sleep.paused)}
         <View className="flex-row flex-wrap items-baseline gap-x-3">
-          <Text className="font-medium text-timer-lg text-on-sleep">{formatTimer(sleep.asleepMs)}</Text>
+          <Text className={`font-medium text-timer-lg ${sleep.paused ? 'text-ink-2' : 'text-on-sleep'}`}>
+            {formatTimer(sleep.asleepMs)}
+          </Text>
           {sleep.wakeUps > 0 && (
             <Text className="font-sans text-meta text-ink-2">
               {`awake ${formatDuration(sleep.awakeMs)} · ${sleep.wakeUps === 1 ? '1 wake-up' : `${sleep.wakeUps} wake-ups`}`}
@@ -139,13 +154,22 @@ export function RunningCard({
             variant="secondary"
             size="lg"
             className="flex-1"
+            icon={
+              sleep.paused ? (
+                <Play size={20} color={inkColor} strokeWidth={2.75} />
+              ) : (
+                <Pause size={20} color={inkColor} strokeWidth={2.75} />
+              )
+            }
             onPress={() => action.mutate({ event, action: sleep.paused ? { kind: 'resume' } : { kind: 'pause' } })}
           >
             {sleep.paused ? 'Resume nap' : 'Pause nap'}
           </Button>
           <Button
+            variant="sleep"
             size="lg"
             className="flex-1"
+            icon={<Moon size={20} color={onSolidColor} strokeWidth={2.75} />}
             loading={action.isPending && action.variables?.action.kind === 'end'}
             onPress={() => action.mutate({ event, action: { kind: 'end' } })}
           >
@@ -181,11 +205,15 @@ export function RunningCard({
     <View
       className={`gap-3 rounded-card border-2 bg-raised p-5 ${event.type === 'pump' ? 'border-pump/40' : 'border-feed-right/40'}`}
     >
-      {header(paused ? `${title} · paused` : `${title} · ${SIDE_LABEL[totals.openSide!]}`)}
+      {header(paused ? `${title} · paused` : `${title} · ${SIDE_LABEL[totals.openSide!]}`, paused)}
       <View className="flex-row items-baseline gap-3">
-        <Text className="font-medium text-timer-lg text-ink">{formatTimer(paused ? totals.activeMs : currentMs)}</Text>
+        <Text className={`font-medium text-timer-lg ${paused ? 'text-ink-2' : 'text-ink'}`}>
+          {formatTimer(paused ? totals.activeMs : currentMs)}
+        </Text>
         <Text className="font-sans text-meta text-ink-2">
-          {paused ? 'total so far' : `total ${formatDuration(totals.activeMs)}`}
+          {paused
+            ? `Paused for ${formatDuration(pausedForMs(event.segments, now) ?? 0)}`
+            : `total ${formatDuration(totals.activeMs)}`}
         </Text>
       </View>
       {startControls}
@@ -198,12 +226,13 @@ export function RunningCard({
             side === 'left'
               ? 'bg-feed-left-soft border border-feed-left/40'
               : 'bg-feed-right-soft border border-feed-right/40';
+          const state = active ? ' · on' : paused && side === totals.lastSide ? ' · last' : '';
           const text = active ? 'text-ink-on-solid' : side === 'left' ? 'text-on-feed-left' : 'text-on-feed-right';
           return (
             <Pressable
               key={side}
               accessibilityRole="button"
-              accessibilityLabel={`${SIDE_LABEL[side]}${active ? ', on' : ''}`}
+              accessibilityLabel={`${SIDE_LABEL[side]}${state.replace(' ·', ',')}`}
               accessibilityState={{ selected: active }}
               onPress={() =>
                 action.mutate({
@@ -215,9 +244,7 @@ export function RunningCard({
             >
               <Text className={`font-bold text-row-title ${text}`}>{side === 'left' ? 'L' : 'R'}</Text>
               <View>
-                <Text
-                  className={`font-semibold text-label ${text}`}
-                >{`${SIDE_LABEL[side]}${active ? ' · on' : ''}`}</Text>
+                <Text className={`font-semibold text-label ${text}`}>{`${SIDE_LABEL[side]}${state}`}</Text>
                 <Text className={`font-sans text-meta ${text}`}>{formatDuration(ms)}</Text>
               </View>
             </Pressable>

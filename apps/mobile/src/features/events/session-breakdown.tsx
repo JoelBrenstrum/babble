@@ -36,7 +36,11 @@ export function SessionBreakdown({
           >
             {row.kind === 'side' ? (row.side === 'left' ? 'Left' : 'Right') : 'Downtime'}
           </Text>
-          {row.kind === 'downtime' && <Text className="font-semibold text-meta text-on-session-downtime">idle</Text>}
+          {row.kind === 'downtime' && (
+            <Text className="font-semibold text-meta text-on-session-downtime">
+              {row.running ? 'idle · counting' : 'idle'}
+            </Text>
+          )}
           {row.running && row.kind === 'side' && (
             <Text
               className={`font-semibold text-meta ${row.side === 'left' ? 'text-on-feed-left' : 'text-on-feed-right'}`}

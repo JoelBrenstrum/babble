@@ -9,7 +9,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
-import { Button } from '#/components/ui/button';
+import { CheckEmail } from '#/features/check-email';
 import { DevSignIn } from '#/features/dev-sign-in';
 import { SignInForm } from '#/features/sign-in-form';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
@@ -30,24 +30,13 @@ function SignInPage() {
   const { babble } = Route.useRouteContext();
   const { invite } = Route.useSearch();
   const { data: settings } = useSuspenseQuery(instanceSettingsQuery(babble.client));
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [sent, setSent] = useState<{ email: string; resend: () => Promise<void> } | null>(null);
   const navigate = useNavigate();
   const redirectTo = `${babble.config.publicUrl}/auth/callback`;
   const initialInviteCode = invite ?? readStorage(storageKeys.pendingInvite) ?? undefined;
 
-  if (sentTo) {
-    return (
-      <CenteredPage>
-        <h1 className="text-title font-bold">Check your email</h1>
-        <p className="mt-3 text-body text-ink-2">
-          We sent a sign-in link to <strong className="text-ink">{sentTo}</strong>. Open it on this device. It expires
-          soon, so use it within the hour.
-        </p>
-        <Button variant="ghost" className="mt-8 self-start" onClick={() => setSentTo(null)}>
-          Use a different email
-        </Button>
-      </CenteredPage>
-    );
+  if (sent) {
+    return <CheckEmail email={sent.email} onResend={sent.resend} onUseDifferentEmail={() => setSent(null)} />;
   }
 
   return (
@@ -64,19 +53,16 @@ function SignInPage() {
         }}
         onSignUp={async ({ email, password, inviteCode }) => {
           if (inviteCode) writeStorage(storageKeys.pendingInvite, inviteCode);
-          const { needsConfirmation } = await signUpWithPassword(babble.client, {
-            email,
-            password,
-            redirectTo,
-            inviteCode,
-          });
-          if (needsConfirmation) setSentTo(email.trim());
+          const signUp = () => signUpWithPassword(babble.client, { email, password, redirectTo, inviteCode });
+          const { needsConfirmation } = await signUp();
+          if (needsConfirmation) setSent({ email: email.trim(), resend: async () => void (await signUp()) });
           else await navigate({ to: '/' });
         }}
         onMagicLink={async ({ email, inviteCode }) => {
           if (inviteCode) writeStorage(storageKeys.pendingInvite, inviteCode);
-          await requestMagicLink(babble.client, { email, redirectTo, inviteCode });
-          setSentTo(email.trim());
+          const request = () => requestMagicLink(babble.client, { email, redirectTo, inviteCode });
+          await request();
+          setSent({ email: email.trim(), resend: request });
         }}
         onGoogle={async () => {
           await signInWithGoogle(babble.client, { redirectTo });

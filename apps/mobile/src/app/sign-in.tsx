@@ -5,15 +5,14 @@ import {
   signInWithGoogle,
   signInWithPassword,
   signUpWithPassword,
-  toBabbleError,
 } from '@babble/api';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { View } from 'react-native';
-import { Button } from '@/components/button';
 import { Screen, Title, Wordmark } from '@/components/screen';
+import { CheckEmail } from '@/features/check-email';
 import { DevSignIn } from '@/features/dev-sign-in';
 import { SignInForm } from '@/features/sign-in-form';
 import { useBabble } from '@/lib/babble';
@@ -25,22 +24,12 @@ export default function SignIn() {
   const { client, config, session } = useBabble();
   const params = useLocalSearchParams<{ invite?: string }>();
   const settings = useQuery(instanceSettingsQuery(client));
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [sent, setSent] = useState<{ email: string; resend: () => Promise<void> } | null>(null);
 
   if (session) return <Redirect href="/" />;
 
-  if (sentTo) {
-    return (
-      <Screen>
-        <Wordmark />
-        <View className="mt-10">
-          <Title subtitle={`We sent a sign-in link to ${sentTo}. Open it on this phone.`}>Check your email</Title>
-          <Button variant="ghost" onPress={() => setSentTo(null)}>
-            Use a different email
-          </Button>
-        </View>
-      </Screen>
-    );
+  if (sent) {
+    return <CheckEmail email={sent.email} onResend={sent.resend} onUseDifferentEmail={() => setSent(null)} />;
   }
 
   return (
@@ -54,21 +43,14 @@ export default function SignIn() {
           initialInviteCode={params.invite}
           onPasswordSignIn={(credentials) => signInWithPassword(client, credentials)}
           onSignUp={async ({ email, password, inviteCode }) => {
-            const { needsConfirmation } = await signUpWithPassword(client, {
-              email,
-              password,
-              redirectTo: AUTH_REDIRECT,
-              inviteCode,
-            });
-            if (needsConfirmation) setSentTo(email.trim());
+            const signUp = () => signUpWithPassword(client, { email, password, redirectTo: AUTH_REDIRECT, inviteCode });
+            const { needsConfirmation } = await signUp();
+            if (needsConfirmation) setSent({ email: email.trim(), resend: async () => void (await signUp()) });
           }}
           onMagicLink={async ({ email, inviteCode }) => {
-            try {
-              await requestMagicLink(client, { email, redirectTo: AUTH_REDIRECT, inviteCode });
-            } catch (caught) {
-              throw toBabbleError(caught);
-            }
-            setSentTo(email.trim());
+            const request = () => requestMagicLink(client, { email, redirectTo: AUTH_REDIRECT, inviteCode });
+            await request();
+            setSent({ email: email.trim(), resend: request });
           }}
           onGoogle={async () => {
             const url = await signInWithGoogle(client, { redirectTo: AUTH_REDIRECT, skipBrowserRedirect: true });

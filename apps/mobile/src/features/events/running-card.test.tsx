@@ -104,3 +104,25 @@ describe('RunningCard nap', () => {
     await waitFor(() => expect(mockPauseSession).toHaveBeenCalledWith(fixtureClient, event.id));
   });
 });
+
+function pausedFeed(now: Date): BabyEvent {
+  const feed = sampleRunningFeed(now);
+  if (feed.type !== 'breast_feed') throw new Error('expected a breastfeed');
+  const pausedAt = new Date(now.getTime() - 72_000).toISOString();
+  return { ...feed, segments: feed.segments.map((segment) => ({ ...segment, endedAt: segment.endedAt ?? pausedAt })) };
+}
+
+describe('RunningCard paused', () => {
+  it('shows how long the feed has been paused and marks the last side', async () => {
+    await renderCard(26 * 60, pausedFeed);
+    expect(screen.getByText(/^Paused for 1m 1[23]s$/)).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Right, last' })).toBeTruthy();
+    expect(screen.getByTestId('session-dot-paused')).toBeTruthy();
+  });
+
+  it('names who started a running session', async () => {
+    await renderCard(60);
+    expect(screen.getByText('Started by Jane')).toBeTruthy();
+    expect(screen.getByTestId('session-dot-running')).toBeTruthy();
+  });
+});

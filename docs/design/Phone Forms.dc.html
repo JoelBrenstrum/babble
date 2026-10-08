@@ -36,8 +36,8 @@
       <div style="flex:1"></div>
       <sc-if value="{{ st.tiles }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;gap:12px">
-          <div style="flex:1;height:144px;border-radius:16px;background:rgb(var(--feed-left));color:rgb(var(--ink-on-solid));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer" style-hover="box-shadow:0 0 0 5px rgb(var(--feed-left) / 0.25)"><span style="font-size:48px;font-weight:700;line-height:1">L</span><span style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:700"><i class="icon-play" style="font-size:15px"></i>Start left</span></div>
-          <div style="flex:1;height:144px;border-radius:16px;background:rgb(var(--feed-right));color:rgb(var(--ink-on-solid));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer" style-hover="box-shadow:0 0 0 5px rgb(var(--feed-right) / 0.25)"><span style="font-size:48px;font-weight:700;line-height:1">R</span><span style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:700"><i class="icon-play" style="font-size:15px"></i>Start right</span></div>
+          <div style="position:relative;flex:1;height:144px;border-radius:16px;background:rgb(var(--feed-left));color:rgb(var(--ink-on-solid));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer" style-hover="box-shadow:0 0 0 5px rgb(var(--feed-left) / 0.25)"><span style="position:absolute;top:10px;right:10px;height:22px;padding:0 9px;border-radius:999px;background:rgb(var(--raised));color:rgb(var(--ink));font-size:12px;font-weight:700;display:{{ st.nextL }};align-items:center">Next</span><span style="font-size:48px;font-weight:700;line-height:1">L</span><span style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:700"><i class="icon-play" style="font-size:15px"></i>Start left</span></div>
+          <div style="position:relative;flex:1;height:144px;border-radius:16px;background:rgb(var(--feed-right));color:rgb(var(--ink-on-solid));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer" style-hover="box-shadow:0 0 0 5px rgb(var(--feed-right) / 0.25)"><span style="position:absolute;top:10px;right:10px;height:22px;padding:0 9px;border-radius:999px;background:rgb(var(--raised));color:rgb(var(--ink));font-size:12px;font-weight:700;display:{{ st.nextR }};align-items:center">Next</span><span style="font-size:48px;font-weight:700;line-height:1">R</span><span style="display:flex;align-items:center;gap:6px;font-size:16px;font-weight:700"><i class="icon-play" style="font-size:15px"></i>Start right</span></div>
         </div>
       </sc-if>
       <sc-if value="{{ st.sleepBtn }}" hint-placeholder-val="{{ false }}">
@@ -97,7 +97,7 @@
       </div>
       <sc-if value="{{ is.sleepTop }}" hint-placeholder-val="{{ true }}">
         <div style="display:flex;flex-direction:column;align-items:center;gap:6px;padding:6px 0 0">
-          <div style="display:flex;align-items:center;gap:9px;padding:5px 12px 5px 11px;border-radius:999px;background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep));font-size:14px;font-weight:600"><span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep))"></span></span>Sleeping · started by Joel</div>
+          <div style="display:flex;align-items:center;gap:9px;padding:5px 12px 5px 11px;border-radius:999px;background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep));font-size:14px;font-weight:600"><span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep));animation:babble-pulse 2.4s ease-out infinite"></span><span style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep))"></span></span>Sleeping · started by John</div>
           <div style="font-weight:500;font-size:64px;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">1<span style="font-weight:600;font-size:26px;color:rgb(var(--ink-2));margin:0 10px 0 3px;letter-spacing:0">h</span>12<span style="font-weight:600;font-size:26px;color:rgb(var(--ink-2));margin:0 10px 0 3px;letter-spacing:0">m</span>08<span style="font-weight:600;font-size:26px;color:rgb(var(--ink-2));margin-left:3px;letter-spacing:0">s</span></div>
           <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;border-radius:8px;font-size:15px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)" style-active="background:rgb(var(--ink) / 0.1)">Started 1:58 am<i class="icon-pencil" style="font-size:14px"></i></div>
         </div>
@@ -184,7 +184,7 @@
           <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">{{ m.label }}</span><span style="font-size:13px;color:rgb(var(--ink-3))">{{ m.hint }}</span></div>
           <div style="display:flex;align-items:center;gap:10px;height:60px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:{{ m.border }};box-sizing:border-box">
             <i class="{{ m.icon }}" style="font-size:20px;color:rgb(var(--growth))"></i>
-            <span style="flex:1;font-size:24px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ m.c }}">{{ m.value }}</span>
+            <span style="flex:1;font-size:{{ m.fs }};font-weight:600;font-variant-numeric:tabular-nums;color:{{ m.c }}">{{ m.value }}</span>
             <span style="font-size:16px;font-weight:600;color:rgb(var(--ink-2))">{{ m.unit }}</span>
           </div>
         </div>
@@ -240,6 +240,9 @@
     </sc-if>
     <div style="cursor:pointer;flex:1;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="{{ priIcon }}" style="font-size:20px"></i>{{ priLabel }}</div>
   </div>
+  <sc-if value="{{ is.pump }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:none;margin-top:-24px;padding-bottom:6px;display:flex;justify-content:center"><div style="padding:6px 10px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)">Ended earlier?</div></div>
+  </sc-if>
 
   <sc-if value="{{ is.sheet }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.45)"></div>
@@ -308,10 +311,10 @@ class Component extends DCLogic {
     keys[9] = is.growthKeypad ? { t: '.', icon: '', bg: c('surface') } : { t: '', icon: '', bg: 'transparent' };
     const kind = s === 'start-pump' ? 'pump' : s === 'start-sleep' ? 'sleep' : 'feed';
     const st = {
-      tiles: s === 'start-feed' || s === 'start-pump', sleepBtn: s === 'start-sleep', starting: s === 'start-starting', already: s === 'start-running',
-      hasPast: s === 'start-feed' || s === 'start-pump' || s === 'start-sleep',
+      tiles: s === 'start-feed' || s === 'start-feed-first' || s === 'start-pump', nextL: s === 'start-feed' ? 'flex' : 'none', nextR: 'none', sleepBtn: s === 'start-sleep', starting: s === 'start-starting', already: s === 'start-running',
+      hasPast: s === 'start-feed' || s === 'start-feed-first' || s === 'start-pump' || s === 'start-sleep',
       past: { feed: 'Log a past feed instead', pump: 'Log a past pump instead', sleep: 'Log a past sleep instead' }[kind],
-      ctx: s === 'start-running' ? 'Only one feed can run at a time.' : s === 'start-starting' ? 'Starting Left…' : { feed: 'Last feed ended on Right, 2h 14m ago. Next side: Left.', pump: 'Last pump 6h 02m ago · 90 ml.', sleep: 'Awake 1h 05m since the last nap.' }[kind],
+      ctx: s === 'start-feed-first' ? 'No breastfeeds logged yet. Start on either side.' : s === 'start-running' ? 'Only one feed can run at a time.' : s === 'start-starting' ? 'Starting Left…' : { feed: 'Last feed ended on Right, 2h 14m ago. Next side: Left.', pump: 'Last pump 6h 02m ago · 90 ml.', sleep: 'Awake 1h 05m since the last nap.' }[kind],
       ctxIcon: kind === 'sleep' ? 'icon-sun' : 'icon-clock', ctxC: c('ink-2')
     };
     const spinner = React.createElement('span', { 'data-spin': '', style: { width: 32, height: 32, borderRadius: '50%', border: '3px solid rgb(var(--line))', borderTopColor: 'rgb(var(--primary))', animation: 'babble-spin 0.9s linear infinite', boxSizing: 'border-box', display: 'block' } });
@@ -335,9 +338,9 @@ class Component extends DCLogic {
       wheel, keys, pumpSegs,
       pumpAmounts: [{ side: 'L', label: 'Left', v: '60' }, { side: 'R', label: 'Right', v: '55' }],
       measures: [
-        { label: 'Weight', hint: 'Last 3.38 kg · 2 Oct', icon: 'icon-weight', value: '3.42', unit: 'kg', c: c('ink'), border: `2px solid ${c('primary')}` },
-        { label: 'Length', hint: 'Last 50.5 cm', icon: 'icon-ruler', value: '51.0', unit: 'cm', c: c('ink'), border: line },
-        { label: 'Head', hint: 'Optional', icon: 'icon-circle-dashed', value: '—', unit: 'cm', c: c('ink-3'), border: line }
+        { label: 'Weight', hint: '', icon: 'icon-weight', value: '4.95', fs: '24px', unit: 'kg', c: c('ink'), border: `2px solid ${c('primary')}` },
+        { label: 'Length', hint: '', icon: 'icon-ruler', value: 'Last: 54 cm · 20 Sept', fs: '17px', unit: 'cm', c: c('ink-3'), border: line },
+        { label: 'Head circumference', hint: '', icon: 'icon-circle-dashed', value: 'Last: 37.2 cm · 20 Sept', fs: '17px', unit: 'cm', c: c('ink-3'), border: line }
       ],
       suggestions: [chip('Bath', true), chip('Tummy time', false, 'icon-history'), chip('Vitamin D', false, 'icon-history'), chip('Skin to skin', false, 'icon-history'), chip('Walk', false, 'icon-history')]
     };

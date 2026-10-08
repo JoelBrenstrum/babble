@@ -1,12 +1,4 @@
-import {
-  clock,
-  exportData,
-  exportFileName,
-  toBabbleError,
-  type BabbleClient,
-  type BabyRow,
-  type Family,
-} from '@babble/api';
+import { clock, exportData, exportFileName, type BabbleClient, type BabyRow, type Family } from '@babble/api';
 import { Download } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
@@ -33,8 +25,8 @@ export function ExportData({ client, family, baby }: { client: BabbleClient; fam
       const ids = scope === 'baby' ? [baby.id] : family.babies.map((item) => item.id);
       const data = await exportData(client, family, ids, clock.now());
       downloadJson(exportFileName(scope === 'baby' ? baby.name : family.name, data.exportedAt), data);
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
+    } catch {
+      setError("Couldn't export. Check your connection and try again.");
     } finally {
       setPending(null);
     }

@@ -6,7 +6,7 @@ import { formatVolume } from '../format/units';
 import { lastDays, type TimeWindow } from '../timeline/days';
 import { bucketByDay } from '../timeline/day-layout';
 import { countedDays, feedTimeSplit } from '../timeline/totals';
-import { dayKeyFor, shiftDay } from '../time/local-time';
+import { dayKeyFor, formatShortDate, shiftDay } from '../time/local-time';
 
 export type StatsRange = '7d' | '30d' | 'all';
 
@@ -39,7 +39,7 @@ export interface StatsCard {
   key: 'sleep' | 'feeds' | 'nappies' | 'pump';
   title: string;
   figures: { label: string; value: string }[];
-  chart: { unit: string; series: string[]; bars: ChartBar[]; max: number; weekly: boolean };
+  chart: { unit: string; series: string[]; legend: number[]; bars: ChartBar[]; max: number; weekly: boolean };
   colours?: PooColour[];
 }
 
@@ -91,7 +91,33 @@ export function topSegment(values: readonly number[]): number {
   return -1;
 }
 
-function chart(unit: string, series: string[], bars: ChartBar[]): StatsCard['chart'] {
+export function chartValue(value: number, unit: string): string {
+  const rounded = value >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
+  return unit === 'h' ? `${rounded}h` : unit ? `${rounded} ${unit}` : String(rounded);
+}
+
+export const chartDayLabel = (key: string) => formatShortDate(`${key}T12:00:00Z`, 'UTC');
+
+export function barReadout(chart: StatsCard['chart'], bar: ChartBar): string {
+  const values =
+    chart.series.length === 1
+      ? chartValue(bar.values[0]!, chart.unit)
+      : chart.legend.map((index) => `${chart.series[index]} ${chartValue(bar.values[index]!, chart.unit)}`).join(', ');
+  return `${chart.weekly ? 'Week of ' : ''}${chartDayLabel(bar.label)}: ${values}`;
+}
+
+export function barAnchor(index: number, count: number): { edge: 'left' | 'center' | 'right'; percent: number } {
+  if (index < count / 3) return { edge: 'left', percent: (index / count) * 100 };
+  if (index >= (count * 2) / 3) return { edge: 'right', percent: ((count - index - 1) / count) * 100 };
+  return { edge: 'center', percent: ((index + 0.5) / count) * 100 };
+}
+
+function chart(
+  unit: string,
+  series: string[],
+  bars: ChartBar[],
+  legend = series.map((_, index) => index),
+): StatsCard['chart'] {
   const grouped = weeklyBars(bars);
   const max = grouped.reduce(
     (highest, bar) =>
@@ -101,7 +127,7 @@ function chart(unit: string, series: string[], bars: ChartBar[]): StatsCard['cha
       ),
     0,
   );
-  return { unit, series, bars: grouped, max, weekly: grouped.length !== bars.length };
+  return { unit, series, legend, bars: grouped, max, weekly: grouped.length !== bars.length };
 }
 
 const hours = (ms: number) => formatDuration(ms, { seconds: false });
@@ -142,6 +168,9 @@ export function statsReport(
   const countedKeys = countedDays(keys, todayKey);
   const counted = countedKeys.map((key) => summaries.get(key)!);
   const days = counted.length;
+  const todayOnly = countedKeys.length === 1 && countedKeys[0] === todayKey;
+  const daily = (label: string) => (todayOnly ? label : `${label} per day`);
+  const first = todayOnly ? 'Today so far' : 'Per day';
   const average = (pick: (day: DaySummary) => number) =>
     days ? counted.reduce((total, day) => total + pick(day), 0) / days : 0;
   const bars = (pick: (day: DaySummary) => number[]) =>
@@ -188,11 +217,11 @@ export function statsReport(
       key: 'sleep',
       title: 'Sleep',
       figures: [
-        { label: 'Per day', value: hours(average((day) => day.sleepMs)) },
+        { label: first, value: hours(average((day) => day.sleepMs)) },
         { label: 'Night', value: hours(average((day) => day.nightMs)) },
-        { label: 'Naps per day', value: perDay(average((day) => day.naps)) },
+        { label: daily('Naps'), value: perDay(average((day) => day.naps)) },
         { label: 'Longest stretch', value: longest ? hours(longest) : '—' },
-        { label: 'Wake window', value: wake.count ? hours(wake.totalMs / wake.count) : '—' },
+        ...(todayOnly ? [] : [{ label: 'Wake window', value: wake.count ? hours(wake.totalMs / wake.count) : '—' }]),
       ],
       chart: chart(
         'h',
@@ -204,7 +233,7 @@ export function statsReport(
       key: 'feeds',
       title: 'Feeds',
       figures: [
-        { label: 'Per day', value: perDay(average((day) => day.feeds)) },
+        { label: first, value: perDay(average((day) => day.feeds)) },
         { label: 'Average gap', value: feedGaps.count ? hours(feedGaps.totalMs / feedGaps.count) : '—' },
         {
           label: 'Left / right',
@@ -212,17 +241,21 @@ export function statsReport(
             ? `${Math.round((leftMs / sideTotal) * 100)}% / ${Math.round((rightMs / sideTotal) * 100)}%`
             : '—',
         },
+        ...(todayOnly
+          ? []
+          : [
+              {
+                label: 'Breast per day',
+                value: feedTimeSplit({
+                  leftMs: average((day) => day.leftMs),
+                  rightMs: average((day) => day.rightMs),
+                  idleMs: average((day) => day.idleMs),
+                }),
+              },
+              { label: 'Downtime per feed', value: breastFeeds.length ? hours(downtimeMs / breastFeeds.length) : '—' },
+            ]),
         {
-          label: 'Breast per day',
-          value: feedTimeSplit({
-            leftMs: average((day) => day.leftMs),
-            rightMs: average((day) => day.rightMs),
-            idleMs: average((day) => day.idleMs),
-          }),
-        },
-        { label: 'Downtime per feed', value: breastFeeds.length ? hours(downtimeMs / breastFeeds.length) : '—' },
-        {
-          label: 'Bottle per day',
+          label: daily('Bottle'),
           value: counted.some((day) => day.bottles > 0)
             ? formatVolume(
                 average((day) => day.bottleMl),
@@ -235,14 +268,15 @@ export function statsReport(
         '',
         ['Bottle', 'Breast'],
         bars((day) => [day.bottles, day.feeds - day.bottles]),
+        [1, 0],
       ),
     },
     {
       key: 'nappies',
       title: 'Nappies',
       figures: [
-        { label: 'Wet per day', value: perDay(average((day) => day.wet)) },
-        { label: 'Dirty per day', value: perDay(average((day) => day.dirty)) },
+        { label: daily('Wet'), value: perDay(average((day) => day.wet)) },
+        { label: daily('Dirty'), value: perDay(average((day) => day.dirty)) },
       ],
       chart: chart(
         '',
@@ -254,20 +288,20 @@ export function statsReport(
   ];
 
   if (counted.some((day) => day.pumps > 0) || summaries.get(todayKey)?.pumps) {
-    const pumpLeft = counted.reduce((total, day) => total + day.pumpLeftMl, 0);
-    const pumpRight = counted.reduce((total, day) => total + day.pumpRightMl, 0);
+    const pumpLeft = average((day) => day.pumpLeftMl);
+    const pumpRight = average((day) => day.pumpRightMl);
     cards.push({
       key: 'pump',
       title: 'Pump',
       figures: [
         {
-          label: 'Per day',
+          label: first,
           value: formatVolume(
             average((day) => day.pumpMl),
             settings.units,
           ),
         },
-        { label: 'Sessions per day', value: perDay(average((day) => day.pumps)) },
+        { label: daily('Sessions'), value: perDay(average((day) => day.pumps)) },
         {
           label: 'Left / right',
           value: `${formatVolume(pumpLeft, settings.units)} / ${formatVolume(pumpRight, settings.units)}`,
@@ -281,5 +315,5 @@ export function statsReport(
     });
   }
 
-  return { days, todayOnly: countedKeys.length === 1 && countedKeys[0] === todayKey, cards };
+  return { days, todayOnly, cards };
 }

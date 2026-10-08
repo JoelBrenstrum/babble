@@ -120,12 +120,25 @@ describe('describeEvent', () => {
       title: 'Breastfeed',
       parts: [
         { text: 'L 10m', tone: 'feed-left' },
+        { text: '3m', tone: 'downtime', icon: 'pause' },
         { text: 'R 12m', tone: 'feed-right' },
-        { text: '3m', tone: 'downtime' },
       ],
       duration: '22m',
+      trailing: '22m',
       running: false,
     });
+  });
+
+  it('lists breastfeed sides in the order they happened', () => {
+    const event = makeEvent('breast_feed', {
+      startedAt: '2026-10-06T09:00:00Z',
+      endedAt: '2026-10-06T09:30:00Z',
+      segments: [
+        { side: 'right', startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:10:00Z' },
+        { side: 'left', startedAt: '2026-10-06T09:10:00Z', endedAt: '2026-10-06T09:25:00Z' },
+      ],
+    });
+    expect(describeEvent(event, NOW, 'metric').parts.map((p) => p.text)).toEqual(['R 10m', 'L 15m', '5m']);
   });
 
   it('hides downtime for imported feeds', () => {
@@ -141,7 +154,7 @@ describe('describeEvent', () => {
   it('describes nappies, including dry and colours', () => {
     const base = makeEvent('nappy');
     expect(describeEvent({ ...base, details: { ...base.details, wet: false } }, NOW, 'metric').parts).toEqual([
-      { text: 'Dry', tone: 'nappy' },
+      { text: 'Dry', tone: 'nappy', icon: 'circle' },
     ]);
     const both = {
       ...base,
@@ -152,12 +165,30 @@ describe('describeEvent', () => {
         dirty: true,
         pooSize: 'large',
         pooColours: ['mustard', 'green'],
+        pooTextures: ['seedy'],
       },
     } as typeof base;
-    expect(describeEvent(both, NOW, 'metric').parts).toEqual([
-      { text: 'Wet · Medium', tone: 'nappy' },
-      { text: 'Dirty · Large', tone: 'nappy', pooColours: ['mustard', 'green'] },
+    expect(describeEvent(both, NOW, 'metric')).toMatchObject({
+      parts: [
+        { text: 'Both', tone: 'nappy', icon: 'layers' },
+        { text: 'Seedy', tone: 'neutral' },
+        { text: 'Mustard + green', tone: 'neutral', pooColours: ['mustard', 'green'] },
+      ],
+      trailing: 'Large',
+    });
+    const black = {
+      ...both,
+      details: { ...both.details, wet: false, pooColours: ['black'], pooTextures: [] },
+    } as typeof base;
+    expect(describeEvent(black, NOW, 'metric').parts).toEqual([
+      { text: 'Dirty', tone: 'nappy', icon: 'circle-dot' },
+      { text: 'Black', tone: 'neutral', pooColours: ['black'] },
+      { text: 'Check', tone: 'caution', icon: 'stethoscope' },
     ]);
+    expect(describeEvent({ ...base, details: { ...base.details, wetSize: 'tiny' } }, NOW, 'metric')).toMatchObject({
+      parts: [{ text: 'Wet', icon: 'droplet' }],
+      trailing: 'Tiny',
+    });
   });
 
   it('describes bottles using what was drunk', () => {
@@ -169,16 +200,50 @@ describe('describeEvent', () => {
   it('describes pumps and growth', () => {
     const pump = makeEvent('pump', { details: { leftMl: 60, rightMl: 50, totalMl: null } });
     expect(describeEvent(pump, NOW, 'metric').parts.map((p) => p.text)).toEqual(['L 60 ml', 'R 50 ml']);
+    expect(describeEvent(pump, NOW, 'metric').trailing).toBe('110 ml');
+    expect(summariseLatest(pump, NOW, 'metric')).toBe('110 ml');
     const totalOnly = makeEvent('pump', { details: { leftMl: null, rightMl: null, totalMl: 110 } });
-    expect(describeEvent(totalOnly, NOW, 'metric').parts.map((p) => p.text)).toEqual(['110 ml']);
+    expect(describeEvent(totalOnly, NOW, 'metric')).toMatchObject({ parts: [], trailing: '110 ml' });
     const growth = makeEvent('growth', { details: { weightG: 3950, lengthMm: 510, headCircumferenceMm: 360 } });
-    expect(describeEvent(growth, NOW, 'metric').parts.map((p) => p.text)).toEqual(['3.95 kg', '51 cm', 'Head 36 cm']);
+    expect(describeEvent(growth, NOW, 'metric').parts).toEqual([
+      { text: '3.95 kg', tone: 'growth', icon: 'weight' },
+      { text: '51 cm', tone: 'growth', icon: 'ruler' },
+      { text: 'Head 36 cm', tone: 'growth', icon: 'circle-dashed' },
+    ]);
+  });
+
+  it('shows pump sides with time, amount and idle time', () => {
+    const pump = makeEvent('pump', {
+      startedAt: '2026-10-06T09:00:00Z',
+      endedAt: '2026-10-06T09:19:00Z',
+      details: { leftMl: 60, rightMl: 55, totalMl: null },
+      segments: [
+        { side: 'left', startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:08:00Z' },
+        { side: 'right', startedAt: '2026-10-06T09:09:00Z', endedAt: '2026-10-06T09:19:00Z' },
+      ],
+    });
+    expect(describeEvent(pump, NOW, 'imperial').trailing).toBe('3.9 oz');
+    expect(describeEvent(pump, NOW, 'metric')).toMatchObject({
+      parts: [
+        { text: 'L 8m · 60 ml', tone: 'pump' },
+        { text: '1m', tone: 'downtime' },
+        { text: 'R 10m · 55 ml', tone: 'pump' },
+      ],
+      duration: '18m',
+      trailing: '115 ml',
+    });
   });
 
   it('marks running sessions and measures them up to now', () => {
     const sleep = makeEvent('sleep', { startedAt: '2026-10-06T09:18:00Z', endedAt: null });
-    expect(describeEvent(sleep, NOW, 'metric')).toMatchObject({ running: true, duration: '1h 12m' });
-    expect(summariseLatest(sleep, NOW, 'metric')).toBe('In progress');
+    expect(describeEvent(sleep, NOW, 'metric')).toMatchObject({
+      running: true,
+      duration: '1h 12m',
+      parts: [{ text: 'In progress', tone: 'active', icon: 'play' }],
+    });
+    expect(summariseLatest(sleep, NOW, 'metric')).toBe('In progress · 1h 12m');
+    const justStarted = makeEvent('custom', { startedAt: '2026-10-06T10:29:30Z', endedAt: null });
+    expect(summariseLatest(justStarted, NOW, 'metric')).toBe('In progress');
   });
 
   it('summarises the latest entry for the home rows', () => {
@@ -235,5 +300,27 @@ describe('describeEvent for naps', () => {
       ],
     });
     expect(describeEvent({ ...nap, segments: [] }, NOW, 'metric')).toMatchObject({ duration: '1h 30m', parts: [] });
+  });
+
+  it('shows locations and moods after the wake-ups', () => {
+    const nap = makeEvent('sleep', {
+      startedAt: '2026-10-06T08:00:00Z',
+      endedAt: '2026-10-06T09:00:00Z',
+      details: {
+        locations: ['car', 'swing'],
+        fallAsleep: null,
+        startMoods: ['upset'],
+        endMoods: ['happy'],
+        wokenByCarer: false,
+      },
+    });
+    expect(describeEvent(nap, NOW, 'metric').parts).toEqual([
+      { text: 'Car', tone: 'sleep' },
+      { text: 'Swing', tone: 'sleep' },
+      { text: 'Upset → happy', tone: 'neutral' },
+    ]);
+    const happy = { ...nap, details: { ...nap.details, locations: [], startMoods: [] } } as typeof nap;
+    expect(describeEvent(happy, NOW, 'metric').parts).toEqual([{ text: 'Happy', tone: 'neutral' }]);
+    expect(summariseLatest(nap, NOW, 'metric')).toBe('1h 00m');
   });
 });

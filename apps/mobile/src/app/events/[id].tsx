@@ -6,6 +6,7 @@ import {
   importedNote,
   isSessionType,
   latestFeed,
+  pumpFinishSummary,
   trackerFor,
 } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -68,6 +69,7 @@ function EditEventContent({
 
   const tracker = trackerFor(event.data.type);
   const note = importedNote(event.data);
+  const finishSummary = finish ? pumpFinishSummary(event.data, baby.timezone) : null;
   const memberName = (userId: string | null) =>
     family.members.find((member) => member.user_id === userId)?.display_name;
   const ended = entryEndedText({
@@ -82,6 +84,7 @@ function EditEventContent({
         title={finish ? 'How much did you pump?' : tracker.label}
         icon={<TrackerIcon tracker={tracker} />}
       />
+      {finishSummary && <Text className="-mt-3 mb-4 font-sans text-meta text-ink-2">{finishSummary}</Text>}
       {(event.data.type === 'breast_feed' || event.data.type === 'pump') && event.data.segments.length > 0 && (
         <View className="mb-4">
           <SessionBreakdown

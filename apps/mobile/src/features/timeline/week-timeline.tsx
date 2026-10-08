@@ -16,9 +16,11 @@ export function WeekTimeline({
 }) {
   return (
     <View className="gap-2">
-      <View className="flex-row gap-4 pl-8">
+      <View className="flex-row flex-wrap gap-x-4 gap-y-1 pl-8">
         <Legend swatch="h-2.5 w-2.5 rounded-sm bg-sleep" label="Sleep" />
-        <Legend swatch="h-[3px] w-2.5 rounded-full bg-feed-right" label="Feed" />
+        <Legend swatch="h-1 w-2.5 rounded-full bg-feed-left" label="Left" />
+        <Legend swatch="h-1 w-2.5 rounded-full bg-feed-right" label="Right" />
+        <Legend swatch="h-1 w-2.5 rounded-full bg-bottle" label="Bottle" />
         <Legend swatch="h-2 w-2 rounded-full bg-nappy" label="Nappy" />
       </View>
       <View className="h-[420px] flex-row gap-1.5">

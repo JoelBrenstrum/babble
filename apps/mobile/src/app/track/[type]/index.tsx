@@ -1,9 +1,7 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
 import {
-  dayKeyFor,
-  formatDayLabel,
-  groupByDay,
   isEventType,
+  listDayGroups,
   listStrip,
   listTypesFor,
   stripKind,
@@ -57,14 +55,20 @@ function TrackerListContent({
   );
   const events = useQuery(eventListQuery(client, baby.id, listTypesFor(eventType, filter)));
   const tracker = trackerFor(eventType);
-  const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
-  const groups = groupByDay(events.data ?? [], baby.timezone, baby.day_start_minutes);
+  const kind = stripKind(eventType, filter);
+  const groups = listDayGroups(kind, events.data ?? [], {
+    now,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
+    units,
+    birthDate: baby.birth_date,
+  });
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
   const recent = useQuery(eventsBetweenQuery(client, baby.id, stripRange.from, stripRange.to));
   const strip =
     events.data?.length && recent.data && settings
-      ? listStrip(stripKind(eventType, filter), [...recent.data, ...events.data], {
+      ? listStrip(kind, [...recent.data, ...events.data], {
           now,
           timeZone: baby.timezone,
           dayStartMinutes: baby.day_start_minutes,
@@ -130,9 +134,19 @@ function TrackerListContent({
         )}
         {groups.map((group) => (
           <View key={group.dayKey} className="gap-2">
-            <Text className="px-1 font-semibold text-section uppercase text-ink-3">
-              {formatDayLabel(group.dayKey, todayKey)}
-            </Text>
+            <View className="flex-row items-baseline justify-between gap-2 px-1">
+              <View className="min-w-0 flex-1 flex-row items-baseline gap-2">
+                <Text accessibilityRole="header" className="font-bold text-body text-ink">
+                  {group.title}
+                </Text>
+                {group.subtitle && (
+                  <Text numberOfLines={1} className="flex-1 font-sans text-meta text-ink-3">
+                    {group.subtitle}
+                  </Text>
+                )}
+              </View>
+              <Text className="font-semibold text-meta text-ink-2">{group.totals}</Text>
+            </View>
             <Card className="overflow-hidden">
               {group.items.map((event, index) => (
                 <EventRow
@@ -143,6 +157,7 @@ function TrackerListContent({
                   units={units}
                   now={now}
                   showTitle={isFeed && filter === 'all'}
+                  showNotes={!group.notesInSubtitle}
                   divider={index > 0}
                 />
               ))}

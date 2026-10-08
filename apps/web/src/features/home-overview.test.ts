@@ -9,15 +9,13 @@ const byType = (type: string) => events.find((event) => event.type === type);
 
 describe('latestMeta', () => {
   it('describes the most recent entry', () => {
-    expect(latestMeta(byType('nappy'), now, 'metric', 'Pacific/Auckland')).toBe(
-      'Last 48m ago · Wet · Medium · Dirty · Medium',
-    );
+    expect(latestMeta(byType('nappy'), now, 'metric', 'Pacific/Auckland')).toBe('Last 48m ago · Both · Medium');
     expect(latestMeta(byType('bottle'), now, 'metric', 'Pacific/Auckland')).toBe('Last 5h 00m ago · 90 ml formula');
     expect(latestMeta(byType('growth'), now, 'metric', 'Pacific/Auckland')).toBe('3.42 kg · 2 Oct');
   });
 
   it('handles running and missing entries', () => {
-    expect(latestMeta(sampleRunningFeed(now), now, 'metric', 'Pacific/Auckland')).toBe('In progress');
+    expect(latestMeta(sampleRunningFeed(now), now, 'metric', 'Pacific/Auckland')).toBe('In progress · 22m');
     expect(latestMeta(undefined, now, 'metric', 'Pacific/Auckland')).toBe('Nothing logged yet');
   });
 });

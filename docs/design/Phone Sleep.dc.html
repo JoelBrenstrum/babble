@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="width:390px;height:844px;border-radius:52px;border:9px solid #0e0f0c;box-sizing:content-box;overflow:hidden;position:relative;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(20,22,18,.28)">
+  <div style="flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;background:rgb(var(--bg));position:relative;z-index:2">
+    <span>{{ clock }}</span>
+    <div style="display:flex;align-items:center;gap:6px;color:rgb(var(--ink-2))"><i class="icon-signal" style="font-size:15px"></i><i class="icon-wifi" style="font-size:15px"></i><div style="width:24px;height:12px;border-radius:4px;border:1.5px solid rgb(var(--ink-2));padding:1.5px;box-sizing:border-box"><div style="width:60%;height:100%;border-radius:2px;background:rgb(var(--ink-2))"></div></div></div>
+  </div>
+  <div style="flex:1;min-height:0;overflow:hidden">
+    <div style="padding:0 20px 30px;display:flex;flex-direction:column;gap:16px;margin-top:{{ scroll }}">
+      <div style="display:flex;align-items:center;gap:12px;height:52px">
+        <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;cursor:pointer"><i class="icon-chevron-left" style="font-size:22px"></i></div>
+        <div style="flex:1;font-weight:700;font-size:21px">Sleep</div>
+        <div style="width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:rgb(var(--ink-3));cursor:pointer" style-hover="background:rgb(var(--danger-soft));color:rgb(var(--on-danger))"><i class="icon-trash-2" style="font-size:20px"></i></div>
+      </div>
+
+      <div style="padding:16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised);display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="display:flex;align-items:center;gap:9px;padding:5px 12px 5px 11px;border-radius:999px;background:{{ st.pillBg }};color:{{ st.pillC }};font-size:14px;font-weight:600">
+            <span style="position:relative;width:8px;height:8px;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:rgb(var(--sleep));animation:babble-pulse 2.4s ease-out infinite;display:{{ st.pulseD }}"></span><span style="position:absolute;inset:0;border-radius:50%;background:{{ st.dot }}"></span></span>{{ st.title }}
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2));margin-left:auto"><span style="width:22px;height:22px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:10px;font-weight:700">Ja</span>Started by Jane</div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap">
+          <div style="font-weight:500;font-size:48px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.03em;color:{{ st.timerC }}">{{ st.m }}<span style="font-weight:600;font-size:22px;color:rgb(var(--ink-2));margin:0 10px 0 3px;letter-spacing:0">m</span>{{ st.s }}<span style="font-weight:600;font-size:22px;color:rgb(var(--ink-2));margin-left:3px;letter-spacing:0">s</span></div>
+          <span style="font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ st.awake }}</span>
+        </div>
+        <div style="align-self:flex-start;display:flex;align-items:center;gap:6px;margin-left:-6px;padding:4px 6px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)" style-active="background:rgb(var(--ink) / 0.1)">Started 2:12 pm<i class="icon-pencil" style="font-size:14px"></i></div>
+        <div style="display:flex;gap:10px;margin-top:2px">
+          <div style="flex:1;height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="{{ st.leftIcon }}" style="font-size:18px"></i>{{ st.left }}</div>
+          <div style="flex:1;height:52px;border-radius:14px;background:rgb(var(--sleep));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;cursor:pointer"><i class="icon-moon" style="font-size:18px"></i>End nap</div>
+        </div>
+        <sc-if value="{{ showLink }}" hint-placeholder-val="{{ true }}">
+          <div style="align-self:center;padding:6px 10px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)">Ended earlier?</div>
+        </sc-if>
+        <sc-if value="{{ ee.open }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:14px;border-radius:12px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));box-shadow:var(--shadow-raised)">
+            <span style="font-size:16px;font-weight:600">Ended earlier?</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <sc-for list="{{ ee.chips }}" as="ch" hint-placeholder-count="4"><div style="height:40px;padding:0 12px;border-radius:999px;border:1.5px solid rgb(var(--line));background:rgb(var(--bg));display:flex;align-items:center;font-size:14px;font-weight:600;opacity:{{ ch.op }};cursor:{{ ch.cur }};white-space:nowrap">{{ ch.label }}</div></sc-for>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2))">End time</span>
+              <div style="display:flex;gap:8px">
+                <div style="flex:1.3;height:48px;padding:0 12px;border-radius:12px;background:rgb(var(--bg));border:1px solid rgb(var(--line));display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;cursor:pointer">Tue 6 Oct<i class="icon-calendar" style="font-size:16px;color:rgb(var(--ink-3))"></i></div>
+                <div style="flex:1;height:48px;padding:0 12px;border-radius:12px;background:rgb(var(--bg));border:{{ ee.border }};box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;cursor:pointer">{{ ee.time }}<i class="icon-clock" style="font-size:16px;color:rgb(var(--ink-3))"></i></div>
+              </div>
+              <span style="display:{{ ee.errD }};align-items:center;gap:6px;font-size:13px;color:rgb(var(--on-danger))"><i class="icon-circle-alert" style="font-size:14px"></i>The end can't be before the nap started.</span>
+            </div>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;cursor:pointer">Cancel</div>
+              <div style="flex:1.6;height:48px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;opacity:{{ ee.op }};cursor:pointer">End nap at {{ ee.time }}</div>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2));padding:0 4px">Details</span>
+        <div style="display:flex;flex-direction:column;gap:16px;padding:16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <span style="font-size:14px;color:rgb(var(--ink-2))">Saved as you go, without stopping the timer.</span>
+          <sc-for list="{{ groups }}" as="g" hint-placeholder-count="4">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">{{ g.label }}</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ g.chips }}" as="ch" hint-placeholder-count="3"><div style="height:44px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;background:{{ ch.bg }};color:{{ ch.color }};border:1.5px solid {{ ch.border }};box-sizing:border-box;cursor:pointer"><i class="{{ ch.icon }}" style="font-size:15px"></i>{{ ch.label }}</div></sc-for>
+              </div>
+            </div>
+          </sc-for>
+          <div style="display:flex;align-items:center;gap:12px;min-height:48px;border-top:1px solid rgb(var(--line));padding-top:8px;cursor:pointer">
+            <span style="width:24px;height:24px;border-radius:7px;border:2px solid rgb(var(--line-strong));box-sizing:border-box"></span>
+            <span style="flex:1;font-size:16px;font-weight:600">Woken by a carer</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">Notes (optional)</span>
+            <div style="min-height:72px;padding:12px 14px;border-radius:14px;background:rgb(var(--bg));border:1px solid rgb(var(--line));font-size:16px;box-sizing:border-box">Went down easily</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;running&quot;,&quot;paused&quot;,&quot;resumed&quot;,&quot;ended-earlier&quot;,&quot;ended-earlier-error&quot;,&quot;details&quot;],&quot;default&quot;:&quot;running&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen || 'running';
+    const c = n => `rgb(var(--${n}))`;
+    const paused = s === 'paused', resumed = s === 'resumed';
+    const st = paused
+      ? { title: 'Awake · nap paused', pillBg: c('session-downtime-soft'), pillC: c('on-session-downtime'), dot: c('session-downtime'), pulseD: 'none', m: '25', s: '10', awake: 'awake 3m · 1 wake-up', timerC: c('ink-2'), left: 'Resume nap', leftIcon: 'icon-play' }
+      : { title: 'Napping', pillBg: c('sleep-soft'), pillC: c('on-sleep'), dot: c('sleep'), pulseD: 'block', m: resumed ? '37' : '28', s: resumed ? '40' : '14', awake: resumed ? 'awake 12m · 2 wake-ups' : '', timerC: c('ink'), left: 'Pause nap', leftIcon: 'icon-pause' };
+    const eeOpen = s.startsWith('ended-earlier'), eeErr = s === 'ended-earlier-error';
+    const ee = { open: eeOpen, time: eeErr ? '2:05 pm' : '2:25 pm', border: eeErr ? `2px solid ${c('danger')}` : `1px solid ${c('line')}`, errD: eeErr ? 'flex' : 'none', op: eeErr ? 0.45 : 1,
+      chips: [['5 min ago', 1], ['10 min ago', 1], ['15 min ago', 1], ['30 min ago', 0.45]].map(([label, op]) => ({ label, op, cur: op < 1 ? 'not-allowed' : 'pointer' })) };
+    const chip = (label, on, icon) => ({ label, icon: on ? 'icon-check' : (icon || ''), bg: on ? c('primary-soft') : c('raised'), color: on ? c('on-primary-soft') : c('ink'), border: on ? c('primary') : c('line') });
+    const groups = [
+      { label: 'Where', chips: ['Cot', 'Bassinet', 'Pram', 'Car', 'Swing', 'Held', 'Nursing', 'Co-sleep', 'Next to carer'].map(l => chip(l, l === 'Cot')) },
+      { label: 'Fell asleep in', chips: ['Under 10 min', '10–20 min', 'Took a while'].map(l => chip(l, l === 'Under 10 min')) },
+      { label: 'Mood going down', chips: [chip('Happy', true, 'icon-smile'), chip('Upset', false, 'icon-frown')] },
+      { label: 'Mood on waking', chips: [chip('Happy', false, 'icon-smile'), chip('Upset', false, 'icon-frown')] }
+    ];
+    return { st, ee, groups, showLink: !eeOpen, clock: paused ? '2:40' : resumed ? '2:52' : '2:40', scroll: s === 'details' ? '-300px' : '0px' };
+  }
+}
+</script>
+</body>
+</html>

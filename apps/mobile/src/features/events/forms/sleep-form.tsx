@@ -1,4 +1,12 @@
-import type { DraftOfType, FallAsleep, Mood, SleepDetails, SleepLocation } from '@babble/domain';
+import {
+  manualSleepDuration,
+  type DraftOfType,
+  type FallAsleep,
+  type Mood,
+  type SleepDetails,
+  type SleepLocation,
+} from '@babble/domain';
+import { Text, View } from 'react-native';
 import { CheckRow, MultiChips, SingleChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
 import { FormSection, type FormProps } from './shared';
@@ -68,6 +76,7 @@ export function SleepDetailFields({
 
 export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'sleep'>>) {
   const details = draft.details;
+  const duration = manualSleepDuration(draft.startedAt, draft.endedAt);
   return (
     <FormSection>
       <DateTimeField
@@ -84,6 +93,12 @@ export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<Draft
         error={errors.endedAt}
         onChange={(endedAt) => onChange({ ...draft, endedAt })}
       />
+      {duration && (
+        <View className="flex-row items-center justify-between rounded-tile bg-sleep-soft px-4 py-3">
+          <Text className="font-semibold text-body text-on-sleep">Duration</Text>
+          <Text className="font-bold text-row-title text-on-sleep">{duration}</Text>
+        </View>
+      )}
       <SleepDetailFields
         details={details}
         onChange={(patch) => onChange({ ...draft, details: { ...details, ...patch } })}

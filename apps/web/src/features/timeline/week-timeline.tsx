@@ -16,14 +16,22 @@ export function WeekTimeline({
   const columns = { gridTemplateColumns: '2rem repeat(7, minmax(0, 1fr))' };
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-4 pl-8 text-meta font-semibold text-ink-2">
+      <div className="flex flex-wrap gap-x-4 gap-y-1 pl-8 text-meta font-semibold text-ink-2">
         <span className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-sm bg-sleep" />
           Sleep
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="h-[3px] w-2.5 rounded-full bg-feed-right" />
-          Feed
+          <span className="h-1 w-2.5 rounded-full bg-feed-left" />
+          Left
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-1 w-2.5 rounded-full bg-feed-right" />
+          Right
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="h-1 w-2.5 rounded-full bg-bottle" />
+          Bottle
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2 rounded-full bg-nappy" />

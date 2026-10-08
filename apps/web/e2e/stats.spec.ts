@@ -24,7 +24,7 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
   for (const title of ['Sleep', 'Feeds', 'Nappies']) {
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
   }
-  await expect(page.getByRole('img', { name: 'Nappies per day' })).toBeVisible();
+  await expect(page.getByRole('group', { name: 'Nappies per day' })).toBeVisible();
 
   await page.getByRole('radio', { name: '30d' }).click();
   await expect(page).toHaveURL(/range=30d/);

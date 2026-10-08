@@ -20,6 +20,12 @@ describe('SessionBreakdown', () => {
     expect(screen.getByText('3m 02s')).toBeTruthy();
     expect(screen.getByText('lost 3m 02s')).toBeTruthy();
   });
+
+  it('marks the growing idle row while paused', async () => {
+    await render(<SessionBreakdown segments={segments} mergeGapMs={15_000} now={new Date(at(27, 9))} paused />);
+    expect(screen.getByText('idle · counting')).toBeTruthy();
+    expect(screen.getByText('1m 12s')).toBeTruthy();
+  });
 });
 
 describe('SegmentEditor', () => {

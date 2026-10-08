@@ -84,6 +84,7 @@
           <div style="cursor:pointer;flex:1;height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-pause" style="font-size:18px"></i>Pause</div>
           <div style="cursor:pointer;flex:1;height:48px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600">Open timer</div>
         </div>
+        <div style="align-self:center;margin-top:-4px;padding:6px 10px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)">Ended earlier?</div>
       </div>
       </sc-if>
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:12px 4px;border-radius:16px;background:rgb(var(--surface))">
@@ -151,6 +152,7 @@
         <div style="cursor:pointer;flex:1;height:56px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="{{ tm.pauseIcon }}" style="font-size:20px"></i>{{ tm.pause }}</div>
         <div style="cursor:pointer;flex:1;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-check" style="font-size:20px"></i>Finish</div>
       </div>
+      <div style="align-self:center;margin-top:-4px;padding:6px 10px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)">Ended earlier?</div>
     </div>
   </sc-if>
 
@@ -169,7 +171,7 @@
           <div style="cursor:pointer;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:{{ nt.weight }};background:{{ nt.bg }};color:{{ nt.color }};box-shadow:{{ nt.shadow }}"><i class="{{ nt.icon }}" style="font-size:16px"></i>{{ nt.label }}</div>
         </sc-for>
       </div>
-      <div style="display:flex;flex-direction:column;gap:12px">
+      <div style="display:{{ nf.pooD }};flex-direction:column;gap:12px">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Poo colour</span>
           <span style="display:flex;align-items:center;gap:8px;font-size:14px;color:rgb(var(--ink-2))"><span style="width:24px;height:24px;flex:none;border-radius:50%;background:linear-gradient(135deg, rgb(var(--poo-mustard)) 50%, rgb(var(--poo-green)) 50%);box-shadow:inset 0 0 0 1.5px rgb(var(--swatch-edge) / 0.6)"></span>Mustard + Green · 2 of 2</span>
@@ -185,15 +187,15 @@
           </sc-for>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Size</span>
+      <div style="display:{{ nf.sizeD }};flex-direction:column;gap:10px">
+        <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">{{ nf.sizeLabel }}</span>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
           <sc-for list="{{ sizes }}" as="ch" hint-placeholder-count="5">
             <div style="height:44px;padding:0 15px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:15px;font-weight:600;background:{{ ch.bg }};color:{{ ch.color }};border:1.5px solid {{ ch.border }};box-sizing:border-box">{{ ch.label }}</div>
           </sc-for>
         </div>
       </div>
-      <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:{{ nf.pooD }};flex-direction:column;gap:10px">
         <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Texture</span><span style="font-size:14px;color:rgb(var(--ink-2))">Pick any</span></div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
           <sc-for list="{{ textures }}" as="ch" hint-placeholder-count="6">
@@ -202,7 +204,7 @@
         </div>
       </div>
       <div style="flex:1"></div>
-      <div style="cursor:pointer;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-check" style="font-size:20px"></i>Save nappy</div>
+      <div style="cursor:pointer;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;opacity:{{ nf.saveOp }}"><i class="icon-check" style="font-size:20px"></i>Save nappy</div>
     </div>
   </sc-if>
 
@@ -217,6 +219,9 @@
         <div style="cursor:pointer;height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:700;background:rgb(var(--raised));box-shadow:var(--shadow-raised)">All</div>
         <div style="cursor:pointer;height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:500;color:rgb(var(--ink-2))">Breast</div>
         <div style="cursor:pointer;height:40px;border-radius:12px;display:grid;place-items:center;font-size:15px;font-weight:500;color:rgb(var(--ink-2))">Bottle</div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 2px;border-radius:16px;background:rgb(var(--surface));cursor:pointer" style-hover="background:rgb(var(--line) / 0.7)">
+        <sc-for list="{{ lstrip }}" as="s" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:1px;padding:0 10px;border-left:{{ s.divider }};min-width:0"><span style="font-size:13px;color:rgb(var(--ink-2));white-space:nowrap">{{ s.label }}</span><span style="font-size:18px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap">{{ s.value }}</span><span style="font-size:12px;color:rgb(var(--ink-3));white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.note }}</span></div></sc-for>
       </div>
       <sc-for list="{{ groups }}" as="g" hint-placeholder-count="2">
         <div style="display:flex;flex-direction:column;gap:8px">
@@ -252,13 +257,13 @@
         <div style="font-weight:700;font-size:26px">Timeline</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface));width:156px">
           <div style="cursor:pointer;height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ seg.dayW }};background:{{ seg.dayBg }};color:{{ seg.dayC }};box-shadow:{{ seg.dayS }}">Day</div>
-          <div style="cursor:pointer;height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ seg.weekW }};background:{{ seg.weekBg }};color:{{ seg.weekC }};box-shadow:{{ seg.weekS }}">Week</div>
+          <div style="cursor:pointer;height:38px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ seg.weekW }};background:{{ seg.weekBg }};color:{{ seg.weekC }};box-shadow:{{ seg.weekS }}">7d</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;justify-content:space-between">
         <div style="cursor:pointer;width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-left" style="font-size:20px"></i></div>
         <span style="font-size:16px;font-weight:600">{{ rangeLabel }}</span>
-        <div style="cursor:pointer;width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center"><i class="icon-chevron-right" style="font-size:20px"></i></div>
+        <div style="cursor:pointer;width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;opacity:{{ nextOp }}"><i class="icon-chevron-right" style="font-size:20px"></i></div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:10px 4px;border-radius:16px;background:rgb(var(--surface))">
         <sc-for list="{{ histSummary }}" as="s" hint-placeholder-count="3">
@@ -289,21 +294,23 @@
               </sc-for>
             </div>
             <div style="position:relative">
+              <sc-for list="{{ dayNapOutline }}" as="o" hint-placeholder-count="1"><div style="position:absolute;left:0;right:0;top:{{ o.top }};height:{{ o.h }};border-radius:7px;border:1px dashed rgb(var(--sleep));box-sizing:border-box"></div></sc-for>
               <sc-for list="{{ daySleep }}" as="b" hint-placeholder-count="6">
-                <div style="position:absolute;left:0;right:0;top:{{ b.top }};height:{{ b.h }};border-radius:6px;background:rgb(var(--sleep));color:rgb(var(--ink-on-solid));font-size:11px;font-weight:700;padding:3px 7px;box-sizing:border-box;overflow:hidden;font-variant-numeric:tabular-nums">{{ b.label }}</div>
+                <div style="position:absolute;left:{{ b.inset }};right:{{ b.inset }};top:{{ b.top }};height:{{ b.h }};border-radius:6px;background:rgb(var(--sleep));color:rgb(var(--ink-on-solid));font-size:11px;font-weight:700;padding:3px 7px;box-sizing:border-box;overflow:hidden;font-variant-numeric:tabular-nums">{{ b.label }}</div>
               </sc-for>
             </div>
             <div style="position:relative">
               <sc-for list="{{ dayFeeds }}" as="f" hint-placeholder-count="6">
                 <div style="position:absolute;left:0;right:0;top:{{ f.top }};display:flex;flex-direction:column;border-radius:4px;overflow:hidden">
                   <div style="height:{{ f.lh }};background:rgb(var(--feed-left))"></div>
+                  <div style="height:{{ f.ih }};border:1px dashed rgb(var(--session-downtime));box-sizing:border-box;display:{{ f.iD }}"></div>
                   <div style="height:{{ f.rh }};background:rgb(var(--feed-right))"></div>
                 </div>
               </sc-for>
             </div>
             <div style="position:relative">
               <sc-for list="{{ dayNappies }}" as="n" hint-placeholder-count="5">
-                <div style="position:absolute;left:4px;top:{{ n.top }};transform:translateY(-50%);height:20px;padding:0 7px;border-radius:999px;background:rgb(var(--nappy-soft));color:rgb(var(--on-nappy));border:1px solid rgb(var(--nappy) / 0.5);font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:{{ n.poo }};display:{{ n.pooD }};box-shadow:0 0 0 1px rgb(var(--swatch-edge) / 0.6)"></span>{{ n.label }}</div>
+                <div style="position:absolute;left:{{ n.left }};max-width:calc(100% - {{ n.left }});top:{{ n.top }};transform:translateY(-50%);height:20px;padding:0 6px;border-radius:999px;background:rgb(var(--nappy-soft));color:rgb(var(--on-nappy));border:1px solid rgb(var(--nappy) / 0.5);box-shadow:0 0 0 1.5px rgb(var(--bg));font-size:11px;font-weight:700;display:flex;align-items:center;gap:4px;box-sizing:border-box;min-width:0;overflow:hidden"><span style="flex:none;width:8px;height:8px;border-radius:50%;background:{{ n.poo }};display:{{ n.pooD }};box-shadow:0 0 0 1px rgb(var(--swatch-edge) / 0.6)"></span><span style="min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ n.label }}</span></div>
               </sc-for>
             </div>
           </div>
@@ -314,7 +321,7 @@
         <div style="display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;gap:14px;font-size:13px;font-weight:600;color:rgb(var(--ink-2));padding-left:34px">
             <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:rgb(var(--sleep))"></span>Sleep</span>
-            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:3px;border-radius:2px;background:rgb(var(--feed-right))"></span>Feed</span>
+            <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:4px;border-radius:2px;background:rgb(var(--feed-left))"></span>Left</span><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:4px;border-radius:2px;background:rgb(var(--feed-right))"></span>Right</span><span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:4px;border-radius:2px;background:rgb(var(--bottle))"></span>Bottle</span>
           </div>
           <div style="display:grid;grid-template-columns:28px repeat(7,minmax(0,1fr));gap:6px">
             <div style="position:relative;height:{{ weekH }}">
@@ -328,7 +335,7 @@
                   <div style="position:absolute;left:3px;right:3px;top:{{ b.top }};height:{{ b.h }};border-radius:4px;background:rgb(var(--sleep))"></div>
                 </sc-for>
                 <sc-for list="{{ d.feeds }}" as="f" hint-placeholder-count="8">
-                  <div style="position:absolute;left:30%;right:30%;top:{{ f.top }};height:3px;border-radius:2px;background:rgb(var(--feed-right))"></div>
+                  <div style="position:absolute;left:20%;right:20%;top:{{ f.top }};height:4px;display:flex;gap:2px"><sc-for list="{{ f.parts }}" as="fp" hint-placeholder-count="2"><div style="flex:{{ fp.flex }};border-radius:2px;background:{{ fp.c }}"></div></sc-for></div>
                 </sc-for>
               </div>
             </sc-for>
@@ -344,10 +351,14 @@
     </div>
   </sc-if>
 
+  <sc-if value="{{ is.stats }}" hint-placeholder-val="{{ false }}">
+    <div style="flex:1;min-height:0;overflow:hidden;padding:4px 20px 0"><dc-import name="Stats Cards" layout="phone" variant="{{ statsVariant }}" from="{{ statsFrom }}" hint-size="100%,900px"></dc-import></div>
+  </sc-if>
+
   <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ true }}">
     <div style="flex:none;height:86px;padding:8px 12px 24px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);background:rgb(var(--raised));border-top:1px solid rgb(var(--line))">
       <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
-        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.color }};font-size:12px;font-weight:{{ tb.weight }}"><span style="width:56px;height:30px;border-radius:999px;background:{{ tb.pill }};display:grid;place-items:center"><i class="{{ tb.icon }}" style="font-size:22px"></i></span>{{ tb.label }}</div>
+        <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.color }};font-size:12px;font-weight:{{ tb.weight }}"><span style="width:56px;height:30px;border-radius:999px;background:{{ tb.pill }};display:grid;place-items:center;position:relative"><i class="{{ tb.icon }}" style="font-size:22px"></i><span data-pulse="" style="position:absolute;top:1px;right:12px;width:10px;height:10px;border-radius:50%;background:{{ tb.pulseC }};animation:babble-pulse 2.4s ease-out infinite;display:{{ tb.pulseD }}"></span><span style="position:absolute;top:1px;right:12px;width:10px;height:10px;border-radius:50%;background:{{ tb.dot }};box-shadow:0 0 0 2px rgb(var(--raised));display:{{ tb.dotD }}"></span></span>{{ tb.label }}</div>
       </sc-for>
     </div>
   </sc-if>
@@ -393,18 +404,20 @@
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;home-earlier&quot;,&quot;home-earlier-future&quot;,&quot;home-earlier-order&quot;,&quot;home-switch&quot;,&quot;home-discard&quot;,&quot;home-discarded&quot;,&quot;timer&quot;,&quot;timer-paused&quot;,&quot;timer-discard&quot;,&quot;nappy&quot;,&quot;feeds&quot;,&quot;timeline-day&quot;,&quot;timeline-week&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;home&quot;,&quot;home-earlier&quot;,&quot;home-earlier-future&quot;,&quot;home-earlier-order&quot;,&quot;home-switch&quot;,&quot;home-discard&quot;,&quot;home-discarded&quot;,&quot;timer&quot;,&quot;timer-paused&quot;,&quot;timer-discard&quot;,&quot;nappy&quot;,&quot;nappy-fresh&quot;,&quot;nappy-wet&quot;,&quot;feeds&quot;,&quot;feeds-running&quot;,&quot;timeline-day&quot;,&quot;timeline-week&quot;,&quot;stats&quot;,&quot;stats-growth&quot;,&quot;stats-nosex&quot;,&quot;stats-early&quot;,&quot;stats-empty&quot;],&quot;default&quot;:&quot;home&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const s = this.props.screen || 'home';
     const c = n => `rgb(var(--${n}))`;
     const line = `1px solid ${c('line')}`;
-    const is = { home: s === 'home' || s.startsWith('home-'), timer: s.startsWith('timer'), nappy: s === 'nappy', feeds: s === 'feeds', day: s === 'timeline-day', week: s === 'timeline-week',
+    const is = { home: s === 'home' || s.startsWith('home-'), timer: s.startsWith('timer'), nappy: s.startsWith('nappy'), feeds: s.startsWith('feeds'), stats: s.startsWith('stats'), day: s === 'timeline-day', week: s === 'timeline-week',
       discardPanel: s === 'home-discard', discarded: s === 'home-discarded', switcher: s === 'home-switch', alert: s === 'timer-discard', paused: s === 'timer-paused' };
     is.history = is.day || is.week;
-    const tabSel = is.home ? 0 : (is.feeds || is.history) ? 1 : -1;
+    const tabSel = is.home ? 0 : (is.feeds || is.history) ? 1 : is.stats ? 2 : -1;
+    const run = is.stats ? [c('feed-right'), c('sleep')] : [c('feed-right')];
+    const dotOn = !is.home, dotPaused = s === 'timeline-week';
     const tabs = [['icon-house', 'Home'], ['icon-history', 'Timeline'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
-      .map(([icon, label], i) => ({ icon, label, color: i === tabSel ? c('on-primary-soft') : c('ink-3'), weight: i === tabSel ? 700 : 500, pill: i === tabSel ? c('primary-soft') : 'transparent' }));
+      .map(([icon, label], i) => ({ icon, label, color: i === tabSel ? c('on-primary-soft') : c('ink-3'), weight: i === tabSel ? 700 : 500, pill: i === tabSel ? c('primary-soft') : 'transparent', dotD: i === 0 && dotOn ? 'block' : 'none', pulseD: i === 0 && dotOn && !dotPaused ? 'block' : 'none', pulseC: run[0], dot: run.length > 1 ? `linear-gradient(90deg, ${run[0]} 50%, ${run[1]} 50%)` : run[0] }));
     const strip = arr => arr.map(([label, value], i) => ({ label, value, divider: i ? line : 'none' }));
 
     const rows = [
@@ -434,8 +447,10 @@ class Component extends DCLogic {
       time: { 'home-earlier-future': '3:20 am', 'home-earlier-order': '3:02 am' }[s] || '2:49 am',
       border: epErr ? `2px solid ${c('danger')}` : `1px solid ${c('line')}`, err: epErr, errD: epErr ? 'flex' : 'none', saveOp: 0.45, saveCur: 'not-allowed' };
 
+    const nsel = s === 'nappy-fresh' ? '' : s === 'nappy-wet' ? 'Wet' : 'Both';
+    const nf = { pooD: nsel === 'Both' || nsel === 'Dirty' ? 'flex' : 'none', sizeD: nsel ? 'flex' : 'none', sizeLabel: nsel === 'Wet' ? 'Wee size' : 'Size', saveOp: nsel ? 1 : 0.45 };
     const nappyTypes = [['Wet', 'icon-droplet'], ['Dirty', 'icon-circle-dot'], ['Both', 'icon-layers'], ['Dry', 'icon-sun']].map(([label, icon]) => {
-      const on = label === 'Both';
+      const on = label === nsel;
       return { label, icon, weight: on ? 700 : 500, bg: on ? c('raised') : 'transparent', color: on ? c('ink') : c('ink-2'), shadow: on ? 'var(--shadow-raised)' : 'none' };
     });
     const sel = { mustard: 1, green: 2 };
@@ -446,8 +461,8 @@ class Component extends DCLogic {
           ring: n ? `inset 0 0 0 1.5px rgb(var(--swatch-edge) / 0.6), 0 0 0 3px ${c('bg')}, 0 0 0 5.5px ${c('ink')}` : `inset 0 0 0 1.5px rgb(var(--swatch-edge) / 0.6)` };
       });
     const chip = (label, on, icon) => ({ label, icon: on ? 'icon-check' : (icon || ''), bg: on ? c('primary-soft') : c('raised'), color: on ? c('on-primary-soft') : c('ink'), border: on ? c('primary') : c('line') });
-    const sizes = ['Tiny', 'Little', 'Medium', 'Large', 'Massive'].map(l => chip(l, l === 'Medium'));
-    const textures = ['Runny', 'Seedy', 'Pasty', 'Formed', 'Mucousy', 'Hard'].map(l => chip(l, l === 'Seedy' || l === 'Pasty'));
+    const sizes = ['Tiny', 'Little', 'Medium', 'Large', 'Massive'].map(l => chip(l, nsel === 'Both' && l === 'Medium'));
+    const textures = ['Runny', 'Seedy', 'Pasty', 'Formed', 'Mucousy', 'Solid'].map(l => chip(l, l === 'Seedy' || l === 'Pasty'));
 
     const P = {
       L: t => ({ text: 'L ' + t, bg: c('feed-left-soft'), color: c('on-feed-left'), icon: '' }),
@@ -475,11 +490,13 @@ class Component extends DCLogic {
     const H = 19, px = v => v + 'px';
     const fmt = hrs => { const m = Math.round(hrs * 60); return `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m`; };
     const sleepD = [[0.2, 2.4], [3.3, 5.9], [6.8, 8.1], [9.5, 11.6], [13, 14.2], [15.5, 16.4], [18, 19.1], [20.4, 23.6]];
-    const daySleep = sleepD.map(([a, b]) => ({ top: px(a * H), h: px((b - a) * H - 1), label: (b - a) * H > 24 ? fmt(b - a) : '' }));
-    const feedD = [[2.5, 10, 12], [6.0, 12, 9], [8.2, 15, 0], [11.7, 9, 11], [14.3, 14, 8], [16.5, 10, 13], [19.2, 12, 10], [23.7, 8, 0]];
-    const dayFeeds = feedD.map(([t, l, r]) => ({ top: px(t * H), lh: px(Math.max(3, l / 60 * H)), rh: px(r ? Math.max(3, r / 60 * H) : 0) }));
-    const nappyD = [[1.0, 'Wet'], [6.1, 'Dirty', 'mustard'], [8.3, 'Both', 'yellow'], [11.8, 'Wet'], [14.4, 'Dirty', 'mustard'], [19.3, 'Wet'], [22.8, 'Both', 'green']];
-    const dayNappies = nappyD.map(([t, label, poo]) => ({ top: px(t * H), label, poo: poo ? `rgb(var(--poo-${poo}))` : 'transparent', pooD: poo ? 'block' : 'none' }));
+    const daySleep = sleepD.flatMap(([a, b]) => (a === 13 ? [[13, 13.45], [13.7, 14.2]] : [[a, b]]).map(([x, y]) => ({ top: px(x * H), h: px((y - x) * H - 1), label: a !== 13 && (y - x) * H > 24 ? fmt(y - x) : '', inset: a === 13 ? '3px' : '0' })));
+    const dayNapOutline = [{ top: px(13 * H - 2), h: px(1.2 * H + 3) }];
+    const feedD = [[2.5, 10, 12, 3], [6.0, 12, 9, 0], [8.2, 15, 0, 0], [11.7, 9, 11, 4], [14.3, 14, 8, 2], [16.5, 10, 13, 0], [19.2, 12, 10, 3], [23.7, 8, 0, 0]];
+    const dayFeeds = feedD.map(([t, l, r, idl]) => ({ top: px(t * H), lh: px(Math.max(3, l / 60 * H)), rh: px(r ? Math.max(3, r / 60 * H) : 0), ih: px(idl ? Math.max(4, idl / 60 * H) : 0), iD: idl ? 'block' : 'none' }));
+    const nappyD = [[1.0, 'Wet'], [6.1, 'Dirty', 'mustard'], [8.3, 'Both', 'yellow'], [11.8, 'Wet'], [14.4, 'Dirty', 'mustard'], [17.0, 'Wet'], [17.08, 'Dirty', 'mustard'], [17.15, 'Both', 'green'], [19.3, 'Wet'], [22.8, 'Both', 'green']];
+    let nk = 0, nprev = -9;
+    const dayNappies = nappyD.map(([t, label, poo]) => { nk = t - nprev < 0.34 ? nk + 1 : 0; nprev = t; return { top: px(t * H), label, left: Math.min(60, nk * 30) + '%', poo: poo ? `rgb(var(--poo-${poo}))` : 'transparent', pooD: poo ? 'block' : 'none' }; });
     const hourTicks = [0, 3, 6, 9, 12, 15, 18, 21, 24].map(h => ({ top: px(h * H), label: String(h % 24).padStart(2, '0') }));
 
     const WH = 17;
@@ -492,7 +509,7 @@ class Component extends DCLogic {
         dow: dow[0], date: dates[i], labelC: i === 6 ? c('on-primary-soft') : c('ink'),
         today: i === 6 ? `0 0 0 2px ${c('primary')}` : 'none',
         sleep: blocks.map(([a, b]) => ({ top: px(a * WH), h: px((b - a) * WH) })),
-        feeds: feedD.map(([t], j) => ({ top: px(Math.min(23.8, t + shift + (j % 2 ? 0.2 : -0.1)) * WH) }))
+        feeds: feedD.map(([t, l, r], j) => ({ top: px(Math.min(23.8, t + shift + (j % 2 ? 0.2 : -0.1)) * WH), parts: (i % 3 === 0 && j === 6) ? [{ c: c('bottle'), flex: 1 }] : r ? [{ c: c('feed-left'), flex: l }, { c: c('feed-right'), flex: r }] : [{ c: c('feed-left'), flex: 1 }] }))
       };
     });
     const weekTicks = [0, 6, 12, 18, 24].map(h => ({ top: px(h * WH), label: String(h % 24).padStart(2, '0') }));
@@ -501,7 +518,10 @@ class Component extends DCLogic {
       is, tm, ep, tabs, rows, segs, nappyTypes, swatches, sizes, textures, groups, seg,
       showFeedCard: !is.discarded,
       babies: [['O', 'Olivia', '11 days', 'primary', true], ['J', 'Jacob', '14 months', 'secondary', false]].map(([initial, name, age, k, on]) => ({ initial, name, age, soft: c(k + '-soft'), on: c('on-' + k), check: on ? 'icon-check' : '', rowBg: on ? c('primary-soft') + '' : 'transparent' })),
-      showTabs: is.home || is.feeds || is.history,
+      showTabs: is.home || is.feeds || is.history || is.stats,
+      nf, dayNapOutline, nextOp: is.week ? 0.45 : 1,
+      statsVariant: { 'stats-nosex': 'nosex', 'stats-early': 'early', 'stats-empty': 'empty' }[s] || 'full', statsFrom: s === 'stats-growth' || s === 'stats-nosex' ? 'growth' : 'sleep',
+      lstrip: (s === 'feeds-running' ? [['Feeding for', '12m', 'since 2:15 pm']] : [['Last feed', '1h 20m', 'ago · 2:15 pm']]).concat([['Today', '6', 'avg 8'], ['Next side', 'Left', '\u00a0']]).map(([label, value, note], i) => ({ label, value, note, divider: i ? line : 'none' })),
       summary: strip([['Sleep today', '9h 40m'], ['Feeds', '7'], ['Nappies', '6']]),
       histSummary: is.day ? strip([['Sleep', '14h 20m'], ['Feeds', '8'], ['Nappies', '7']]) : strip([['Avg sleep', '14h 05m'], ['Longest', '3h 40m'], ['Feeds/day', '8.6']]),
       rangeLabel: is.day ? 'Mon 5 Oct' : '28 Sep – 4 Oct',

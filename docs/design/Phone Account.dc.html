@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
 <link rel="stylesheet" href="tokens/babble-tokens.css">
 <script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
-<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}@keyframes babble-spin{to{transform:rotate(360deg)}}</style>
 </helmet>
 <div style="width:390px;height:844px;border-radius:52px;border:9px solid #0e0f0c;box-sizing:content-box;overflow:hidden;position:relative;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;display:flex;flex-direction:column;box-shadow:0 24px 60px rgba(20,22,18,.28)">
   <div style="flex:none;height:48px;display:flex;align-items:center;justify-content:space-between;padding:6px 30px 0;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">
@@ -61,10 +61,10 @@
           <div style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--primary-soft));border:2px solid rgb(var(--primary))">
             <div style="display:flex;align-items:center;gap:14px">
               <span style="width:24px;height:24px;border-radius:50%;border:2px solid rgb(var(--primary));box-sizing:border-box;display:grid;place-items:center"><span style="width:12px;height:12px;border-radius:50%;background:rgb(var(--primary))"></span></span>
-              <div style="flex:1;color:rgb(var(--on-primary-soft))"><div style="font-size:17px;font-weight:700">Join with an invite code</div><div style="font-size:14px">From Joel's Babble app</div></div>
+              <div style="flex:1;color:rgb(var(--on-primary-soft))"><div style="font-size:17px;font-weight:700">Join with an invite code</div><div style="font-size:14px">From John's babble app</div></div>
               <i class="icon-users" style="font-size:22px;color:rgb(var(--primary))"></i>
             </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr) 14px repeat(3,1fr);gap:6px;align-items:center">
+            <div style="display:grid;grid-template-columns:repeat(5,1fr) 8px repeat(5,1fr);gap:4px;align-items:center">
               <sc-for list="{{ code }}" as="ch" hint-placeholder-count="7"><span style="height:{{ ch.h }};border-radius:12px;background:{{ ch.bg }};border:{{ ch.border }};box-sizing:border-box;display:grid;place-items:center;font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;color:rgb(var(--ink))">{{ ch.t }}</span></sc-for>
             </div>
           </div>
@@ -78,8 +78,26 @@
           <div style="display:flex;align-items:center;justify-content:space-between;height:48px"><span></span><div style="width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;cursor:pointer"><i class="icon-x" style="font-size:20px"></i></div></div>
           <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:28px;font-weight:700;line-height:1.2">Add a baby to The Smiths</span><span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45">Everyone in the family will see them straight away.</span></div>
         </sc-if>
-        <sc-if value="{{ isFirstBaby }}" hint-placeholder-val="{{ true }}"><span style="font-size:28px;font-weight:700;line-height:1.2">Add your baby</span></sc-if>
-        <sc-for list="{{ babyFields }}" as="f" hint-placeholder-count="3">
+        <sc-if value="{{ isProfile }}" hint-placeholder-val="{{ false }}"><div style="display:flex;align-items:center;gap:12px;height:48px"><div style="width:44px;height:44px;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;cursor:pointer"><i class="icon-chevron-left" style="font-size:20px"></i></div><span style="font-size:21px;font-weight:700">Baby profile</span></div></sc-if>
+        <sc-if value="{{ isOnboardBaby }}" hint-placeholder-val="{{ true }}"><span style="font-size:28px;font-weight:700;line-height:1.2">Add your baby</span></sc-if>
+        <sc-for list="{{ babyFieldsA }}" as="f" hint-placeholder-count="2">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">{{ f.label }}</span>
+            <div style="display:flex;align-items:center;gap:10px;height:56px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:{{ f.border }};box-sizing:border-box">
+              <i class="{{ f.icon }}" style="font-size:19px;color:rgb(var(--ink-2))"></i>
+              <span style="flex:1;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;color:{{ f.vc }}">{{ f.value }}</span>
+              <span style="font-size:13px;font-weight:600;color:{{ f.tagC }};display:flex;align-items:center;gap:4px"><i class="{{ f.tagIcon }}" style="font-size:14px"></i>{{ f.tag }}</span>
+            </div>
+          </div>
+        </sc-for>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">Sex</span>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
+            <sc-for list="{{ sexSeg }}" as="o" hint-placeholder-count="3"><div style="height:44px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }};cursor:pointer">{{ o.label }}</div></sc-for>
+          </div>
+          <span style="font-size:13px;color:rgb(var(--ink-2))">Used to compare growth with the WHO growth charts.</span>
+        </div>
+        <sc-for list="{{ babyFieldsB }}" as="f" hint-placeholder-count="1">
           <div style="display:flex;flex-direction:column;gap:8px">
             <span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">{{ f.label }}</span>
             <div style="display:flex;align-items:center;gap:10px;height:56px;padding:0 16px;border-radius:14px;background:rgb(var(--raised));border:{{ f.border }};box-sizing:border-box">
@@ -94,9 +112,9 @@
         <sc-if value="{{ isFirstBaby }}" hint-placeholder-val="{{ true }}">
         <div style="cursor:pointer;height:56px;margin-bottom:34px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600">Continue</div>
         </sc-if>
-        <sc-if value="{{ isFamilyAdd }}" hint-placeholder-val="{{ false }}">
+        <sc-if value="{{ showFamBtns }}" hint-placeholder-val="{{ false }}">
           <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:34px">
-            <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;cursor:pointer"><i class="icon-plus" style="font-size:19px"></i>Add baby</div>
+            <div style="height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600;cursor:pointer"><i class="{{ famIcon }}" style="font-size:19px"></i>{{ famBtn }}</div>
             <div style="height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft));cursor:pointer" style-hover="background:rgb(var(--primary-soft))">Cancel</div>
           </div>
         </sc-if>
@@ -128,12 +146,13 @@
         <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding:22px;border-radius:20px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
           <div style="width:168px;height:168px;border-radius:16px;background:repeating-linear-gradient(45deg, rgb(var(--surface)) 0 8px, rgb(var(--raised)) 8px 16px);border:1px solid rgb(var(--line));display:grid;place-items:center;font-family:ui-monospace,Menlo,monospace;font-size:12px;color:rgb(var(--ink-2))">QR code</div>
           <span style="font-size:13px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:rgb(var(--ink-2))">Invite code</span>
-          <span style="font-size:34px;font-weight:700;letter-spacing:0.08em;font-variant-numeric:tabular-nums">K7Q-4MD</span>
+          <span style="font-size:30px;font-weight:700;letter-spacing:0.08em;font-variant-numeric:tabular-nums">K7Q4M-D2XPA</span>
           <span style="font-size:14px;color:rgb(var(--ink-3))">Expires in 7 days · one use</span>
         </div>
         <div style="flex:1"></div>
         <div style="display:flex;flex-direction:column;gap:10px;padding-bottom:34px">
           <div style="cursor:pointer;height:56px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-share" style="font-size:19px"></i>Share invite link</div>
+          <span style="font-size:13px;color:rgb(var(--ink-2));text-align:center">Shares “Join our family on babble” with the link.</span>
           <div style="display:flex;gap:10px">
             <div style="cursor:pointer;flex:1;height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-copy" style="font-size:17px"></i>Copy code</div>
             <div style="cursor:pointer;flex:1;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft))">Skip for now</div>
@@ -187,6 +206,13 @@
                 </div>
               </sc-for>
             </sc-if>
+            <sc-if value="{{ g.hasExport }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;gap:10px;padding:14px;border-top:1px solid rgb(var(--line))">
+                <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:17px;font-weight:600">Export data</span><span style="font-size:14px;color:rgb(var(--ink-2));line-height:1.4">Download everything as a JSON file: profile, settings and every entry, including deleted ones.</span></div>
+                <sc-for list="{{ exportBtns }}" as="eb" hint-placeholder-count="2"><div style="height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600;opacity:{{ eb.op }};cursor:{{ eb.cur }}" style-hover="background:rgb(var(--surface))"><span style="width:16px;height:16px;border-radius:50%;border:2.5px solid rgb(var(--line));border-top-color:rgb(var(--primary));box-sizing:border-box;animation:babble-spin 0.9s linear infinite;display:{{ eb.spinD }}"></span><i class="{{ eb.icon }}" style="font-size:18px"></i>{{ eb.label }}</div></sc-for>
+                <sc-if value="{{ exportErr }}" hint-placeholder-val="{{ false }}"><div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgb(var(--danger-soft));color:rgb(var(--on-danger))"><i class="icon-circle-alert" style="font-size:18px;color:rgb(var(--danger));margin-top:1px"></i><span style="font-size:14px;line-height:1.4">Couldn't export. Check your connection and try again.</span></div></sc-if>
+              </div>
+            </sc-if>
             <sc-if value="{{ g.hasAccount }}" hint-placeholder-val="{{ false }}">
               <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:4px 14px"><i class="icon-mail" style="font-size:19px;color:rgb(var(--ink-2))"></i><span style="flex:1;font-size:16px;font-weight:600">jane@example.com</span></div>
               <div style="display:flex;flex-direction:column;gap:10px;padding:12px 14px;border-top:1px solid rgb(var(--line))">
@@ -210,17 +236,17 @@
           </div>
         </div>
       </sc-for>
-      <sc-if value="{{ showVersion }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:rgb(var(--ink-3));text-align:center">Babble 1.0 · self-hosted at babble.home.nz</span></sc-if>
+      <sc-if value="{{ showVersion }}" hint-placeholder-val="{{ false }}"><span style="font-size:13px;color:rgb(var(--ink-3));text-align:center">babble 1.0 · self-hosted at babble.home.nz</span></sc-if>
     </div>
     <div style="flex:none;height:86px;padding:8px 12px 24px;box-sizing:border-box;display:grid;grid-template-columns:repeat(4,1fr);background:rgb(var(--raised));border-top:1px solid rgb(var(--line))">
-      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.color }};font-size:12px;font-weight:{{ tb.weight }}"><span style="width:56px;height:30px;border-radius:999px;background:{{ tb.pill }};display:grid;place-items:center"><i class="{{ tb.icon }}" style="font-size:22px"></i></span>{{ tb.label }}</div></sc-for>
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4"><div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.color }};font-size:12px;font-weight:{{ tb.weight }}"><span style="width:56px;height:30px;border-radius:999px;background:{{ tb.pill }};display:grid;place-items:center;position:relative"><i class="{{ tb.icon }}" style="font-size:22px"></i><span data-pulse="" style="position:absolute;top:1px;right:12px;width:10px;height:10px;border-radius:50%;background:rgb(var(--feed-right));animation:babble-pulse 2.4s ease-out infinite;display:{{ tb.dotD }}"></span><span style="position:absolute;top:1px;right:12px;width:10px;height:10px;border-radius:50%;background:rgb(var(--feed-right));box-shadow:0 0 0 2px rgb(var(--raised));display:{{ tb.dotD }}"></span></span>{{ tb.label }}</div></sc-for>
     </div>
     <sc-if value="{{ is.del }}" hint-placeholder-val="{{ false }}">
       <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.5)"></div>
       <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:14px">
         <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong))"></span>
         <span style="width:52px;height:52px;border-radius:50%;background:rgb(var(--danger-soft));color:rgb(var(--danger));display:grid;place-items:center"><i class="icon-trash-2" style="font-size:24px"></i></span>
-        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:22px;font-weight:700">Delete your account?</span><span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">You'll be signed out on every device and your login is removed. Olivia's records stay with the family because Joel is still a member.</span></div>
+        <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:22px;font-weight:700">Delete your account?</span><span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">You'll be signed out on every device and your login is removed. Olivia's records stay with the family because John is still a member.</span></div>
         <div style="display:flex;flex-direction:column;gap:6px"><span style="font-size:14px;font-weight:600;color:rgb(var(--ink-2))">Type DELETE to confirm</span><div style="display:flex;align-items:center;height:52px;padding:0 16px;border-radius:14px;background:rgb(var(--bg));border:2px solid rgb(var(--danger));box-sizing:border-box;font-size:17px;font-weight:700;letter-spacing:0.06em">DELETE</div></div>
         <div style="cursor:pointer;height:56px;border-radius:14px;background:rgb(var(--danger));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:8px;font-size:17px;font-weight:600"><i class="icon-trash-2" style="font-size:19px"></i>Delete account</div>
         <div style="cursor:pointer;height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Cancel</div>
@@ -249,7 +275,7 @@
     </div>
     <sc-if value="{{ is.ios }}" hint-placeholder-val="{{ false }}">
       <div style="position:absolute;left:14px;right:14px;bottom:122px;padding:18px;border-radius:22px;background:rgb(var(--raised));box-shadow:var(--shadow-toast);border:1px solid rgb(var(--line));display:flex;flex-direction:column;gap:14px">
-        <div style="display:flex;align-items:center;gap:12px"><span style="width:48px;height:48px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-family:Caprasimo, serif;font-size:26px">b</span><div style="flex:1"><div style="font-size:18px;font-weight:700">Install Babble</div><div style="font-size:14px;color:rgb(var(--ink-2))">Opens full screen and works offline</div></div><i class="icon-x" style="font-size:20px;color:rgb(var(--ink-3))"></i></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:48px;height:48px;border-radius:12px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-family:Caprasimo, serif;font-size:26px">b</span><div style="flex:1"><div style="font-size:18px;font-weight:700">Install babble</div><div style="font-size:14px;color:rgb(var(--ink-2))">Opens full screen and works offline</div></div><i class="icon-x" style="font-size:20px;color:rgb(var(--ink-3))"></i></div>
         <sc-for list="{{ iosSteps }}" as="st" hint-placeholder-count="3">
           <div style="display:flex;align-items:center;gap:12px;font-size:16px"><span style="width:28px;height:28px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-size:14px;font-weight:700">{{ st.n }}</span><span style="flex:1">{{ st.pre }} <b>{{ st.b }}</b></span><i class="{{ st.icon }}" style="font-size:20px;color:rgb(var(--primary))"></i></div>
         </sc-for>
@@ -264,8 +290,8 @@
       <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.4)"></div>
       <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 22px 30px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:16px">
         <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong))"></span>
-        <div style="display:flex;align-items:center;gap:14px"><span style="width:56px;height:56px;border-radius:16px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-family:Caprasimo, serif;font-size:30px">b</span><div><div style="font-size:20px;font-weight:700">Install app</div><div style="font-size:15px;color:rgb(var(--ink-2))">Babble · babble.home.nz</div></div></div>
-        <span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">Add Babble to your home screen for one-tap timers, reminders and offline logging.</span>
+        <div style="display:flex;align-items:center;gap:14px"><span style="width:56px;height:56px;border-radius:16px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-family:Caprasimo, serif;font-size:30px">b</span><div><div style="font-size:20px;font-weight:700">Install app</div><div style="font-size:15px;color:rgb(var(--ink-2))">babble · babble.home.nz</div></div></div>
+        <span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">Add babble to your home screen for one-tap timers, reminders and offline logging.</span>
         <div style="display:flex;gap:10px">
           <div style="cursor:pointer;flex:1;height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600">Not now</div>
           <div style="cursor:pointer;flex:1;height:52px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-download" style="font-size:18px"></i>Install</div>
@@ -275,22 +301,27 @@
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signin-error&quot;,&quot;signin-create&quot;,&quot;signin-create-short&quot;,&quot;signin-invite&quot;,&quot;signin-magic&quot;,&quot;new-password&quot;,&quot;check-email&quot;,&quot;family&quot;,&quot;add-baby&quot;,&quot;add-baby-family&quot;,&quot;day-start&quot;,&quot;invite&quot;,&quot;settings&quot;,&quot;settings-2&quot;,&quot;settings-3&quot;,&quot;settings-password&quot;,&quot;settings-password-saved&quot;,&quot;delete-confirm&quot;,&quot;pwa-ios&quot;,&quot;pwa-android&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signin-error&quot;,&quot;signin-create&quot;,&quot;signin-create-short&quot;,&quot;signin-invite&quot;,&quot;signin-magic&quot;,&quot;new-password&quot;,&quot;continue&quot;,&quot;continue-switch&quot;,&quot;link-error&quot;,&quot;check-email&quot;,&quot;family&quot;,&quot;add-baby&quot;,&quot;add-baby-family&quot;,&quot;day-start&quot;,&quot;invite&quot;,&quot;settings&quot;,&quot;settings-2&quot;,&quot;settings-3&quot;,&quot;settings-baby&quot;,&quot;settings-export-busy&quot;,&quot;settings-export-error&quot;,&quot;settings-password&quot;,&quot;settings-password-saved&quot;,&quot;delete-confirm&quot;,&quot;pwa-ios&quot;,&quot;pwa-android&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const s = this.props.screen || 'signin';
     const c = n => `rgb(var(--${n}))`;
     const line = `1px solid ${c('line')}`;
-    const is = { signin: s.startsWith('signin') || s === 'new-password', check: s === 'check-email', family: s === 'family', baby: s === 'add-baby' || s === 'add-baby-family', daystart: s === 'day-start', invite: s === 'invite',
-      settings: s.startsWith('settings') || s === 'delete-confirm', del: s === 'delete-confirm', ios: s === 'pwa-ios', android: s === 'pwa-android' };
+    const is = { signin: s.startsWith('signin') || s === 'new-password' || s.startsWith('continue') || s.startsWith('link-error'), check: s === 'check-email', family: s === 'family', baby: s === 'add-baby' || s === 'add-baby-family' || s === 'settings-baby', daystart: s === 'day-start', invite: s === 'invite',
+      settings: (s.startsWith('settings') && s !== 'settings-baby') || s === 'delete-confirm', del: s === 'delete-confirm', ios: s === 'pwa-ios', android: s === 'pwa-android' };
     is.onboard = is.signin || is.check || is.family || is.baby || is.daystart || is.invite;
     is.pwa = is.ios || is.android;
     const stepN = { family: 1, 'add-baby': 2, 'day-start': 3, invite: 4 }[s] || 0;
     const steps = [1, 2, 3, 4].map(i => i <= stepN ? c('primary') : c('line'));
-    const codeChars = ['K', '7', 'Q', '-', '4', 'M', ''];
-    const code = codeChars.map((t, i) => i === 3 ? { t: '–', h: 'auto', bg: 'transparent', border: 'none' } : { t, h: '56px', bg: c('raised'), border: i === 6 ? `2px solid ${c('primary')}` : line });
+    const codeChars = ['K', '7', 'Q', '4', 'M', '-', 'D', '2', 'X', 'P', ''];
+    const code = codeChars.map((t, i) => i === 5 ? { t: '–', h: 'auto', bg: 'transparent', border: 'none' } : { t, h: '48px', bg: c('raised'), border: i === 10 ? `2px solid ${c('primary')}` : line });
     const fam = s === 'add-baby-family';
-    const babyFields = fam ? [
+    const prof = s === 'settings-baby';
+    const babyFields = prof ? [
+      { label: 'Name', icon: 'icon-baby', value: 'Olivia', vc: c('ink'), tag: '', tagIcon: '', tagC: c('ink-2'), border: line },
+      { label: 'Birth date and time', icon: 'icon-calendar', value: 'Fri 25 Sep 2026 · 6:12 am', vc: c('ink'), tag: '', tagIcon: '', tagC: c('ink-2'), border: line },
+      { label: 'Timezone', icon: 'icon-globe', value: 'Pacific/Auckland', vc: c('ink'), tag: '', tagIcon: '', tagC: c('ink-2'), border: line }
+    ] : fam ? [
       { label: 'Name', icon: 'icon-baby', value: "Baby's name", vc: c('ink-3'), tag: '', tagIcon: '', tagC: c('ink-2'), border: `2px solid ${c('primary')}` },
       { label: 'Birth date and time', icon: 'icon-calendar', value: 'Choose date', vc: c('ink-3'), tag: '', tagIcon: '', tagC: c('ink-2'), border: line },
       { label: 'Timezone', icon: 'icon-globe', value: 'Pacific/Auckland', vc: c('ink'), tag: 'Detected', tagIcon: 'icon-check', tagC: c('on-success'), border: line }
@@ -300,7 +331,7 @@ class Component extends DCLogic {
       { label: 'Timezone', icon: 'icon-globe', value: 'Pacific/Auckland', vc: c('ink'), tag: 'Detected', tagIcon: 'icon-check', tagC: c('on-success'), border: line }
     ];
     const row = (icon, label, value, o = {}) => ({ icon, label, value: value || '', sub: o.sub || '', subD: o.sub ? 'block' : 'none', swD: o.sw ? 'block' : 'none', trail: o.sw || o.noTrail ? '' : (o.ext ? 'icon-external-link' : 'icon-chevron-right'), ic: o.danger ? c('danger') : c('ink-2'), lc: o.danger ? c('on-danger') : c('ink') });
-    const grp = (title, rows, hasTheme, o = {}) => ({ title, hasTheme: !!hasTheme, hasTracking: !!o.tracking, hasAccount: !!o.account, rows: rows.map((r, i) => ({ ...r, divider: i ? line : 'none' })) });
+    const grp = (title, rows, hasTheme, o = {}) => ({ title, hasTheme: !!hasTheme, hasTracking: !!o.tracking, hasAccount: !!o.account, hasExport: !!o.exp, rows: rows.map((r, i) => ({ ...r, divider: i ? line : 'none' })) });
     const g1 = [
       grp('Family', [row('icon-users', 'Caregivers & invites', 'Jo, Ja · 1 pending')]),
       grp('Tracking', [], false, { tracking: true })
@@ -311,7 +342,7 @@ class Component extends DCLogic {
       grp('Appearance', [row('icon-palette', 'Theme', 'Dark at night', { noTrail: true, sub: 'Dark during the night window' })], true)
     ];
     const g3 = [
-      grp('Data', [row('icon-file-input', 'Import from Huckleberry', '', { sub: 'Bring in your history from a Huckleberry CSV export' }), row('icon-download', 'Export data', 'CSV · JSON')]),
+      grp('Data', [row('icon-file-input', 'Import from Huckleberry', '', { sub: 'Bring in your history from a Huckleberry CSV export' })], false, { exp: true }),
       grp('Account', [], false, { account: true })
     ];
     const themeSeg = [['System', 'icon-smartphone'], ['Light', 'icon-sun'], ['Dark', 'icon-moon'], ['Dark at night', 'icon-moon-star']].map(([label, icon]) => {
@@ -319,12 +350,12 @@ class Component extends DCLogic {
       return { label, icon, w: on ? 700 : 500, bg: on ? c('primary-soft') : c('surface'), c: on ? c('on-primary-soft') : c('ink-2'), border: on ? `2px solid ${c('primary')}` : 'none' };
     });
     const tabs = [['icon-house', 'Home'], ['icon-history', 'Timeline'], ['icon-chart-column', 'Stats'], ['icon-settings', 'Settings']]
-      .map(([icon, label], i) => ({ icon, label, color: i === 3 ? c('on-primary-soft') : c('ink-3'), weight: i === 3 ? 700 : 500, pill: i === 3 ? c('primary-soft') : 'transparent' }));
+      .map(([icon, label], i) => ({ icon, label, color: i === 3 ? c('on-primary-soft') : c('ink-3'), weight: i === 3 ? 700 : 500, pill: i === 3 ? c('primary-soft') : 'transparent', dotD: i === 0 && is.settings ? 'block' : 'none' }));
     const pr = (k, icon, title, meta, i) => ({ icon, title, meta, solid: c(k), soft: c(k + '-soft'), on: c('on-' + k), divider: i ? line : 'none' });
-    const page = s === 'settings-2' ? 2 : (s === 'settings-3' || s.startsWith('settings-password') || is.del) ? 3 : 1;
+    const page = s === 'settings-2' ? 2 : (s === 'settings-3' || s.startsWith('settings-password') || s.startsWith('settings-export') || is.del) ? 3 : 1;
     const segU = ['Metric (ml, kg, cm)', 'Imperial (oz, lb, in)'].map((label, i) => ({ label, w: i ? 500 : 700, bg: i ? 'transparent' : c('raised'), c: i ? c('ink-2') : c('ink'), s: i ? 'none' : 'var(--shadow-raised)' }));
     return {
-      authScreen: s === 'signin' ? 'signin' : s, authPad: s === 'new-password' ? '40px' : '8px',
+      authScreen: s === 'signin' ? 'signin' : s, authPad: s === 'new-password' || s.startsWith('continue') || s.startsWith('link-error') ? '40px' : '8px',
       unitSeg: segU,
       trackSteppers: [
         { label: 'Ignore gaps shorter than', v: '15', u: 'sec', hint: "Short pauses, like switching sides, won't show as downtime." },
@@ -332,7 +363,10 @@ class Component extends DCLogic {
       ],
       acct: { button: s !== 'settings-password', open: s === 'settings-password', saved: s === 'settings-password-saved' },
       is, steps, stepLabel: stepN ? `${stepN} of 4` : '', hasSteps: stepN > 0,
-      code, babyFields, themeSeg, tabs, isFamilyAdd: fam, isFirstBaby: !fam,
+      code, babyFieldsA: babyFields.slice(0, 2), babyFieldsB: babyFields.slice(2), themeSeg, tabs, isFamilyAdd: fam, isFirstBaby: !fam && !prof, showFamBtns: fam || prof, famBtn: prof ? 'Save' : 'Add baby', famIcon: prof ? 'icon-check' : 'icon-plus', isProfile: prof, isOnboardBaby: !fam && !prof,
+      sexSeg: ['Girl', 'Boy', 'Not set'].map(label => { const on = label === (prof ? 'Girl' : 'Not set'); return { label, w: on ? 700 : 500, bg: on ? c('raised') : 'transparent', c: on ? c('ink') : c('ink-2'), s: on ? 'var(--shadow-raised)' : 'none' }; }),
+      exportErr: s === 'settings-export-error',
+      exportBtns: [['Export Olivia', s === 'settings-export-busy'], ['Export whole family', false]].map(([label, busy]) => ({ label, spinD: busy ? 'block' : 'none', icon: busy ? '' : 'icon-download', op: s === 'settings-export-busy' && !busy ? 0.45 : 1, cur: s === 'settings-export-busy' && !busy ? 'not-allowed' : 'pointer' })),
       settingGroups: page === 1 ? g1 : page === 2 ? g2 : g3, showProfile: page === 1, showVersion: false,
       pwaRows: [pr('feed-right', 'icon-heart', 'Feed', 'Last 2h 14m ago (R)', 0), pr('sleep', 'icon-moon', 'Sleep', 'Awake 1h 05m', 1), pr('nappy', 'icon-droplets', 'Nappy', 'Last 48m ago · Wet', 2), pr('bottle', 'icon-milk', 'Bottle', 'Last 5h 10m ago · 60 ml', 3)],
       iosSteps: [{ n: 1, pre: 'Tap', b: 'Share', icon: 'icon-share' }, { n: 2, pre: 'Choose', b: 'Add to Home Screen', icon: 'icon-square-plus' }, { n: 3, pre: 'Tap', b: 'Add', icon: 'icon-check' }]

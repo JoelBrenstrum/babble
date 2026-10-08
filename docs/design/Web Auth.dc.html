@@ -28,11 +28,11 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1220,&quot;height&quot;:920},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signin-error&quot;,&quot;signin-create&quot;,&quot;signin-create-short&quot;,&quot;signin-invite&quot;,&quot;signin-magic&quot;,&quot;new-password&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1220,&quot;height&quot;:920},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;signin&quot;,&quot;signin-error&quot;,&quot;signin-create&quot;,&quot;signin-create-short&quot;,&quot;signin-invite&quot;,&quot;signin-magic&quot;,&quot;new-password&quot;,&quot;continue&quot;,&quot;continue-switch&quot;,&quot;link-error&quot;,&quot;link-error-invalid&quot;,&quot;link-error-failed&quot;],&quot;default&quot;:&quot;signin&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const screen = this.props.screen || 'signin';
-    const path = screen === 'new-password' ? '/reset-password' : screen === 'signin-invite' ? '/join/K7Q-4MD' : '/sign-in';
+    const path = screen === 'new-password' ? '/reset-password' : screen === 'signin-invite' ? '/join/K7Q4M-D2XPA' : screen.startsWith('continue') || screen.startsWith('link-error') ? '/auth/callback' : '/sign-in';
     return { screen, path };
   }
 }

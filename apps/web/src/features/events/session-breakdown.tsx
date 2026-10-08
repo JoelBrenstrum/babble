@@ -31,7 +31,11 @@ export function SessionBreakdown({
           <span className={cn('flex-1 text-body', row.kind === 'side' ? 'font-semibold' : 'text-ink-2')}>
             {row.kind === 'side' ? (row.side === 'left' ? 'Left' : 'Right') : 'Downtime'}
           </span>
-          {row.kind === 'downtime' && <span className="text-meta font-semibold text-on-session-downtime">idle</span>}
+          {row.kind === 'downtime' && (
+            <span className="text-meta font-semibold text-on-session-downtime">
+              {row.running ? 'idle · counting' : 'idle'}
+            </span>
+          )}
           {row.running && row.kind === 'side' && (
             <span
               className={cn(

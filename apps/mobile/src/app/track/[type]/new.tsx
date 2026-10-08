@@ -5,15 +5,21 @@ import {
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
   nextBreastSide,
+  runningSessionLine,
+  runningTone,
+  startContext,
   isEventType,
   isSessionType,
   trackerFor,
   type EventDraft,
+  type RunningTone,
   type SessionType,
   type Side,
   type TrackerKey,
 } from '@babble/domain';
+import type { FamilyMemberRow } from '@babble/api';
 import { useQuery } from '@tanstack/react-query';
+import { ArrowRight, Clock, Moon, Sun } from 'lucide-react-native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
@@ -28,6 +34,7 @@ import { useNapPrompt } from '@/features/nap-prompt';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useStartSession, useUnits } from '@/lib/use-events';
+import { useNow } from '@/lib/use-now';
 import { useReadyState } from '@/lib/use-onboarding';
 
 function pastDraft(type: EventDraft['type'], now: Date): EventDraft {
@@ -43,15 +50,17 @@ export default function NewEntry() {
   const ready = useReadyState();
   if (!type || !isEventType(type)) return <Redirect href="/" />;
   if (!ready) return null;
-  return <NewEntryContent eventType={type} baby={ready.baby} />;
+  return <NewEntryContent eventType={type} baby={ready.baby} members={ready.family.members} />;
 }
 
 function NewEntryContent({
   eventType,
   baby,
+  members,
 }: {
   eventType: TrackerKey;
   baby: NonNullable<ReturnType<typeof useReadyState>>['baby'];
+  members: FamilyMemberRow[];
 }) {
   const { client } = useBabble();
   const units = useUnits(client, baby.id);
@@ -67,7 +76,7 @@ function NewEntryContent({
         icon={<TrackerIcon tracker={tracker} />}
       />
       {isSessionType(eventType) && !logPast && (
-        <StartSession type={eventType} babyId={baby.id} onLogPast={() => setLogPast(true)} />
+        <StartSession type={eventType} babyId={baby.id} members={members} onLogPast={() => setLogPast(true)} />
       )}
       {logPast && (
         <Card className="p-5">
@@ -92,8 +101,23 @@ function NewEntryContent({
   );
 }
 
-function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: string; onLogPast: () => void }) {
+function StartSession({
+  type,
+  babyId,
+  members,
+  onLogPast,
+}: {
+  type: SessionType;
+  babyId: string;
+  members: FamilyMemberRow[];
+  onLogPast: () => void;
+}) {
   const { client } = useBabble();
+  const units = useUnits(client, babyId);
+  const now = useNow(1000);
+  const onPrimary = useTokenColor('--on-primary');
+  const onSolid = useTokenColor('--ink-on-solid');
+  const ink2 = useTokenColor('--ink-2');
   const start = useStartSession(client, babyId);
   const runningEvents = useQuery(runningEventsQuery(client, babyId)).data ?? [];
   const running = runningEvents.find((event) => event.type === type);
@@ -103,6 +127,7 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
   const [error, setError] = useState<string | null>(null);
   const spinnerColor = useTokenColor('--primary');
   const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
+  const context = startContext(type, latest, now, units);
 
   function begin(side?: Side) {
     setError(null);
@@ -128,10 +153,22 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
   }
 
   if (running) {
+    const startedBy = members.find((member) => member.user_id === running.createdBy)?.display_name;
+    const tone = runningTone(running);
     return (
       <Card className="gap-4 p-5">
-        <Text className="font-sans text-body text-ink">{`A ${noun} is already running.`}</Text>
-        <Button size="lg" onPress={() => router.replace(`/sessions/${running.id}`)}>
+        <View className="flex-row items-start gap-3">
+          <View testID={`running-dot-${tone}`} className={`mt-2 size-2.5 rounded-full ${DOT_COLOUR[tone]}`} />
+          <View className="flex-1">
+            <Text className="font-bold text-row-title text-ink">{`A ${noun} is already running.`}</Text>
+            <Text className="font-sans text-meta text-ink-2">{runningSessionLine(running, now, startedBy)}</Text>
+          </View>
+        </View>
+        <Button
+          size="lg"
+          icon={<ArrowRight size={20} color={onPrimary} strokeWidth={2.75} />}
+          onPress={() => router.replace(`/sessions/${running.id}`)}
+        >
           Open timer
         </Button>
       </Card>
@@ -140,8 +177,25 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
 
   return (
     <View className="gap-4">
+      {context && (
+        <View className="flex-row items-center gap-3 rounded-tile bg-surface px-4 py-3">
+          {type === 'sleep' ? (
+            <Sun size={20} color={ink2} strokeWidth={2.5} />
+          ) : (
+            <Clock size={20} color={ink2} strokeWidth={2.5} />
+          )}
+          <Text className="flex-1 font-sans text-body text-ink">{context}</Text>
+        </View>
+      )}
       {type === 'sleep' ? (
-        <Button size="lg" loading={start.isPending} onPress={() => begin()}>
+        <Button
+          variant="sleep"
+          size="lg"
+          className="h-24"
+          loading={start.isPending}
+          icon={<Moon size={24} color={onSolid} strokeWidth={2.75} />}
+          onPress={() => begin()}
+        >
           Start sleep now
         </Button>
       ) : (
@@ -173,3 +227,11 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
     </View>
   );
 }
+
+const DOT_COLOUR: Record<RunningTone, string> = {
+  downtime: 'bg-session-downtime',
+  sleep: 'bg-sleep',
+  pump: 'bg-pump',
+  'feed-left': 'bg-feed-left',
+  'feed-right': 'bg-feed-right',
+};

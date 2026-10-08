@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="display:flex;flex-direction:column;gap:16px;color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif">
+  <sc-if value="{{ showHeader }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:26px;font-weight:700;line-height:1.2">Stats</span><span style="font-size:14px;color:rgb(var(--ink-2));line-height:1.4">{{ meta }}</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
+        <sc-for list="{{ range }}" as="o" hint-placeholder-count="3"><div style="height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }};cursor:pointer">{{ o.label }}</div></sc-for>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isEmpty }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:28px 22px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+      <span style="width:64px;height:64px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--primary));display:grid;place-items:center"><i class="icon-chart-column" style="font-size:28px"></i></span>
+      <span style="font-size:21px;font-weight:700">Nothing to chart yet</span>
+      <span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45">Stats for sleep, feeds and nappies appear once you start logging.</span>
+    </div>
+  </sc-if>
+
+  <div style="display:grid;grid-template-columns:{{ cols }};gap:16px;align-items:start">
+    <sc-for list="{{ cards }}" as="cd" hint-placeholder-count="2">
+      <div style="display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));min-width:0">
+        <div style="display:flex;align-items:center;gap:10px"><span style="width:40px;height:40px;border-radius:50%;background:{{ cd.soft }};color:{{ cd.solid }};display:grid;place-items:center"><i class="{{ cd.icon }}" style="font-size:20px"></i></span><span style="font-size:18px;font-weight:700">{{ cd.title }}</span></div>
+        <div style="display:grid;grid-template-columns:{{ figCols }};gap:8px">
+          <sc-for list="{{ cd.figures }}" as="f" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgb(var(--surface));min-width:0"><span style="font-size:12px;color:rgb(var(--ink-2));line-height:1.3">{{ f.k }}</span><span style="font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.3">{{ f.v }}</span></div></sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="flex:1;display:flex;flex-wrap:wrap;gap:12px">
+              <sc-for list="{{ cd.legend }}" as="lg" hint-placeholder-count="2"><span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2))"><span style="width:10px;height:10px;border-radius:3px;background:{{ lg.c }}"></span>{{ lg.label }}</span></sc-for>
+            </div>
+            <span style="font-size:12px;color:rgb(var(--ink-3))">{{ cd.max }}</span>
+          </div>
+          <div style="position:relative;height:128px;display:flex;align-items:flex-end;gap:3px;border-bottom:1px solid rgb(var(--line-strong))">
+            <sc-for list="{{ cd.bars }}" as="b" hint-placeholder-count="10">
+              <div title="{{ b.tip }}" style="flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;cursor:default;opacity:{{ b.op }}" style-hover="opacity:0.8">
+                <sc-for list="{{ b.segs }}" as="sg" hint-placeholder-count="2"><div style="height:{{ sg.h }};background:{{ sg.bg }};border-radius:{{ sg.r }}"></div></sc-for>
+              </div>
+            </sc-for>
+            <sc-if value="{{ cd.tipShow }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;right:-6px;top:-34px;padding:6px 10px;border-radius:10px;background:rgb(var(--ink));color:rgb(var(--bg));font-size:12px;font-weight:600;white-space:nowrap;box-shadow:var(--shadow-toast)">{{ cd.tipText }}</div>
+            </sc-if>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:rgb(var(--ink-3))"><span>{{ cd.first }}</span><span>{{ cd.last }}</span></div>
+        </div>
+        <sc-if value="{{ cd.hasPoo }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:13px;color:rgb(var(--ink-2))">Recent poo colours, newest first</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ poo }}" as="p" hint-placeholder-count="12"><span style="width:20px;height:20px;border-radius:50%;background:{{ p }};box-shadow:inset 0 0 0 1.5px rgb(var(--swatch-edge) / 0.6)"></span></sc-for></div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ showGrowth }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;flex-direction:column;gap:16px;padding:18px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+      <div style="display:flex;align-items:center;gap:10px"><span style="width:40px;height:40px;border-radius:50%;background:rgb(var(--growth-soft));color:rgb(var(--growth));display:grid;place-items:center"><i class="icon-ruler" style="font-size:20px"></i></span><span style="flex:1;font-size:18px;font-weight:700">Growth</span><span style="font-size:15px;font-weight:700;color:rgb(var(--on-primary-soft));cursor:pointer">Log growth</span></div>
+      <sc-if value="{{ g.noSex }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:rgb(var(--info-soft));color:rgb(var(--on-info))"><i class="icon-info" style="font-size:18px;color:rgb(var(--info));margin-top:1px"></i><span style="font-size:14px;line-height:1.45">Set Olivia's sex in <span style="font-weight:700;text-decoration:underline;text-underline-offset:3px;cursor:pointer">Settings</span> to compare with the WHO growth charts.</span></div>
+      </sc-if>
+      <sc-if value="{{ g.none }}" hint-placeholder-val="{{ false }}">
+        <span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.45">No growth entries yet. Log a weight, length or head size to chart it.</span>
+      </sc-if>
+      <sc-if value="{{ g.has }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:{{ growthCols }};gap:20px">
+          <sc-for list="{{ g.charts }}" as="ch" hint-placeholder-count="3">
+            <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+              <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap"><span style="flex:1;font-size:15px;font-weight:700">{{ ch.label }}</span><span style="font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ ch.latest }}</span><span style="font-size:12px;color:rgb(var(--ink-2))">{{ ch.pct }}</span><span style="font-size:12px;color:rgb(var(--ink-3))">{{ ch.date }}</span></div>
+              <div style="position:relative;width:300px;height:190px;max-width:100%">
+                <svg width="300" height="184" style="display:block;max-width:100%;overflow:visible">
+                <sc-for list="{{ ch.grid }}" as="gl" hint-placeholder-count="5">
+                  <line x1="36" x2="292" y1="{{ gl.y }}" y2="{{ gl.y }}" style="stroke:rgb(var(--line));stroke-width:1"></line>
+                </sc-for>
+                <sc-for list="{{ ch.curves }}" as="cv" hint-placeholder-count="5">
+                  <path d="{{ cv.d }}" style="fill:none;stroke:{{ cv.stroke }};stroke-width:{{ cv.w }};stroke-dasharray:{{ cv.dash }}"></path>
+                </sc-for>
+                <path d="{{ ch.line }}" style="fill:none;stroke:rgb(var(--growth));stroke-width:2;stroke-linejoin:round"></path>
+                <sc-for list="{{ ch.dots }}" as="dt" hint-placeholder-count="5">
+                  <circle cx="{{ dt.x }}" cy="{{ dt.y }}" r="4.5" style="fill:rgb(var(--growth));stroke:rgb(var(--raised));stroke-width:2"></circle>
+                </sc-for>
+              </svg>
+                <span style="position:absolute;font-size:11px;line-height:1;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums;white-space:nowrap;left:2px;top:0">{{ ch.unit }}</span>
+                <sc-for list="{{ ch.grid }}" as="gl" hint-placeholder-count="5"><span style="position:absolute;font-size:11px;line-height:1;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums;white-space:nowrap;right:270px;top:{{ gl.lt }};text-align:right">{{ gl.label }}</span></sc-for>
+                <sc-for list="{{ ch.xticks }}" as="xt" hint-placeholder-count="4"><span style="position:absolute;font-size:11px;line-height:1;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums;white-space:nowrap;left:{{ xt.lx }};top:166px;transform:translateX(-50%)">{{ xt.label }}</span></sc-for>
+                <span style="position:absolute;font-size:11px;line-height:1;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums;white-space:nowrap;right:8px;top:179px">months</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ g.foot }}" hint-placeholder-val="{{ true }}"><span style="font-size:12px;color:rgb(var(--ink-3))">Lines show the WHO 3rd, 15th, 50th, 85th and 97th percentiles, up to 2 years.</span></sc-if>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:380,&quot;height&quot;:900},&quot;layout&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;phone&quot;,&quot;desktop&quot;],&quot;default&quot;:&quot;phone&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;variant&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;full&quot;,&quot;early&quot;,&quot;empty&quot;,&quot;nosex&quot;,&quot;nogrowth&quot;],&quot;default&quot;:&quot;full&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;from&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;sleep&quot;,&quot;nappies&quot;,&quot;growth&quot;],&quot;default&quot;:&quot;sleep&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const p = this.props;
+    const desk = p.layout === 'desktop';
+    const v = p.variant || 'full';
+    const from = p.from || 'sleep';
+    const c = n => `rgb(var(--${n}))`;
+    const ca = (n, a) => `rgb(var(--${n}) / ${a})`;
+    const early = v === 'early';
+    const dates = ['28 Sep', '29 Sep', '30 Sep', '1 Oct', '2 Oct', '3 Oct', '4 Oct', '5 Oct', '6 Oct', '7 Oct'];
+    const N = early ? 1 : 10;
+    const idx = Array.from({ length: N }, (_, i) => early ? 9 : i);
+    const mkBars = (series, max, tipFn) => idx.map(i => {
+      const vals = series.map(s => s.data[i]);
+      const segs = [];
+      let topDone = false;
+      for (let k = series.length - 1; k >= 0; k--) {
+        const val = vals[k]; if (!val) continue;
+        segs.push({ h: (val / max * 128).toFixed(1) + 'px', bg: series[k].c, r: topDone ? '0' : '4px 4px 0 0' });
+        topDone = true;
+      }
+      return { segs, tip: `${dates[i]}: ${tipFn(vals)}`, op: 1 };
+    });
+    const hm = h => { const m = Math.round(h * 60); return m % 60 ? `${Math.floor(m / 60)}h ${m % 60}m` : `${m / 60}h`; };
+    const night = [4.5, 5, 4.8, 5.2, 5.5, 5.1, 5.6, 6, 5.8, 5], naps = [5.5, 5.2, 5.6, 4.9, 5, 5.4, 4.6, 4.4, 4.9, 4.5];
+    const breast = [9, 8, 9, 9, 8, 9, 8, 9, 8, 6], bottle = Array(10).fill(0);
+    const wet = [3, 3, 2, 3, 3, 2, 3, 2, 3, 2], both = [2, 1, 2, 1, 2, 2, 1, 2, 1, 2], dirty = [2, 2, 3, 2, 2, 2, 2, 3, 2, 1];
+    const pump = [180, 220, 200, 240, 210, 190, 230, 220, 200, 210];
+    const lg = (label, cc) => ({ label, c: cc });
+    const F = (k, val) => ({ k, v: val });
+    const card = (o) => ({ first: early ? '7 Oct' : dates[0], last: '7 Oct', hasPoo: false, tipShow: false, tipText: '', ...o });
+    const all = [
+      card({ key: 'sleep', title: 'Sleep', icon: 'icon-moon', solid: c('sleep'), soft: c('sleep-soft'),
+        figures: early ? [F('Today so far', '9h 30m'), F('Night', '5h'), F('Naps', '3'), F('Longest stretch', '3h 12m')] : [F('Per day', '10h 27m'), F('Night', '5h 30m'), F('Naps per day', '3.4'), F('Longest stretch', '5h 22m'), F('Wake window', '1h 32m')],
+        legend: [lg('Night', c('sleep')), lg('Naps', ca('sleep', 0.45))], max: 'max 15h',
+        bars: mkBars([{ c: c('sleep'), data: night }, { c: ca('sleep', 0.45), data: naps }], 15, v2 => `Night ${hm(v2[0])}, Naps ${hm(v2[1])}`),
+        tipShow: desk && !early, tipText: '7 Oct: Night 5h, Naps 4.5h' }),
+      card({ key: 'feeds', title: 'Feeds', icon: 'icon-heart', solid: c('feed-right'), soft: c('feed-right-soft'),
+        figures: early ? [F('Today so far', '6'), F('Average gap', '2h 20m'), F('Left / right', '50% / 50%'), F('Bottle', '—')] : [F('Per day', '8.6'), F('Average gap', '2h 26m'), F('Left / right', '53% / 47%'), F('Breast per day', 'L 42m · R 38m · idle 9m'), F('Downtime per feed', '1m'), F('Bottle per day', '—')],
+        legend: [lg('Breast', c('feed-right')), lg('Bottle', c('bottle'))], max: 'max 10',
+        bars: mkBars([{ c: c('bottle'), data: bottle }, { c: c('feed-right'), data: breast }], 10, v2 => `Breast ${v2[1]}, Bottle ${v2[0]}`) }),
+      card({ key: 'nappies', title: 'Nappies', icon: 'icon-droplets', solid: c('nappy'), soft: c('nappy-soft'),
+        figures: [F('Wet per day', '4.7'), F('Dirty per day', '4')],
+        legend: [lg('Wet', ca('nappy', 0.35)), lg('Both', ca('nappy', 0.65)), lg('Dirty', c('nappy'))], max: 'max 9',
+        bars: mkBars([{ c: ca('nappy', 0.35), data: wet }, { c: ca('nappy', 0.65), data: both }, { c: c('nappy'), data: dirty }], 9, v2 => `Wet ${v2[0]}, Both ${v2[1]}, Dirty ${v2[2]}`), hasPoo: true }),
+      card({ key: 'pump', title: 'Pump', icon: 'icon-glass-water', solid: c('pump'), soft: c('pump-soft'),
+        figures: [F('Per day', '210 ml'), F('Sessions per day', '2'), F('Left / right', '105 ml / 105 ml')],
+        legend: [lg('Pumped', c('pump'))], max: 'max 300 ml',
+        bars: mkBars([{ c: c('pump'), data: pump }], 300, v2 => `${v2[0]} ml`) })
+    ];
+    const order = ['sleep', 'feeds', 'nappies', 'pump'];
+    let cards = v === 'empty' ? [] : early ? all.slice(0, 2) : all.slice(order.indexOf(from === 'growth' ? 'pump' : from));
+    if (from === 'growth' && !desk) cards = [];
+    const poo = ['mustard', 'mustard', 'yellow', 'green', 'mustard', 'yellow', 'mustard', 'black', 'mustard', 'yellow', 'mustard', 'green'].map(k => `rgb(var(--poo-${k}))`);
+    const range = ['7d', '30d', 'All'].map(label => { const on = label === '30d'; return { label, w: on ? 700 : 500, bg: on ? c('raised') : 'transparent', c: on ? c('ink') : c('ink-2'), s: on ? 'var(--shadow-raised)' : 'none' }; });
+    // Growth charts
+    const X0 = 36, X1 = 292, Y0 = 16, Y1 = 156, MM = 3;
+    const sx = m => +(X0 + m / MM * (X1 - X0)).toFixed(1);
+    const who = {
+      weight: { lo: 2, hi: 7.5, step: 1, unit: 'kg', p: [[2.4, 3.2, 3.9, 4.5], [2.8, 3.6, 4.5, 5.2], [3.2, 4.2, 5.1, 5.8], [3.7, 4.8, 5.8, 6.6], [4.2, 5.4, 6.5, 7.4]], pts: [[0, 3.3], [0.1, 3.21], [0.23, 3.38], [0.36, 3.42], [1.0, 4.3]], latest: '4.30 kg', pct: '51st percentile' },
+      length: { lo: 44, hi: 64, step: 5, unit: 'cm', p: [[45.6, 50.0, 53.2, 55.8], [47.2, 51.7, 55.0, 57.6], [49.1, 53.7, 57.1, 59.8], [51.1, 55.7, 59.2, 62.0], [52.7, 57.4, 60.9, 63.8]], pts: [[0, 50.0], [0.23, 50.5], [0.36, 51.0], [1.0, 55.0]], latest: '55.0 cm', pct: '48th percentile' },
+      head: { lo: 31, hi: 42, step: 2, unit: 'cm', p: [[31.7, 34.3, 36.0, 37.2], [32.7, 35.3, 37.0, 38.2], [33.9, 36.5, 38.3, 39.5], [35.1, 37.7, 39.5, 40.7], [36.1, 38.8, 40.5, 41.7]], pts: [[0, 34.0], [0.23, 34.5], [1.0, 37.2]], latest: '37.2 cm', pct: '46th percentile' }
+    };
+    const noSex = v === 'nosex';
+    const charts = [['Weight', 'weight'], ['Length', 'length'], ['Head', 'head']].map(([label, k]) => {
+      const w = who[k];
+      const sy = val => +(Y1 - (val - w.lo) / (w.hi - w.lo) * (Y1 - Y0)).toFixed(1);
+      const grid = [];
+      for (let g = Math.ceil(w.lo / w.step) * w.step; g <= w.hi; g += w.step) grid.push({ y: sy(g), lt: (sy(g) - 5) + 'px', label: String(g) });
+      const curveD = arr => arr.map((val, i) => `${i ? 'L' : 'M'}${sx(i)},${sy(val)}`).join(' ');
+      const styles = [[ca('ink-3', 0.5), 1.25, '4 4'], [ca('ink-3', 0.35), 1.25, 'none'], [ca('growth', 0.6), 2, 'none'], [ca('ink-3', 0.35), 1.25, 'none'], [ca('ink-3', 0.5), 1.25, '4 4']];
+      const curves = noSex ? [] : w.p.map((arr, i) => ({ d: curveD(arr), stroke: styles[i][0], w: styles[i][1], dash: styles[i][2] }));
+      const dots = w.pts.map(([m, val]) => ({ x: sx(m), y: sy(val) }));
+      return { label, latest: w.latest, pct: noSex ? '' : w.pct, date: '26 Oct', unit: w.unit, grid, curves, dots,
+        line: dots.map((d, i) => `${i ? 'L' : 'M'}${d.x},${d.y}`).join(' '), xticks: [0, 1, 2, 3].map(m => ({ lx: sx(m) + 'px', label: String(m) })) };
+    });
+    const g = { noSex, none: v === 'nogrowth', has: v !== 'nogrowth', foot: !noSex, charts };
+    return {
+      showHeader: !desk && from === 'sleep', meta: early ? 'Showing today so far. Daily averages start once a full day has been logged.' : 'Daily averages over 9 finished days; today is charted but not averaged.',
+      range, isEmpty: v === 'empty', cards, poo, cols: desk ? 'repeat(2,minmax(0,1fr))' : 'minmax(0,1fr)', figCols: desk ? 'repeat(3,minmax(0,1fr))' : 'repeat(2,minmax(0,1fr))',
+      showGrowth: v !== 'empty' && !early, growthCols: desk ? 'repeat(3,minmax(0,1fr))' : 'minmax(0,1fr)', g
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -20,10 +20,10 @@ test('the timeline shows the day and the last 7 days and opens entries', async (
   await page.getByRole('link', { name: 'Log sleep' }).click();
   await page.getByRole('button', { name: /start sleep now/i }).click();
   await expect(page.getByText('Napping')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Home, nap running' }).filter({ visible: true })).toBeVisible();
 
   await page.getByRole('link', { name: 'Timeline' }).filter({ visible: true }).click();
   await expect(page.getByText('Today', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Home, nap running' }).filter({ visible: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /^Sleep .*running$/ })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Next day' })).toHaveAttribute('aria-disabled', 'true');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

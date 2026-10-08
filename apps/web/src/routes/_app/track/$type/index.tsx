@@ -1,15 +1,5 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
-import {
-  dayKeyFor,
-  formatDayLabel,
-  formatDuration,
-  groupByDay,
-  listStrip,
-  segmentTotals,
-  stripKind,
-  stripWindow,
-  type BabyEvent,
-} from '@babble/domain';
+import { listDayGroups, listStrip, stripKind, stripWindow } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
@@ -38,19 +28,6 @@ export const Route = createFileRoute('/_app/track/$type/')({
   component: TrackerList,
 });
 
-function dayTotals(events: BabyEvent[]): string {
-  const feeds = events.filter((event) => event.type === 'breast_feed' || event.type === 'bottle').length;
-  const activeMs = events.reduce((sum, event) => {
-    if (event.type === 'breast_feed' || event.type === 'pump')
-      return sum + segmentTotals(event.segments, new Date()).activeMs;
-    if (event.type === 'sleep' && event.endedAt) return sum + Date.parse(event.endedAt) - Date.parse(event.startedAt);
-    return sum;
-  }, 0);
-  const count = feeds || events.length;
-  const noun = feeds ? (count === 1 ? 'feed' : 'feeds') : count === 1 ? 'entry' : 'entries';
-  return activeMs > 0 ? `${count} ${noun} · ${formatDuration(activeMs, { seconds: false })}` : `${count} ${noun}`;
-}
-
 function TrackerList() {
   const { babble, baby, family, eventType } = Route.useRouteContext();
   const { filter = eventType === 'bottle' ? 'bottle' : eventType === 'breast_feed' ? 'breast' : 'all' } =
@@ -62,14 +39,20 @@ function TrackerList() {
   const events = useQuery(eventListQuery(babble.client, baby.id, types));
   const tracker = trackerFor(eventType);
   const isFeed = eventType === 'breast_feed' || eventType === 'bottle';
-  const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
-  const groups = groupByDay(events.data ?? [], baby.timezone, baby.day_start_minutes);
+  const kind = stripKind(eventType, filter);
+  const groups = listDayGroups(kind, events.data ?? [], {
+    now,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
+    units,
+    birthDate: baby.birth_date,
+  });
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
   const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
   const recent = useQuery(eventsBetweenQuery(babble.client, baby.id, stripRange.from, stripRange.to));
   const strip =
     events.data?.length && recent.data && settings
-      ? listStrip(stripKind(eventType, filter), [...recent.data, ...events.data], {
+      ? listStrip(kind, [...recent.data, ...events.data], {
           now,
           timeZone: baby.timezone,
           dayStartMinutes: baby.day_start_minutes,
@@ -141,11 +124,12 @@ function TrackerList() {
       )}
       {groups.map((group) => (
         <section key={group.dayKey} className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between px-1">
-            <h2 className="text-section font-semibold uppercase text-ink-3">
-              {formatDayLabel(group.dayKey, todayKey)}
-            </h2>
-            <span className="text-meta text-ink-2">{dayTotals(group.items)}</span>
+          <div className="flex items-baseline justify-between gap-2 px-1">
+            <div className="flex min-w-0 items-baseline gap-2">
+              <h2 className="shrink-0 text-body font-bold">{group.title}</h2>
+              {group.subtitle && <span className="truncate text-meta text-ink-3">{group.subtitle}</span>}
+            </div>
+            <span className="tabular shrink-0 text-right text-meta font-semibold text-ink-2">{group.totals}</span>
           </div>
           <Card className="divide-y divide-line overflow-hidden">
             {group.items.map((event) => (
@@ -157,6 +141,7 @@ function TrackerList() {
                 units={units}
                 now={now}
                 showTitle={isFeed && filter === 'all'}
+                showNotes={!group.notesInSubtitle}
               />
             ))}
           </Card>

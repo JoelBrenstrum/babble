@@ -1,6 +1,7 @@
 import type { RunningIndicator, Tracker } from '@babble/domain';
 import { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing, View } from 'react-native';
+import { House } from 'lucide-react-native';
+import { AccessibilityInfo, Animated, Easing, View, type ColorValue } from 'react-native';
 
 const DOT: Record<Tracker['token'], string> = {
   'feed-right': 'bg-feed-right',
@@ -42,6 +43,19 @@ export function RunningDot({ indicator }: { indicator: RunningIndicator }) {
         <View testID={`running-dot-${first}`} className={`h-full flex-1 ${DOT[first!]}`} />
         {second && <View testID={`running-dot-${second}`} className={`h-full flex-1 ${DOT[second]}`} />}
       </View>
+    </View>
+  );
+}
+
+export function HomeTabIcon({ color, indicator }: { color: ColorValue; indicator: RunningIndicator | null }) {
+  return (
+    <View>
+      <House color={color} size={22} strokeWidth={2.75} />
+      {indicator && (
+        <View className="absolute -right-1.5 -top-1 rounded-full border-2 border-raised">
+          <RunningDot indicator={indicator} />
+        </View>
+      )}
     </View>
   );
 }

@@ -5,6 +5,7 @@ import {
   formatTimer,
   feedEndTime,
   napPromptOnFeedEnd,
+  pausedForMs,
   segmentTotals,
   sessionNoun,
   summariseSleep,
@@ -108,6 +109,7 @@ export function RunningCard({
       <Shell tone="sleep" compact={compact}>
         <Header
           title={sleep.paused ? 'Awake · nap paused' : 'Napping'}
+          paused={sleep.paused}
           startedBy={startedBy}
           eventId={event.id}
           compact={compact}
@@ -116,7 +118,9 @@ export function RunningCard({
         />
         {discardControls}
         <div className="flex flex-wrap items-baseline gap-x-3">
-          <span className="tabular text-timer-lg font-medium text-on-sleep">{formatTimer(sleep.asleepMs)}</span>
+          <span className={cn('tabular text-timer-lg font-medium', sleep.paused ? 'text-ink-2' : 'text-on-sleep')}>
+            {formatTimer(sleep.asleepMs)}
+          </span>
           {sleep.wakeUps > 0 && (
             <span className="tabular text-meta text-ink-2">
               awake {formatDuration(sleep.awakeMs)} · {sleep.wakeUps === 1 ? '1 wake-up' : `${sleep.wakeUps} wake-ups`}
@@ -177,6 +181,7 @@ export function RunningCard({
     <Shell tone={tone} compact={compact}>
       <Header
         title={paused ? `${title} · paused` : `${title} · ${SIDE_LABEL[totals.openSide!]}`}
+        paused={paused}
         startedBy={startedBy}
         eventId={event.id}
         compact={compact}
@@ -185,11 +190,13 @@ export function RunningCard({
       />
       {discardControls}
       <div className="flex items-baseline gap-3">
-        <span className="tabular text-timer-lg font-medium">
+        <span className={cn('tabular text-timer-lg font-medium', paused && 'text-ink-2')}>
           {paused ? formatTimer(totals.activeMs) : formatTimer(currentMs)}
         </span>
-        <span className="text-meta text-ink-2">
-          {paused ? 'total so far' : `total ${formatDuration(totals.activeMs)}`}
+        <span className="tabular text-meta text-ink-2">
+          {paused
+            ? `Paused for ${formatDuration(pausedForMs(event.segments, now) ?? 0)}`
+            : `total ${formatDuration(totals.activeMs)}`}
         </span>
       </div>
       {startControls}
@@ -226,6 +233,7 @@ export function RunningCard({
                 <span className="text-label font-semibold">
                   {SIDE_LABEL[side]}
                   {active && ' · on'}
+                  {paused && side === totals.lastSide && ' · last'}
                 </span>
                 <span className="tabular text-meta">{formatDuration(ms)}</span>
               </span>
@@ -282,6 +290,7 @@ function Shell({
 
 function Header({
   title,
+  paused,
   startedBy,
   eventId,
   compact,
@@ -289,6 +298,7 @@ function Header({
   onDiscard,
 }: {
   title: string;
+  paused: boolean;
   startedBy?: string;
   eventId: string;
   compact: boolean;
@@ -297,17 +307,19 @@ function Header({
 }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="relative grid size-3 place-items-center">
-        <span data-pulse className="absolute inset-0 animate-timer-pulse rounded-full bg-session-active" />
-        <span className="size-3 rounded-full bg-session-active" />
+      <span className="relative grid size-3 shrink-0 place-items-center">
+        {!paused && <span data-pulse className="absolute inset-0 animate-timer-pulse rounded-full bg-session-active" />}
+        <span className={cn('size-3 rounded-full', paused ? 'bg-session-downtime' : 'bg-session-active')} />
       </span>
-      <span className="flex-1 text-row-title font-bold">{title}</span>
-      {startedBy && (
-        <span className="flex items-center gap-2 text-meta text-ink-2">
-          <Avatar name={startedBy} className="size-7 text-caption" />
-          <span className="hidden sm:inline">Started by {startedBy}</span>
-        </span>
-      )}
+      <span className="shrink-0 text-row-title font-bold">{title}</span>
+      <span className="flex min-w-0 flex-1 items-center justify-end gap-2 text-meta text-ink-2">
+        {startedBy && (
+          <>
+            <Avatar name={startedBy} className="size-7 shrink-0 text-caption" />
+            <span className="truncate">Started by {startedBy}</span>
+          </>
+        )}
+      </span>
       {compact && (
         <Link
           to="/sessions/$eventId"

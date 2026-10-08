@@ -24,4 +24,17 @@ describe('SessionBreakdown', () => {
     expect(screen.getByText('22m 55s')).toBeInTheDocument();
     expect(screen.getByText('lost 3m 02s')).toBeInTheDocument();
   });
+
+  it('marks the growing idle row while paused', () => {
+    render(
+      <SessionBreakdown
+        segments={[{ side: 'left', startedAt: at(0), endedAt: at(10) }]}
+        mergeGapMs={15_000}
+        now={new Date(at(11, 12))}
+        paused
+      />,
+    );
+    expect(screen.getByText('idle · counting')).toBeInTheDocument();
+    expect(screen.getByText('1m 12s')).toBeInTheDocument();
+  });
 });

@@ -5,12 +5,17 @@ import {
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
   nextBreastSide,
+  runningSessionLine,
+  runningTone,
+  startContext,
+  type BabyEvent,
+  type RunningTone,
   type EventDraft,
   type Side,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
-import { ChevronLeft, Moon, Play } from 'lucide-react';
+import { ArrowRight, ChevronLeft, Clock, Moon, Play, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
@@ -21,6 +26,8 @@ import { EventForm } from '#/features/events/event-form';
 import { useNapPrompt } from '#/features/nap-prompt';
 import { isEventType, isSessionType, trackerFor, type SessionType } from '@babble/domain';
 import { useStartSession, useUnits } from '#/lib/use-events';
+import { useNow } from '#/lib/use-now';
+import { cn } from '#/lib/cn';
 import { toBabbleError } from '@babble/api';
 
 export const Route = createFileRoute('/_app/track/$type/new')({
@@ -95,7 +102,9 @@ function NewEntry() {
 }
 
 function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () => void }) {
-  const { babble, baby } = Route.useRouteContext();
+  const { babble, baby, family } = Route.useRouteContext();
+  const units = useUnits(babble.client, baby.id);
+  const now = useNow(1000);
   const navigate = useNavigate();
   const start = useStartSession(babble.client, baby.id);
   const runningEvents = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
@@ -104,6 +113,8 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   const suggested = type === 'breast_feed' ? nextBreastSide(latest) : null;
   const showNapPrompt = useNapPrompt();
   const [error, setError] = useState<string | null>(null);
+  const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
+  const context = startContext(type, latest, now, units);
 
   function begin(side?: Side) {
     setError(null);
@@ -132,14 +143,20 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   }
 
   if (running) {
+    const startedBy = family.members.find((member) => member.user_id === running.createdBy)?.display_name;
     return (
       <Card className="flex flex-col gap-4 p-5">
-        <p className="text-body">
-          A {type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed'} is already running.
-        </p>
+        <div className="flex items-start gap-3">
+          <RunningDot event={running} />
+          <div className="flex min-w-0 flex-col">
+            <p className="text-row-title font-bold">A {noun} is already running.</p>
+            <p className="tabular text-meta text-ink-2">{runningSessionLine(running, now, startedBy)}</p>
+          </div>
+        </div>
         <Link to="/sessions/$eventId" params={{ eventId: running.id }}>
           <Button size="lg" className="w-full">
             Open timer
+            <ArrowRight className="size-5" strokeWidth={2.75} />
           </Button>
         </Link>
       </Card>
@@ -148,6 +165,16 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
 
   return (
     <div className="flex flex-col gap-4">
+      {context && (
+        <div className="flex items-center gap-3 rounded-tile bg-surface px-4 py-3">
+          {type === 'sleep' ? (
+            <Sun className="size-5 shrink-0 text-ink-2" strokeWidth={2.5} />
+          ) : (
+            <Clock className="size-5 shrink-0 text-ink-2" strokeWidth={2.5} />
+          )}
+          <span className="tabular text-body">{context}</span>
+        </div>
+      )}
       {type === 'sleep' ? (
         <Button
           size="lg"
@@ -188,8 +215,28 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
       )}
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
       <Button variant="secondary" onClick={onLogPast}>
-        Log a past {type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed'} instead
+        Log a past {noun} instead
       </Button>
     </div>
+  );
+}
+
+const DOT_COLOUR: Record<RunningTone, string> = {
+  downtime: 'bg-session-downtime',
+  sleep: 'bg-sleep',
+  pump: 'bg-pump',
+  'feed-left': 'bg-feed-left',
+  'feed-right': 'bg-feed-right',
+};
+
+function RunningDot({ event }: { event: BabyEvent }) {
+  const tone = runningTone(event);
+  return (
+    <span className="relative mt-2 grid size-2.5 shrink-0 place-items-center">
+      {tone !== 'downtime' && (
+        <span data-pulse className={cn('absolute inset-0 animate-timer-pulse rounded-full', DOT_COLOUR[tone])} />
+      )}
+      <span className={cn('size-2.5 rounded-full', DOT_COLOUR[tone])} />
+    </span>
   );
 }

@@ -1,6 +1,6 @@
 # babble Design (Claude Design export)
 
-Exported from Claude Design on 2026-10-08. Direction: **"Sage"** (design system v1, screens v1.1), derived from the Organic system. See [ui.md](../ui.md) for which file holds which screen.
+Exported from Claude Design on 2026-10-09. Direction: **"Sage"** (design system v1, screens v1.1), derived from the Organic system. See [ui.md](../ui.md) for which file holds which screen.
 
 ## Files
 
@@ -8,6 +8,9 @@ Exported from Claude Design on 2026-10-08. Direction: **"Sage"** (design system 
 |---|---|
 | `Babble Design System.dc.html` | Tokens, components, states and screen thumbnails, in light and dark |
 | `Babble Screens v1.1.dc.html` | Overview of every v1.1 screen, plus the desktop / tablet / phone responsive rules |
+| `Babble Screens 2026-10-08.dc.html` | Index of the 8 Oct updates: timeline 7d, stats, baby sex, summary strips, nap pause and resume, Ended earlier, export, Home dot and more |
+| `Phone Sleep.dc.html` | Running nap states: napping, paused, resumed, Ended earlier? (and its error), details while napping |
+| `Stats Cards.dc.html` | Stats cards and charts, including growth percentiles and the empty and first-day states |
 | `Phone Forms.dc.html` | Bottle, sleep, pump, growth and custom forms and timers |
 | `Phone Flows.dc.html` | Feed detail/edit, imported feed, nap prompts, reminder notification, Home states |
 | `Phone Lists.dc.html` | Sleep, nappy, pump and growth lists, empty and loading states |

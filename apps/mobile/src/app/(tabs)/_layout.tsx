@@ -2,11 +2,11 @@ import { queryKeys, runningEventsQuery } from '@babble/api';
 import { runningIndicator } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Redirect, Tabs } from 'expo-router';
-import { ChartColumn, History, House, Settings } from 'lucide-react-native';
+import { ChartColumn, History, Settings } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { PageSpinner } from '@/components/page-spinner';
-import { RunningDot } from '@/components/running-dot';
+import { HomeTabIcon } from '@/components/running-dot';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useOnboarding } from '@/lib/use-onboarding';
@@ -58,20 +58,12 @@ export default function TabsLayout() {
       >
         <Tabs.Screen
           name="index"
-          options={{
+          options={({ navigation }) => ({
             title: 'Home',
-            tabBarAccessibilityLabel: indicator ? `Home, ${indicator.label.toLowerCase()}` : undefined,
-            tabBarIcon: ({ color }) => (
-              <View>
-                <House color={color} size={22} strokeWidth={2.75} />
-                {indicator && (
-                  <View className="absolute -right-1.5 -top-1 rounded-full border-2 border-raised">
-                    <RunningDot indicator={indicator} />
-                  </View>
-                )}
-              </View>
-            ),
-          }}
+            tabBarAccessibilityLabel:
+              indicator && !navigation.isFocused() ? `Home, ${indicator.label.toLowerCase()}` : undefined,
+            tabBarIcon: ({ color, focused }) => <HomeTabIcon color={color} indicator={focused ? null : indicator} />,
+          })}
         />
         <Tabs.Screen
           name="timeline"

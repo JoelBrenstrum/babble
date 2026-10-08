@@ -27,7 +27,10 @@
         <div style="flex:1;display:flex;flex-direction:column;line-height:1.2"><span style="font-weight:700;font-size:21px">{{ dTitle }}</span><span style="font-size:14px;color:rgb(var(--ink-2))">{{ detailDate }}</span></div>
         <div style="width:48px;height:48px;border-radius:50%;background:rgb(var(--danger-soft));color:rgb(var(--on-danger));display:grid;place-items:center;cursor:pointer"><i class="icon-trash-2" style="font-size:20px"></i></div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:-4px;font-size:14px;color:rgb(var(--ink-2))"><span style="width:28px;height:28px;flex:none;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:11px;font-weight:700"><i class="{{ metaIcon }}" style="font-size:14px"></i>{{ metaAv }}</span>{{ metaText }}</div>
+      <div style="display:flex;flex-direction:column;gap:2px;margin-top:-4px">
+        <div style="display:flex;align-items:center;gap:8px;font-size:14px;color:rgb(var(--ink-2))"><span style="width:28px;height:28px;flex:none;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;font-size:11px;font-weight:700"><i class="{{ metaIcon }}" style="font-size:14px"></i>{{ metaAv }}</span>{{ metaText }}</div>
+        <div style="display:{{ meta2D }};margin-left:36px;font-size:14px;color:rgb(var(--ink-2))">{{ metaText2 }}</div>
+      </div>
       <sc-if value="{{ is.imported }}" hint-placeholder-val="{{ false }}">
         <div style="display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;background:rgb(var(--info-soft));color:rgb(var(--on-info))">
           <i class="icon-file-input" style="font-size:19px;color:rgb(var(--info));margin-top:1px"></i>
@@ -115,7 +118,7 @@
         <div style="display:flex;gap:12px;align-items:flex-start">
           <span style="width:40px;height:40px;flex:none;border-radius:11px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-family:Caprasimo, serif;font-size:22px">b</span>
           <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px">
-            <div style="display:flex;justify-content:space-between;font-size:13px;color:rgb(var(--ink-2))"><span style="font-weight:700;letter-spacing:0.04em">BABBLE</span><span>now</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;color:rgb(var(--ink-2))"><span style="font-weight:700;letter-spacing:0.04em">babble</span><span>now</span></div>
             <span style="font-size:16px;font-weight:700">Feed due for Olivia</span>
             <span style="font-size:15px;color:rgb(var(--ink-2));line-height:1.35">Last feed was 3h ago, ended on Right. Next side: Left.</span>
           </div>
@@ -162,6 +165,11 @@
           </div>
           <div style="font-weight:500;font-size:48px;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">{{ napTime }}</div>
           <div style="align-self:flex-start;display:flex;align-items:center;gap:6px;margin-left:-6px;padding:4px 6px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)" style-active="background:rgb(var(--ink) / 0.1)">{{ napSince }}<i class="icon-pencil" style="font-size:14px"></i></div>
+          <div style="display:flex;gap:10px;margin-top:2px">
+            <div style="cursor:pointer;flex:1;height:48px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-pause" style="font-size:18px"></i>Pause nap</div>
+            <div style="cursor:pointer;flex:1;height:48px;border-radius:14px;background:rgb(var(--sleep));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:8px;font-size:16px;font-weight:600"><i class="icon-moon" style="font-size:18px"></i>End nap</div>
+          </div>
+          <div style="align-self:center;margin-top:-4px;padding:6px 10px;border-radius:8px;font-size:14px;color:rgb(var(--ink-2));cursor:pointer" style-hover="background:rgb(var(--ink) / 0.06)">Ended earlier?</div>
         </div>
       </sc-if>
       <div style="display:flex;flex-direction:column;background:rgb(var(--raised));border-radius:16px;border:1px solid rgb(var(--line));overflow:hidden">
@@ -191,7 +199,7 @@
       <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.45)"></div>
       <div style="position:absolute;left:0;right:0;bottom:0;padding:10px 20px 34px;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:12px">
         <span style="align-self:center;width:40px;height:5px;border-radius:3px;background:rgb(var(--line-strong))"></span>
-        <div style="display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:12px;background:rgb(var(--sleep-soft));color:rgb(var(--sleep));display:grid;place-items:center"><i class="{{ prompt.icon }}" style="font-size:22px"></i></span><div><div style="font-size:20px;font-weight:700">{{ prompt.title }}</div><div style="font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ prompt.sub }}</div></div></div>
+        <div style="display:flex;align-items:center;gap:12px"><span style="width:44px;height:44px;border-radius:12px;background:{{ prompt.tileBg }};color:{{ prompt.tileC }};display:grid;place-items:center"><i class="{{ prompt.icon }}" style="font-size:22px"></i></span><div><div style="font-size:20px;font-weight:700">{{ prompt.title }}</div><div style="font-size:14px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">{{ prompt.sub }}</div></div></div>
         <sc-for list="{{ prompt.btns }}" as="b" hint-placeholder-count="3">
           <div style="height:{{ b.h }};border-radius:14px;background:{{ b.bg }};color:{{ b.c }};border:{{ b.border }};box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:17px;font-weight:600;line-height:1.25">{{ b.label }}<span style="font-size:13px;font-weight:500;opacity:.85;font-variant-numeric:tabular-nums">{{ b.sub }}</span></div>
         </sc-for>
@@ -200,13 +208,13 @@
   </sc-if>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;feed-detail&quot;,&quot;feed-edit&quot;,&quot;feed-imported&quot;,&quot;pump-detail&quot;,&quot;prompt-endnap&quot;,&quot;prompt-endnap-simple&quot;,&quot;prompt-startnap&quot;,&quot;prompt-startnap-simple&quot;,&quot;notif-lock&quot;,&quot;home-overdue&quot;,&quot;home-snoozed&quot;,&quot;home-live&quot;,&quot;home-offline&quot;],&quot;default&quot;:&quot;feed-detail&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:420,&quot;height&quot;:880},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;feed-detail&quot;,&quot;feed-edit&quot;,&quot;feed-imported&quot;,&quot;pump-detail&quot;,&quot;prompt-endnap&quot;,&quot;prompt-endnap-simple&quot;,&quot;prompt-startnap&quot;,&quot;prompt-startnap-simple&quot;,&quot;prompt-endfeed&quot;,&quot;prompt-endfeed-backdated&quot;,&quot;notif-lock&quot;,&quot;home-overdue&quot;,&quot;home-snoozed&quot;,&quot;home-live&quot;,&quot;home-offline&quot;],&quot;default&quot;:&quot;feed-detail&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
 class Component extends DCLogic {
   renderVals() {
     const s = this.props.screen || 'feed-detail';
     const c = n => `rgb(var(--${n}))`;
     const line = `1px solid ${c('line')}`;
-    const is = { detail: s.startsWith('feed') || s === 'pump-detail', imported: s === 'feed-imported', lock: s === 'notif-lock', prompt: s.startsWith('prompt'), live: s === 'home-live', offline: s === 'home-offline' };
+    const is = { detail: s.startsWith('feed') || s === 'pump-detail', imported: s === 'feed-imported', lock: s === 'notif-lock', prompt: s.startsWith('prompt'), endFeed: s.startsWith('prompt-endfeed'), live: s === 'home-live', offline: s === 'home-offline' };
     is.home = !is.detail && !is.lock;
     const side = (k, label, time, i, opts = {}) => ({ label, time, divider: i ? line : 'none', bg: c(k + '-soft'), c: c('on-' + k), border: 'none', dot: c(k), dotBorder: 'none', caret: 'icon-chevron-down', tc: c('ink'), delD: opts.noDel ? 'none' : 'grid' });
     const idle = (time, i) => ({ label: 'Idle', time, divider: i ? line : 'none', bg: c('session-downtime-soft'), c: c('on-session-downtime'), border: `1.5px dashed ${c('session-downtime')}`, dot: 'transparent', dotBorder: `2px dashed ${c('session-downtime')}`, caret: '', tc: c('ink-2'), delD: 'grid' });
@@ -237,9 +245,12 @@ class Component extends DCLogic {
     const P2 = [btn('Start nap now', '', 'primary'), btn('Asleep since feed end (3:34 am)', '', 'secondary'), btn('Not now', '', 'ghost')];
     const endNap = { icon: 'icon-moon', title: "End Olivia's nap?", sub: 'A nap has been running since 1:58 am.' };
     const startNap = { icon: 'icon-moon', title: 'Is Olivia asleep?', sub: 'Start a nap so the timer is already running when they wake.' };
+    const moonTile = { tileBg: c('sleep-soft'), tileC: c('sleep') };
     const prompts = {
       'prompt-endnap': { ...endNap, btns: P1 }, 'prompt-endnap-simple': { ...endNap, btns: [P1[0], P1[2]] },
-      'prompt-startnap': { ...startNap, btns: P2 }, 'prompt-startnap-simple': { ...startNap, btns: [P2[0], P2[2]] }
+      'prompt-startnap': { ...startNap, btns: P2 }, 'prompt-startnap-simple': { ...startNap, btns: [P2[0], P2[2]] },
+      'prompt-endfeed': { icon: 'icon-heart', tileBg: c('feed-right-soft'), tileC: c('on-feed-right'), title: "End Olivia's feed?", sub: 'A feed has been running since 2:15 pm.', btns: [btn('End feed', '', 'primary'), btn('Keep feeding', '', 'ghost')] },
+      'prompt-endfeed-backdated': { icon: 'icon-heart', tileBg: c('feed-right-soft'), tileC: c('on-feed-right'), title: "End Olivia's feed?", sub: 'A feed has been running since 2:15 pm.', btns: [btn('End feed at nap start (2:40 pm)', '', 'primary'), btn('Keep feeding', '', 'ghost')] }
     };
     const isPump = s === 'pump-detail';
     is.edit = s === 'feed-edit';
@@ -252,14 +263,15 @@ class Component extends DCLogic {
     const eSide = (side, m, sec, i) => { const l = tg('feed-left', side === 'L'), r = tg('feed-right', side === 'R'); return { isSide: true, isIdle: false, m, s: sec, divider: i ? line : 'none', lBg: l.bg, lC: l.c, lBorder: l.border, rBg: r.bg, rC: r.c, rBorder: r.border }; };
     const edRows = [eSide('L', '10', '32', 0), { isSide: false, isIdle: true, m: '3', s: '02', divider: line }, eSide('R', '12', '23', 2)];
     return {
-      is, tabs, rows, banner, prompt: prompts[s] || prompts['prompt-endnap'],
+      is, tabs, rows, banner, prompt: { ...moonTile, ...(prompts[s] || prompts['prompt-endnap']) },
+      meta2D: s === 'feed-detail' || s === 'pump-detail' || s === 'feed-edit' ? 'block' : 'none', metaText2: s === 'pump-detail' ? 'Ended by John at 1:49 am' : 'Ended by John at 2:32 pm',
       clock: is.lock ? '' : (s.startsWith('prompt-startnap') ? '3:36' : '3:12'),
       bd, edRows, showBreakdown: !is.edit, showNote: !is.edit, dTitle: isPump ? 'Pump' : is.edit ? 'Edit breastfeed' : 'Breastfeed',
       netIcon: is.offline ? 'icon-wifi-off' : 'icon-wifi',
       editSegs, segTitle: is.imported ? 'Side totals' : 'Segments',
       detailDate: is.imported ? 'Mon 28 Sep' : isPump ? 'Today · 1:30 am' : 'Today · most recent',
       metaAv: is.imported ? '' : isPump ? 'Jo' : 'Ja', metaIcon: is.imported ? 'icon-file-input' : '',
-      metaText: is.imported ? 'Imported · 28 Sep, 2:24 pm' : isPump ? 'Logged by Joel · 6 Oct, 1:49 am' : is.edit ? 'Logged by Jane · 6 Oct, 3:12 am · edited' : 'Logged by Jane · 6 Oct, 3:12 am',
+      metaText: is.imported ? 'Imported · 28 Sep, 2:24 pm' : isPump ? 'Started by John · 6 Oct, 1:30 am' : 'Started by Jane · 6 Oct, 2:02 pm',
       startLabel: is.imported ? '14:02' : isPump ? '1:30 am' : '2:49 am',
       canAdd: !is.imported, canResume: s === 'feed-detail',
       totalFeed: is.imported ? '22m' : '22m 55s', totalLost: is.imported ? 'Downtime unknown' : 'lost 3m 02s',

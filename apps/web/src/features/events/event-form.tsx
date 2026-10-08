@@ -5,12 +5,13 @@ import {
   hasErrors,
   needsChoice,
   validateDraft,
+  withoutPumpAmounts,
   type BabyEvent,
   type DraftErrors,
   type EventDraft,
   type Units,
 } from '@babble/domain';
-import { Trash2 } from 'lucide-react';
+import { CircleAlert, RotateCw, Trash2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '#/components/ui/button';
 import { TextAreaField } from '#/components/ui/field';
@@ -64,7 +65,7 @@ export function EventForm({
 }) {
   const [draft, setDraft] = useState<EventDraft>(initial);
   const [errors, setErrors] = useState<DraftErrors>({});
-  const [serverError, setServerError] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{ message: string; skipAmounts: boolean } | null>(null);
   const save = useSaveEvent(client, babyId);
   const remove = useDeleteEvent(client, babyId);
   const isNew = !event;
@@ -73,19 +74,24 @@ export function EventForm({
     enabled: draft.type === 'growth',
   }).data;
 
-  async function submit(formEvent: FormEvent) {
-    formEvent.preventDefault();
-    const found = validateDraft(draft, new Date());
+  async function attempt(skipAmounts: boolean) {
+    const target = skipAmounts ? withoutPumpAmounts(draft) : draft;
+    const found = validateDraft(target, new Date());
     setErrors(found);
     if (hasErrors(found)) return;
-    setServerError(null);
+    setFailure(null);
     try {
-      await save.mutateAsync({ draft, id: event?.id });
-      onSaved?.(draft);
+      await save.mutateAsync({ draft: target, id: event?.id });
+      onSaved?.(target);
       onDone();
     } catch (caught) {
-      setServerError(toBabbleError(caught).message);
+      setFailure({ message: toBabbleError(caught).message, skipAmounts });
     }
+  }
+
+  function submit(formEvent: FormEvent) {
+    formEvent.preventDefault();
+    void attempt(false);
   }
 
   const common = { errors, timeZone, units, isNew };
@@ -112,7 +118,29 @@ export function EventForm({
         value={draft.notes ?? ''}
         onChange={(changeEvent) => setDraft({ ...draft, notes: changeEvent.target.value || null })}
       />
-      {serverError && <StatusMessage tone="danger">{serverError}</StatusMessage>}
+      {failure && (
+        <div
+          role="alert"
+          className="flex items-center gap-3 rounded-tile border border-danger/35 bg-danger-soft py-1.5 pr-1.5 pl-4 text-on-danger"
+        >
+          <CircleAlert className="size-5 shrink-0 text-danger" strokeWidth={2.75} />
+          <div className="flex min-w-0 flex-1 flex-col py-1.5 text-meta">
+            <span>
+              <strong>Couldn't save.</strong> Your entry is kept here.
+            </span>
+            <span className="break-words opacity-80">{failure.message}</span>
+          </div>
+          <Button
+            variant="secondary"
+            className="shrink-0"
+            loading={save.isPending}
+            onClick={() => void attempt(failure.skipAmounts)}
+          >
+            {!save.isPending && <RotateCw className="size-4" strokeWidth={2.75} />}
+            Retry
+          </Button>
+        </div>
+      )}
       {hasErrors(errors) && <StatusMessage tone="danger">Check the highlighted fields.</StatusMessage>}
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
@@ -132,9 +160,16 @@ export function EventForm({
         ) : (
           <span />
         )}
-        <Button type="submit" size="lg" loading={save.isPending} disabled={needsChoice(draft)}>
-          {save.isPending ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
-        </Button>
+        <div className="flex flex-col-reverse gap-3 sm:flex-row">
+          {focusAmounts && draft.type === 'pump' && (
+            <Button variant="ghost" size="lg" disabled={save.isPending} onClick={() => void attempt(true)}>
+              Save without amounts
+            </Button>
+          )}
+          <Button type="submit" size="lg" loading={save.isPending} disabled={needsChoice(draft)}>
+            {save.isPending ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
+          </Button>
+        </div>
       </div>
     </form>
   );

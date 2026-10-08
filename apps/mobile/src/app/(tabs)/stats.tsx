@@ -77,7 +77,7 @@ function StatsContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadyState
         ) : (
           <StatsCards cards={report.cards} />
         )}
-        {growth.data && (
+        {growth.data && (growth.data.length > 0 || (events.data?.length ?? 0) > 0) && (
           <GrowthCard
             report={growthReport(
               growth.data,
