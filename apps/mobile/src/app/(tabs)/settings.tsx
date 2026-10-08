@@ -27,6 +27,7 @@ import { InvitePanel } from '@/features/invite-panel';
 import { TrackingSettings } from '@/features/tracking-settings';
 import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
+import { ExportData } from '@/features/export-data';
 import { useBabble } from '@/lib/babble';
 import { loadThemePreference, saveThemePreference, type ThemePreference } from '@/lib/theme-preference';
 import { useReadyState } from '@/lib/use-onboarding';
@@ -46,6 +47,10 @@ export default function SettingsTab() {
         <BabySection baby={ready.baby} disabled={!editable} />
         <CaregiversSection family={ready.family} userId={session.user.id} editable={editable} />
         <TrackingSettings client={client} babyId={ready.baby.id} disabled={!editable} />
+        <View className="gap-3">
+          <SectionLabel>Data</SectionLabel>
+          <ExportData client={client} family={ready.family} baby={ready.baby} />
+        </View>
         <AppearanceSection />
         <AccountSection email={session.user.email ?? ''} />
       </View>

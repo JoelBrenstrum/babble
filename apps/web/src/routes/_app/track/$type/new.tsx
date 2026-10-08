@@ -1,5 +1,13 @@
-import { clock, runningEventsQuery } from '@babble/api';
-import { emptyDraft, napPromptOnFeedEnd, napPromptOnFeedStart, type EventDraft, type Side } from '@babble/domain';
+import { clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import {
+  emptyDraft,
+  feedPromptOnNapStart,
+  napPromptOnFeedEnd,
+  napPromptOnFeedStart,
+  nextBreastSide,
+  type EventDraft,
+  type Side,
+} from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
 import { ChevronLeft, Moon, Play } from 'lucide-react';
@@ -92,12 +100,16 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   const start = useStartSession(babble.client, baby.id);
   const runningEvents = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
   const running = runningEvents.find((event) => event.type === type);
+  const latest = useQuery(latestEventsQuery(babble.client, baby.id)).data ?? [];
+  const suggested = type === 'breast_feed' ? nextBreastSide(latest) : null;
   const showNapPrompt = useNapPrompt();
   const [error, setError] = useState<string | null>(null);
 
   function begin(side?: Side) {
     setError(null);
-    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, clock.now().toISOString()));
+    const startedAt = clock.now().toISOString();
+    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, startedAt));
+    if (type === 'sleep') showNapPrompt(feedPromptOnNapStart(runningEvents, startedAt));
     start.mutate(
       { type, side },
       {
@@ -156,10 +168,15 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
               onClick={() => begin(side)}
               className={
                 side === 'left'
-                  ? 'flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-left text-ink-on-solid disabled:opacity-60'
-                  : 'flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-right text-ink-on-solid disabled:opacity-60'
+                  ? 'relative flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-left text-ink-on-solid disabled:opacity-60'
+                  : 'relative flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-right text-ink-on-solid disabled:opacity-60'
               }
             >
+              {side === suggested && (
+                <span className="absolute top-2.5 right-2.5 rounded-full bg-raised px-2.5 py-0.5 text-caption font-bold text-ink">
+                  Next
+                </span>
+              )}
               <span className="text-timer-md font-bold">{side === 'left' ? 'L' : 'R'}</span>
               <span className="flex items-center gap-1 text-label font-semibold">
                 <Play className="size-4" strokeWidth={3} />

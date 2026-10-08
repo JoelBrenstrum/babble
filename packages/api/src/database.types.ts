@@ -559,6 +559,7 @@ export type Database = {
         Returns: undefined;
       };
       save_event: { Args: { event: Json }; Returns: string };
+      save_sleep_details: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       server_time: { Args: Record<PropertyKey, never>; Returns: string };
       set_session_start: { Args: { start_at: string; target_event_id: string }; Returns: undefined };
       start_session: {

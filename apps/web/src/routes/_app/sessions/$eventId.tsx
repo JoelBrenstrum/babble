@@ -3,11 +3,12 @@ import { formatTimeOfDay } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
-import { SectionLabel } from '#/components/ui/card';
+import { Card, SectionLabel } from '#/components/ui/card';
 import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { RunningCard } from '#/features/events/running-card';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
+import { SleepDetailsEditor } from '#/features/events/sleep-details-editor';
 import { useTrackingSettings } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 
@@ -69,6 +70,15 @@ function SessionPage() {
         members={family.members}
         onDiscarded={() => void navigate({ to: '/' })}
       />
+      {event.type === 'sleep' && (
+        <section className="flex flex-col gap-2">
+          <SectionLabel>Details</SectionLabel>
+          <Card className="flex flex-col gap-3 p-5">
+            <p className="text-meta text-ink-2">Saved as you go, without stopping the timer.</p>
+            <SleepDetailsEditor event={event} client={babble.client} babyId={baby.id} />
+          </Card>
+        </section>
+      )}
       {segments.length > 0 && (
         <section className="flex flex-col gap-2">
           <SectionLabel>Session</SectionLabel>

@@ -1,8 +1,10 @@
-import { clock, runningEventsQuery, toBabbleError } from '@babble/api';
+import { clock, latestEventsQuery, runningEventsQuery, toBabbleError } from '@babble/api';
 import {
   emptyDraft,
+  feedPromptOnNapStart,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nextBreastSide,
   isEventType,
   isSessionType,
   trackerFor,
@@ -95,6 +97,8 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
   const start = useStartSession(client, babyId);
   const runningEvents = useQuery(runningEventsQuery(client, babyId)).data ?? [];
   const running = runningEvents.find((event) => event.type === type);
+  const latest = useQuery(latestEventsQuery(client, babyId)).data ?? [];
+  const suggested = type === 'breast_feed' ? nextBreastSide(latest) : null;
   const showNapPrompt = useNapPrompt();
   const [error, setError] = useState<string | null>(null);
   const spinnerColor = useTokenColor('--primary');
@@ -102,7 +106,9 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
 
   function begin(side?: Side) {
     setError(null);
-    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, clock.now().toISOString()));
+    const startedAt = clock.now().toISOString();
+    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, startedAt));
+    if (type === 'sleep') showNapPrompt(feedPromptOnNapStart(runningEvents, startedAt));
     start.mutate(
       { type, side },
       {
@@ -144,11 +150,16 @@ function StartSession({ type, babyId, onLogPast }: { type: SessionType; babyId: 
             <Pressable
               key={side}
               accessibilityRole="button"
-              accessibilityLabel={`Start ${side}`}
+              accessibilityLabel={side === suggested ? `Start ${side}, next side` : `Start ${side}`}
               disabled={start.isPending}
               onPress={() => begin(side)}
               className={`h-36 flex-1 items-center justify-center gap-2 rounded-card ${side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
             >
+              {side === suggested && (
+                <View className="absolute top-2.5 right-2.5 rounded-full bg-raised px-2.5 py-0.5">
+                  <Text className="font-bold text-caption text-ink">Next</Text>
+                </View>
+              )}
               <Text className="font-bold text-timer-md text-ink-on-solid">{side === 'left' ? 'L' : 'R'}</Text>
               <Text className="font-semibold text-label text-ink-on-solid">{`Start ${side}`}</Text>
             </Pressable>

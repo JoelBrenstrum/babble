@@ -65,6 +65,6 @@ Each stage ends with something usable on both apps. A stage's plan is fleshed ou
 - iOS Live Activity / Android ongoing notification for running sessions (Expo only)
 - Home-screen widgets
 - Real offline sync (PowerSync)
-- Data export (CSV/JSON). Needed before any public release.
+- Data export: JSON done (Settings → Data). CSV still to come.
 - Billing + entitlements (hosted product only)
 - Marketing site (can live in the TanStack Start app)

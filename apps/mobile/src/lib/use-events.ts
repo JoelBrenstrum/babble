@@ -10,11 +10,13 @@ import {
   setSessionStart,
   runningEventsQuery,
   saveEvent,
+  saveSleepDetails,
   startSession,
   subscribeToBabyEvents,
   switchSide,
   toBabbleError,
   type BabbleClient,
+  type SleepChanges,
 } from '@babble/api';
 import {
   applySessionAction,
@@ -182,6 +184,39 @@ export function useDiscardSession(client: BabbleClient, babyId: string) {
           onPress: () => void restoreEvent(client, event.id).then(() => refreshEvents(queryClient, babyId)),
         },
       });
+    },
+    onError: (error, _, context) => {
+      if (context?.previous) queryClient.setQueryData(runningKey, context.previous);
+      toast({ message: toBabbleError(error).message });
+    },
+    onSettled: () => refreshEvents(queryClient, babyId),
+  });
+}
+
+export function useSaveSleepDetails(client: BabbleClient, babyId: string) {
+  const queryClient = useQueryClient();
+  const toast = useToast();
+  const runningKey = queryKeys.runningEvents(babyId);
+
+  return useMutation({
+    mutationFn: ({ eventId, changes }: { eventId: string; changes: SleepChanges }) =>
+      saveSleepDetails(client, eventId, changes),
+    onMutate: async ({ eventId, changes }) => {
+      await queryClient.cancelQueries({ queryKey: runningKey });
+      const previous = queryClient.getQueryData<BabyEvent[]>(runningKey);
+      const { notes, ...details } = changes;
+      queryClient.setQueryData<BabyEvent[]>(runningKey, (current) =>
+        (current ?? []).map((item) =>
+          item.id === eventId && item.type === 'sleep'
+            ? {
+                ...item,
+                details: { ...item.details, ...details },
+                ...('notes' in changes ? { notes: notes ?? null } : {}),
+              }
+            : item,
+        ),
+      );
+      return { previous };
     },
     onError: (error, _, context) => {
       if (context?.previous) queryClient.setQueryData(runningKey, context.previous);

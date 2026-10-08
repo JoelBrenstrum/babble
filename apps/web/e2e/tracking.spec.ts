@@ -41,6 +41,10 @@ test('a breastfeed timer switches sides, pauses, resumes and finishes', async ({
   await expect(page.getByText('Next side')).toBeVisible();
   await expect(page.getByText('Left', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /Breastfeed/ }).filter({ visible: true })).toHaveCount(1);
+
+  await page.goto('/track/breast_feed/new');
+  await expect(page.getByRole('button', { name: /start left/i })).toContainText('Next');
+  await expect(page.getByRole('button', { name: /start right/i })).not.toContainText('Next');
 });
 
 test('a nappy can be logged, edited, deleted and restored', async ({ page }, testInfo) => {
@@ -117,4 +121,31 @@ test('each list shows a summary strip that opens stats', async ({ page }, testIn
 
   await page.getByRole('link', { name: 'Open stats' }).click();
   await expect(page).toHaveURL(/\/stats/);
+});
+
+test('sleep details saved during a nap show up on another device', async ({ page, browser }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+  await page.getByRole('link', { name: 'Log sleep' }).click();
+  await page.getByRole('button', { name: /start sleep now/i }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+  const sessionUrl = page.url();
+
+  const other = await browser.newContext({
+    storageState: await page.context().storageState(),
+    viewport: page.viewportSize() ?? undefined,
+  });
+  const otherPage = await other.newPage();
+  await otherPage.goto(sessionUrl);
+  await expect(otherPage.getByRole('checkbox', { name: 'Cot' })).toHaveAttribute('aria-checked', 'false');
+
+  await page.getByRole('checkbox', { name: 'Cot' }).click();
+  await page.getByLabel('Notes (optional)').fill('Went down easily');
+  await page.getByLabel('Notes (optional)').blur();
+
+  await expect(otherPage.getByRole('checkbox', { name: 'Cot' })).toHaveAttribute('aria-checked', 'true', {
+    timeout: 10_000,
+  });
+  await expect(otherPage.getByLabel('Notes (optional)')).toHaveValue('Went down easily', { timeout: 10_000 });
+  await expect(page.getByText('Napping')).toBeVisible();
+  await other.close();
 });

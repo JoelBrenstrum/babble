@@ -1,4 +1,4 @@
-import type { DraftOfType, FallAsleep, Mood, SleepLocation } from '@babble/domain';
+import type { DraftOfType, FallAsleep, Mood, SleepDetails, SleepLocation } from '@babble/domain';
 import { MultiChips, SingleChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { FormSection, type FormProps } from './shared';
@@ -24,9 +24,56 @@ const MOODS: { value: Mood; label: string }[] = [
   { value: 'upset', label: 'Upset' },
 ];
 
+export function SleepDetailFields({
+  details,
+  onChange,
+}: {
+  details: SleepDetails;
+  onChange: (patch: Partial<SleepDetails>) => void;
+}) {
+  return (
+    <>
+      <MultiChips
+        label="Where"
+        options={LOCATIONS}
+        value={details.locations}
+        onChange={(locations) => onChange({ locations })}
+      />
+      <SingleChips
+        label="Fell asleep in"
+        options={FALL_ASLEEP}
+        value={details.fallAsleep}
+        onChange={(fallAsleep) => onChange({ fallAsleep })}
+      />
+      <div className="grid gap-5 sm:grid-cols-2">
+        <MultiChips
+          label="Mood going down"
+          options={MOODS}
+          value={details.startMoods}
+          onChange={(startMoods) => onChange({ startMoods })}
+        />
+        <MultiChips
+          label="Mood on waking"
+          options={MOODS}
+          value={details.endMoods}
+          onChange={(endMoods) => onChange({ endMoods })}
+        />
+      </div>
+      <label className="flex min-h-tap items-center gap-3 text-body">
+        <input
+          type="checkbox"
+          className="size-5 accent-[rgb(var(--primary))]"
+          checked={details.wokenByCarer}
+          onChange={(event) => onChange({ wokenByCarer: event.target.checked })}
+        />
+        Woken by a carer
+      </label>
+    </>
+  );
+}
+
 export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'sleep'>>) {
   const details = draft.details;
-  const set = (patch: Partial<typeof details>) => onChange({ ...draft, details: { ...details, ...patch } });
   return (
     <FormSection>
       <div className="grid gap-5 sm:grid-cols-2">
@@ -45,41 +92,10 @@ export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<Draft
           onChange={(endedAt) => onChange({ ...draft, endedAt })}
         />
       </div>
-      <MultiChips
-        label="Where"
-        options={LOCATIONS}
-        value={details.locations}
-        onChange={(locations) => set({ locations })}
+      <SleepDetailFields
+        details={details}
+        onChange={(patch) => onChange({ ...draft, details: { ...details, ...patch } })}
       />
-      <SingleChips
-        label="Fell asleep in"
-        options={FALL_ASLEEP}
-        value={details.fallAsleep}
-        onChange={(fallAsleep) => set({ fallAsleep })}
-      />
-      <div className="grid gap-5 sm:grid-cols-2">
-        <MultiChips
-          label="Mood going down"
-          options={MOODS}
-          value={details.startMoods}
-          onChange={(startMoods) => set({ startMoods })}
-        />
-        <MultiChips
-          label="Mood on waking"
-          options={MOODS}
-          value={details.endMoods}
-          onChange={(endMoods) => set({ endMoods })}
-        />
-      </div>
-      <label className="flex min-h-tap items-center gap-3 text-body">
-        <input
-          type="checkbox"
-          className="size-5 accent-[rgb(var(--primary))]"
-          checked={details.wokenByCarer}
-          onChange={(event) => set({ wokenByCarer: event.target.checked })}
-        />
-        Woken by a carer
-      </label>
     </FormSection>
   );
 }

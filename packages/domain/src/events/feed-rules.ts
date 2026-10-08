@@ -1,10 +1,21 @@
 import { formatTimeOfDay } from '../time/local-time';
-import type { BabyEvent } from './types';
+import { otherSide } from './segments';
+import type { BabyEvent, Side } from './types';
 
 export function latestFeed(events: readonly BabyEvent[]): BabyEvent | undefined {
   return events
     .filter((event) => (event.type === 'breast_feed' || event.type === 'bottle') && !event.deletedAt)
     .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+}
+
+export function nextBreastSide(events: readonly BabyEvent[]): Side | null {
+  const last = events
+    .filter((event): event is Extract<BabyEvent, { type: 'breast_feed' }> => event.type === 'breast_feed')
+    .filter((event) => !event.deletedAt && event.segments.length > 0)
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+  if (!last) return null;
+  const lastSide = [...last.segments].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt)).at(-1)!.side;
+  return otherSide(lastSide);
 }
 
 export function canResumeFeed(
@@ -31,7 +42,9 @@ export function staleSessions(running: readonly BabyEvent[], now: Date, autoEndM
 }
 
 export type NapPrompt =
-  { kind: 'end-nap'; nap: BabyEvent; feedStartedAt: string } | { kind: 'start-nap'; feedEndedAt: string };
+  | { kind: 'end-nap'; nap: BabyEvent; feedStartedAt: string }
+  | { kind: 'start-nap'; feedEndedAt: string }
+  | { kind: 'end-feed'; feed: BabyEvent; napStartedAt: string };
 
 export function napPromptOnFeedStart(running: readonly BabyEvent[], feedStartedAt: string): NapPrompt | null {
   const nap = running.find((event) => event.type === 'sleep' && event.endedAt === null);
@@ -43,10 +56,19 @@ export function napPromptOnFeedEnd(running: readonly BabyEvent[], feedEndedAt: s
   return napRunning ? null : { kind: 'start-nap', feedEndedAt };
 }
 
+export function feedPromptOnNapStart(running: readonly BabyEvent[], napStartedAt: string): NapPrompt | null {
+  const feed = running.find((event) => event.type === 'breast_feed' && event.endedAt === null);
+  return feed ? { kind: 'end-feed', feed, napStartedAt } : null;
+}
+
 // Within this window, "now" and the feed's own start/end time are effectively the same choice.
 const SAME_MOMENT_MS = 2 * 60_000;
 
-export type NapAction = { kind: 'end-nap'; napId: string; at?: string } | { kind: 'start-nap'; at?: string } | null;
+export type NapAction =
+  | { kind: 'end-nap'; napId: string; at?: string }
+  | { kind: 'start-nap'; at?: string }
+  | { kind: 'end-feed'; feedId: string; at?: string }
+  | null;
 
 export interface NapPromptOption {
   label: string;
@@ -61,6 +83,23 @@ export interface NapPromptContent {
 }
 
 export function napPromptContent(prompt: NapPrompt, babyName: string, timeZone: string, now: Date): NapPromptContent {
+  if (prompt.kind === 'end-feed') {
+    const startedJustNow = now.getTime() - Date.parse(prompt.napStartedAt) < SAME_MOMENT_MS;
+    return {
+      title: `End ${babyName}'s feed?`,
+      body: `A feed has been running since ${formatTimeOfDay(prompt.feed.startedAt, timeZone)}.`,
+      options: [
+        {
+          label: startedJustNow
+            ? 'End feed'
+            : `End feed at nap start (${formatTimeOfDay(prompt.napStartedAt, timeZone)})`,
+          action: { kind: 'end-feed', feedId: prompt.feed.id, ...(startedJustNow ? {} : { at: prompt.napStartedAt }) },
+          primary: true,
+        },
+        { label: 'Keep feeding', action: null, primary: false },
+      ],
+    };
+  }
   if (prompt.kind === 'end-nap') {
     const startedJustNow = now.getTime() - Date.parse(prompt.feedStartedAt) < SAME_MOMENT_MS;
     return {

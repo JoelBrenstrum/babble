@@ -1,6 +1,6 @@
-import type { BabyEvent, EventDraft, EventType, Side, TimedSegment } from '@babble/domain';
+import type { BabyEvent, EventDraft, EventType, Side, SleepDetails, TimedSegment } from '@babble/domain';
 import type { BabbleClient } from './client';
-import type { Database } from './database.types';
+import type { Database, Json } from './database.types';
 import { toBabbleError, unwrap } from './errors';
 
 type Tables = Database['public']['Tables'];
@@ -106,6 +106,43 @@ export function rowToEvent(row: EventRow): BabyEvent {
   }
 }
 
+export function sleepDetailsPayload(details: SleepDetails) {
+  return {
+    locations: details.locations,
+    fall_asleep: details.fallAsleep,
+    start_moods: details.startMoods,
+    end_moods: details.endMoods,
+    woken_by_carer: details.wokenByCarer,
+  };
+}
+
+export type SleepChanges = Partial<SleepDetails> & { notes?: string | null };
+
+const SLEEP_CHANGE_KEYS = {
+  locations: 'locations',
+  fallAsleep: 'fall_asleep',
+  startMoods: 'start_moods',
+  endMoods: 'end_moods',
+  wokenByCarer: 'woken_by_carer',
+  notes: 'notes',
+} as const;
+
+export function sleepChangesPayload(changes: SleepChanges): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(SLEEP_CHANGE_KEYS)
+      .filter(([key]) => key in changes)
+      .map(([key, column]) => [column, changes[key as keyof SleepChanges] ?? null]),
+  );
+}
+
+export async function saveSleepDetails(client: BabbleClient, eventId: string, changes: SleepChanges): Promise<void> {
+  const { error } = await client.rpc('save_sleep_details', {
+    target_event_id: eventId,
+    changes: sleepChangesPayload(changes) as Json,
+  });
+  if (error) throw toBabbleError(error);
+}
+
 export function draftToPayload(
   draft: EventDraft,
   options: { babyId: string; id?: string; source?: 'manual' | 'huckleberry_csv'; sourceRef?: string },
@@ -125,16 +162,7 @@ export function draftToPayload(
 
   switch (draft.type) {
     case 'sleep':
-      return {
-        ...base,
-        details: {
-          locations: draft.details.locations,
-          fall_asleep: draft.details.fallAsleep,
-          start_moods: draft.details.startMoods,
-          end_moods: draft.details.endMoods,
-          woken_by_carer: draft.details.wokenByCarer,
-        },
-      };
+      return { ...base, details: sleepDetailsPayload(draft.details) };
     case 'breast_feed':
       return { ...base, segments: segments(draft.segments) };
     case 'bottle':
@@ -182,9 +210,17 @@ export function draftToPayload(
 export async function listEvents(
   client: BabbleClient,
   babyId: string,
-  options: { types?: EventType[]; before?: string; since?: string; limit?: number; offset?: number } = {},
+  options: {
+    types?: EventType[];
+    before?: string;
+    since?: string;
+    limit?: number;
+    offset?: number;
+    includeDeleted?: boolean;
+  } = {},
 ): Promise<BabyEvent[]> {
-  let query = client.from('events').select(EVENT_SELECT).eq('baby_id', babyId).is('deleted_at', null);
+  let query = client.from('events').select(EVENT_SELECT).eq('baby_id', babyId);
+  if (!options.includeDeleted) query = query.is('deleted_at', null);
   if (options.types?.length) query = query.in('type', options.types);
   if (options.before) query = query.lt('started_at', options.before);
   if (options.since) query = query.gte('started_at', options.since);

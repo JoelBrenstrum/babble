@@ -11,6 +11,7 @@ import {
   rowToEvent,
   endSession,
   saveEvent,
+  saveSleepDetails,
   startSession,
   switchSide,
   type EventRow,
@@ -146,6 +147,18 @@ describe('draftToPayload', () => {
 });
 
 describe('event requests', () => {
+  it('sends only the sleep fields that changed', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await saveSleepDetails(client, 'sleep-1', { locations: ['cot'], fallAsleep: null });
+    expect(requests[0]!.url.pathname).toBe('/rest/v1/rpc/save_sleep_details');
+    expect(requests[0]!.body).toEqual({
+      target_event_id: 'sleep-1',
+      changes: { locations: ['cot'], fall_asleep: null },
+    });
+    await saveSleepDetails(client, 'sleep-1', { notes: 'Went down easily' });
+    expect(requests[1]!.body).toEqual({ target_event_id: 'sleep-1', changes: { notes: 'Went down easily' } });
+  });
+
   it('lists events newest first, filtered by type, excluding deleted', async () => {
     const { client, requests } = fakeClient(() => ({ body: [] }));
     await listEvents(client, 'baby-1', { types: ['bottle', 'breast_feed'], limit: 20 });

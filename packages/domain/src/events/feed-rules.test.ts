@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
+  feedPromptOnNapStart,
+  nextBreastSide,
   canResumeFeed,
   feedEndTime,
   latestFeed,
@@ -81,6 +83,50 @@ describe('nap prompts', () => {
     });
     expect(napPromptOnFeedEnd([nap], '2026-10-06T12:00:00Z')).toBeNull();
   });
+
+  it('asks to end a running breastfeed when a nap starts, but not a pump', () => {
+    const running = { ...feed, endedAt: null };
+    expect(feedPromptOnNapStart([running], '2026-10-06T12:00:00Z')).toEqual({
+      kind: 'end-feed',
+      feed: running,
+      napStartedAt: '2026-10-06T12:00:00Z',
+    });
+    expect(feedPromptOnNapStart([makeEvent('pump', { endedAt: null })], '2026-10-06T12:00:00Z')).toBeNull();
+    expect(feedPromptOnNapStart([], '2026-10-06T12:00:00Z')).toBeNull();
+  });
+});
+
+describe('end feed prompt', () => {
+  const running = { ...feed, endedAt: null };
+
+  it('ends the feed now when the nap starts now', () => {
+    const content = napPromptContent(
+      { kind: 'end-feed', feed: running, napStartedAt: NOW.toISOString() },
+      'Olivia',
+      'UTC',
+      NOW,
+    );
+    expect(content.title).toBe("End Olivia's feed?");
+    expect(content.body).toBe('A feed has been running since 10:00 am.');
+    expect(content.options).toEqual([
+      { label: 'End feed', action: { kind: 'end-feed', feedId: 'feed' }, primary: true },
+      { label: 'Keep feeding', action: null, primary: false },
+    ]);
+  });
+
+  it('ends the feed at a backdated nap start', () => {
+    const content = napPromptContent(
+      { kind: 'end-feed', feed: running, napStartedAt: '2026-10-06T11:40:00Z' },
+      'Olivia',
+      'UTC',
+      NOW,
+    );
+    expect(content.options[0]).toEqual({
+      label: 'End feed at nap start (11:40 am)',
+      action: { kind: 'end-feed', feedId: 'feed', at: '2026-10-06T11:40:00Z' },
+      primary: true,
+    });
+  });
 });
 
 describe('napPromptContent', () => {
@@ -144,5 +190,30 @@ describe('feedEndTime', () => {
       segments: [{ side: 'left', startedAt: '2026-10-06T11:00:00Z', endedAt: null }],
     });
     expect(feedEndTime(running, NOW)).toBe(NOW.toISOString());
+  });
+});
+
+describe('nextBreastSide', () => {
+  const feed = (startedAt: string, sides: ('left' | 'right')[]) =>
+    makeEvent('breast_feed', {
+      id: startedAt,
+      startedAt,
+      segments: sides.map((side, index) => ({
+        side,
+        startedAt: new Date(Date.parse(startedAt) + index * 600_000).toISOString(),
+        endedAt: new Date(Date.parse(startedAt) + (index + 1) * 600_000).toISOString(),
+      })),
+    });
+
+  it('suggests the other side from the one the last feed ended on', () => {
+    expect(
+      nextBreastSide([feed('2026-10-06T08:00:00Z', ['left']), feed('2026-10-06T11:00:00Z', ['left', 'right'])]),
+    ).toBe('left');
+    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right', 'left'])])).toBe('right');
+  });
+
+  it('has no suggestion without a breastfeed', () => {
+    expect(nextBreastSide([makeEvent('bottle')])).toBeNull();
+    expect(nextBreastSide([])).toBeNull();
   });
 });

@@ -22,6 +22,7 @@ import { DayStartPicker } from '#/features/day-start-picker';
 import { InvitePanel } from '#/features/invite-panel';
 import { PasswordForm } from '#/features/password-form';
 import { TrackingSettings } from '#/features/tracking-settings';
+import { ExportData } from '#/features/export-data';
 import { clearAccountStorage, readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { applyTheme, type ThemePreference } from '#/lib/theme';
 import { listTimeZones } from '#/lib/timezones';
@@ -71,6 +72,7 @@ function SettingsPage() {
           </span>
           <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
         </Link>
+        <ExportData client={babble.client} family={family} baby={baby} />
       </section>
       <AppearanceSection />
       <AccountSection email={session.user.email ?? ''} />

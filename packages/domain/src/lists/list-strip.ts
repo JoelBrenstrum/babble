@@ -1,5 +1,5 @@
 import { summariseDay, type DaySummary } from '../events/day-summary';
-import { otherSide, segmentTotals } from '../events/segments';
+import { nextBreastSide } from '../events/feed-rules';
 import type { BabyEvent, PooColour, Units } from '../events/types';
 import { formatDuration } from '../format/duration';
 import { formatVolume, formatWeightChange } from '../format/units';
@@ -199,17 +199,11 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
     case 'feeds':
     case 'breast': {
       const count = (day: DaySummary) => (kind === 'breast' ? day.feeds - day.bottles : day.feeds);
-      const lastBreast = relevant
-        .filter((event): event is Extract<BabyEvent, { type: 'breast_feed' }> => event.type === 'breast_feed')
-        .reduce<Extract<BabyEvent, { type: 'breast_feed' }> | null>(
-          (newest, event) => (!newest || event.startedAt > newest.startedAt ? event : newest),
-          null,
-        );
-      const lastSide = lastBreast ? segmentTotals(lastBreast.segments, context.now).lastSide : null;
+      const next = nextBreastSide(relevant);
       return [
         since,
         todayItem('Today', String(count(today)), average(count)),
-        { label: 'Next side', value: lastSide ? capitalise(otherSide(lastSide)) : '—' },
+        { label: 'Next side', value: next ? capitalise(next) : '—' },
       ];
     }
     case 'bottle': {

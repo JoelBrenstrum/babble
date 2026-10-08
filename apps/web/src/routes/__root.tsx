@@ -16,7 +16,7 @@ import { StatusMessage } from '#/components/ui/status';
 import { ToastProvider } from '#/components/ui/toast';
 import { loadBabble } from '#/lib/babble';
 import { configProblem } from '#/lib/config-problem';
-import { themeBootScript } from '#/lib/theme';
+import { themeBootScript, themeColorMeta } from '#/lib/theme';
 import { clearAccountStorage } from '#/lib/storage';
 import appCss from '../styles.css?url';
 
@@ -31,7 +31,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: 'viewport', content: 'width=device-width, initial-scale=1, viewport-fit=cover' },
       { title: 'Babble' },
       { name: 'description', content: 'A calm, detailed baby tracker for sleep, feeds, nappies and more.' },
-      { name: 'theme-color', content: '#f3f0e8' },
+      ...themeColorMeta,
       { name: 'apple-mobile-web-app-capable', content: 'yes' },
       { name: 'apple-mobile-web-app-title', content: 'Babble' },
       { name: 'apple-mobile-web-app-status-bar-style', content: 'default' },

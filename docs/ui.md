@@ -120,8 +120,10 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 
 - Tapping the inactive side ends the current segment and starts the other side.
 - Tapping the active side pauses. Tapping it again resumes the same side, which adds a new segment and a downtime row if the gap was over the threshold.
+- On the start screen, the suggested side carries a "Next" tag: the opposite of the side the last breastfeed ended on. Both sides stay one tap to start.
 - Start → if a nap is running, show the "End nap?" sheet first (Stage 2).
 - Done → "Start nap?" sheet with "now" or "at feed end" (Stage 2).
+- Starting a nap while a breastfeed is running shows an "End feed?" sheet: "End feed" (at the nap's start) or "Keep feeding". A running pump is left alone.
 
 ## 5. Feed session detail / edit
 
@@ -136,6 +138,8 @@ Content (breast milk / formula / mixed / other) as a segmented control. Amount s
 ## 7. Sleep timer / form
 
 A big timer with Start/Stop. "Started earlier?" lets you adjust the start time. Location chips (cot, bassinet, pram, car, contact, nursing). Optional "how it went" (fell asleep fast / took a while, woke on their own / woken). Manual entry with start and end pickers.
+
+While a nap is running, its timer screen has a **Details** card under the timer: where, how long it took to fall asleep, mood going down, mood on waking, woken by a carer, and notes. Each change saves straight away without stopping the timer (notes save when the field is left), and shows up live for other caregivers. The end-of-nap edit screen still offers end mood and "woken by a carer".
 
 ## 8. Nappy form
 
@@ -175,6 +179,8 @@ The last 7 days (ending today, or on the chosen day) as 7 columns on every scree
 ## 14. Settings
 
 Baby profile (name, birth date, sex, timezone) · Caregivers & invites · Day start time · Units · Feed reminders (interval for the baby, opt-in for me) · Downtime merge threshold · Auto-end paused sessions after · Import from Huckleberry (web) · Export data · Theme · Account (delete account).
+
+**Export data** (under Data) downloads a JSON file on web, or opens the share sheet with the file on mobile. It contains the baby's profile, settings and every event with its details and timed segments, including deleted events (with `deletedAt` set). The file has `format: "babble-export"` and `version: 1` so it can be imported again later. "Export whole family" appears when the family has more than one baby.
 
 ## 15. Import (Stage 5, web only)
 

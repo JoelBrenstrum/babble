@@ -3,11 +3,12 @@ import { formatTimeOfDay } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
-import { SectionLabel } from '@/components/card';
+import { Card, SectionLabel } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
 import { RunningCard } from '@/features/events/running-card';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
+import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
 import { useTrackingSettings } from '@/lib/use-events';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
@@ -54,6 +55,15 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
           members={family.members}
           onDiscarded={() => router.replace('/')}
         />
+        {event.type === 'sleep' && (
+          <View className="gap-2">
+            <SectionLabel>Details</SectionLabel>
+            <Card className="gap-3 p-5">
+              <Text className="font-sans text-meta text-ink-2">Saved as you go, without stopping the timer.</Text>
+              <SleepDetailsEditor event={event} client={client} babyId={baby.id} />
+            </Card>
+          </View>
+        )}
         {segments.length > 0 && (
           <View className="gap-2">
             <SectionLabel>Session</SectionLabel>

@@ -101,10 +101,12 @@ export {
 export {
   canResumeFeed,
   feedEndTime,
+  feedPromptOnNapStart,
   latestFeed,
   napPromptContent,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nextBreastSide,
   staleSessions,
   type NapAction,
   type NapPrompt,

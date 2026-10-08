@@ -1,7 +1,7 @@
 import { clock, endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
 import { napPromptContent, type NapAction, type NapPrompt } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
-import { Moon } from 'lucide-react';
+import { Heart, Moon } from 'lucide-react';
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '#/components/ui/button';
 import { useToast } from '#/components/ui/toast';
@@ -77,6 +77,7 @@ function NapPromptDialog({
     setPending(label);
     try {
       if (action.kind === 'end-nap') await endSession(client, action.napId, action.at);
+      else if (action.kind === 'end-feed') await endSession(client, action.feedId, action.at);
       else await startSession(client, babyId, 'sleep', 'left', action.at);
       await queryClient.invalidateQueries({ queryKey: queryKeys.events(babyId), refetchType: 'all' });
       onClose();
@@ -97,9 +98,15 @@ function NapPromptDialog({
       >
         <span className="mx-auto h-1.5 w-10 rounded-full bg-line-strong md:hidden" />
         <div className="flex items-center gap-3">
-          <span className="grid size-11 place-items-center rounded-full bg-sleep-soft text-on-sleep">
-            <Moon className="size-5" strokeWidth={2.75} />
-          </span>
+          {prompt.kind === 'end-feed' ? (
+            <span className="grid size-11 place-items-center rounded-full bg-feed-right-soft text-on-feed-right">
+              <Heart className="size-5" strokeWidth={2.75} />
+            </span>
+          ) : (
+            <span className="grid size-11 place-items-center rounded-full bg-sleep-soft text-on-sleep">
+              <Moon className="size-5" strokeWidth={2.75} />
+            </span>
+          )}
           <h2 id="nap-prompt-title" className="text-heading font-bold">
             {title}
           </h2>

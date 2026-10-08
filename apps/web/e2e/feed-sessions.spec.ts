@@ -40,6 +40,24 @@ test('feeds and naps prompt each other', async ({ page }, testInfo) => {
   await expect(page.getByText('Napping')).toBeVisible();
 });
 
+test('starting a nap offers to end a running feed', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+  await startFeed(page);
+  await expect(page.getByText('Feeding · Left')).toBeVisible();
+
+  await page.goto('/');
+  await page.getByRole('link', { name: 'Log sleep' }).click();
+  await page.getByRole('button', { name: /start sleep now/i }).click();
+  const endFeed = page.getByRole('dialog', { name: "End Olivia's feed?" });
+  await expect(endFeed).toBeVisible();
+  await endFeed.getByRole('button', { name: 'End feed' }).click();
+  await expect(endFeed).toHaveCount(0);
+
+  await page.goto('/');
+  await expect(page.getByText('Napping')).toBeVisible();
+  await expect(page.getByText(/^Feeding/)).toHaveCount(0);
+});
+
 test('the latest feed can be resumed', async ({ page }, testInfo) => {
   await newFamily(page, testInfo.project.name);
   await startFeed(page);

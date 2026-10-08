@@ -82,3 +82,48 @@ Paste everything below this line into Claude Design.
 > Also, the "Couldn't sign you in" error state now shows fixed wording: "This sign-in link has expired. Ask for a new one.", "This sign-in link isn't valid any more. Ask for a new one." or "This sign-in link didn't work. Try signing in again."
 >
 > Invite codes are now 10 characters, shown as `K7Q4M-D2XPA`. Update the invite code in the invite panel, the onboarding invite step and the invite-code field placeholder.
+
+---
+
+## 2026-10-08 · Next side on the breastfeed start screen
+
+Paste everything below this line into Claude Design.
+
+> On the breastfeed start screen (`Screen.dc.html` feed start, and the web new-feed page), the side the parent should start on gets a small **"Next"** pill in the top-right corner of its big L / R button: raised background, ink text, caption bold, fully rounded. It's the opposite of the side the last feed ended on. Show it on one side only, and on neither when there's no previous breastfeed. Both buttons stay the same size and colour, so either side is still one tap.
+
+---
+
+## 2026-10-08 · End feed? sheet when a nap starts
+
+Paste everything below this line into Claude Design.
+
+> Add an **"End Olivia's feed?"** bottom sheet (`Screen.dc.html`, next to the existing "End Olivia's nap?" and "Is Olivia asleep?" sheets; a centred dialog on web). Light and dark. It appears when someone starts a nap while a breastfeed is running.
+>
+> - Header: the round feed-right-soft tile with the Lucide `heart` icon in on-feed-right, then the title "End Olivia's feed?".
+> - Body in ink-2: "A feed has been running since 2:15 pm."
+> - Buttons: primary **End feed** (or "End feed at nap start (2:40 pm)" when the nap was backdated), then ghost **Keep feeding**.
+
+---
+
+## 2026-10-08 · Details while a nap is running
+
+Paste everything below this line into Claude Design.
+
+> On the running sleep timer (`Screen.dc.html` sleep timer and `Phone Forms.dc.html` `sleep`; the web session page), add a **Details** section under the Napping card. It has a section label "DETAILS" and a card containing:
+>
+> - A meta line in ink-2: "Saved as you go, without stopping the timer."
+> - The sleep detail fields from the sleep form, in the same order and style: Where (location chips), Fell asleep in (single-choice chips), Mood going down, Mood on waking, the "Woken by a carer" check row, and a "Notes (optional)" text area.
+>
+> There's no Save button, since every change saves immediately. Show a selected state for Cot in the mock and a short note such as "Went down easily".
+
+---
+
+## 2026-10-08 · Export data in Settings
+
+Paste everything below this line into Claude Design.
+
+> In Settings (`Screen.dc.html` settings, `Web.dc.html` settings), the **Data** section gets an **Export data** card under "Import from Huckleberry" (on phones the Data section is new and holds just this card). Light and dark.
+>
+> - Title "Export data" (row-title, semibold), and under it in meta ink-2: "Download everything as a JSON file: profile, settings and every entry, including deleted ones."
+> - A secondary button with the Lucide `download` icon: "Export Olivia". When the family has more than one baby, a second secondary button: "Export whole family". Buttons sit side by side on web and stacked full width on phones.
+> - While exporting, the pressed button shows its spinner and the other is disabled. Errors show as a danger status under the buttons.
