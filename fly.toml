@@ -1,5 +1,5 @@
 # Deploy from the repository root: fly deploy
-# Set secrets first: fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... PUBLIC_URL=https://<app>.fly.dev
+# Set secrets first: fly secrets set SUPABASE_URL=... SUPABASE_ANON_KEY=... PUBLIC_URL=https://babble.brenstrum.com
 app = "babble-app"
 primary_region = "syd"
 
@@ -9,6 +9,7 @@ primary_region = "syd"
 [env]
   GOOGLE_AUTH_ENABLED = "false"
   BILLING_ENABLED = "false"
+  OPERATOR_NAME = "the Brenstrum family"
 
 [http_service]
   internal_port = 3000

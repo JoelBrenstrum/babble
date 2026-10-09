@@ -9,6 +9,8 @@ const config = {
   supabaseAnonKey: 'anon',
   billingEnabled: false,
   googleAuthEnabled: false,
+  operatorName: null,
+  contactEmail: null,
 };
 
 describe('loadBabble', () => {

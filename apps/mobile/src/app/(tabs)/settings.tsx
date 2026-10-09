@@ -27,6 +27,7 @@ import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
 import { ExportData } from '@/features/export-data';
 import { AppearanceSettings } from '@/features/appearance-settings';
+import { AboutSection } from '@/features/legal-links';
 import { useBabble } from '@/lib/babble';
 import { useThemePreference } from '@/lib/theme';
 import { useReadyState } from '@/lib/use-onboarding';
@@ -35,7 +36,7 @@ const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' }
 
 export default function SettingsTab() {
   const ready = useReadyState();
-  const { session, client } = useBabble();
+  const { session, client, config } = useBabble();
   if (!ready || !session) return null;
   const editable = canEdit(ready.family, session.user.id);
 
@@ -52,6 +53,7 @@ export default function SettingsTab() {
         </View>
         <AppearanceSection babyName={ready.baby.name} />
         <AccountSection email={session.user.email ?? ''} />
+        <AboutSection publicUrl={config.publicUrl} />
       </View>
     </Screen>
   );

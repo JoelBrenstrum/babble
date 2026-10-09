@@ -38,3 +38,15 @@ Paste everything below this line into Claude Design.
 > - **Theme:** the Appearance segmented control has four options, System · Light · Dark · Dark at night, without icons. When Dark at night is selected, a meta ink-2 hint below reads "Dark between 7:00 pm and 7:00 am, from Olivia's night settings."
 > - **Install card on Home (web/PWA):** instead of the iOS popover and Android bottom sheet, an inline card at the bottom of Home with the app icon, "Add babble to your home screen so it opens full screen and can send feed reminders", and either the iPhone steps (Share icon → "Add to Home Screen") or "Not now" and a primary "Install" button. iPhone browsers other than Safari say to open babble in Safari. Settings gets an "App" section with an "Install app" row that expands to the same instructions, or shows "Installed".
 
+---
+
+## 2026-10-09 · Landing page, privacy policy and terms
+
+Paste everything below this line into Claude Design.
+
+> New web pages in the Sage style, light and dark, at 390px and 1280px:
+>
+> - **Landing page (`/welcome`):** header with the wordmark and "Sign in". Hero: "Track your baby's day, together." (34px, 48px on desktop), subline "Feeds, sleep, nappies and more, shared live with everyone who helps. Free, private and open source.", a primary "Get started" and secondary "See what it does". Beside it on desktop (below on phones) a framed, faded preview of the Home screen with a running breastfeed card. Then "What babble does": a grid of 13 cards, each with a tracker-tinted icon tile, a title and one or two lines. Then "See the day at a glance": a framed day timeline preview next to the day totals cards, with captions. Then a surface-coloured "Private and open source" panel with four short points and links to the privacy policy and terms. A closing "Ready when you are" with Get started, and a footer with the wordmark and Sign in · Privacy · Terms · GitHub.
+> - **Privacy policy and Terms of use:** a readable single column (max ~65ch) with the wordmark, a title, "Last updated 9 October 2026", section headings, short paragraphs and bullet lists, and "Back to babble" at the end.
+> - **Sign-in:** a meta ink-2 line under the form: "By continuing you agree to the Terms of use and Privacy policy." with both as links. **Settings:** an "About" section at the bottom with "Privacy policy" and "Terms of use" rows.
+

@@ -18,6 +18,20 @@ const sizes: Record<Size, string> = {
   icon: 'size-tap',
 };
 
+export function buttonClassName({
+  variant = 'primary',
+  size = 'md',
+  className,
+}: { variant?: Variant; size?: Size; className?: string } = {}) {
+  return cn(
+    'inline-flex items-center justify-center gap-2 rounded-button font-semibold transition-colors duration-fast',
+    'disabled:pointer-events-none disabled:opacity-45 aria-busy:opacity-100',
+    variants[variant],
+    sizes[size],
+    className,
+  );
+}
+
 export function Button({
   variant = 'primary',
   size = 'md',
@@ -40,13 +54,7 @@ export function Button({
       type={type}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
-      className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-button font-semibold transition-colors duration-fast',
-        'disabled:pointer-events-none disabled:opacity-45 aria-busy:opacity-100',
-        variants[variant],
-        sizes[size],
-        className,
-      )}
+      className={buttonClassName({ variant, size, className })}
       {...props}
     >
       {loading && <Spinner label="Working" />}

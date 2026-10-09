@@ -62,6 +62,7 @@ Each stage ends with something usable on both apps. A stage's plan is fleshed ou
 ## Backlog
 
 - Quick-add nappy
+- Demo baby: a Settings button that adds a "Demo baby" with a realistic, seeded last 7 days (feeds with sides, naps with a wake-up, nappies, a pump, growth) through `import_events` with a `demo` source, and a matching "Remove demo data". Useful for showing babble, screenshots and testing stats.
 - iOS Live Activity / Android ongoing notification for running sessions (Expo only)
 - Home-screen widgets
 - Real offline sync (PowerSync)

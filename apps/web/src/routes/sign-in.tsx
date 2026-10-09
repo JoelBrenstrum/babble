@@ -11,6 +11,7 @@ import { useState } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { CheckEmail } from '#/features/check-email';
 import { DevSignIn } from '#/features/dev-sign-in';
+import { AgreementNote } from '#/features/legal/legal-links';
 import { SignInForm } from '#/features/sign-in-form';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 
@@ -68,6 +69,7 @@ function SignInPage() {
           await signInWithGoogle(babble.client, { redirectTo });
         }}
       />
+      <AgreementNote />
       {import.meta.env.DEV && (
         <DevSignIn
           onSignIn={async (credentials) => {

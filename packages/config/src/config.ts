@@ -4,6 +4,8 @@ export interface PublicConfig {
   supabaseAnonKey: string;
   billingEnabled: boolean;
   googleAuthEnabled: boolean;
+  operatorName: string | null;
+  contactEmail: string | null;
 }
 
 export interface ServerConfig extends PublicConfig {
@@ -21,6 +23,8 @@ export function parsePublicConfig(env: Env): PublicConfig {
     supabaseAnonKey: requireString(env, 'SUPABASE_ANON_KEY'),
     billingEnabled: parseBoolean(env, 'BILLING_ENABLED', false),
     googleAuthEnabled: parseBoolean(env, 'GOOGLE_AUTH_ENABLED', false),
+    operatorName: optionalString(env, 'OPERATOR_NAME'),
+    contactEmail: optionalEmail(env, 'CONTACT_EMAIL'),
   };
 }
 
@@ -34,6 +38,18 @@ export function parseServerConfig(env: Env): ServerConfig {
 function requireString(env: Env, name: string): string {
   const value = env[name]?.trim();
   if (!value) throw new ConfigError(`${name} is required`);
+  return value;
+}
+
+function optionalString(env: Env, name: string): string | null {
+  return env[name]?.trim() || null;
+}
+
+function optionalEmail(env: Env, name: string): string | null {
+  const value = optionalString(env, name);
+  if (value !== null && !/^[^\s@]+@[^\s@]+$/.test(value)) {
+    throw new ConfigError(`${name} must be an email address, got "${value}"`);
+  }
   return value;
 }
 

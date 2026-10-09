@@ -16,6 +16,7 @@ import { TrackingSettings } from '#/features/tracking-settings';
 import { ExportData } from '#/features/export-data';
 import { InstallSection } from '#/features/install-app';
 import { AppearanceSettings } from '#/features/appearance-settings';
+import { AboutSection } from '#/features/legal/legal-links';
 import { clearAccountStorage } from '#/lib/storage';
 import { listTimeZones } from '#/lib/timezones';
 
@@ -70,6 +71,7 @@ function SettingsPage() {
       <AppearanceSettings client={babble.client} baby={baby} />
       <InstallSection />
       <AccountSection email={session.user.email ?? ''} />
+      <AboutSection />
     </div>
   );
 }

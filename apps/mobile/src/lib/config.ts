@@ -6,6 +6,8 @@ export function readMobileConfig(): PublicConfig {
     SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     GOOGLE_AUTH_ENABLED: process.env.EXPO_PUBLIC_GOOGLE_AUTH_ENABLED,
+    OPERATOR_NAME: process.env.EXPO_PUBLIC_OPERATOR_NAME,
+    CONTACT_EMAIL: process.env.EXPO_PUBLIC_CONTACT_EMAIL,
   });
 }
 

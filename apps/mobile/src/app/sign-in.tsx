@@ -14,6 +14,7 @@ import { View } from 'react-native';
 import { Screen, Title, Wordmark } from '@/components/screen';
 import { CheckEmail } from '@/features/check-email';
 import { DevSignIn } from '@/features/dev-sign-in';
+import { AgreementNote } from '@/features/legal-links';
 import { SignInForm } from '@/features/sign-in-form';
 import { useBabble } from '@/lib/babble';
 import { AUTH_REDIRECT } from '@/lib/config';
@@ -61,6 +62,7 @@ export default function SignIn() {
             if (code) await exchangeAuthCode(client, code);
           }}
         />
+        <AgreementNote publicUrl={config.publicUrl} />
         {__DEV__ && <DevSignIn onSignIn={(credentials) => signInWithPassword(client, credentials)} />}
       </View>
     </Screen>

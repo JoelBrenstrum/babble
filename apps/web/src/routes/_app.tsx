@@ -10,6 +10,8 @@ import { runningIndicator } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Outlet, redirect, useRouter } from '@tanstack/react-router';
 import { AppShell } from '#/components/shell/app-shell';
+import { signedOutRedirect } from '#/lib/entry';
+import { runningStandalone } from '#/lib/install-prompt';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { NapPromptProvider } from '#/features/nap-prompt';
 import { useAutoEndStaleSessions, useRealtimeEvents } from '#/lib/use-events';
@@ -27,7 +29,15 @@ export const Route = createFileRoute('/_app')({
       activeFamilyId: readStorage(storageKeys.activeFamily),
       activeBabyId: readStorage(storageKeys.activeBaby),
     });
-    if (state.step === 'sign-in') throw redirect({ to: '/sign-in', search: { invite: undefined } });
+    if (state.step === 'sign-in') {
+      const destination = signedOutRedirect({
+        signedIn: false,
+        standalone: runningStandalone(),
+        pendingInvite: readStorage(storageKeys.pendingInvite),
+      });
+      if (destination === '/welcome') throw redirect({ to: '/welcome' });
+      throw redirect({ to: '/sign-in', search: { invite: undefined } });
+    }
     if (state.step === 'family') throw redirect({ to: '/onboarding/family' });
     if (state.step === 'baby') throw redirect({ to: '/onboarding/baby' });
     return { session: data.session!, family: state.family, baby: state.baby, families };

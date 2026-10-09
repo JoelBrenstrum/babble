@@ -59,7 +59,7 @@ export function captureInstallPrompt(): void {
 
 const SERVER_STATE: InstallPromptState = { event: null, installed: false };
 
-function runningStandalone(): boolean {
+export function runningStandalone(): boolean {
   return (
     (navigator as Navigator & { standalone?: boolean }).standalone === true ||
     Boolean(window.matchMedia?.('(display-mode: standalone)').matches)

@@ -51,6 +51,8 @@ All screens are in light and dark. The `.dc.html` files take a `screen` prop (sh
 
 ## 1. Onboarding / Auth
 
+**Public pages (web):** `/welcome` is the landing page for signed-out visitors to `/` (the installed app goes straight to `/sign-in`). It has a hero with a live preview built from the real Home components and sample data, a feature grid, an example day timeline with totals, a privacy and open-source section, and a footer. `/privacy` and `/terms` are plain readable pages; the operator name and contact come from `OPERATOR_NAME` and `CONTACT_EMAIL` and fall back to "the people who run this babble server". Sign-in shows "By continuing you agree to the Terms of use and Privacy policy", and Settings has an About section with both links (Expo opens them in the browser).
+
 Sign in (magic link / Apple / Google) → create or join a family (via invite code) → add baby (name, birth date, sex (optional, for WHO growth percentiles), timezone auto-detected) → set day start (default midnight) → Home.
 Self-hosted with `SIGNUP_MODE=invite_only`: sign-up requires an invite link.
 Web prompts "Add to Home Screen" on phones once the user is signed in.

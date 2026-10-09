@@ -7,7 +7,7 @@ test.afterAll(() => setSignupMode('invite_only'));
 
 test('a new parent signs in with a magic link and sets up their family', async ({ page }, testInfo) => {
   await page.goto('/');
-  await expect(page).toHaveURL(/\/sign-in/);
+  await expect(page).toHaveURL(/\/welcome/);
   await signIn(page, uniqueEmail('john', testInfo.project.name));
 
   await expect(page.getByRole('heading', { name: 'Set up your family' })).toBeVisible();
