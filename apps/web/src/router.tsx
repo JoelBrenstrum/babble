@@ -3,6 +3,7 @@ import { createRouter } from '@tanstack/react-router';
 import { createIsomorphicFn } from '@tanstack/react-start';
 import { setResponseHeader } from '@tanstack/react-start/server';
 import { PageSpinner } from './components/ui/spinner';
+import { captureInstallPrompt } from './lib/install-prompt';
 import { contentSecurityPolicy } from './lib/security-headers';
 import { routeTree } from './routeTree.gen';
 
@@ -19,6 +20,7 @@ const requestNonce = createIsomorphicFn()
   .client(() => undefined);
 
 export function getRouter() {
+  captureInstallPrompt();
   const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 30_000, retry: 1 } },
   });

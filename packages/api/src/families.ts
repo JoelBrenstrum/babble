@@ -11,6 +11,7 @@ import type {
   Invite,
   InvitePreview,
   NewBaby,
+  PendingInvite,
 } from './types';
 
 export async function getInstanceSettings(client: BabbleClient): Promise<InstanceSettings> {
@@ -92,6 +93,35 @@ export async function createInvite(
   const [row] = unwrap(await client.rpc('create_invite', { target_family_id: familyId, invite_role: role }));
   if (!row) throw new BabbleError('The invite was not created', 'unknown');
   return { code: row.code, expiresAt: row.expires_at };
+}
+
+export async function listPendingInvites(
+  client: BabbleClient,
+  familyId: string,
+  now: Date = new Date(),
+): Promise<PendingInvite[]> {
+  const rows = unwrap(
+    await client
+      .from('family_invites')
+      .select('id, code, role, created_by, created_at, expires_at')
+      .eq('family_id', familyId)
+      .is('used_at', null)
+      .gt('expires_at', now.toISOString())
+      .order('created_at', { ascending: false }),
+  );
+  return rows.map((row) => ({
+    id: row.id,
+    code: row.code,
+    role: row.role,
+    createdBy: row.created_by,
+    createdAt: row.created_at,
+    expiresAt: row.expires_at,
+  }));
+}
+
+export async function revokeInvite(client: BabbleClient, inviteId: string): Promise<void> {
+  const { error } = await client.from('family_invites').delete().eq('id', inviteId);
+  if (error) throw toBabbleError(error);
 }
 
 export async function acceptInvite(

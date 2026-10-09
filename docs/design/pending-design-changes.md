@@ -26,3 +26,15 @@ Paste everything below this line into Claude Design.
 > - **Home:** below the running session cards and above the "Sleep today · Feeds · Nappies" card, a full-width rounded-card line with a Lucide `alarm-clock` icon and body semibold text. Normally `feed-right-soft` background with `on-feed-right` text: "Next feed due in 42m · Left side next" (the side part only when a breastfeed has been logged). Within a minute it reads "Feed due now · Left side next". When overdue it switches to `caution-soft` with `on-caution` text: "Overdue 10m · Left side next". It's hidden while a breastfeed is running and when reminders are off. Show all three states.
 > - **Settings → Tracking:** a "Feed reminders" chip row at the top: Off · 2h · 2h 30m · 3h · 3h 30m · 4h (single select, the selected chip with a check), with the hint "Home shows when the next feed is due, counted from the start of the last feed." When a reminder interval is chosen, an "At night" segmented control follows: Remind · Quiet, with the hint "Quiet hides feed reminders during the night set below."
 
+---
+
+## 2026-10-09 · Pending invites, Dark at night, and the install card
+
+Paste everything below this line into Claude Design.
+
+> Three settings and Home details that differ from the Sage screens (`Phone Account.dc.html`, `Web.dc.html` settings and home). Light and dark.
+>
+> - **Pending invites:** in Settings → Caregivers, below the member rows and styled like them, one row per pending invite: the code in tabular figures ("K7Q4M-D2XPA"), then meta ink-2 "Caregiver · by John · Expires in 6 days", with a ghost danger "Revoke" button on the right. Tapping Revoke opens an inline danger-soft panel under the row: "Revoke this invite? The code will stop working." with destructive "Revoke" and ghost "Cancel". The section heading reads "Caregivers · 1 pending".
+> - **Theme:** the Appearance segmented control has four options, System · Light · Dark · Dark at night, without icons. When Dark at night is selected, a meta ink-2 hint below reads "Dark between 7:00 pm and 7:00 am, from Olivia's night settings."
+> - **Install card on Home (web/PWA):** instead of the iOS popover and Android bottom sheet, an inline card at the bottom of Home with the app icon, "Add babble to your home screen so it opens full screen and can send feed reminders", and either the iPhone steps (Share icon → "Add to Home Screen") or "Not now" and a primary "Install" button. iPhone browsers other than Safari say to open babble in Safari. Settings gets an "App" section with an "Install app" row that expands to the same instructions, or shows "Installed".
+

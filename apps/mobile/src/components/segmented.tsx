@@ -21,7 +21,7 @@ export function Segmented<T extends string>({
             onPress={() => onChange(option.value)}
             className={`h-11 flex-1 items-center justify-center rounded-tile ${selected ? 'bg-raised' : ''}`}
           >
-            <Text className={`text-label ${selected ? 'font-bold text-ink' : 'font-medium text-ink-2'}`}>
+            <Text className={`text-center text-label ${selected ? 'font-bold text-ink' : 'font-medium text-ink-2'}`}>
               {option.label}
             </Text>
           </Pressable>

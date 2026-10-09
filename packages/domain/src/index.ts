@@ -14,6 +14,14 @@ export {
 export { babyAgeLabel } from './format/baby-age';
 export { clockToMinutes, minutesToClock, todayInTimeZone } from './format/time-of-day';
 export {
+  nightThemeHint,
+  parseNightWindow,
+  parseThemePreference,
+  themeOverride,
+  type NightWindow,
+  type ThemePreference,
+} from './theme/theme-preference';
+export {
   EVENT_TYPES,
   isEventType,
   isSessionType,
@@ -100,6 +108,7 @@ export {
 } from './events/session-actions';
 export { runningIndicator, type RunningIndicator } from './events/running-indicator';
 export { entryAuthorText, entryEndedText } from './format/entry-author';
+export { caregiversHeading, inviteExpiryText, pendingInviteMeta } from './format/invites';
 export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input';
 export {
   editableRowsToSegments,

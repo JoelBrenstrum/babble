@@ -11,3 +11,4 @@ export * from './events';
 export * from './clock';
 export * from './import';
 export * from './export';
+export { oncePerKey } from './once-per-key';

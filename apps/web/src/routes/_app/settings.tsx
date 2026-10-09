@@ -1,30 +1,22 @@
-import {
-  canEdit,
-  createInvite,
-  deleteMyAccount,
-  updatePassword,
-  queryKeys,
-  signOut,
-  toBabbleError,
-  updateBaby,
-} from '@babble/api';
+import { canEdit, deleteMyAccount, updatePassword, queryKeys, signOut, toBabbleError, updateBaby } from '@babble/api';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ChevronRight, LogOut, UserPlus } from 'lucide-react';
-import { useCallback, useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { Card, SectionLabel } from '#/components/ui/card';
 import { SexField } from '#/features/sex-field';
 import { SelectField, TextField } from '#/components/ui/field';
-import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
 import { DayStartPicker } from '#/features/day-start-picker';
 import { InvitePanel } from '#/features/invite-panel';
+import { CaregiversLabel, PendingInvites, useCreateInvite } from '#/features/pending-invites';
 import { PasswordForm } from '#/features/password-form';
 import { TrackingSettings } from '#/features/tracking-settings';
 import { ExportData } from '#/features/export-data';
-import { clearAccountStorage, readStorage, storageKeys, writeStorage } from '#/lib/storage';
-import { applyTheme, type ThemePreference } from '#/lib/theme';
+import { InstallSection } from '#/features/install-app';
+import { AppearanceSettings } from '#/features/appearance-settings';
+import { clearAccountStorage } from '#/lib/storage';
 import { listTimeZones } from '#/lib/timezones';
 
 export const Route = createFileRoute('/_app/settings')({ component: SettingsPage });
@@ -41,7 +33,7 @@ function SettingsPage() {
       <BabySection disabled={!editable} />
 
       <section className="flex flex-col gap-3">
-        <SectionLabel>Caregivers</SectionLabel>
+        <CaregiversLabel client={babble.client} familyId={family.id} editable={editable} />
         <Card className="divide-y divide-line">
           {family.members.map((member) => (
             <div key={member.user_id} className="flex items-center gap-3 px-4 py-3">
@@ -56,6 +48,7 @@ function SettingsPage() {
             </div>
           ))}
         </Card>
+        {editable && <PendingInvites client={babble.client} family={family} />}
         {editable && <InviteToggle familyId={family.id} />}
       </section>
 
@@ -74,7 +67,8 @@ function SettingsPage() {
         </Link>
         <ExportData client={babble.client} family={family} baby={baby} />
       </section>
-      <AppearanceSection />
+      <AppearanceSettings client={babble.client} baby={baby} />
+      <InstallSection />
       <AccountSection email={session.user.email ?? ''} />
     </div>
   );
@@ -151,7 +145,7 @@ function BabySection({ disabled }: { disabled: boolean }) {
 function InviteToggle({ familyId }: { familyId: string }) {
   const { babble } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
-  const onCreate = useCallback(() => createInvite(babble.client, familyId), [babble, familyId]);
+  const onCreate = useCreateInvite(babble.client, familyId);
   return open ? (
     <InvitePanel publicUrl={babble.config.publicUrl} onCreate={onCreate} />
   ) : (
@@ -159,35 +153,6 @@ function InviteToggle({ familyId }: { familyId: string }) {
       <UserPlus className="size-5" strokeWidth={2.75} />
       Invite a caregiver
     </Button>
-  );
-}
-
-function AppearanceSection() {
-  const [theme, setTheme] = useState<ThemePreference>(() => {
-    const stored = readStorage(storageKeys.theme);
-    return stored === 'light' || stored === 'dark' ? stored : 'system';
-  });
-
-  function change(next: ThemePreference) {
-    setTheme(next);
-    writeStorage(storageKeys.theme, next === 'system' ? null : next);
-    applyTheme(next);
-  }
-
-  return (
-    <section className="flex flex-col gap-3">
-      <SectionLabel>Appearance</SectionLabel>
-      <Segmented
-        label="Theme"
-        value={theme}
-        onChange={change}
-        options={[
-          { value: 'system', label: 'System' },
-          { value: 'light', label: 'Light' },
-          { value: 'dark', label: 'Dark' },
-        ]}
-      />
-    </section>
   );
 }
 

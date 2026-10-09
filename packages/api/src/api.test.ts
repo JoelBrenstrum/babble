@@ -9,6 +9,8 @@ import {
   createInvite,
   getInstanceSettings,
   listFamilies,
+  listPendingInvites,
+  revokeInvite,
 } from './families';
 import { fakeClient } from './test-utils';
 
@@ -170,5 +172,52 @@ describe('families API', () => {
     const result = acceptInvite(client, { code: 'K7Q-4MD', displayName: 'Jane' });
     await expect(result).rejects.toBeInstanceOf(BabbleError);
     await expect(result).rejects.toMatchObject({ code: 'invite_invalid' });
+  });
+});
+
+describe('pending invites', () => {
+  it('lists unused, unexpired invites for the family, newest first', async () => {
+    const { client, requests } = fakeClient(() => ({
+      body: [
+        {
+          id: 'invite-1',
+          code: 'K7Q4M-D2XPA',
+          role: 'caregiver',
+          created_by: 'user-john',
+          created_at: '2026-10-08T09:00:00Z',
+          expires_at: '2026-10-15T09:00:00Z',
+        },
+      ],
+    }));
+    expect(await listPendingInvites(client, 'family-1', new Date('2026-10-09T00:00:00Z'))).toEqual([
+      {
+        id: 'invite-1',
+        code: 'K7Q4M-D2XPA',
+        role: 'caregiver',
+        createdBy: 'user-john',
+        createdAt: '2026-10-08T09:00:00Z',
+        expiresAt: '2026-10-15T09:00:00Z',
+      },
+    ]);
+    const { url, method } = requests[0]!;
+    expect(method).toBe('GET');
+    expect(url.pathname).toBe('/rest/v1/family_invites');
+    expect(url.searchParams.get('family_id')).toBe('eq.family-1');
+    expect(url.searchParams.get('used_at')).toBe('is.null');
+    expect(url.searchParams.get('expires_at')).toBe('gt.2026-10-09T00:00:00.000Z');
+    expect(url.searchParams.get('order')).toBe('created_at.desc');
+  });
+
+  it('revokes an invite by deleting it', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await revokeInvite(client, 'invite-1');
+    expect(requests[0]!.method).toBe('DELETE');
+    expect(requests[0]!.url.pathname).toBe('/rest/v1/family_invites');
+    expect(requests[0]!.url.searchParams.get('id')).toBe('eq.invite-1');
+  });
+
+  it('surfaces a failed revoke', async () => {
+    const { client } = fakeClient(() => ({ status: 403, body: { code: '42501', message: 'permission denied' } }));
+    await expect(revokeInvite(client, 'invite-1')).rejects.toBeInstanceOf(BabbleError);
   });
 });

@@ -193,6 +193,12 @@ Baby profile (name, birth date, sex, timezone) · Caregivers & invites · Day st
 
 **Export data** (under Data) downloads a JSON file on web, or opens the share sheet with the file on mobile. It contains the baby's profile, settings and every event with its details and timed segments, including deleted events (with `deletedAt` set). The file has `format: "babble-export"` and `version: 1` so it can be imported again later. "Export whole family" appears when the family has more than one baby.
 
+**Caregivers** lists members, then pending invites for editors: the code, "Caregiver · by John · Expires in 6 days" and a Revoke button that asks "Revoke this invite? The code will stop working." The heading reads "Caregivers · 1 pending". Onboarding creates one invite per family, shown on its last step.
+
+**Theme:** System · Light · Dark · Dark at night. Dark at night is dark inside the active baby's night window (Tracking → Night, in the baby's timezone) and light outside it, checked every minute; the web caches the window on the device so the first paint is right. Without a window yet it follows the system.
+
+**Install app** (web): Settings → App explains how to add babble to the home screen, or says "Installed". Home also shows a dismissible card when the app isn't installed: iPhone Safari gets the Share → Add to Home Screen steps, other iPhone browsers are told to open babble in Safari, and Chrome and Edge get an Install button. "Not now" hides it for 14 days.
+
 ## 15. Import (Stage 5, web only)
 
 Upload the Huckleberry CSV → choose target baby + confirm timezone → preview (counts per type, date range, skipped rows with reasons, warnings) → import → summary. Re-importing the same file adds only new rows.

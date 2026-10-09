@@ -1,8 +1,15 @@
-export type ThemePreference = 'system' | 'light' | 'dark';
+import { parseNightWindow, themeOverride, type NightWindow, type ThemePreference } from '@babble/domain';
+import { readStorage, storageKeys } from './storage';
 
-export function resolveTheme(preference: string | null, prefersDark: boolean): 'light' | 'dark' {
-  if (preference === 'light' || preference === 'dark') return preference;
-  return prefersDark ? 'dark' : 'light';
+export type { ThemePreference };
+
+export function resolveTheme(
+  preference: string | null,
+  prefersDark: boolean,
+  night: NightWindow | null = null,
+  now: Date = new Date(),
+): 'light' | 'dark' {
+  return themeOverride(preference, night, now) ?? (prefersDark ? 'dark' : 'light');
 }
 
 export const THEME_COLORS = { light: '#f3f0e8', dark: '#141612' } as const;
@@ -32,22 +39,48 @@ function setThemeColorOverride(color: string | null): void {
 
 export const themeBootScript = `(() => {
   let preference = null;
-  try { preference = localStorage.getItem('babble.theme'); } catch {}
-  const dark = preference === 'dark' || (preference !== 'light' && matchMedia('(prefers-color-scheme: dark)').matches);
+  let night = null;
+  try {
+    preference = localStorage.getItem('${storageKeys.theme}');
+    night = JSON.parse(localStorage.getItem('${storageKeys.night}'));
+  } catch {}
+  let override = preference === 'light' || preference === 'dark' ? preference : null;
+  if (preference === 'night' && night && typeof night.timeZone === 'string') {
+    try {
+      const parts = {};
+      const format = new Intl.DateTimeFormat('en-CA', { timeZone: night.timeZone, hourCycle: 'h23', hour: '2-digit', minute: '2-digit' });
+      for (const part of format.formatToParts(new Date())) parts[part.type] = part.value;
+      const minutes = Number(parts.hour) * 60 + Number(parts.minute);
+      const within = night.start === night.end ? false : night.start < night.end
+        ? minutes >= night.start && minutes < night.end
+        : minutes >= night.start || minutes < night.end;
+      override = within ? 'dark' : 'light';
+    } catch {}
+  }
+  const dark = override ? override === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
   document.documentElement.classList.toggle('dark', dark);
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-  if (preference === 'light' || preference === 'dark') {
+  if (override) {
     const tag = document.createElement('meta');
     tag.id = '${OVERRIDE_ID}';
     tag.name = 'theme-color';
-    tag.content = preference === 'dark' ? '${THEME_COLORS.dark}' : '${THEME_COLORS.light}';
+    tag.content = override === 'dark' ? '${THEME_COLORS.dark}' : '${THEME_COLORS.light}';
     document.head.prepend(tag);
   }
 })();`;
 
-export function applyTheme(preference: ThemePreference): void {
-  const theme = resolveTheme(preference, window.matchMedia('(prefers-color-scheme: dark)').matches);
+export function readNightWindow(): NightWindow | null {
+  return parseNightWindow(readStorage(storageKeys.night));
+}
+
+export function applyTheme(
+  preference: ThemePreference,
+  night: NightWindow | null = readNightWindow(),
+  now: Date = new Date(),
+): void {
+  const override = themeOverride(preference, night, now);
+  const theme = override ?? (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   document.documentElement.classList.toggle('dark', theme === 'dark');
   document.documentElement.style.colorScheme = theme;
-  setThemeColorOverride(preference === 'system' ? null : THEME_COLORS[theme]);
+  setThemeColorOverride(override === null ? null : THEME_COLORS[override]);
 }

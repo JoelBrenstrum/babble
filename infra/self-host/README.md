@@ -39,6 +39,14 @@ New instances are **invite-only**: the first account can sign up freely, and eve
 update private.instance_settings set signup_mode = 'open';
 ```
 
+To let one person start their own family without an invite, add their email to the allowlist in the SQL editor. They can then sign up any way (password, email link or Google) and are taken through creating a family:
+
+```sql
+insert into private.signup_allowlist (email, note) values (lower('jane@example.com'), 'Jane');
+```
+
+`used_at` shows when they signed up. Delete the row to withdraw it before then.
+
 ## 3. Run the web app
 
 ```sh

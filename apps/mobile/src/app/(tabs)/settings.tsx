@@ -1,6 +1,5 @@
 import {
   canEdit,
-  createInvite,
   deleteMyAccount,
   queryKeys,
   signOut,
@@ -11,25 +10,25 @@ import {
 } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { useColorScheme } from 'nativewind';
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { Card, SectionLabel } from '@/components/card';
 import { Screen } from '@/components/screen';
-import { Segmented } from '@/components/segmented';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
 import { DateField } from '@/features/date-field';
 import { DayStartPicker } from '@/features/day-start-picker';
 import { InvitePanel } from '@/features/invite-panel';
+import { CaregiversLabel, PendingInvites, useCreateInvite } from '@/features/pending-invites';
 import { TrackingSettings } from '@/features/tracking-settings';
 import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
 import { ExportData } from '@/features/export-data';
+import { AppearanceSettings } from '@/features/appearance-settings';
 import { useBabble } from '@/lib/babble';
-import { loadThemePreference, saveThemePreference, type ThemePreference } from '@/lib/theme-preference';
+import { useThemePreference } from '@/lib/theme';
 import { useReadyState } from '@/lib/use-onboarding';
 
 const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
@@ -51,7 +50,7 @@ export default function SettingsTab() {
           <SectionLabel>Data</SectionLabel>
           <ExportData client={client} family={ready.family} baby={ready.baby} />
         </View>
-        <AppearanceSection />
+        <AppearanceSection babyName={ready.baby.name} />
         <AccountSection email={session.user.email ?? ''} />
       </View>
     </Screen>
@@ -111,10 +110,10 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
 function CaregiversSection({ family, userId, editable }: { family: Family; userId: string; editable: boolean }) {
   const { client, config } = useBabble();
   const [inviting, setInviting] = useState(false);
-  const onCreate = useCallback(() => createInvite(client, family.id), [client, family.id]);
+  const onCreate = useCreateInvite(client, family.id);
   return (
     <View className="gap-3">
-      <SectionLabel>Caregivers</SectionLabel>
+      <CaregiversLabel client={client} familyId={family.id} editable={editable} />
       <Card>
         {family.members.map((member, index) => (
           <View
@@ -132,6 +131,7 @@ function CaregiversSection({ family, userId, editable }: { family: Family; userI
           </View>
         ))}
       </Card>
+      {editable && <PendingInvites client={client} family={family} />}
       {editable &&
         (inviting ? (
           <InvitePanel publicUrl={config.publicUrl} onCreate={onCreate} />
@@ -144,34 +144,9 @@ function CaregiversSection({ family, userId, editable }: { family: Family; userI
   );
 }
 
-function AppearanceSection() {
-  const { setColorScheme } = useColorScheme();
-  const [preference, setPreference] = useState<ThemePreference>('system');
-
-  useEffect(() => {
-    void loadThemePreference().then(setPreference);
-  }, []);
-
-  function change(next: ThemePreference) {
-    setPreference(next);
-    setColorScheme(next);
-    void saveThemePreference(next);
-  }
-
-  return (
-    <View className="gap-3">
-      <SectionLabel>Appearance</SectionLabel>
-      <Segmented
-        value={preference}
-        onChange={change}
-        options={[
-          { value: 'system', label: 'System' },
-          { value: 'light', label: 'Light' },
-          { value: 'dark', label: 'Dark' },
-        ]}
-      />
-    </View>
-  );
+function AppearanceSection({ babyName }: { babyName: string }) {
+  const { preference, night, choose } = useThemePreference();
+  return <AppearanceSettings value={preference} babyName={babyName} night={night} onChange={choose} />;
 }
 
 function AccountSection({ email }: { email: string }) {

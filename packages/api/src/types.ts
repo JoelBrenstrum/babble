@@ -26,6 +26,15 @@ export interface Invite {
   expiresAt: string;
 }
 
+export interface PendingInvite {
+  id: string;
+  code: string;
+  role: FamilyRole;
+  createdBy: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export interface InvitePreview {
   familyName: string;
   expiresAt: string;

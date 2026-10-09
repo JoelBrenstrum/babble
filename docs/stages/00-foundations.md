@@ -55,8 +55,9 @@ Deployed (2026-10-07):
 
 - [x] Supabase Cloud project in Sydney (`ap-southeast-2`); migrations applied with `supabase db push --db-url` through the IPv4 session pooler (the direct database host is IPv6-only). Connection details live in `packages/db/.env.cloud` (gitignored).
 - [x] Fly app `babble-app` in `syd`, live at https://babble-app.fly.dev. Fly's first deploy failed to allocate IPs; fixed with `fly ips allocate-v6` and `fly ips allocate-v4 --shared`.
-- [ ] Supabase Auth URL configuration: Site URL `https://babble-app.fly.dev`, redirects `https://babble-app.fly.dev/auth/callback` and `babble://**` (set in the dashboard)
-- [ ] Custom SMTP through Resend, sending as `babble <hello@babble.brenstrum.com>` (domain verified in Resend, SMTP and rate limit set in the dashboard)
+- [x] Custom domain https://babble.brenstrum.com (Fly certificate, CNAME `babble` → `babble-app.fly.dev`, `PUBLIC_URL` secret)
+- [x] Supabase Auth URL configuration: Site URL `https://babble.brenstrum.com`, redirects `https://babble.brenstrum.com/auth/callback`, `https://babble-app.fly.dev/auth/callback` (until everyone has moved) and `babble://auth/callback`
+- [x] Custom SMTP through Resend, sending as `babble <hello@babble.brenstrum.com>` (domain verified in Resend, SMTP and rate limit set in the dashboard)
 - [x] Branded auth email templates in `packages/db/supabase/templates/`, used locally via `config.toml`; to be pasted into the cloud dashboard
 - [ ] Google OAuth client, then `GOOGLE_AUTH_ENABLED = "true"` in `fly.toml`
 

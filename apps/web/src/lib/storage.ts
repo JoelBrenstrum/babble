@@ -20,9 +20,12 @@ export const storageKeys = {
   activeBaby: 'babble.activeBaby',
   pendingInvite: 'babble.pendingInvite',
   theme: 'babble.theme',
+  night: 'babble.night',
+  installDismissedAt: 'babble.installDismissedAt',
+  installed: 'babble.installed',
 } as const;
 
 export function clearAccountStorage(): void {
-  for (const key of [storageKeys.activeFamily, storageKeys.activeBaby, storageKeys.pendingInvite])
+  for (const key of [storageKeys.activeFamily, storageKeys.activeBaby, storageKeys.pendingInvite, storageKeys.night])
     writeStorage(key, null);
 }

@@ -1,4 +1,4 @@
-import { createInvite } from '@babble/api';
+import { createInvite, oncePerKey } from '@babble/api';
 import { Redirect, router } from 'expo-router';
 import { useCallback } from 'react';
 import { View } from 'react-native';
@@ -8,11 +8,17 @@ import { InvitePanel } from '@/features/invite-panel';
 import { useBabble } from '@/lib/babble';
 import { useReadyState } from '@/lib/use-onboarding';
 
+// The step can mount more than once while onboarding settles, so each family gets one invite per session.
+let createFamilyInvite: ((familyId: string) => ReturnType<typeof createInvite>) | null = null;
+
 export default function InviteStep() {
   const ready = useReadyState();
   const { client, config } = useBabble();
   const familyId = ready?.family.id;
-  const onCreate = useCallback(() => createInvite(client, familyId!), [client, familyId]);
+  const onCreate = useCallback(() => {
+    createFamilyInvite ??= oncePerKey((id) => createInvite(client, id));
+    return createFamilyInvite(familyId!);
+  }, [client, familyId]);
   if (!ready) return <Redirect href="/" />;
   return (
     <Screen step="Step 4 of 4">

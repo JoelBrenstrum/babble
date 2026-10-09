@@ -11,7 +11,7 @@ import { BabyScope } from '@/features/baby-scope';
 import { ActiveBabyProvider } from '@/lib/active-baby';
 import { BabbleProvider } from '@/lib/babble';
 import { useAppFonts } from '@/lib/fonts';
-import { ThemeRoot } from '@/lib/theme';
+import { ThemePreferenceProvider, ThemeRoot } from '@/lib/theme';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -33,14 +33,16 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <BabbleProvider>
             <ActiveBabyProvider>
-              <ThemeRoot>
-                <ToastProvider>
-                  <BabyScope>
-                    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
-                    <StatusBar style="auto" />
-                  </BabyScope>
-                </ToastProvider>
-              </ThemeRoot>
+              <ThemePreferenceProvider>
+                <ThemeRoot>
+                  <ToastProvider>
+                    <BabyScope>
+                      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
+                      <StatusBar style="auto" />
+                    </BabyScope>
+                  </ToastProvider>
+                </ThemeRoot>
+              </ThemePreferenceProvider>
             </ActiveBabyProvider>
           </BabbleProvider>
         </QueryClientProvider>

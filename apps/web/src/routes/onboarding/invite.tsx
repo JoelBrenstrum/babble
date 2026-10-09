@@ -1,4 +1,4 @@
-import { createInvite, familiesQuery, resolveOnboarding } from '@babble/api';
+import { createInvite, familiesQuery, oncePerKey, resolveOnboarding } from '@babble/api';
 import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { useCallback } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
@@ -20,9 +20,15 @@ export const Route = createFileRoute('/onboarding/invite')({
   component: InviteStep,
 });
 
+// The step can mount more than once while onboarding settles, so each family gets one invite per session.
+let createFamilyInvite: ((familyId: string) => ReturnType<typeof createInvite>) | null = null;
+
 function InviteStep() {
   const { family, babble } = Route.useRouteContext();
-  const onCreate = useCallback(() => createInvite(babble.client, family.id), [babble, family.id]);
+  const onCreate = useCallback(() => {
+    createFamilyInvite ??= oncePerKey((familyId) => createInvite(babble.client, familyId));
+    return createFamilyInvite(family.id);
+  }, [babble, family.id]);
   return (
     <CenteredPage step="Step 4 of 4">
       <h1 className="text-title font-bold">Invite a caregiver</h1>
