@@ -23,7 +23,7 @@ import type { ReactNode } from 'react';
 import { buttonClassName } from '#/components/ui/button';
 import { Wordmark } from '#/components/ui/wordmark';
 import { cn } from '#/lib/cn';
-import { HomePreview, TimelinePreview } from './previews';
+import { HomePreview, PausePreview, TimelinePreview } from './previews';
 
 export const GITHUB_URL = 'https://github.com/JoelBrenstrum/babble';
 
@@ -212,6 +212,16 @@ export function LandingPage({ signedIn, now }: { signedIn: boolean; now?: Date }
               </li>
             ))}
           </ul>
+        </Section>
+
+        <Section>
+          <h2 className="text-title font-bold">Pause, don't stop</h2>
+          <p className="mb-8 mt-2 max-w-2xl text-body text-ink-2">
+            In most trackers, stopping for a burp or a wake-up means ending one entry and starting another. In babble
+            you pause instead. It stays one feed or one nap, and the gaps are tracked on their own, so totals and stats
+            only count time actually feeding or asleep.
+          </p>
+          <PausePreview now={now} />
         </Section>
 
         <Section>

@@ -1,4 +1,4 @@
-import { sampleBaby, sampleEvents, sampleRunningFeed } from '@babble/api/fixtures';
+import { sampleBaby, sampleEvents, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
 import {
   dayKeyFor,
   dayLayout,
@@ -8,6 +8,7 @@ import {
   hourTicks,
   summariseDay,
   type BabyEvent,
+  type EventOfType,
 } from '@babble/domain';
 
 const { timezone, day_start_minutes: dayStart } = sampleBaby;
@@ -40,4 +41,30 @@ export function timelinePreview(now: Date) {
     nowFrac: fractionOf(window, at.getTime()),
     totals: dayTotalCards(summary, 'metric', timezone),
   };
+}
+
+const minutesAgo = (now: Date, minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString();
+
+export function pausePreview(now: Date): { feed: EventOfType<'breast_feed'>; nap: EventOfType<'sleep'> } {
+  const feed: EventOfType<'breast_feed'> = {
+    ...(sampleRunningFeed(now) as EventOfType<'breast_feed'>),
+    id: 'preview-paused-feed',
+    sessionState: 'paused',
+    startedAt: minutesAgo(now, 19),
+    segments: [
+      { side: 'left', startedAt: minutesAgo(now, 19), endedAt: minutesAgo(now, 10) },
+      { side: 'right', startedAt: minutesAgo(now, 9.5), endedAt: minutesAgo(now, 1.2) },
+    ],
+  };
+  const nap: EventOfType<'sleep'> = {
+    ...(sampleRunningSleep(now) as EventOfType<'sleep'>),
+    id: 'preview-paused-nap',
+    sessionState: 'paused',
+    startedAt: minutesAgo(now, 64),
+    segments: [
+      { startedAt: minutesAgo(now, 64), endedAt: minutesAgo(now, 38) },
+      { startedAt: minutesAgo(now, 33), endedAt: minutesAgo(now, 4) },
+    ],
+  };
+  return { feed, nap };
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { homePreview, timelinePreview } from './preview-data';
+import { summariseSleep } from '@babble/domain';
+import { homePreview, pausePreview, timelinePreview } from './preview-data';
 
 const now = new Date('2026-10-09T02:00:00Z');
 
@@ -27,5 +28,15 @@ describe('timelinePreview', () => {
 
   it('has totals for the day', () => {
     expect(timelinePreview(now).totals.map((card) => card.key)).toContain('sleep');
+  });
+});
+
+describe('pausePreview', () => {
+  it('shows a feed paused on its second side and a nap paused on its second wake-up', () => {
+    const { feed, nap } = pausePreview(now);
+    expect(feed).toMatchObject({ type: 'breast_feed', sessionState: 'paused', endedAt: null });
+    expect(feed.segments.every((segment) => segment.endedAt !== null)).toBe(true);
+    expect(nap).toMatchObject({ type: 'sleep', sessionState: 'paused', endedAt: null });
+    expect(summariseSleep(nap, now)).toMatchObject({ paused: true, wakeUps: 2, asleepMs: 55 * 60_000 });
   });
 });

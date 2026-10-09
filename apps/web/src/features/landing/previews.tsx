@@ -1,4 +1,5 @@
 import { sampleBaby, sampleFamily } from '@babble/api/fixtures';
+import type { BabyEvent } from '@babble/domain';
 import { useMemo, useState, type ReactNode } from 'react';
 import { RunningCard } from '#/features/events/running-card';
 import { HomeOverview } from '#/features/home-overview';
@@ -6,7 +7,7 @@ import { DayTimeline } from '#/features/timeline/day-timeline';
 import { DayTotals } from '#/features/timeline/totals';
 import { fixtureClient } from '#/fixtures/client';
 import { cn } from '#/lib/cn';
-import { homePreview, timelinePreview } from './preview-data';
+import { homePreview, pausePreview, timelinePreview } from './preview-data';
 
 function PreviewFrame({
   label,
@@ -88,6 +89,30 @@ export function TimelinePreview({ now: fixedNow }: { now?: Date }) {
         caption="Totals for the day, ready for the next check-up."
       >
         <DayTotals cards={totals} />
+      </PreviewFrame>
+    </div>
+  );
+}
+
+export function PausePreview({ now: fixedNow }: { now?: Date }) {
+  const [now] = useState(() => fixedNow ?? new Date());
+  const { feed, nap } = useMemo(() => pausePreview(now), [now]);
+  const card = (event: BabyEvent) => (
+    <RunningCard event={event} client={fixtureClient} timeZone={sampleBaby.timezone} members={sampleFamily.members} />
+  );
+  return (
+    <div className="grid min-w-0 gap-6 md:grid-cols-2 md:items-start">
+      <PreviewFrame
+        label="Preview of a paused breastfeed: both sides timed, paused for about a minute, with the idle time counted separately."
+        caption="A burp break is just a pause. The feed carries on as one entry, and the gap counts as idle time."
+      >
+        {card(feed)}
+      </PreviewFrame>
+      <PreviewFrame
+        label="Preview of a paused nap: awake now, with time asleep and two wake-ups shown."
+        caption="Woke for a cuddle? Pause the nap, then resume it. babble counts time asleep and the wake-ups."
+      >
+        {card(nap)}
       </PreviewFrame>
     </div>
   );

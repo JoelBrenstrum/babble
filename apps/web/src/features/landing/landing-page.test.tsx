@@ -70,6 +70,9 @@ describe('LandingPage', () => {
     const timeline = screen.getByRole('img', { name: /a day on the babble timeline/ });
     expect(within(timeline).getByTestId('day-timeline')).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /day's totals/ }).textContent).toContain('Sleep');
+    expect(screen.getByRole('heading', { level: 2, name: "Pause, don't stop" })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /paused breastfeed/ }).textContent).toContain('Paused for');
+    expect(screen.getByRole('img', { name: /paused nap/ }).textContent).toContain('Awake · nap paused');
     for (const preview of screen.getAllByRole('img')) {
       expect(preview.firstElementChild).toHaveAttribute('inert');
       expect(preview.firstElementChild).toHaveAttribute('aria-hidden', 'true');
