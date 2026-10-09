@@ -1,6 +1,8 @@
 import { formatDuration, summariseSegments, type TimedSegment } from '@babble/domain';
-import { Text, View } from 'react-native';
+import { Minus } from 'lucide-react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
+import { useTokenColor } from '@/lib/theme';
 
 export function SessionBreakdown({
   segments,
@@ -8,16 +10,20 @@ export function SessionBreakdown({
   now,
   paused = false,
   noun = 'feeding',
+  onTrimIdle,
 }: {
   segments: readonly TimedSegment[];
   mergeGapMs: number;
   now: Date;
   paused?: boolean;
   noun?: 'feeding' | 'pumping';
+  onTrimIdle?: () => void;
 }) {
+  const ink = useTokenColor('--ink');
   const lastEnd = segments.at(-1)?.endedAt ?? null;
   const summary = summariseSegments(segments, { mergeGapMs, now, pausedSince: paused ? lastEnd : null });
   if (summary.rows.length === 0) return null;
+  const trimmableIndex = summary.rows.at(-1)?.kind === 'side' ? summary.rows.length - 2 : -1;
 
   return (
     <Card>
@@ -49,6 +55,16 @@ export function SessionBreakdown({
             </Text>
           )}
           <Text className="w-24 text-right font-sans text-body text-ink">{formatDuration(row.durationMs)}</Text>
+          {onTrimIdle && row.kind === 'downtime' && index === trimmableIndex && (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Take a minute off the idle time"
+              onPress={onTrimIdle}
+              className="size-10 items-center justify-center rounded-full border border-line bg-raised"
+            >
+              <Minus color={ink} size={16} strokeWidth={3} />
+            </Pressable>
+          )}
         </View>
       ))}
       <View className="flex-row items-baseline justify-between border-t border-line px-4 py-3">

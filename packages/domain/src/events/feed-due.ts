@@ -1,5 +1,5 @@
 import { formatDuration } from '../format/duration';
-import { isWithinNight } from '../time/local-time';
+import { formatTimeOfDay, isWithinNight } from '../time/local-time';
 import { latestFeed, nextBreastSide } from './feed-rules';
 import type { BabyEvent, Side } from './types';
 
@@ -28,12 +28,15 @@ export function nextFeedDue(events: readonly BabyEvent[], settings: FeedReminder
   };
 }
 
-export function feedDueText(due: FeedDue, now: Date): { text: string; overdue: boolean } {
+export function feedDueText(due: FeedDue, now: Date, timeZone: string): { text: string; overdue: boolean } {
   const ms = Date.parse(due.dueAt) - now.getTime();
+  const at = formatTimeOfDay(due.dueAt, timeZone);
   const side = due.nextSide ? ` · ${due.nextSide === 'left' ? 'Left' : 'Right'} side next` : '';
   if (Math.abs(ms) < 60_000) return { text: `Feed due now${side}`, overdue: false };
-  if (ms > 0) return { text: `Next feed due in ${formatDuration(ms, { seconds: false })}${side}`, overdue: false };
-  return { text: `Overdue ${formatDuration(-ms, { seconds: false })}${side}`, overdue: true };
+  if (ms > 0) {
+    return { text: `Next feed due in ${formatDuration(ms, { seconds: false })} · around ${at}${side}`, overdue: false };
+  }
+  return { text: `Overdue ${formatDuration(-ms, { seconds: false })} · was due ${at}${side}`, overdue: true };
 }
 
 export function formatInterval(minutes: number): string {

@@ -12,13 +12,12 @@ import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { DateTimeField } from '#/components/ui/field';
 
+const LINK_BUTTON =
+  'self-center rounded-chip px-3 py-1 text-meta text-ink-2 underline-offset-2 hover:bg-black/5 hover:text-ink hover:underline';
+
 export function EndTimeButton({ onClick }: { onClick: () => void }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="self-center rounded-chip px-3 py-1 text-meta text-ink-2 underline-offset-2 hover:bg-black/5 hover:text-ink hover:underline"
-    >
+    <button type="button" onClick={onClick} className={LINK_BUTTON}>
       Ended earlier?
     </button>
   );

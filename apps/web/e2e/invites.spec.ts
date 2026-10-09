@@ -1,16 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, uniqueEmail } from './helpers';
+import { onboard, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 test('pending invites show in Settings and can be revoked', async ({ page }, testInfo) => {
-  await page.goto('/sign-in');
-  await page.getByRole('radio', { name: 'Create account' }).click();
-  await page.getByLabel('Email').fill(uniqueEmail('john', testInfo.project.name));
-  await page.getByLabel('Password').fill('correct horse battery');
-  await page.getByRole('button', { name: 'Create account' }).click();
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
   await onboard(page);
 
   await page.getByRole('link', { name: 'Settings' }).filter({ visible: true }).click();

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, uniqueEmail } from './helpers';
+import { onboard, signIn, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
@@ -87,6 +87,23 @@ test('a running feed can be backdated', async ({ page }, testInfo) => {
   await editor.getByLabel('Start time').fill('2099-01-01T09:00');
   await expect(editor.getByText("The start can't be in the future.")).toBeVisible();
   await expect(editor.getByRole('button', { name: 'Save start' })).toBeDisabled();
+});
+
+test('idle time from a forgotten switch can be taken off', async ({ page }, testInfo) => {
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
+  await onboard(page);
+  await startFeed(page);
+  await page.getByRole('button', { name: 'Pause' }).click();
+  await page.waitForTimeout(20_000);
+  await page.getByRole('button', { name: /^R Right/ }).click();
+  await expect(page.getByText('Feeding · Right')).toBeVisible();
+
+  if (!/\/sessions\//.test(page.url())) await page.getByRole('link', { name: 'Open' }).first().click();
+  await expect(page.getByText('Downtime')).toBeVisible();
+  await page.getByRole('button', { name: 'Take a minute off the idle time' }).click();
+  await expect(page.getByText('Downtime')).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText('Downtime')).toHaveCount(0);
 });
 
 test('a feed can be edited segment by segment', async ({ page }, testInfo) => {

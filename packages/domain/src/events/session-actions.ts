@@ -5,7 +5,8 @@ export type SessionAction =
   | { kind: 'pause' }
   | { kind: 'resume'; side?: Side }
   | { kind: 'end'; at?: string }
-  | { kind: 'set-start'; startedAt: string };
+  | { kind: 'set-start'; startedAt: string }
+  | { kind: 'set-switch'; at: string };
 
 export function applySessionAction(event: BabyEvent, action: SessionAction, now: Date): BabyEvent {
   if (event.endedAt !== null) return event;
@@ -22,6 +23,25 @@ export function applySessionAction(event: BabyEvent, action: SessionAction, now:
       ...event,
       startedAt: action.startedAt,
       segments: [{ ...first, startedAt: action.startedAt }, ...rest],
+    } as BabyEvent;
+  }
+
+  if (action.kind === 'set-switch') {
+    if (switchChangeError(event, action.at, now) || !hasSegments(event)) return event;
+    const ordered = [...(event.segments as SleepStretch[])].sort(
+      (a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt),
+    );
+    const previous = ordered.at(-2)!;
+    const latest = ordered.at(-1)!;
+    return {
+      ...event,
+      segments: ordered.map((segment) => {
+        if (segment === latest) return { ...segment, startedAt: action.at };
+        if (segment === previous && segment.endedAt && Date.parse(segment.endedAt) > Date.parse(action.at)) {
+          return { ...segment, endedAt: action.at };
+        }
+        return segment;
+      }),
     } as BabyEvent;
   }
 
@@ -71,7 +91,7 @@ function latestEnd(segments: readonly SleepStretch[]): string | null {
 
 function applyNapAction(
   nap: EventOfType<'sleep'>,
-  action: Exclude<SessionAction, { kind: 'set-start' }>,
+  action: Exclude<SessionAction, { kind: 'set-start' } | { kind: 'set-switch' }>,
   at: string,
   closeOpen: (segments: SleepStretch[], closeAt?: string) => SleepStretch[],
 ): BabyEvent {
@@ -149,6 +169,41 @@ export function endChangeError(event: BabyEvent, endedAt: string, now: Date): st
   if (last)
     return nap ? "The end can't be before the nap was paused." : "The end can't be before the last side finished.";
   return `The end can't be before the ${sessionNoun(event.type)} started.`;
+}
+
+function hasSegments(event: BabyEvent): event is EventOfType<'breast_feed' | 'pump' | 'sleep'> {
+  return event.type === 'breast_feed' || event.type === 'pump' || event.type === 'sleep';
+}
+
+export function canMoveSwitch(event: BabyEvent): boolean {
+  return hasSegments(event) && event.endedAt === null && event.segments.length >= 2;
+}
+
+export function switchChangeError(event: BabyEvent, switchAt: string, now: Date): string | null {
+  if (!canMoveSwitch(event) || !hasSegments(event)) return "There's no switch to move yet.";
+  const at = Date.parse(switchAt);
+  if (Number.isNaN(at)) return 'Pick a time.';
+  if (at > now.getTime()) return "The switch can't be in the future.";
+  const ordered = [...(event.segments as SleepStretch[])].sort(
+    (a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt),
+  );
+  if (at >= Date.parse(ordered.at(-1)!.startedAt)) return 'Pick a time before the switch.';
+  if (at <= Date.parse(ordered.at(-2)!.startedAt)) return 'The switch must be after the previous side started.';
+  return null;
+}
+
+export const IDLE_TRIM_STEP_MS = 60_000;
+
+export function trimIdleSwitch(event: BabyEvent, now: Date): string | null {
+  if (!canMoveSwitch(event) || !hasSegments(event)) return null;
+  const ordered = [...(event.segments as SleepStretch[])].sort(
+    (a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt),
+  );
+  const previousEnd = ordered.at(-2)!.endedAt;
+  const latestStart = Date.parse(ordered.at(-1)!.startedAt);
+  if (!previousEnd || Date.parse(previousEnd) >= latestStart) return null;
+  const at = new Date(Math.max(Date.parse(previousEnd), latestStart - IDLE_TRIM_STEP_MS)).toISOString();
+  return switchChangeError(event, at, now) ? null : at;
 }
 
 export const DISCARD_CONFIRM_AFTER_MS = 60_000;

@@ -39,7 +39,7 @@ function HomePage() {
         units={units}
         running={running.data ?? []}
         latest={latest.data ?? []}
-        feedDue={due ? feedDueText(due, now) : null}
+        feedDue={due ? feedDueText(due, now, baby.timezone) : null}
         summary={recent.data ? summariseDay(recent.data, { start: window.start, end: now }) : null}
         renderRunning={(event) => (
           <RunningCard event={event} client={babble.client} timeZone={baby.timezone} members={family.members} compact />

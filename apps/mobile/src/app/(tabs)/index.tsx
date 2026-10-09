@@ -46,7 +46,7 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
         units={units}
         running={running.data ?? []}
         latest={latest.data ?? []}
-        feedDue={due ? feedDueText(due, now) : null}
+        feedDue={due ? feedDueText(due, now, baby.timezone) : null}
         summary={recent.data ? summariseDay(recent.data, { start: window.start, end: now }) : null}
         choices={choices}
         onSelectBaby={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}

@@ -12,6 +12,25 @@ const segments = [
   { side: 'right' as const, startedAt: at(13, 34), endedAt: at(25, 57) },
 ];
 
+describe('SessionBreakdown idle trim', () => {
+  it('offers a minus on the idle before the current side', async () => {
+    const onTrimIdle = jest.fn();
+    await render(
+      <SessionBreakdown
+        segments={[
+          { side: 'left', startedAt: at(0), endedAt: at(10) },
+          { side: 'right', startedAt: at(16), endedAt: null },
+        ]}
+        mergeGapMs={15_000}
+        now={new Date(at(20))}
+        onTrimIdle={onTrimIdle}
+      />,
+    );
+    await fireEvent.press(screen.getByRole('button', { name: 'Take a minute off the idle time' }));
+    expect(onTrimIdle).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('SessionBreakdown', () => {
   it('shows sides, idle downtime and totals', async () => {
     await render(<SessionBreakdown segments={segments} mergeGapMs={15_000} now={new Date(at(30))} />);

@@ -54,16 +54,24 @@ describe('nextFeedDue', () => {
 describe('feedDueText', () => {
   const due = { dueAt: '2026-10-06T11:00:00.000Z', nextSide: 'left' as const };
   it.each([
-    ['2026-10-06T10:18:00Z', 'Next feed due in 42m · Left side next', false],
-    ['2026-10-06T08:00:00Z', 'Next feed due in 3h 00m · Left side next', false],
+    ['2026-10-06T10:18:00Z', 'Next feed due in 42m · around 11:00 am · Left side next', false],
+    ['2026-10-06T08:00:00Z', 'Next feed due in 3h 00m · around 11:00 am · Left side next', false],
     ['2026-10-06T11:00:30Z', 'Feed due now · Left side next', false],
-    ['2026-10-06T11:10:00Z', 'Overdue 10m · Left side next', true],
+    ['2026-10-06T11:10:00Z', 'Overdue 10m · was due 11:00 am · Left side next', true],
   ])('at %s says %s', (now, text, overdue) => {
-    expect(feedDueText(due, new Date(now))).toEqual({ text, overdue });
+    expect(feedDueText(due, new Date(now), 'UTC')).toEqual({ text, overdue });
   });
 
   it('leaves out the side when only bottles are logged', () => {
-    expect(feedDueText({ ...due, nextSide: null }, new Date('2026-10-06T10:18:00Z')).text).toBe('Next feed due in 42m');
+    expect(feedDueText({ ...due, nextSide: null }, new Date('2026-10-06T10:18:00Z'), 'UTC').text).toBe(
+      'Next feed due in 42m · around 11:00 am',
+    );
+  });
+
+  it("gives the due time in the baby's time zone", () => {
+    expect(feedDueText(due, new Date('2026-10-06T10:18:00Z'), 'Pacific/Auckland').text).toBe(
+      'Next feed due in 42m · around 12:00 am · Left side next',
+    );
   });
 });
 

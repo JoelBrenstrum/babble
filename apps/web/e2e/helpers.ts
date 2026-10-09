@@ -33,3 +33,11 @@ export async function onboard(page: Page) {
 export function uniqueEmail(name: string, project: string) {
   return `${name}+${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${project}@example.com`;
 }
+
+export async function signUpWithPassword(page: Page, email: string) {
+  await page.goto('/sign-in');
+  await page.getByRole('radio', { name: 'Create account' }).click();
+  await page.getByLabel('Email').fill(email);
+  await page.getByLabel('Password').fill('correct horse battery');
+  await page.getByRole('button', { name: 'Create account' }).click();
+}

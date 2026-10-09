@@ -62,7 +62,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 ```
 ┌──────────────────────────────────────┐
 │ Mila · 7w 2d                    [⚙]  │
-│ Next feed due in 42m                 │
+│ Next feed due in 42m · around 3:02 pm│
 ├──────────────────────────────────────┤
 │ ● Feeding   LEFT 06:12  ▸▸           │  ← running session card, tap → timer
 ├──────────────────────────────────────┤
@@ -80,7 +80,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 - Tapping a row opens the category list. **+** opens the add flow: a timer for sleep, feed and pump, a form for the others.
 - The Feed **+** opens a sheet: Breast (L / R) or Bottle.
 - Running sessions sit at the top as cards with inline controls (switch side, pause, stop).
-- When feed reminders are on (Settings → Tracking → Feed reminders: Off, 2h, 2h 30m, 3h, 3h 30m, 4h), a line under the running cards says "Next feed due in 42m · Left side next", "Feed due now" or "Overdue 10m" (caution tone), counted from the start of the latest breast or bottle feed. It's hidden while a breastfeed is running, and during the night window when Feed reminders → At night is set to Quiet.
+- When feed reminders are on (Settings → Tracking → Feed reminders: Off, 2h, 2h 30m, 3h, 3h 30m, 4h), a line under the running cards says "Next feed due in 42m · around 3:02 pm · Left side next", "Feed due now" or "Overdue 10m · was due 3:02 pm" (caution tone), counted from the start of the latest breast or bottle feed. It's hidden while a breastfeed is running, and during the night window when Feed reminders → At night is set to Quiet.
 - Quick-add nappy (backlog): long-press the Nappy **+** for one-tap Wet / Dirty / Both using the last-used details, with undo.
 
 ## 3. Category list (one design, configured per tracker)
@@ -133,6 +133,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 - Start → if a nap is running, show the "End nap?" sheet first (Stage 2).
 - Done → "Start nap?" sheet with "now" or "at feed end" (Stage 2).
 - Starting a nap while a breastfeed is running shows an "End feed?" sheet: "End feed" (at the nap's start) or "Keep feeding". A running pump is left alone.
+- Forgot to start the other side? On the live session page, the idle row just before the current side has a **−** button. Each tap takes a minute off by starting the current side a minute earlier, never before the previous side ended (`set_switch_time`).
 - "Ended earlier?" under Finish (on every running feed, pump and nap card) offers 5, 10, 15 and 30 min ago plus a time picker. The end can't be in the future, or before the nap started, the current side started, or (when paused) the last side finished; picks that would break that are disabled. A backdated end closes the open side at that time.
 
 ## 5. Feed session detail / edit
@@ -151,6 +152,8 @@ Content (breast milk / formula / mixed / other) as a segmented control. Amount s
 A big timer with Start/Stop. "Started earlier?" lets you adjust the start time. Location chips (cot, bassinet, pram, car, contact, nursing). Optional "how it went" (fell asleep fast / took a while, woke on their own / woken). Manual entry with start and end pickers.
 
 **Pause nap / Resume nap** sit beside End nap. Pausing marks the baby awake (the card reads "Awake · nap paused"); resuming starts a new stretch of sleep. The big timer shows time asleep, with "awake 12m · 2 wake-ups" beside it once there's been a pause. Lists show the asleep time with "2 wake-ups" and "awake 12m" chips, totals and stats count only time asleep, and the day timeline draws the awake gaps as a dashed outline. Stopping a paused nap ends it when it was paused, and paused naps are auto-ended by the same "Auto-end paused sessions after" setting as feeds.
+
+Naps have a **Session** list like feeds: Asleep and Awake rows with "Total asleep · awake" underneath. It's shown on the live nap screen, on a finished nap's page, and in the nap edit form. On a live nap, the Awake row just before the current stretch has a **−** that takes a minute off (sleep resumed a minute earlier, `set_switch_time`). In the edit form every wake-up has **−** and a delete button, and "Add a wake-up" adds ten minutes awake in the middle of the longest stretch. Stretches that end up touching join into one, and only real gaps count as wake-ups.
 
 While a nap is running, its timer screen has a **Details** card under the timer: where, how long it took to fall asleep, mood going down, mood on waking, woken by a carer, and notes. Each change saves straight away without stopping the timer (notes save when the field is left), and shows up live for other caregivers. The end-of-nap edit screen still offers end mood and "woken by a carer".
 

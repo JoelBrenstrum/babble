@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applySessionAction,
+  canMoveSwitch,
   discardNeedsConfirmation,
   earlierEnd,
   earlierStart,
@@ -9,6 +10,8 @@ import {
   sessionNoun,
   startChangeError,
   suggestedEnd,
+  switchChangeError,
+  trimIdleSwitch,
 } from './session-actions';
 import { makeEvent } from './test-events';
 
@@ -178,5 +181,102 @@ describe('ending a running session earlier', () => {
     );
     expect(endChangeError(paused, '2026-10-06T09:50:00Z', NOW)).toBe("The end can't be before the last side finished.");
     expect(endChangeError(nap, 'nonsense', NOW)).toBe('Pick an end time.');
+  });
+});
+
+describe('moving a switch earlier', () => {
+  const forgotAfterPause = makeEvent('breast_feed', {
+    startedAt: '2026-10-06T09:50:00Z',
+    endedAt: null,
+    sessionState: 'running',
+    segments: [
+      { side: 'left', startedAt: '2026-10-06T09:50:00Z', endedAt: '2026-10-06T10:00:00Z' },
+      { side: 'right', startedAt: '2026-10-06T10:15:00Z', endedAt: null },
+    ],
+  });
+  const tappedLate = makeEvent('breast_feed', {
+    startedAt: '2026-10-06T09:50:00Z',
+    endedAt: null,
+    sessionState: 'running',
+    segments: [
+      { side: 'left', startedAt: '2026-10-06T09:50:00Z', endedAt: '2026-10-06T10:18:00Z' },
+      { side: 'right', startedAt: '2026-10-06T10:18:00Z', endedAt: null },
+    ],
+  });
+
+  it('starts the second side earlier, shrinking the idle gap after a pause', () => {
+    const next = applySessionAction(forgotAfterPause, { kind: 'set-switch', at: '2026-10-06T10:01:00Z' }, NOW);
+    expect(next.type === 'breast_feed' && next.segments).toEqual([
+      { side: 'left', startedAt: '2026-10-06T09:50:00Z', endedAt: '2026-10-06T10:00:00Z' },
+      { side: 'right', startedAt: '2026-10-06T10:01:00Z', endedAt: null },
+    ]);
+  });
+
+  it('ends the first side when the second one starts if the switch was tapped late', () => {
+    const next = applySessionAction(tappedLate, { kind: 'set-switch', at: '2026-10-06T10:08:00Z' }, NOW);
+    expect(next.type === 'breast_feed' && next.segments).toEqual([
+      { side: 'left', startedAt: '2026-10-06T09:50:00Z', endedAt: '2026-10-06T10:08:00Z' },
+      { side: 'right', startedAt: '2026-10-06T10:08:00Z', endedAt: null },
+    ]);
+  });
+
+  it('explains switches that are not allowed and ignores them', () => {
+    expect(switchChangeError(tappedLate, '2026-10-06T10:08:00Z', NOW)).toBeNull();
+    expect(switchChangeError(tappedLate, '2026-10-06T10:19:00Z', NOW)).toBe('Pick a time before the switch.');
+    expect(switchChangeError(tappedLate, '2026-10-06T09:49:00Z', NOW)).toBe(
+      'The switch must be after the previous side started.',
+    );
+    expect(switchChangeError(tappedLate, '2026-10-06T10:25:00Z', NOW)).toBe("The switch can't be in the future.");
+    expect(switchChangeError(running, '2026-10-06T10:05:00Z', NOW)).toBe("There's no switch to move yet.");
+    expect(applySessionAction(tappedLate, { kind: 'set-switch', at: '2026-10-06T09:40:00Z' }, NOW)).toBe(tappedLate);
+  });
+
+  it('only offers the move on running feeds and pumps that have switched', () => {
+    expect(canMoveSwitch(tappedLate)).toBe(true);
+    expect(canMoveSwitch(running)).toBe(false);
+    expect(canMoveSwitch({ ...tappedLate, endedAt: '2026-10-06T10:20:00Z' })).toBe(false);
+    expect(canMoveSwitch(makeEvent('sleep', { endedAt: null }))).toBe(false);
+    expect(
+      canMoveSwitch(
+        makeEvent('sleep', {
+          endedAt: null,
+          segments: [
+            { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:40:00Z' },
+            { startedAt: '2026-10-06T09:50:00Z', endedAt: null },
+          ],
+        }),
+      ),
+    ).toBe(true);
+  });
+
+  it('trims a minute of idle at a time, and never past the end of the previous side', () => {
+    expect(trimIdleSwitch(forgotAfterPause, NOW)).toBe('2026-10-06T10:14:00.000Z');
+    const nearlyClosed = applySessionAction(forgotAfterPause, { kind: 'set-switch', at: '2026-10-06T10:00:30Z' }, NOW);
+    expect(trimIdleSwitch(nearlyClosed, NOW)).toBe('2026-10-06T10:00:00.000Z');
+    expect(trimIdleSwitch(tappedLate, NOW)).toBeNull();
+    expect(trimIdleSwitch(running, NOW)).toBeNull();
+  });
+});
+
+describe('taking awake time off a live nap', () => {
+  const resumed = makeEvent('sleep', {
+    startedAt: '2026-10-06T09:00:00Z',
+    endedAt: null,
+    sessionState: 'running',
+    segments: [
+      { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:40:00Z' },
+      { startedAt: '2026-10-06T09:50:00Z', endedAt: null },
+    ],
+  });
+
+  it('resumes sleep a minute earlier each time, down to when the baby woke', () => {
+    expect(trimIdleSwitch(resumed, NOW)).toBe('2026-10-06T09:49:00.000Z');
+    const next = applySessionAction(resumed, { kind: 'set-switch', at: '2026-10-06T09:49:00.000Z' }, NOW);
+    expect(next.type === 'sleep' && next.segments).toEqual([
+      { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:40:00Z' },
+      { startedAt: '2026-10-06T09:49:00.000Z', endedAt: null },
+    ]);
+    const almost = applySessionAction(resumed, { kind: 'set-switch', at: '2026-10-06T09:40:20Z' }, NOW);
+    expect(trimIdleSwitch(almost, NOW)).toBe('2026-10-06T09:40:00.000Z');
   });
 });

@@ -1,3 +1,4 @@
+import { stretchesError } from './awake-periods';
 import type { EventDraft } from './types';
 
 export type DraftErrors = Partial<Record<string, string>>;
@@ -61,8 +62,11 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
         }
       }
       break;
-    case 'sleep':
+    case 'sleep': {
+      const awake = draft.endedAt ? stretchesError(draft.segments, draft.startedAt, draft.endedAt) : null;
+      if (awake) errors.awake = awake;
       break;
+    }
   }
 
   return errors;

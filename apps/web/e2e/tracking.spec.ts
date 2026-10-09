@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, uniqueEmail } from './helpers';
+import { onboard, signIn, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
@@ -189,4 +189,25 @@ test('a nap can be paused and resumed, and shows its wake-ups', async ({ page },
   await expect(page.getByRole('heading', { name: 'Sleep' })).toBeVisible();
   await page.goto('/track/sleep');
   await expect(page.getByText('1 wake-up').filter({ visible: true }).first()).toBeVisible();
+});
+
+test('awake time on a live nap can be taken off a minute at a time', async ({ page }, testInfo) => {
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
+  await onboard(page);
+  await page.getByRole('link', { name: 'Log sleep' }).click();
+  await page.getByRole('button', { name: /start sleep now/i }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+  await page.getByRole('button', { name: 'Pause nap' }).click();
+  await expect(page.getByText('Awake · nap paused')).toBeVisible();
+  await page.waitForTimeout(2000);
+  await page.getByRole('button', { name: 'Resume nap' }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+
+  if (!/\/sessions\//.test(page.url())) await page.getByRole('link', { name: 'Open' }).first().click();
+  await expect(page.getByText('Awake', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Take a minute off wake-up 1' }).click();
+  await expect(page.getByText('Awake', { exact: true })).toHaveCount(0);
+  await page.reload();
+  await expect(page.getByText('Asleep', { exact: true })).toBeVisible();
+  await expect(page.getByText('Awake', { exact: true })).toHaveCount(0);
 });

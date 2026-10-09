@@ -50,3 +50,31 @@ Paste everything below this line into Claude Design.
 > - **Privacy policy and Terms of use:** a readable single column (max ~65ch) with the wordmark, a title, "Last updated 9 October 2026", section headings, short paragraphs and bullet lists, and "Back to babble" at the end.
 > - **Sign-in:** a meta ink-2 line under the form: "By continuing you agree to the Terms of use and Privacy policy." with both as links. **Settings:** an "About" section at the bottom with "Privacy policy" and "Terms of use" rows.
 
+---
+
+## 2026-10-09 · Take idle time off a live feed
+
+Paste everything below this line into Claude Design.
+
+> On the live session page's breakdown (`Screen.dc.html` timer, the "Session" card under the running breastfeed or pump), the Downtime row directly above the current side gets a small round 40px button on the far right after the duration: `raised` background, 1px `line` border, Lucide `minus` in ink. Tapping it takes a minute off the idle (the current side starts a minute earlier), and the row disappears once the gap is gone. Older idle rows and the "idle · counting" row while paused don't get it. Light and dark.
+
+---
+
+## 2026-10-09 · Nap session list with wake-ups
+
+Paste everything below this line into Claude Design.
+
+> Naps get the same "Session" breakdown card as feeds (`Phone Sleep.dc.html` running/paused/resumed, the finished nap page, and the nap edit form in `Phone Forms.dc.html`). Light and dark.
+>
+> - Rows: "Asleep" with a solid `sleep` dot and the stretch length, and "Awake" with the dashed `session-downtime` dot and its length. The current stretch shows "sleeping" (`on-sleep`), and while paused the last row reads "awake · counting". Footer: "Total asleep 1h 40m" and "awake 12m" on the right.
+> - Live nap: the Awake row right above the current stretch has the round 40px **−** button (`raised`, `line` border, Lucide `minus`) that takes a minute off.
+> - Edit form: under "Wake-ups", the same card where every Awake row has **−** and a small Lucide `trash-2` delete button, followed by an "Add a wake-up" chip button with a plus. The separate Duration box only shows when there are no wake-ups.
+
+
+---
+
+## 2026-10-09 · Feed due line shows the time
+
+Paste everything below this line into Claude Design.
+
+> The Home feed due line (info status, `icon-clock`) now includes the clock time in the baby's time zone: "Next feed due in 42m · around 3:02 pm · Left side next". When overdue it uses the caution tone: "Overdue 10m · was due 3:02 pm · Left side next". "Feed due now" stays as it is. Check it wraps cleanly to two lines at 320px, light and dark.

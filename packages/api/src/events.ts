@@ -345,6 +345,11 @@ export async function endSession(client: BabbleClient, eventId: string, endAt?: 
   if (error) throw toBabbleError(error);
 }
 
+export async function setSwitchTime(client: BabbleClient, eventId: string, switchAt: string): Promise<void> {
+  const { error } = await client.rpc('set_switch_time', { target_event_id: eventId, switch_at: switchAt });
+  if (error) throw toBabbleError(error);
+}
+
 export async function setSessionStart(client: BabbleClient, eventId: string, startAt: string): Promise<void> {
   const { error } = await client.rpc('set_session_start', { target_event_id: eventId, start_at: startAt });
   if (error) throw toBabbleError(error);

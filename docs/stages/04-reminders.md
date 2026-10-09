@@ -7,7 +7,7 @@ The stage ships in three phases so each one is usable on its own.
 ## Phase A: due time in the app (no new infrastructure) · done
 
 - `nextFeedDue(events, settings)` in `domain`: `due = started_at of the latest breast or bottle feed + interval`. `null` while a breastfeed is running, when there's no feed yet, or when reminders are off.
-- `feedDueText(due, now)`: "Next feed due in 42m", "Feed due now" (within a minute), "Overdue 10m", each with "· Left side next" once a breastfeed has been logged (from `nextBreastSide`).
+- `feedDueText(due, now, timeZone)`: "Next feed due in 42m · around 3:02 pm", "Feed due now" (within a minute), "Overdue 10m · was due 3:02 pm", each with "· Left side next" once a breastfeed has been logged (from `nextBreastSide`). The time is in the baby's time zone.
 - Settings → Tracking, per baby (`baby_settings.feed_reminder_enabled`, `feed_reminder_interval_min`): one "Feed reminders" chip row, Off · 2h · 2h 30m · 3h · 3h 30m · 4h.
 - "At night: Remind / Quiet" under Feed reminders (`baby_settings.feed_reminder_at_night`, default Remind). Quiet hides the due line during the baby's night window; in Phase B it also stops night notifications.
 - Home shows the due line between the running cards and the day summary on both apps, updating every 30s. Overdue uses the caution tone.

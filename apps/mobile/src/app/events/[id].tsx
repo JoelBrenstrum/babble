@@ -21,6 +21,7 @@ import { TrackerIcon } from '@/components/tracker-icon';
 import { EventForm, toDraft } from '@/features/events/event-form';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
+import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { Button } from '@/components/button';
 import { useTrackingSettings } from '@/lib/use-events';
@@ -93,6 +94,11 @@ function EditEventContent({
             now={now}
             noun={event.data.type === 'pump' ? 'pumping' : 'feeding'}
           />
+        </View>
+      )}
+      {event.data.type === 'sleep' && event.data.segments.length > 0 && (
+        <View className="mb-4">
+          <NapBreakdown nap={event.data} now={now} />
         </View>
       )}
       {canResumeFeed(event.data, latestFeed(latest)?.id, running) && (

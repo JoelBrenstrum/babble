@@ -573,6 +573,7 @@ export type Database = {
       save_sleep_details: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       server_time: { Args: Record<PropertyKey, never>; Returns: string };
       set_session_start: { Args: { start_at: string; target_event_id: string }; Returns: undefined };
+      set_switch_time: { Args: { switch_at: string; target_event_id: string }; Returns: undefined };
       start_session: {
         Args: {
           session_type: Database['public']['Enums']['event_type'];

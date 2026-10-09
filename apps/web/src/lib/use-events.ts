@@ -8,6 +8,7 @@ import {
   restoreEvent,
   resumeSession,
   setSessionStart,
+  setSwitchTime,
   runningEventsQuery,
   saveEvent,
   saveSleepDetails,
@@ -140,6 +141,8 @@ export function useSessionAction(client: BabbleClient, babyId: string) {
           return endSession(client, event.id, action.at);
         case 'set-start':
           return setSessionStart(client, event.id, action.startedAt);
+        case 'set-switch':
+          return setSwitchTime(client, event.id, action.at);
       }
     },
     onMutate: async ({ event, action }) => {

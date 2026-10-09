@@ -1,4 +1,5 @@
 import { formatDuration, summariseSegments, type TimedSegment } from '@babble/domain';
+import { Minus } from 'lucide-react';
 import { Card } from '#/components/ui/card';
 import { cn } from '#/lib/cn';
 
@@ -8,16 +9,19 @@ export function SessionBreakdown({
   now,
   paused = false,
   noun = 'feeding',
+  onTrimIdle,
 }: {
   segments: readonly TimedSegment[];
   mergeGapMs: number;
   now: Date;
   paused?: boolean;
   noun?: 'feeding' | 'pumping';
+  onTrimIdle?: () => void;
 }) {
   const lastEnd = segments.at(-1)?.endedAt ?? null;
   const summary = summariseSegments(segments, { mergeGapMs, now, pausedSince: paused ? lastEnd : null });
   if (summary.rows.length === 0) return null;
+  const trimmableIndex = summary.rows.at(-1)?.kind === 'side' ? summary.rows.length - 2 : -1;
 
   return (
     <Card className="divide-y divide-line">
@@ -47,6 +51,16 @@ export function SessionBreakdown({
             </span>
           )}
           <span className="tabular w-24 text-right text-body">{formatDuration(row.durationMs)}</span>
+          {onTrimIdle && row.kind === 'downtime' && index === trimmableIndex && (
+            <button
+              type="button"
+              aria-label="Take a minute off the idle time"
+              onClick={onTrimIdle}
+              className="-my-1 -mr-2 grid size-10 shrink-0 place-items-center rounded-full border border-line bg-raised text-ink hover:border-ink-3"
+            >
+              <Minus className="size-4" strokeWidth={3} />
+            </button>
+          )}
         </div>
       ))}
       <div className="flex items-baseline justify-between px-4 py-3 text-meta text-ink-2">

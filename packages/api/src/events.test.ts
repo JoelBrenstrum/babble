@@ -12,6 +12,7 @@ import {
   endSession,
   saveEvent,
   saveSleepDetails,
+  setSwitchTime,
   startSession,
   switchSide,
   type EventRow,
@@ -254,6 +255,14 @@ describe('event requests', () => {
     expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
       ['/rest/v1/rpc/end_session', { target_event_id: 'nap-1', end_at: '2026-10-06T09:00:00Z' }],
       ['/rest/v1/rpc/resume_feed', { target_event_id: 'feed-1' }],
+    ]);
+  });
+
+  it('moves a switch earlier', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await setSwitchTime(client, 'feed-1', '2026-10-06T09:05:00Z');
+    expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
+      ['/rest/v1/rpc/set_switch_time', { target_event_id: 'feed-1', switch_at: '2026-10-06T09:05:00Z' }],
     ]);
   });
 

@@ -10,6 +10,7 @@ import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm, toDraft } from '#/features/events/event-form';
 import { canResumeFeed, importedNote, isSessionType, latestFeed, pumpFinishSummary, trackerFor } from '@babble/domain';
 import { useTrackingSettings } from '#/lib/use-events';
+import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { Button } from '#/components/ui/button';
 import { useNow } from '#/lib/use-now';
@@ -94,6 +95,7 @@ function EditEvent() {
           noun={event.data.type === 'pump' ? 'pumping' : 'feeding'}
         />
       )}
+      {event.data.type === 'sleep' && event.data.segments.length > 0 && <NapBreakdown nap={event.data} now={now} />}
       {canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
         <div className="flex flex-col gap-2">
           <Button

@@ -101,6 +101,10 @@ export {
   earlierStart,
   earliestEnd,
   endChangeError,
+  canMoveSwitch,
+  IDLE_TRIM_STEP_MS,
+  switchChangeError,
+  trimIdleSwitch,
   sessionNoun,
   startChangeError,
   suggestedEnd,
@@ -205,7 +209,10 @@ export {
   asleepIntervals,
   asleepWithin,
   fitStretches,
+  napRows,
   summariseSleep,
+  type NapLike,
+  type NapRow,
   type SleepSummary,
 } from './events/sleep-stretches';
 export {
@@ -218,3 +225,12 @@ export {
   withoutPumpAmounts,
   type RunningTone,
 } from './events/session-context';
+export {
+  awakePeriods,
+  napDurationText,
+  newAwakePeriod,
+  stretchesError,
+  stretchesWithAwake,
+  trimAwakePeriod,
+  type AwakePeriod,
+} from './events/awake-periods';

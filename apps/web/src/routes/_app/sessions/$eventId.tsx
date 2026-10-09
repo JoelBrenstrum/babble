@@ -1,5 +1,5 @@
-import { eventQuery, runningEventsQuery, toBabbleError } from '@babble/api';
-import { formatTimeOfDay } from '@babble/domain';
+import { clock, eventQuery, runningEventsQuery, toBabbleError } from '@babble/api';
+import { formatTimeOfDay, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
@@ -7,9 +7,10 @@ import { Card, SectionLabel } from '#/components/ui/card';
 import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { RunningCard } from '#/features/events/running-card';
+import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { SleepDetailsEditor } from '#/features/events/sleep-details-editor';
-import { useTrackingSettings } from '#/lib/use-events';
+import { useSessionAction, useTrackingSettings } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 
 export const Route = createFileRoute('/_app/sessions/$eventId')({ component: SessionPage });
@@ -22,6 +23,7 @@ function SessionPage() {
   const now = useNow(1000);
   const navigate = useNavigate();
   const { mergeGapMs } = useTrackingSettings(babble.client, baby.id);
+  const action = useSessionAction(babble.client, baby.id);
   const event = running.data?.find((item) => item.id === eventId) ?? fallback.data;
 
   if (!event) {
@@ -51,6 +53,7 @@ function SessionPage() {
   if (event.endedAt !== null) return <Navigate to="/events/$eventId" params={{ eventId }} replace />;
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
+  const trimTo = trimIdleSwitch(event, clock.now());
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
@@ -79,6 +82,18 @@ function SessionPage() {
           </Card>
         </section>
       )}
+      {event.type === 'sleep' && event.segments.length > 0 && (
+        <section className="flex flex-col gap-2">
+          <SectionLabel>Session</SectionLabel>
+          <NapBreakdown
+            nap={event}
+            now={now}
+            onTrimAwake={
+              trimTo ? () => action.mutate({ event, action: { kind: 'set-switch', at: trimTo } }) : undefined
+            }
+          />
+        </section>
+      )}
       {segments.length > 0 && (
         <section className="flex flex-col gap-2">
           <SectionLabel>Session</SectionLabel>
@@ -88,6 +103,7 @@ function SessionPage() {
             now={now}
             paused={!segments.some((segment) => segment.endedAt === null)}
             noun={event.type === 'pump' ? 'pumping' : 'feeding'}
+            onTrimIdle={trimTo ? () => action.mutate({ event, action: { kind: 'set-switch', at: trimTo } }) : undefined}
           />
         </section>
       )}

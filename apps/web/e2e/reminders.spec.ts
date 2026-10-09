@@ -1,16 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, uniqueEmail } from './helpers';
+import { onboard, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 test('home shows when the next feed is due once reminders are on', async ({ page }, testInfo) => {
-  await page.goto('/sign-in');
-  await page.getByRole('radio', { name: 'Create account' }).click();
-  await page.getByLabel('Email').fill(uniqueEmail('john', testInfo.project.name));
-  await page.getByLabel('Password').fill('correct horse battery');
-  await page.getByRole('button', { name: 'Create account' }).click();
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
   await onboard(page);
 
   await page.getByRole('link', { name: 'Log bottle' }).click();
@@ -24,5 +20,7 @@ test('home shows when the next feed is due once reminders are on', async ({ page
   await expect(page.getByRole('checkbox', { name: '3h', exact: true })).toHaveAttribute('aria-checked', 'true');
 
   await page.getByRole('link', { name: 'Home' }).filter({ visible: true }).click();
-  await expect(page.getByRole('status').filter({ hasText: /Next feed due in (2h 59m|3h 00m)/ })).toBeVisible();
+  await expect(
+    page.getByRole('status').filter({ hasText: /Next feed due in (2h 59m|3h 00m) · around \d{1,2}:\d{2} [ap]m/ }),
+  ).toBeVisible();
 });

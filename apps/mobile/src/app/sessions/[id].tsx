@@ -1,5 +1,5 @@
-import { eventQuery, runningEventsQuery } from '@babble/api';
-import { formatTimeOfDay } from '@babble/domain';
+import { clock, eventQuery, runningEventsQuery } from '@babble/api';
+import { formatTimeOfDay, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -7,9 +7,10 @@ import { Card, SectionLabel } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
 import { RunningCard } from '@/features/events/running-card';
+import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
-import { useTrackingSettings } from '@/lib/use-events';
+import { useSessionAction, useTrackingSettings } from '@/lib/use-events';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useNow } from '@/lib/use-now';
@@ -29,6 +30,7 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
   const fallback = useQuery({ ...eventQuery(client, baby.id, id), enabled: running.isSuccess });
   const now = useNow(1000);
   const { mergeGapMs } = useTrackingSettings(client, baby.id);
+  const action = useSessionAction(client, baby.id);
   const spinnerColor = useTokenColor('--primary');
   const event = running.data?.find((item) => item.id === id) ?? fallback.data;
 
@@ -37,6 +39,7 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
   if (event.endedAt !== null) return <Redirect href={`/events/${id}`} />;
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
+  const trimTo = trimIdleSwitch(event, clock.now());
   const title = event.type === 'sleep' ? 'Sleep' : event.type === 'pump' ? 'Pump' : 'Breastfeed';
 
   return (
@@ -64,6 +67,18 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
             </Card>
           </View>
         )}
+        {event.type === 'sleep' && event.segments.length > 0 && (
+          <View className="gap-2">
+            <SectionLabel>Session</SectionLabel>
+            <NapBreakdown
+              nap={event}
+              now={now}
+              onTrimAwake={
+                trimTo ? () => action.mutate({ event, action: { kind: 'set-switch', at: trimTo } }) : undefined
+              }
+            />
+          </View>
+        )}
         {segments.length > 0 && (
           <View className="gap-2">
             <SectionLabel>Session</SectionLabel>
@@ -73,6 +88,9 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
               now={now}
               paused={!segments.some((segment) => segment.endedAt === null)}
               noun={event.type === 'pump' ? 'pumping' : 'feeding'}
+              onTrimIdle={
+                trimTo ? () => action.mutate({ event, action: { kind: 'set-switch', at: trimTo } }) : undefined
+              }
             />
           </View>
         )}

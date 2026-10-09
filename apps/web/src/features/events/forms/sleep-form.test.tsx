@@ -25,4 +25,18 @@ describe('SleepForm', () => {
     fireEvent.change(screen.getByLabelText('Woke up'), { target: { value: '2026-10-06T01:00' } });
     expect(screen.queryByText('Duration')).not.toBeInTheDocument();
   });
+
+  it('adds wake-ups, trims them a minute at a time and removes them', () => {
+    render(<Harness />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add a wake-up' }));
+    expect(screen.getByText('Awake')).toBeInTheDocument();
+    expect(screen.getByText('awake 10m 00s')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Take a minute off wake-up 1' }));
+    expect(screen.getByText('awake 9m 00s')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove wake-up 1' }));
+    expect(screen.getByText('Duration')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Remove wake-up 1' })).toBeNull();
+  });
 });
