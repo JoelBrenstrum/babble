@@ -13,6 +13,7 @@ const settings: BabySettingsRow = {
   auto_end_paused_session_min: 30,
   feed_reminder_enabled: false,
   feed_reminder_interval_min: null,
+  feed_reminder_at_night: true,
   updated_at: '2026-10-01T00:00:00Z',
 };
 

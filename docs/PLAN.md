@@ -68,3 +68,14 @@ Each stage ends with something usable on both apps. A stage's plan is fleshed ou
 - Data export: JSON done (Settings → Data). CSV still to come.
 - Billing + entitlements (hosted product only)
 - Marketing site (can live in the TanStack Start app)
+
+### Expo app, to pick up later
+
+The web app (and PWA) leads for now. When work moves back to the native app:
+
+- Do a device build: nothing since the last build has been checked on a phone, and the app is only verified by typecheck, unit tests and bundling. Add Maestro tests.
+- Feed reminders, Stage 4 Phase C: Expo push tokens, the sender posting to the Expo push service, local notifications as an offline backup, and Firebase Cloud Messaging credentials in EAS for Android.
+- Account parity with web: change password, the choose-a-new-password screen for recovery links, and the "Continue as…?" check when a sign-in link is for a different account than the one signed in (today the app switches silently).
+- "Copy code" on the invite panel (needs the `expo-clipboard` native module).
+- Swipe to delete on list rows, with undo.
+- Apple sign-in and an iOS build once there's an Apple Developer account.

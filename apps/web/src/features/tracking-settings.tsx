@@ -1,8 +1,9 @@
 import { babySettingsQuery, queryKeys, toBabbleError, updateBabySettings, type BabbleClient } from '@babble/api';
-import { clockToMinutes, type Units } from '@babble/domain';
+import { clockToMinutes, feedReminderChoice, feedReminderOptions, feedReminderPatch, type Units } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Card, SectionLabel } from '#/components/ui/card';
+import { SingleChips } from '#/components/ui/chips';
 import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
 import { Stepper } from '#/components/ui/stepper';
@@ -50,6 +51,33 @@ export function TrackingSettings({
               ]}
             />
           </div>
+          <div className="flex flex-col gap-1">
+            <SingleChips
+              label="Feed reminders"
+              options={feedReminderOptions(settings)}
+              value={feedReminderChoice(settings)}
+              allowNone={false}
+              onChange={(choice) => save(feedReminderPatch(choice))}
+            />
+            <p className="text-meta text-ink-2">
+              Home shows when the next feed is due, counted from the start of the last feed.
+            </p>
+          </div>
+          {settings.feed_reminder_enabled && (
+            <div className="flex flex-col gap-2">
+              <span className="text-label font-semibold">At night</span>
+              <Segmented<'remind' | 'quiet'>
+                label="Feed reminders at night"
+                value={settings.feed_reminder_at_night ? 'remind' : 'quiet'}
+                onChange={(choice) => save({ feed_reminder_at_night: choice === 'remind' })}
+                options={[
+                  { value: 'remind', label: 'Remind' },
+                  { value: 'quiet', label: 'Quiet' },
+                ]}
+              />
+              <p className="text-meta text-ink-2">Quiet hides feed reminders during the night set below.</p>
+            </div>
+          )}
           <div className="flex flex-col gap-1">
             <Stepper
               label="Ignore gaps shorter than"

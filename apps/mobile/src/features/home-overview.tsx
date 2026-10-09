@@ -11,7 +11,7 @@ import {
   type Units,
 } from '@babble/domain';
 import { Link } from 'expo-router';
-import { Plus } from 'lucide-react-native';
+import { AlarmClock, Plus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BabyHeader } from '@/components/baby-header';
@@ -41,6 +41,7 @@ export function HomeOverview({
   renderRunning,
   choices,
   onSelectBaby,
+  feedDue = null,
 }: {
   choices?: readonly BabyChoice[];
   onSelectBaby?: (choice: BabyChoice) => void;
@@ -52,14 +53,29 @@ export function HomeOverview({
   units: Units;
   now: Date;
   renderRunning: (event: BabyEvent) => ReactNode;
+  feedDue?: { text: string; overdue: boolean } | null;
 }) {
   const iconColor = useTokenColor('--ink');
+  const dueColor = useTokenColor(feedDue?.overdue ? '--on-caution' : '--on-feed-right');
   return (
     <View className="gap-4">
       <BabyHeader family={family} baby={baby} choices={choices} onSelect={onSelectBaby} />
       {running.map((event) => (
         <View key={event.id}>{renderRunning(event)}</View>
       ))}
+      {feedDue && (
+        <View
+          accessibilityRole="text"
+          className={`flex-row items-center gap-3 rounded-card px-4 py-3 ${feedDue.overdue ? 'bg-caution-soft' : 'bg-feed-right-soft'}`}
+        >
+          <AlarmClock color={dueColor} size={20} strokeWidth={2.75} />
+          <Text
+            className={`flex-1 font-semibold text-body ${feedDue.overdue ? 'text-on-caution' : 'text-on-feed-right'}`}
+          >
+            {feedDue.text}
+          </Text>
+        </View>
+      )}
       <Card className="flex-row">
         {[
           ['Sleep today', summary ? formatDuration(summary.sleepMs, { seconds: false }) : '—'],

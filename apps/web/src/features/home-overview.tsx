@@ -11,10 +11,11 @@ import {
   type Units,
 } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
-import { Plus } from 'lucide-react';
+import { AlarmClock, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Card } from '#/components/ui/card';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
+import { cn } from '#/lib/cn';
 
 export interface HomeOverviewProps {
   baby: BabyRow;
@@ -24,6 +25,7 @@ export interface HomeOverviewProps {
   units: Units;
   now: Date;
   renderRunning: (event: BabyEvent) => ReactNode;
+  feedDue?: { text: string; overdue: boolean } | null;
 }
 
 export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units, timeZone: string): string {
@@ -38,7 +40,16 @@ export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units
   return `Last ${formatAgo(now.getTime() - Date.parse(reference))}${detail ? ` · ${detail}` : ''}`;
 }
 
-export function HomeOverview({ baby, running, latest, summary, units, now, renderRunning }: HomeOverviewProps) {
+export function HomeOverview({
+  baby,
+  running,
+  latest,
+  summary,
+  units,
+  now,
+  renderRunning,
+  feedDue = null,
+}: HomeOverviewProps) {
   return (
     <div className="flex flex-col gap-6">
       <div className="hidden md:block">
@@ -49,6 +60,19 @@ export function HomeOverview({ baby, running, latest, summary, units, now, rende
       {running.map((event) => (
         <div key={event.id}>{renderRunning(event)}</div>
       ))}
+
+      {feedDue && (
+        <p
+          role="status"
+          className={cn(
+            'flex items-center gap-3 rounded-card px-4 py-3 text-body font-semibold',
+            feedDue.overdue ? 'bg-caution-soft text-on-caution' : 'bg-feed-right-soft text-on-feed-right',
+          )}
+        >
+          <AlarmClock aria-hidden className="size-5 shrink-0" strokeWidth={2.75} />
+          {feedDue.text}
+        </p>
+      )}
 
       <Card className="grid grid-cols-3 divide-x divide-line">
         {[

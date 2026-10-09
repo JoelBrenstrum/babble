@@ -1,5 +1,5 @@
-import { eventsSinceQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
-import { dayKeyFor, dayWindow, summariseDay } from '@babble/domain';
+import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { dayKeyFor, dayWindow, feedDueText, feedRemindersQuiet, nextFeedDue, summariseDay } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Screen } from '@/components/screen';
 import { RunningCard } from '@/features/events/running-card';
@@ -29,6 +29,11 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
   const running = useQuery(runningEventsQuery(client, baby.id));
   const latest = useQuery(latestEventsQuery(client, baby.id));
   const recent = useQuery(eventsSinceQuery(client, baby.id, since));
+  const settings = useQuery(babySettingsQuery(client, baby.id)).data;
+  const due =
+    settings && !feedRemindersQuiet(settings, now, baby.timezone)
+      ? nextFeedDue([...(latest.data ?? []), ...(running.data ?? [])], settings)
+      : null;
   const { choices } = useOnboarding();
   const active = useActiveBaby();
 
@@ -41,6 +46,7 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
         units={units}
         running={running.data ?? []}
         latest={latest.data ?? []}
+        feedDue={due ? feedDueText(due, now) : null}
         summary={recent.data ? summariseDay(recent.data, { start: window.start, end: now }) : null}
         choices={choices}
         onSelectBaby={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}

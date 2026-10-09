@@ -52,6 +52,7 @@ export type Database = {
           auto_end_paused_session_min: number;
           baby_id: string;
           downtime_merge_threshold_sec: number;
+          feed_reminder_at_night: boolean;
           feed_reminder_enabled: boolean;
           feed_reminder_interval_min: number | null;
           night_end_minutes: number;
@@ -63,6 +64,7 @@ export type Database = {
           auto_end_paused_session_min?: number;
           baby_id: string;
           downtime_merge_threshold_sec?: number;
+          feed_reminder_at_night?: boolean;
           feed_reminder_enabled?: boolean;
           feed_reminder_interval_min?: number | null;
           night_end_minutes?: number;
@@ -74,6 +76,7 @@ export type Database = {
           auto_end_paused_session_min?: number;
           baby_id?: string;
           downtime_merge_threshold_sec?: number;
+          feed_reminder_at_night?: boolean;
           feed_reminder_enabled?: boolean;
           feed_reminder_interval_min?: number | null;
           night_end_minutes?: number;

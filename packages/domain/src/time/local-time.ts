@@ -22,6 +22,15 @@ function partsIn(instant: Date, timeZone: string) {
   return parts as { year: string; month: string; day: string; hour: string; minute: string };
 }
 
+export function isWithinNight(instant: Date, timeZone: string, startMinutes: number, endMinutes: number): boolean {
+  const p = partsIn(instant, timeZone);
+  const minutes = Number(p.hour) * 60 + Number(p.minute);
+  if (startMinutes === endMinutes) return false;
+  return startMinutes < endMinutes
+    ? minutes >= startMinutes && minutes < endMinutes
+    : minutes >= startMinutes || minutes < endMinutes;
+}
+
 export function toLocalInputValue(iso: string, timeZone: string): string {
   const p = partsIn(new Date(iso), timeZone);
   return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;

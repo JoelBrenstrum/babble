@@ -124,6 +124,20 @@ export {
   type NapPromptContent,
   type NapPromptOption,
 } from './events/feed-rules';
+export {
+  DEFAULT_FEED_REMINDER_INTERVAL_MIN,
+  FEED_REMINDER_INTERVALS_MIN,
+  feedDueText,
+  feedReminderChoice,
+  feedReminderOptions,
+  feedReminderPatch,
+  feedRemindersQuiet,
+  formatInterval,
+  nextFeedDue,
+  type FeedDue,
+  type FeedReminderSettings,
+  type NightReminderSettings,
+} from './events/feed-due';
 export { importedNote, summariseImport, type ImportSummary } from './huckleberry/summary';
 export {
   barAnchor,

@@ -78,6 +78,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 - Tapping a row opens the category list. **+** opens the add flow: a timer for sleep, feed and pump, a form for the others.
 - The Feed **+** opens a sheet: Breast (L / R) or Bottle.
 - Running sessions sit at the top as cards with inline controls (switch side, pause, stop).
+- When feed reminders are on (Settings → Tracking → Feed reminders: Off, 2h, 2h 30m, 3h, 3h 30m, 4h), a line under the running cards says "Next feed due in 42m · Left side next", "Feed due now" or "Overdue 10m" (caution tone), counted from the start of the latest breast or bottle feed. It's hidden while a breastfeed is running, and during the night window when Feed reminders → At night is set to Quiet.
 - Quick-add nappy (backlog): long-press the Nappy **+** for one-tap Wet / Dirty / Both using the last-used details, with undo.
 
 ## 3. Category list (one design, configured per tracker)

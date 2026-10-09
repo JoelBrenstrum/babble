@@ -1,10 +1,11 @@
 import { babySettingsQuery, queryKeys, toBabbleError, updateBabySettings, type BabbleClient } from '@babble/api';
-import { minutesToClock, type Units } from '@babble/domain';
+import { feedReminderChoice, feedReminderOptions, feedReminderPatch, minutesToClock, type Units } from '@babble/domain';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 import { Card, SectionLabel } from '@/components/card';
+import { SingleChips } from '@/components/chips';
 import { Segmented } from '@/components/segmented';
 import { StatusMessage } from '@/components/status-message';
 import { Stepper } from '@/components/stepper';
@@ -49,6 +50,33 @@ export function TrackingSettings({
             ]}
           />
         </View>
+        <View className="gap-1">
+          <SingleChips
+            label="Feed reminders"
+            options={feedReminderOptions(settings)}
+            value={feedReminderChoice(settings)}
+            onChange={(choice) => choice !== null && save(feedReminderPatch(choice))}
+          />
+          <Text className="font-sans text-meta text-ink-2">
+            Home shows when the next feed is due, counted from the start of the last feed.
+          </Text>
+        </View>
+        {settings.feed_reminder_enabled && (
+          <View className="gap-2">
+            <Text className="font-semibold text-label text-ink">At night</Text>
+            <Segmented<'remind' | 'quiet'>
+              value={settings.feed_reminder_at_night ? 'remind' : 'quiet'}
+              onChange={(choice) => save({ feed_reminder_at_night: choice === 'remind' })}
+              options={[
+                { value: 'remind', label: 'Remind' },
+                { value: 'quiet', label: 'Quiet' },
+              ]}
+            />
+            <Text className="font-sans text-meta text-ink-2">
+              Quiet hides feed reminders during the night set below.
+            </Text>
+          </View>
+        )}
         <View className="gap-1">
           <Stepper
             label="Ignore gaps shorter than"
