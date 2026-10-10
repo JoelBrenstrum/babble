@@ -78,3 +78,24 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > The Home feed due line (info status, `icon-clock`) now includes the clock time in the baby's time zone: "Next feed due in 42m · around 3:02 pm · Left side next". When overdue it uses the caution tone: "Overdue 10m · was due 3:02 pm · Left side next". "Feed due now" stays as it is. Check it wraps cleanly to two lines at 320px, light and dark.
+
+---
+
+## 2026-10-10 · Solids tracker
+
+Paste everything below this line into Claude Design.
+
+> Add a **Solids** tracker to babble, in light and dark, at 390px and 1280px. Its colour is a new `solids` token, an avocado green: `#5e7f1f` / soft `#e6efcf` / on `#3a5212` in light, and `#b5d36e` / soft `#262f14` / on `#dbe9b4` in dark. Please check it reads clearly next to `nappy` and `session-active` and refine it if needed. The icon is Lucide `carrot`.
+>
+> - **Home:** a Solids row after Bottle: "Last 3h ago · Avocado, Pear", with **+**.
+> - **Log solids form:** a "Foods" section of chips. Recent foods come first, then common first foods (Avocado, Banana, Kūmara, Pumpkin, Apple, Pear, Carrot, Egg, Yoghurt). Picked chips use `solids-soft` with an `on-solids` check. Under the chips is an "Add a food" text field with a secondary "+ Add" button, and a meta line "First try: Egg" in `on-solids` for new foods. Then "How much" single chips (A taste / Some / Lots), "Reaction" single chips (Loved it / Liked it / Not sure / Disliked it), Time and Notes. Show the "Add at least one food." error state.
+> - **Solids list:** a summary strip of Last meal · Today (meals, avg note) · Foods (count, "this week"). Rows read `4:17 pm · [Avocado, Scrambled egg] (solids pill) · [Loved it] (neutral pill)`, with "Some" on the right. The day header total is "2 meals · 3 foods".
+> - **Day timeline:** a `solids` marker in the feed lane ("Avocado +1"). The day totals get a Solids card (carrot tile) after Feeds, with Foods and Last rows, shown only on days with solids. The 7-day view gets solids ticks in the feed column.
+
+---
+
+## 2026-10-10 · Nappy prompt when a feed starts
+
+Paste everything below this line into Claude Design.
+
+> Add a fourth sheet to the feed/nap prompts in `Phone Flows.dc.html`, in the same style as `prompt-endnap`, in light and dark. Use a `nappy-soft` round tile with a Lucide `droplets` icon in `on-nappy`, the title "Change Olivia's nappy?" and the body "Log a nappy change with this feed." Buttons: a primary "Yes, log a nappy" and a ghost "Not now". It appears over the live feed timer right after a breastfeed starts, and after a bottle is saved. Show it at 390px as a bottom sheet and at 1280px as a centred dialog.

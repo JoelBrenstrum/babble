@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { describeEvent, summariseLatest } from './describe';
-import { emptyDraft } from './drafts';
+import { emptyDraft, isInstant } from './drafts';
 import { groupByDay } from './group';
 import { otherSide, segmentTotals } from './segments';
 import { makeEvent } from './test-events';
@@ -70,6 +70,17 @@ describe('validateDraft', () => {
   it('requires a custom title and a growth measurement', () => {
     expect(validateDraft(emptyDraft('custom', NOW), NOW)).toEqual({ title: 'Give it a title.' });
     expect(validateDraft(emptyDraft('growth', NOW), NOW)).toEqual({ details: 'Enter at least one measurement.' });
+  });
+
+  it('requires at least one food for solids and limits the list', () => {
+    const draft = emptyDraft('solids', NOW);
+    expect(validateDraft(draft, NOW)).toEqual({ foods: 'Add at least one food.' });
+    const withFoods = (foods: string[]) => validateDraft({ ...draft, details: { ...draft.details, foods } }, NOW);
+    expect(withFoods(['Avocado'])).toEqual({});
+    expect(withFoods(['a'.repeat(41)])).toEqual({ foods: 'Keep each food under 40 characters.' });
+    expect(withFoods(Array.from({ length: 21 }, (_, index) => `Food ${index}`))).toEqual({
+      foods: 'Add up to 20 foods.',
+    });
   });
 
   it('rejects an end before the start and times in the future', () => {
@@ -244,6 +255,24 @@ describe('describeEvent', () => {
     expect(summariseLatest(sleep, NOW, 'metric')).toBe('In progress · 1h 12m');
     const justStarted = makeEvent('custom', { startedAt: '2026-10-06T10:29:30Z', endedAt: null });
     expect(summariseLatest(justStarted, NOW, 'metric')).toBe('In progress');
+  });
+
+  it('describes solids with foods, reaction and amount', () => {
+    const solids = makeEvent('solids', {
+      details: { foods: ['Avocado', 'Pear'], amount: 'some', reaction: 'loved' },
+    });
+    expect(describeEvent(solids, NOW, 'metric')).toEqual({
+      title: 'Solids',
+      parts: [
+        { text: 'Avocado, Pear', tone: 'solids' },
+        { text: 'Loved it', tone: 'neutral' },
+      ],
+      duration: null,
+      trailing: 'Some',
+      running: false,
+    });
+    expect(summariseLatest(solids, NOW, 'metric')).toBe('Avocado, Pear');
+    expect(isInstant(solids)).toBe(true);
   });
 
   it('summarises the latest entry for the home rows', () => {

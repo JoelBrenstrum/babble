@@ -65,7 +65,7 @@ export function WeekTimeline({
                 ) : (
                   <View
                     key={item.event.id}
-                    className={`absolute inset-x-[30%] h-[3px] rounded-full ${item.event.type === 'bottle' ? 'bg-bottle' : 'bg-feed-right'}`}
+                    className={`absolute inset-x-[30%] h-[3px] rounded-full ${item.event.type === 'bottle' ? 'bg-bottle' : item.event.type === 'solids' ? 'bg-solids' : 'bg-feed-right'}`}
                     style={{ top: pct(item.startFrac) }}
                   />
                 ),

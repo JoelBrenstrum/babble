@@ -1,5 +1,5 @@
 import { weekdayLabel, type StripItem, type TotalCard, type TotalKey, type WeekRow } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react-native';
+import { Carrot, Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { Card } from '@/components/card';
 import { PooSwatch } from '@/components/poo-swatch';
@@ -7,10 +7,11 @@ import { useTokenColor } from '@/lib/theme';
 
 const TONES: Record<
   TotalKey,
-  { icon: LucideIcon; tile: string; ink: '--on-sleep' | '--on-feed-right' | '--on-nappy' | '--on-pump' }
+  { icon: LucideIcon; tile: string; ink: '--on-sleep' | '--on-feed-right' | '--on-solids' | '--on-nappy' | '--on-pump' }
 > = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep' },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft', ink: '--on-feed-right' },
+  solids: { icon: Carrot, tile: 'bg-solids-soft', ink: '--on-solids' },
   nappies: { icon: Droplets, tile: 'bg-nappy-soft', ink: '--on-nappy' },
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump' },
 };
@@ -23,6 +24,7 @@ const ROW_DOT: Record<WeekRow['key'], string> = {
   right: 'bg-feed-right',
   idle: 'border border-dashed border-session-downtime',
   bottle: 'bg-bottle',
+  solids: 'bg-solids',
   nappies: 'bg-nappy',
   pump: 'bg-pump',
 };

@@ -10,7 +10,7 @@ import { bucketByDay } from '../timeline/day-layout';
 import { isSessionType, type TrackerKey } from '../trackers';
 import { summariseSleep } from '../events/sleep-stretches';
 
-export type StripKind = 'feeds' | 'breast' | 'bottle' | 'sleep' | 'nappy' | 'pump' | 'growth' | 'custom';
+export type StripKind = 'feeds' | 'breast' | 'bottle' | 'solids' | 'sleep' | 'nappy' | 'pump' | 'growth' | 'custom';
 
 export interface StripItem {
   label: string;
@@ -42,6 +42,7 @@ const KIND_TYPES: Record<StripKind, readonly TrackerKey[]> = {
   feeds: ['breast_feed', 'bottle'],
   breast: ['breast_feed'],
   bottle: ['bottle'],
+  solids: ['solids'],
   sleep: ['sleep'],
   nappy: ['nappy'],
   pump: ['pump'],
@@ -53,6 +54,7 @@ const LAST_LABEL: Record<StripKind, string> = {
   feeds: 'Last feed',
   breast: 'Last feed',
   bottle: 'Last bottle',
+  solids: 'Last meal',
   sleep: 'Awake for',
   nappy: 'Last change',
   pump: 'Last pump',
@@ -225,6 +227,22 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
           volume,
         ),
         { label: 'Per bottle', value: bottles ? volume(ml / bottles) : '—' },
+      ];
+    }
+    case 'solids': {
+      const foods = new Set(
+        relevant.flatMap((event) =>
+          event.type === 'solids' ? event.details.foods.map((food) => food.toLocaleLowerCase()) : [],
+        ),
+      );
+      return [
+        since,
+        todayItem(
+          'Today',
+          String(today.solids),
+          average((day) => day.solids),
+        ),
+        { label: 'Foods', value: String(foods.size), note: 'this week' },
       ];
     }
     case 'sleep':

@@ -12,6 +12,7 @@ export function emptyDraft<T extends EventType>(type: T, now: Date): DraftOfType
     },
     breast_feed: { ...base, type: 'breast_feed', segments: [] },
     bottle: { ...base, type: 'bottle', details: { content: 'breast_milk', amountMl: null, amountLeftMl: null } },
+    solids: { ...base, type: 'solids', details: { foods: [], amount: null, reaction: null } },
     nappy: {
       ...base,
       type: 'nappy',
@@ -34,5 +35,5 @@ export function emptyDraft<T extends EventType>(type: T, now: Date): DraftOfType
 }
 
 export function isInstant(draft: Pick<EventDraft, 'type'>): boolean {
-  return draft.type === 'nappy' || draft.type === 'growth';
+  return draft.type === 'nappy' || draft.type === 'growth' || draft.type === 'solids';
 }

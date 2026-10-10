@@ -14,11 +14,12 @@ import { toBabbleError, unwrap } from './errors';
 type Tables = Database['public']['Tables'];
 
 export const EVENT_SELECT =
-  '*, sleep:sleep_details(*), bottle:bottle_details(*), nappy:nappy_details(*), pump:pump_details(*), growth:growth_details(*), custom:custom_details(*), session:session_details(*), segments:timed_segments(*)';
+  '*, sleep:sleep_details(*), bottle:bottle_details(*), solids:solids_details(*), nappy:nappy_details(*), pump:pump_details(*), growth:growth_details(*), custom:custom_details(*), session:session_details(*), segments:timed_segments(*)';
 
 export type EventRow = Tables['events']['Row'] & {
   sleep: Tables['sleep_details']['Row'] | null;
   bottle: Tables['bottle_details']['Row'] | null;
+  solids: Tables['solids_details']['Row'] | null;
   nappy: Tables['nappy_details']['Row'] | null;
   pump: Tables['pump_details']['Row'] | null;
   growth: Tables['growth_details']['Row'] | null;
@@ -73,6 +74,16 @@ export function rowToEvent(row: EventRow): BabyEvent {
           content: row.bottle?.content ?? 'breast_milk',
           amountMl: row.bottle?.amount_ml ?? null,
           amountLeftMl: row.bottle?.amount_left_ml ?? null,
+        },
+      };
+    case 'solids':
+      return {
+        ...meta,
+        type: 'solids',
+        details: {
+          foods: row.solids?.foods ?? [],
+          amount: row.solids?.amount ?? null,
+          reaction: row.solids?.reaction ?? null,
         },
       };
     case 'nappy':
@@ -200,6 +211,11 @@ export function draftToPayload(
           amount_ml: draft.details.amountMl,
           amount_left_ml: draft.details.amountLeftMl,
         },
+      };
+    case 'solids':
+      return {
+        ...base,
+        details: { foods: draft.details.foods, amount: draft.details.amount, reaction: draft.details.reaction },
       };
     case 'nappy':
       return {

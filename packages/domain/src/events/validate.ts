@@ -1,4 +1,5 @@
 import { stretchesError } from './awake-periods';
+import { MAX_FOOD_LENGTH, MAX_FOODS } from './foods';
 import type { EventDraft } from './types';
 
 export type DraftErrors = Partial<Record<string, string>>;
@@ -42,6 +43,15 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
       if (lengthMm !== null && (lengthMm < 200 || lengthMm > 2000)) errors.lengthMm = 'That length looks wrong.';
       if (headCircumferenceMm !== null && (headCircumferenceMm < 150 || headCircumferenceMm > 700)) {
         errors.headCircumferenceMm = 'That head size looks wrong.';
+      }
+      break;
+    }
+    case 'solids': {
+      const { foods } = draft.details;
+      if (foods.length === 0) errors.foods = 'Add at least one food.';
+      else if (foods.length > MAX_FOODS) errors.foods = `Add up to ${MAX_FOODS} foods.`;
+      else if (foods.some((food) => !food.trim() || food.length > MAX_FOOD_LENGTH)) {
+        errors.foods = `Keep each food under ${MAX_FOOD_LENGTH} characters.`;
       }
       break;
     }

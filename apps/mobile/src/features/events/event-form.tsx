@@ -26,6 +26,7 @@ import { NappyForm } from './forms/nappy-form';
 import { PumpForm } from './forms/pump-form';
 import { BreastFeedForm } from './forms/segment-form';
 import { SleepForm } from './forms/sleep-form';
+import { SolidsForm } from './forms/solids-form';
 
 export function toDraft(event: BabyEvent): EventDraft {
   const {
@@ -77,6 +78,10 @@ export function EventForm({
     ...eventListQuery(client, babyId, ['growth']),
     enabled: draft.type === 'growth',
   }).data;
+  const solidsEvents = useQuery({
+    ...eventListQuery(client, babyId, ['solids']),
+    enabled: draft.type === 'solids',
+  }).data;
 
   async function attempt(skipAmounts: boolean) {
     const target = skipAmounts ? withoutPumpAmounts(draft) : draft;
@@ -100,6 +105,9 @@ export function EventForm({
       {draft.type === 'sleep' && <SleepForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'breast_feed' && <BreastFeedForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'bottle' && <BottleForm {...common} draft={draft} onChange={setDraft} />}
+      {draft.type === 'solids' && (
+        <SolidsForm {...common} draft={draft} onChange={setDraft} history={solidsEvents ?? []} eventId={event?.id} />
+      )}
       {draft.type === 'nappy' && <NappyForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'pump' && <PumpForm {...common} draft={draft} onChange={setDraft} amountsFirst={focusAmounts} />}
       {draft.type === 'growth' && (

@@ -39,6 +39,7 @@ function row(overrides: Partial<EventRow>): EventRow {
     deleted_at: null,
     sleep: null,
     bottle: null,
+    solids: null,
     nappy: null,
     pump: null,
     growth: null,
@@ -134,6 +135,20 @@ describe('rowToEvent', () => {
     });
   });
 
+  it('maps solids details', () => {
+    const event = rowToEvent(
+      row({
+        type: 'solids',
+        solids: { event_id: 'event-1', foods: ['Avocado', 'Pear'], amount: 'lots', reaction: 'liked' },
+      }),
+    );
+    expect(event.type === 'solids' && event.details).toEqual({
+      foods: ['Avocado', 'Pear'],
+      amount: 'lots',
+      reaction: 'liked',
+    });
+  });
+
   it('fills defaults when a detail row is missing', () => {
     const event = rowToEvent(row({ type: 'growth' }));
     expect(event.type === 'growth' && event.details).toEqual({
@@ -144,7 +159,7 @@ describe('rowToEvent', () => {
   });
 
   it('round-trips every draft type through the payload', () => {
-    for (const type of ['sleep', 'breast_feed', 'bottle', 'nappy', 'pump', 'growth', 'custom'] as const) {
+    for (const type of ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'] as const) {
       const payload = draftToPayload(emptyDraft(type, NOW), { babyId: 'baby-1' });
       expect(payload).toMatchObject({ baby_id: 'baby-1', type, started_at: NOW.toISOString() });
       expect(payload).not.toHaveProperty('id');
@@ -168,6 +183,17 @@ describe('draftToPayload', () => {
       notes: null,
       segments: [{ side: 'left', started_at: '2026-10-06T09:00:00Z', ended_at: '2026-10-06T09:10:00Z' }],
       details: { left_ml: 60, right_ml: 50, total_ml: null },
+    });
+  });
+
+  it('sends solids foods, amount and reaction', () => {
+    const draft = {
+      ...emptyDraft('solids', NOW),
+      details: { foods: ['Egg'], amount: 'taste' as const, reaction: null },
+    };
+    expect(draftToPayload(draft, { babyId: 'baby-1' })).toMatchObject({
+      type: 'solids',
+      details: { foods: ['Egg'], amount: 'taste', reaction: null },
     });
   });
 

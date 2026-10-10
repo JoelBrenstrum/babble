@@ -130,6 +130,8 @@ export {
   napPromptContent,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nappyPromptOnFeedStart,
+  NAPPY_PROMPT_SKIP_MS,
   nextBreastSide,
   staleSessions,
   type NapAction,
@@ -203,7 +205,21 @@ export {
   POO_TEXTURE_LABELS,
   SIZE_LABELS,
   SLEEP_LOCATION_LABELS,
+  SOLIDS_AMOUNT_LABELS,
+  SOLIDS_REACTION_LABELS,
 } from './events/labels';
+export {
+  addFood,
+  foodSuggestions,
+  hasFood,
+  MAX_FOOD_LENGTH,
+  MAX_FOODS,
+  newFoods,
+  normaliseFood,
+  recentFoods,
+  STARTER_FOODS,
+  toggleFood,
+} from './events/foods';
 export { growthInputUnit, growthPlaceholders, toGrowthInput } from './growth/previous';
 export {
   asleepIntervals,

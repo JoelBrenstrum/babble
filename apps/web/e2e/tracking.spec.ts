@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, signUpWithPassword, uniqueEmail } from './helpers';
+import { onboard, signIn, signUpWithPassword, skipNappyPrompt, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
@@ -22,6 +22,7 @@ test('a breastfeed timer switches sides, pauses, resumes and finishes', async ({
 
   await page.getByRole('link', { name: 'Log breastfeed' }).click();
   await page.getByRole('button', { name: /start left/i }).click();
+  await skipNappyPrompt(page);
 
   await expect(page.getByText('Feeding · Left')).toBeVisible();
   await page.getByRole('button', { name: /^R Right/ }).click();

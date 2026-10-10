@@ -30,6 +30,12 @@ export async function onboard(page: Page) {
   await expect(page.getByText('Breastfeed')).toBeVisible();
 }
 
+export async function skipNappyPrompt(page: Page) {
+  const prompt = page.getByRole('dialog', { name: "Change Olivia's nappy?" });
+  await prompt.getByRole('button', { name: 'Not now' }).click();
+  await expect(prompt).toHaveCount(0);
+}
+
 export function uniqueEmail(name: string, project: string) {
   return `${name}+${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${project}@example.com`;
 }

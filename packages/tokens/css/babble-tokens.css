@@ -31,6 +31,9 @@
   --bottle: 143 108 18; /* #8f6c12 */
   --bottle-soft: 243 232 200; /* #f3e8c8 */
   --on-bottle: 95 72 8; /* #5f4808 */
+  --solids: 94 127 31; /* #5e7f1f */
+  --solids-soft: 230 239 207; /* #e6efcf */
+  --on-solids: 58 82 18; /* #3a5212 */
   --nappy: 63 127 102; /* #3f7f66 */
   --nappy-soft: 217 235 226; /* #d9ebe2 */
   --on-nappy: 31 74 58; /* #1f4a3a */
@@ -103,6 +106,9 @@
   --bottle: 220 187 98; /* #dcbb62 */
   --bottle-soft: 50 41 20; /* #322914 */
   --on-bottle: 239 220 170; /* #efdcaa */
+  --solids: 181 211 110; /* #b5d36e */
+  --solids-soft: 38 47 20; /* #262f14 */
+  --on-solids: 219 233 180; /* #dbe9b4 */
   --nappy: 134 196 168; /* #86c4a8 */
   --nappy-soft: 26 46 37; /* #1a2e25 */
   --on-nappy: 195 230 213; /* #c3e6d5 */

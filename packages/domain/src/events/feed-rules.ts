@@ -45,7 +45,8 @@ export function staleSessions(running: readonly BabyEvent[], now: Date, autoEndM
 export type NapPrompt =
   | { kind: 'end-nap'; nap: BabyEvent; feedStartedAt: string }
   | { kind: 'start-nap'; feedEndedAt: string }
-  | { kind: 'end-feed'; feed: BabyEvent; napStartedAt: string };
+  | { kind: 'end-feed'; feed: BabyEvent; napStartedAt: string }
+  | { kind: 'nappy'; feedStartedAt: string };
 
 export function napPromptOnFeedStart(running: readonly BabyEvent[], feedStartedAt: string): NapPrompt | null {
   const nap = running.find((event) => event.type === 'sleep' && event.endedAt === null);
@@ -55,6 +56,19 @@ export function napPromptOnFeedStart(running: readonly BabyEvent[], feedStartedA
 export function napPromptOnFeedEnd(running: readonly BabyEvent[], feedEndedAt: string): NapPrompt | null {
   const napRunning = running.some((event) => event.type === 'sleep' && event.endedAt === null);
   return napRunning ? null : { kind: 'start-nap', feedEndedAt };
+}
+
+export const NAPPY_PROMPT_SKIP_MS = 30 * 60_000;
+
+export function nappyPromptOnFeedStart(events: readonly BabyEvent[], feedStartedAt: string): NapPrompt | null {
+  const start = Date.parse(feedStartedAt);
+  const recent = events.some(
+    (event) =>
+      event.type === 'nappy' &&
+      !event.deletedAt &&
+      Math.abs(start - Date.parse(event.startedAt)) < NAPPY_PROMPT_SKIP_MS,
+  );
+  return recent ? null : { kind: 'nappy', feedStartedAt };
 }
 
 export function feedPromptOnNapStart(running: readonly BabyEvent[], napStartedAt: string): NapPrompt | null {
@@ -69,6 +83,7 @@ export type NapAction =
   | { kind: 'end-nap'; napId: string; at?: string }
   | { kind: 'start-nap'; at?: string }
   | { kind: 'end-feed'; feedId: string; at?: string }
+  | { kind: 'log-nappy' }
   | null;
 
 export interface NapPromptOption {
@@ -84,6 +99,16 @@ export interface NapPromptContent {
 }
 
 export function napPromptContent(prompt: NapPrompt, babyName: string, timeZone: string, now: Date): NapPromptContent {
+  if (prompt.kind === 'nappy') {
+    return {
+      title: `Change ${babyName}'s nappy?`,
+      body: 'Log a nappy change with this feed.',
+      options: [
+        { label: 'Yes, log a nappy', action: { kind: 'log-nappy' }, primary: true },
+        { label: 'Not now', action: null, primary: false },
+      ],
+    };
+  }
   if (prompt.kind === 'end-feed') {
     const startedJustNow = now.getTime() - Date.parse(prompt.napStartedAt) < SAME_MOMENT_MS;
     return {

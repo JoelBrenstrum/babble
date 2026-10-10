@@ -14,6 +14,7 @@ describe('trackers', () => {
 
   it('looks up tracker metadata', () => {
     expect(trackerFor('pump')).toMatchObject({ label: 'Pump', token: 'pump' });
+    expect(trackerFor('solids')).toMatchObject({ label: 'Solids', icon: 'carrot', token: 'solids' });
   });
 
   it('combines feeds unless filtered', () => {

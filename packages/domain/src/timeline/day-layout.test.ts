@@ -37,6 +37,11 @@ describe('dayLayout', () => {
     expect(feeds[1]).toMatchObject({ startFrac: 0.5, endFrac: 0.5, running: false });
   });
 
+  it('places solids as a marker in the feed lane', () => {
+    const solids = makeEvent('solids', { startedAt: '2026-10-06T18:00:00Z', endedAt: '2026-10-06T18:00:00Z' });
+    expect(dayLayout([solids], window, NOW).feeds).toMatchObject([{ startFrac: 0.75, endFrac: 0.75 }]);
+  });
+
   it('moves markers that would overlap into the next column', () => {
     const nappies = ['01:00', '01:10', '01:20', '03:00'].map((time, index) =>
       makeEvent('nappy', { id: `nappy-${index}`, startedAt: `2026-10-06T${time}:00Z` }),

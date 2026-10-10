@@ -18,6 +18,25 @@ describe('summariseDay', () => {
     expect(summariseDay(events, window)).toMatchObject({ sleepMs: 2 * 3_600_000, feeds: 2, nappies: 1 });
   });
 
+  it('counts solids meals and their foods without counting them as feeds', () => {
+    const meal = (startedAt: string, foods: string[]) =>
+      makeEvent('solids', { startedAt, endedAt: startedAt, details: { foods, amount: null, reaction: null } });
+    const summary = summariseDay(
+      [
+        meal('2026-10-06T01:00:00Z', ['Avocado']),
+        meal('2026-10-06T05:00:00Z', ['avocado', 'Pear']),
+        meal('2026-10-05T12:00:00Z', ['Egg']),
+      ],
+      window,
+    );
+    expect(summary).toMatchObject({
+      solids: 2,
+      solidsFoods: ['Avocado', 'Pear'],
+      lastSolidsAt: '2026-10-06T05:00:00Z',
+      feeds: 0,
+    });
+  });
+
   const day = { start: new Date('2026-10-06T00:00:00Z'), end: new Date('2026-10-07T00:00:00Z') };
   const night = { dayKey: '2026-10-06', timeZone: 'UTC', startMinutes: 19 * 60, endMinutes: 7 * 60 };
 

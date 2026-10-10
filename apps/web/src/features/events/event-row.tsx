@@ -31,6 +31,7 @@ export const PART_STYLES: Record<PartTone, string> = {
   downtime: 'bg-session-downtime-soft text-on-session-downtime',
   sleep: 'bg-sleep-soft text-on-sleep',
   bottle: 'bg-bottle-soft text-on-bottle',
+  solids: 'bg-solids-soft text-on-solids',
   nappy: 'bg-nappy-soft text-on-nappy',
   pump: 'bg-pump-soft text-on-pump',
   growth: 'bg-growth-soft text-on-growth',

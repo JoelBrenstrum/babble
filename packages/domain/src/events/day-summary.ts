@@ -1,5 +1,6 @@
 import { nightIntervals, type TimeWindow } from '../timeline/days';
 import { eventSpan } from '../timeline/day-layout';
+import { hasFood } from './foods';
 import { segmentTotals } from './segments';
 import { summariseSegments } from './session-summary';
 import { asleepIntervals, asleepWithin } from './sleep-stretches';
@@ -29,6 +30,9 @@ export interface DaySummary {
   dirty: number;
   both: number;
   lastNappyAt: string | null;
+  solids: number;
+  solidsFoods: string[];
+  lastSolidsAt: string | null;
   pumps: number;
   pumpMl: number;
   pumpLeftMl: number;
@@ -62,6 +66,9 @@ export function summariseDay(
     dirty: 0,
     both: 0,
     lastNappyAt: null,
+    solids: 0,
+    solidsFoods: [],
+    lastSolidsAt: null,
     pumps: 0,
     pumpMl: 0,
     pumpLeftMl: 0,
@@ -114,6 +121,14 @@ export function summariseDay(
         if (event.details.dirty) summary.dirty += 1;
         if (event.details.wet && event.details.dirty) summary.both += 1;
         if (!summary.lastNappyAt || event.startedAt > summary.lastNappyAt) summary.lastNappyAt = event.startedAt;
+        break;
+      case 'solids':
+        if (!startsInDay) break;
+        summary.solids += 1;
+        for (const food of event.details.foods) {
+          if (!hasFood(summary.solidsFoods, food)) summary.solidsFoods.push(food);
+        }
+        if (!summary.lastSolidsAt || event.startedAt > summary.lastSolidsAt) summary.lastSolidsAt = event.startedAt;
         break;
       case 'pump': {
         if (!startsInDay) break;

@@ -88,7 +88,11 @@ export function WeekTimeline({
                     key={item.event.id}
                     className={cn(
                       'absolute inset-x-[30%] h-[3px] rounded-full',
-                      item.event.type === 'bottle' ? 'bg-bottle' : 'bg-feed-right',
+                      item.event.type === 'bottle'
+                        ? 'bg-bottle'
+                        : item.event.type === 'solids'
+                          ? 'bg-solids'
+                          : 'bg-feed-right',
                     )}
                     style={{ top: pct(item.startFrac) }}
                   />

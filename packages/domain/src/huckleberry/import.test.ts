@@ -277,9 +277,42 @@ describe('parseHuckleberryCsv', () => {
     });
   });
 
+  describe('solids', () => {
+    it('keeps the foods, the reaction and the amounts in notes', () => {
+      const [event] = importRows(
+        '"Solids","2025-10-01 10:57",,,"5 of avocado, 3 of banana",,"LOVED","food note",',
+      ).events;
+      expect(event).toMatchObject({
+        type: 'solids',
+        startedAt: '2025-10-01T10:57:00.000Z',
+        endedAt: '2025-10-01T10:57:00.000Z',
+        notes: '5 of avocado, 3 of banana\nfood note',
+        details: { foods: ['Avocado', 'Banana'], amount: null, reaction: 'loved' },
+      });
+    });
+
+    it('maps the other reactions', () => {
+      const reaction = (value: string) =>
+        onlyEvent([`"Solids","2025-10-01 10:00",,,"pear",,"${value}",,`], 'solids').event.details;
+      expect(reaction('Meh')).toMatchObject({ reaction: 'unsure' });
+      expect(reaction('HATED')).toMatchObject({ reaction: 'disliked' });
+    });
+
+    it('keeps an unknown reaction in notes with a warning', () => {
+      const result = importRows('"Solids","2025-10-01 10:00",,,"pear",,"ALLERGIC",,');
+      expect(result.events[0]).toMatchObject({ notes: 'Reaction: ALLERGIC', details: { reaction: null } });
+      expect(result.warnings).toEqual([{ line: 2, message: 'Unrecognised solids reaction "ALLERGIC"; kept in notes' }]);
+    });
+
+    it('skips entries without foods', () => {
+      expect(importRows('"Solids","2025-10-01 10:00",,,,,"LOVED",,').skipped[0]!.reason).toBe(
+        'Solids entry has no foods',
+      );
+    });
+  });
+
   it.each([
     ['Potty', 'Potty tracking is not supported'],
-    ['Solids', 'Solids tracking is not supported'],
     ['Temp', 'Temperature tracking is not supported'],
     ['Medicine', 'Medicine tracking is not supported'],
     ['Something new', 'Unsupported type "Something new"'],
@@ -347,8 +380,16 @@ describe('Huckleberry export fixtures', () => {
 
   it('imports an export containing every Huckleberry type', () => {
     const result = parseHuckleberryCsv(fixture('all-types.csv'), { timeZone: 'Pacific/Auckland' });
-    expect(countByType(result.events)).toEqual({ growth: 5, custom: 3, pump: 2, bottle: 2, breast_feed: 1, sleep: 1 });
-    expect(result.skipped.map((row) => row.type)).toEqual(['Temp', 'Potty', 'Potty', 'Potty', 'Solids']);
+    expect(countByType(result.events)).toEqual({
+      growth: 5,
+      custom: 3,
+      pump: 2,
+      bottle: 2,
+      breast_feed: 1,
+      sleep: 1,
+      solids: 1,
+    });
+    expect(result.skipped.map((row) => row.type)).toEqual(['Temp', 'Potty', 'Potty', 'Potty']);
     expect(result.warnings).toEqual([
       { line: 19, message: 'Multiple fall-asleep times recorded; kept "10_to_20_min"' },
     ]);

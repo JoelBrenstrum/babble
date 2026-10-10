@@ -20,7 +20,7 @@ describe('summariseImport', () => {
 
   it('reports skipped rows and warnings', () => {
     const summary = summariseImport(parseHuckleberryCsv(fixture('all-types.csv'), { timeZone: 'Pacific/Auckland' }));
-    expect(summary).toMatchObject({ skipped: 5, warnings: 1 });
+    expect(summary).toMatchObject({ skipped: 4, warnings: 1 });
   });
 
   it('handles an empty export', () => {

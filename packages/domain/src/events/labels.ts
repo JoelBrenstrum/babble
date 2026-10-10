@@ -1,4 +1,4 @@
-import type { Mood, PooColour, PooTexture, Size, SleepLocation } from './types';
+import type { Mood, PooColour, PooTexture, Size, SleepLocation, SolidsAmount, SolidsReaction } from './types';
 
 export const SIZE_LABELS: Record<Size, string> = {
   tiny: 'Tiny',
@@ -20,6 +20,15 @@ export const SLEEP_LOCATION_LABELS: Record<SleepLocation, string> = {
   co_sleep: 'Co-sleep',
   next_to_carer: 'Next to carer',
   other: 'Other',
+};
+
+export const SOLIDS_AMOUNT_LABELS: Record<SolidsAmount, string> = { taste: 'A taste', some: 'Some', lots: 'Lots' };
+
+export const SOLIDS_REACTION_LABELS: Record<SolidsReaction, string> = {
+  loved: 'Loved it',
+  liked: 'Liked it',
+  unsure: 'Not sure',
+  disliked: 'Disliked it',
 };
 
 export const MOOD_LABELS: Record<Mood, string> = { happy: 'Happy', upset: 'Upset' };

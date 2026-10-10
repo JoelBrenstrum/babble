@@ -6,6 +6,7 @@ const DOT: Record<Tracker['token'], string> = {
   sleep: 'bg-sleep',
   nappy: 'bg-nappy',
   bottle: 'bg-bottle',
+  solids: 'bg-solids',
   pump: 'bg-pump',
   growth: 'bg-growth',
   custom: 'bg-custom',

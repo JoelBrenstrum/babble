@@ -36,6 +36,8 @@ function itemLabel(item: TimelineItem, timeZone: string, units: Units): string {
       return `Pump ${at}, ${length}`;
     case 'bottle':
       return `Bottle ${at}${event.details.amountMl ? `, ${formatVolume(event.details.amountMl, units)}` : ''}`;
+    case 'solids':
+      return `Solids ${at}, ${event.details.foods.join(', ')}`;
     case 'nappy':
       return `Nappy ${at}, ${nappyKind(event.details).toLowerCase()}`;
     default:
@@ -188,6 +190,21 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
       >
         <Text numberOfLines={1} className="font-bold text-caption text-on-bottle">
           {event.details.amountMl ? formatVolume(event.details.amountMl, units) : 'Bottle'}
+        </Text>
+      </Pressable>
+    );
+  }
+  if (event.type === 'solids') {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        onPress={() => open(item)}
+        className="absolute z-[1] h-5 justify-center rounded-chip border border-solids/50 bg-solids-soft px-1.5"
+        style={marker}
+      >
+        <Text numberOfLines={1} className="font-bold text-caption text-on-solids">
+          {`${event.details.foods[0] ?? 'Solids'}${event.details.foods.length > 1 ? ` +${event.details.foods.length - 1}` : ''}`}
         </Text>
       </Pressable>
     );

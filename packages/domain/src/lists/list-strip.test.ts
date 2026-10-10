@@ -201,6 +201,26 @@ describe('listStrip', () => {
     ]);
   });
 
+  it('counts solids meals today and different foods this week', () => {
+    const meal = (startedAt: string, foods: string[]) =>
+      makeEvent('solids', {
+        id: id(),
+        startedAt,
+        endedAt: startedAt,
+        details: { foods, amount: null, reaction: null },
+      });
+    const events = [
+      meal('2026-10-06T09:00:00Z', ['Avocado', 'Pear']),
+      meal('2026-10-08T08:00:00Z', ['avocado']),
+      meal('2026-10-08T11:00:00Z', ['Egg']),
+    ];
+    expect(listStrip('solids', events, context)).toEqual([
+      { label: 'Last meal', value: '1h 00m', note: 'ago · 11:00 am' },
+      { label: 'Today', value: '2', note: 'avg 0.5' },
+      { label: 'Foods', value: '3', note: 'this week' },
+    ]);
+  });
+
   it('counts custom events today and over 7 days', () => {
     const events = [
       makeEvent('custom', { id: id(), startedAt: '2026-10-01T09:00:00Z', endedAt: null }),

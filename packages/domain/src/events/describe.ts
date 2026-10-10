@@ -10,6 +10,8 @@ import {
   POO_TEXTURE_LABELS,
   SIZE_LABELS,
   SLEEP_LOCATION_LABELS,
+  SOLIDS_AMOUNT_LABELS,
+  SOLIDS_REACTION_LABELS,
 } from './labels';
 import type { NappyType } from './nappy';
 import type { BabyEvent, Mood, PooColour, Side, TimedSegment, Units } from './types';
@@ -20,6 +22,7 @@ export type PartTone =
   | 'downtime'
   | 'sleep'
   | 'bottle'
+  | 'solids'
   | 'nappy'
   | 'pump'
   | 'growth'
@@ -185,6 +188,18 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
         parts: [{ text, tone: 'bottle' }],
         duration: spanMs >= 60_000 ? formatDuration(spanMs, { seconds: false }) : null,
       });
+    }
+    case 'solids': {
+      const { foods, amount, reaction } = event.details;
+      const parts: DescriptionPart[] = [{ text: foods.join(', '), tone: 'solids' }];
+      if (reaction) parts.push({ text: SOLIDS_REACTION_LABELS[reaction], tone: 'neutral' });
+      return {
+        title: 'Solids',
+        parts,
+        duration: null,
+        trailing: amount ? SOLIDS_AMOUNT_LABELS[amount] : null,
+        running: false,
+      };
     }
     case 'nappy': {
       const { wet, dirty, wetSize, pooSize, pooColours, pooTextures } = event.details;

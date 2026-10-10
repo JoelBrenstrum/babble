@@ -1,8 +1,9 @@
 import { clock, endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
 import { napPromptContent, type NapAction, type NapPrompt } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
-import { Heart, Moon } from 'lucide-react';
-import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useNavigate } from '@tanstack/react-router';
+import { Droplets, Heart, Moon } from 'lucide-react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '#/components/ui/button';
 import { useToast } from '#/components/ui/toast';
 
@@ -25,18 +26,28 @@ export function NapPromptProvider({
   timeZone: string;
   children: ReactNode;
 }) {
-  const [prompt, setPrompt] = useState<NapPrompt | null>(null);
+  const [queue, setQueue] = useState<{ id: number; prompt: NapPrompt }[]>([]);
+  const nextId = useRef(0);
+  const show = useCallback((prompt: NapPrompt | null) => {
+    if (!prompt) return;
+    nextId.current += 1;
+    const id = nextId.current;
+    setQueue((current) => [...current, { id, prompt }]);
+  }, []);
+  const close = useCallback(() => setQueue((current) => current.slice(1)), []);
+  const current = queue[0];
   return (
-    <NapPromptContext.Provider value={setPrompt}>
+    <NapPromptContext.Provider value={show}>
       {children}
-      {prompt && (
+      {current && (
         <NapPromptDialog
-          prompt={prompt}
+          key={current.id}
+          prompt={current.prompt}
           client={client}
           babyId={babyId}
           babyName={babyName}
           timeZone={timeZone}
-          onClose={() => setPrompt(null)}
+          onClose={close}
         />
       )}
     </NapPromptContext.Provider>
@@ -59,6 +70,7 @@ function NapPromptDialog({
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const toast = useToast();
   const [pending, setPending] = useState<string | null>(null);
   const firstButton = useRef<HTMLButtonElement>(null);
@@ -74,6 +86,10 @@ function NapPromptDialog({
 
   async function choose(label: string, action: NapAction) {
     if (!action) return onClose();
+    if (action.kind === 'log-nappy') {
+      onClose();
+      return void navigate({ to: '/track/$type/new', params: { type: 'nappy' }, search: { then: 'back' } });
+    }
     setPending(label);
     try {
       if (action.kind === 'end-nap') await endSession(client, action.napId, action.at);
@@ -98,7 +114,11 @@ function NapPromptDialog({
       >
         <span className="mx-auto h-1.5 w-10 rounded-full bg-line-strong md:hidden" />
         <div className="flex items-center gap-3">
-          {prompt.kind === 'end-feed' ? (
+          {prompt.kind === 'nappy' ? (
+            <span className="grid size-11 place-items-center rounded-full bg-nappy-soft text-on-nappy">
+              <Droplets className="size-5" strokeWidth={2.75} />
+            </span>
+          ) : prompt.kind === 'end-feed' ? (
             <span className="grid size-11 place-items-center rounded-full bg-feed-right-soft text-on-feed-right">
               <Heart className="size-5" strokeWidth={2.75} />
             </span>

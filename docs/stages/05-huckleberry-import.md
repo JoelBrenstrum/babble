@@ -16,16 +16,17 @@ Header: `Type, Start, End, Duration, Start Condition, Start Location, End Condit
 - Notes encode newlines as a literal `\n`.
 - **The columns mean different things for each `Type`:**
 
-| Type                          | Start Condition                        | Start Location          | End Condition                                               | Duration       | Maps to                  |
-| ----------------------------- | -------------------------------------- | ----------------------- | ----------------------------------------------------------- | -------------- | ------------------------ |
-| Feed (breast)                 | Right total `00:35R`                   | `Breast`                | Left total `00:21L`                                         | Total          | `breast_feed` + segments |
-| Feed (bottle)                 | `Breast Milk` / `Formula` / other milk | `Bottle`                | Amount `110ml` / `4oz`                                      | —              | `bottle`                 |
-| Diaper                        | Texture (`Loose`, `Runny`, ...)        | `Diaper rash` or empty  | `Pee[:size]` / `Poo[:size]` / `Both[, pee:x poo:y]` / `Dry` | **Poo colour** | `nappy`                  |
-| Sleep                         | Comma list: fall-asleep times + moods  | Comma list of locations | Comma list: moods + `Woke up child`                         | Total          | `sleep` + details        |
-| Pump                          | Left amount `30ml`                     | —                       | Right amount `10ml`                                         | Optional       | `pump` (no segments)     |
-| Growth                        | Weight `4.09kg`                        | Length `52cm`           | Head `37.5cm`                                               | —              | `growth`                 |
-| Tummy time, Bath              | —                                      | —                       | —                                                           | Optional       | `custom` (title = type)  |
-| Potty, Solids, Temp, Medicine |                                        |                         |                                                             |                | skipped, with a reason   |
+| Type                  | Start Condition                        | Start Location          | End Condition                                               | Duration       | Maps to                  |
+| --------------------- | -------------------------------------- | ----------------------- | ----------------------------------------------------------- | -------------- | ------------------------ |
+| Feed (breast)         | Right total `00:35R`                   | `Breast`                | Left total `00:21L`                                         | Total          | `breast_feed` + segments |
+| Feed (bottle)         | `Breast Milk` / `Formula` / other milk | `Bottle`                | Amount `110ml` / `4oz`                                      | —              | `bottle`                 |
+| Diaper                | Texture (`Loose`, `Runny`, ...)        | `Diaper rash` or empty  | `Pee[:size]` / `Poo[:size]` / `Both[, pee:x poo:y]` / `Dry` | **Poo colour** | `nappy`                  |
+| Sleep                 | Comma list: fall-asleep times + moods  | Comma list of locations | Comma list: moods + `Woke up child`                         | Total          | `sleep` + details        |
+| Pump                  | Left amount `30ml`                     | —                       | Right amount `10ml`                                         | Optional       | `pump` (no segments)     |
+| Growth                | Weight `4.09kg`                        | Length `52cm`           | Head `37.5cm`                                               | —              | `growth`                 |
+| Tummy time, Bath      | —                                      | —                       | —                                                           | Optional       | `custom` (title = type)  |
+| Solids                | Foods `5 of avocado, 3 of banana`      | —                       | Reaction `LOVED`                                            | —              | `solids`                 |
+| Potty, Temp, Medicine |                                        |                         |                                                             |                | skipped, with a reason   |
 
 Unknown types and unparseable rows are skipped with a reason, and unrecognised values within a row produce warnings. Nothing is guessed silently.
 
@@ -36,6 +37,7 @@ Unknown types and unparseable rows are skipped with a reason, and unrecognised v
 - **Nappies:** quantity `small/medium/large` → `little/medium/large`, for both wet and poo. Huckleberry has one colour, which becomes a one-item `poo_colours` (`gray` → `white_grey`). Texture becomes a one-item `poo_textures` (`solid` → `formed`). `Diaper rash` → `rash = true`.
 - **Sleep:** `under_10_minutes` / `10-20_minutes` / `long time to fall asleep` → `fall_asleep`. If several are recorded, the first is kept, with a warning. `happy`/`upset` → moods. Locations map one-to-one (`stroller` → `pram`, `on own in bed` → `cot`, `worn or held` → `held`). `Woke up child` → `woken_by_carer`. A sleep with no end time and no duration is skipped.
 - **Pump:** Start Condition is always the left amount and End Condition the right amount (confirmed: the lone `30ml` entry was left). Huckleberry's "total only" mode hasn't appeared in an export; if it shows up, it will look like a left-only entry.
+- **Solids:** each `N of food` item becomes a food (`Avocado`, `Banana`), with the original list kept in notes so the amounts aren't lost. `LOVED` / `LIKED` → loved / liked, `MEH` / `NEUTRAL` → not sure, `DISLIKED` / `HATED` → disliked. Any other reaction is kept in notes as "Reaction: …" with a warning. An entry without foods is skipped.
 - **Activities:** `Tummy time` and `Bath` become custom events, so their history isn't lost, even though activities aren't a tracker.
 
 ## Flow

@@ -74,6 +74,12 @@ describe('dayTotals', () => {
     expect(dayTotals('feeds', [feed, bottle], context)).toBe('2 feeds · 40m · 90 ml');
   });
 
+  it('counts solids meals and different foods', () => {
+    const meal = (foods: string[]) => makeEvent('solids', { details: { foods, amount: null, reaction: null } });
+    expect(dayTotals('solids', [meal(['Avocado', 'Pear']), meal(['pear'])], context)).toBe('2 meals · 2 foods');
+    expect(dayTotals('solids', [meal(['Egg'])], context)).toBe('1 meal · 1 food');
+  });
+
   it('counts custom events', () => {
     expect(dayTotals('custom', [makeEvent('custom')], context)).toBe('1 event');
   });

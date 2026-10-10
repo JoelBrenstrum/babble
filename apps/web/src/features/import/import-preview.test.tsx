@@ -30,7 +30,7 @@ describe('ImportPreview', () => {
         timeZone="Pacific/Auckland"
       />,
     );
-    expect(screen.getByText('5 rows skipped')).toBeInTheDocument();
+    expect(screen.getByText('4 rows skipped')).toBeInTheDocument();
     expect(screen.getAllByText('Potty tracking is not supported')).toHaveLength(3);
     expect(screen.getByText('1 note about the data')).toBeInTheDocument();
   });

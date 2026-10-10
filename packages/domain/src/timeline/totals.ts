@@ -4,7 +4,7 @@ import { formatDuration } from '../format/duration';
 import { formatVolume } from '../format/units';
 import { formatTimeOfDay } from '../time/local-time';
 
-export type TotalKey = 'sleep' | 'feeds' | 'nappies' | 'pump';
+export type TotalKey = 'sleep' | 'feeds' | 'solids' | 'nappies' | 'pump';
 
 export interface TotalCard {
   key: TotalKey;
@@ -52,6 +52,17 @@ export function dayTotalCards(summary: DaySummary, units: Units, timeZone: strin
       ],
     },
   ];
+  if (summary.solids > 0) {
+    cards.splice(2, 0, {
+      key: 'solids',
+      label: 'Solids',
+      value: String(summary.solids),
+      details: [
+        { label: 'Foods', value: summary.solidsFoods.join(', ') },
+        { label: 'Last', value: summary.lastSolidsAt ? formatTimeOfDay(summary.lastSolidsAt, timeZone) : '—' },
+      ],
+    });
+  }
   if (summary.pumps > 0) {
     cards.push({
       key: 'pump',

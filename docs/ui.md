@@ -69,6 +69,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 │ Sleep        last 1h 05m ago     [+] │
 │ Feed         last 2h 14m ago (R) [+] │
 │ Nappy        last 40m ago        [+] │
+│ Solids       last 3h ago         [+] │
 │ Pump         last 5h ago         [+] │
 │ Growth       3 Oct · 4.8kg       [+] │
 │ Custom       yesterday           [+] │
@@ -89,6 +90,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 - Summary strip under the header: three figures, each with a small note. Tapping it opens Stats. "Today" figures note the average over the last 7 finished days.
   - Feeds and Breast: Last feed (or Feeding for) · Today · Next side
   - Bottle: Last bottle · Today (ml) · Per bottle
+  - Solids: Last meal · Today (meals) · Foods (different foods this week)
   - Sleep: Awake for (or Asleep for) · Today · Naps
   - Nappies: Last change · Wet today · Dirty today, with the latest poo colour
   - Pump: Last pump (or Pumping for) · Today (ml) · Left / right today
@@ -97,13 +99,14 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 - Rows grouped by day, using the baby's day start:
   - Feed: `14:02 · R 12m · ⏸ 7m · L 10m`, sides in the order they happened
   - Pump: `11:30 · L 12m · 80 ml · R 10m · 70 ml · ⏸ 2m`, total ml on the right
+  - Solids: `11:30 · [Avocado, Pear] · Loved it`, how much on the right
   - Nappy: `09:15 · [Both] · Seedy · ● Mustard · Check` (Check for red, black or white poo), size on the right
   - Sleep: wake-ups and awake chips, then location chips (Cot, Bassinet) and mood ("Upset → happy")
   - Running entries show an "In progress" pill
   - Imported feeds show a small "imported" tag, with no downtime figure
   - Growth: the entry on the birth date is grouped as "Birth"; notes become the subtitle
 - Swipe left (mobile) or a row menu (web) to delete, with undo. Tap to open detail/edit.
-- Day header: "Today" with the date underneath ("Tue 6 Oct"), and the day's total on the right per tracker: "2 sleeps · 2h 37m" (time asleep), "3 · 2 wet · 2 dirty", "1 session · 115 ml", "4 bottles · 360 ml", "+40 g since 2 Oct", "3 events". Feeds add "· 90 ml" when bottles are included.
+- Day header: "Today" with the date underneath ("Tue 6 Oct"), and the day's total on the right per tracker: "2 sleeps · 2h 37m" (time asleep), "3 · 2 wet · 2 dirty", "1 session · 115 ml", "4 bottles · 360 ml", "2 meals · 3 foods", "+40 g since 2 Oct", "3 events". Feeds add "· 90 ml" when bottles are included.
 
 ## 4. Breast feed timer
 
@@ -131,6 +134,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 - Running cards show "Started by Jane" next to the avatar at every width.
 - On the start screen, the suggested side carries a "Next" tag: the opposite of the side the last breastfeed ended on. Both sides stay one tap to start.
 - Start → if a nap is running, show the "End nap?" sheet first (Stage 2).
+- Once the feed has started (and after saving a bottle), a "Change Olivia's nappy?" sheet in the same style asks "Yes, log a nappy" or "Not now". Yes opens the usual Log nappy form, and saving it returns to the feed. It's skipped when a nappy was logged within 30 minutes of the feed's start, and it waits until any "End nap?" or "Is Olivia asleep?" sheet has been answered.
 - Done → "Start nap?" sheet with "now" or "at feed end" (Stage 2).
 - Starting a nap while a breastfeed is running shows an "End feed?" sheet: "End feed" (at the nap's start) or "Keep feeding". A running pump is left alone.
 - Forgot to start the other side? On the live session page, the idle row just before the current side has a **−** button. Each tap takes a minute off by starting the current side a minute earlier, never before the previous side ended (`set_switch_time`).
@@ -146,6 +150,12 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 ## 6. Bottle form
 
 Content (breast milk / formula / mixed / other) as a segmented control. Amount stepper (±10ml, plus a keypad). Optional "left over". Time (defaults to now). Notes.
+
+## 6a. Solids form
+
+**Foods** as chips: recent foods first (newest first), then common first foods (Avocado, Banana, Kūmara, Pumpkin, Apple, Pear, Carrot, Egg, Yoghurt), up to 12. Tap to pick or unpick; picked chips use the `solids` tint with a check. An "Add a food" field with an **Add** button (Enter adds too) for anything else; names are tidied and repeats are ignored regardless of case. At least one food is required, up to 20, each up to 40 characters. Foods never logged before show as "First try: Egg". **How much**: A taste / Some / Lots. **Reaction**: Loved it / Liked it / Not sure / Disliked it. Both are optional and tap again to clear. Time (defaults to now). Notes.
+
+Solids are an instant entry. They show in the feed lane of the day timeline as a `solids` marker with the first food ("Avocado +1"), a Solids card in the day totals when there were any (meals, foods, last time), and the 7-day view's feed ticks. Solids don't count as feeds for the feed count or reminders.
 
 ## 7. Sleep timer / form
 

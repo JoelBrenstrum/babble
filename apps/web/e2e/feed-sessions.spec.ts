@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, signUpWithPassword, uniqueEmail } from './helpers';
+import { onboard, signIn, signUpWithPassword, skipNappyPrompt, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
@@ -10,10 +10,15 @@ async function newFamily(page: Page, project: string) {
   await onboard(page);
 }
 
-async function startFeed(page: Page) {
+async function tapStartFeed(page: Page) {
   await page.goto('/');
   await page.getByRole('link', { name: 'Log breastfeed' }).click();
   await page.getByRole('button', { name: /start left/i }).click();
+}
+
+async function startFeed(page: Page) {
+  await tapStartFeed(page);
+  await skipNappyPrompt(page);
 }
 
 test('feeds and naps prompt each other', async ({ page }, testInfo) => {
@@ -23,11 +28,12 @@ test('feeds and naps prompt each other', async ({ page }, testInfo) => {
   await page.getByRole('button', { name: /start sleep now/i }).click();
   await expect(page.getByText('Napping')).toBeVisible();
 
-  await startFeed(page);
+  await tapStartFeed(page);
   const endNap = page.getByRole('dialog', { name: "End Olivia's nap?" });
   await expect(endNap).toBeVisible();
   await endNap.getByRole('button', { name: 'End nap now' }).click();
   await expect(endNap).toHaveCount(0);
+  await skipNappyPrompt(page);
   await expect(page.getByText('Feeding · Left')).toBeVisible();
 
   await page.getByRole('button', { name: 'Finish' }).click();
@@ -38,6 +44,27 @@ test('feeds and naps prompt each other', async ({ page }, testInfo) => {
 
   await page.goto('/');
   await expect(page.getByText('Napping')).toBeVisible();
+});
+
+test('starting a feed offers to log a nappy, then returns to the feed', async ({ page }, testInfo) => {
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
+  await onboard(page);
+  await tapStartFeed(page);
+  const prompt = page.getByRole('dialog', { name: "Change Olivia's nappy?" });
+  await prompt.getByRole('button', { name: 'Yes, log a nappy' }).click();
+  await expect(page.getByRole('heading', { name: 'Log nappy' })).toBeVisible();
+  await page.getByRole('radio', { name: 'Wet' }).click();
+  await page.getByRole('button', { name: 'Save' }).click();
+  await expect(page).toHaveURL(/\/sessions\//);
+  await expect(page.getByText('Feeding · Left')).toBeVisible();
+
+  await page.goto('/');
+  await expect(
+    page
+      .getByRole('link', { name: /^Nappy/ })
+      .filter({ visible: true })
+      .first(),
+  ).toContainText('Wet');
 });
 
 test('starting a nap offers to end a running feed', async ({ page }, testInfo) => {

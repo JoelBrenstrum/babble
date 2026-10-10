@@ -4,6 +4,7 @@ import {
   feedPromptOnNapStart,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nappyPromptOnFeedStart,
   nextBreastSide,
   runningSessionLine,
   runningTone,
@@ -68,6 +69,7 @@ function NewEntryContent({
   const [logPast, setLogPast] = useState(!isSessionType(eventType));
   const showNapPrompt = useNapPrompt();
   const runningEvents = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
+  const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
 
   return (
     <Screen>
@@ -92,6 +94,7 @@ function NewEntryContent({
                 napPromptOnFeedStart(runningEvents, draft.startedAt) ??
                   napPromptOnFeedEnd(runningEvents, draft.endedAt ?? draft.startedAt),
               );
+              showNapPrompt(nappyPromptOnFeedStart(latest, draft.startedAt));
             }}
             onDone={() => router.back()}
           />
@@ -137,7 +140,10 @@ function StartSession({
     start.mutate(
       { type, side },
       {
-        onSuccess: (eventId) => router.replace(`/sessions/${eventId}`),
+        onSuccess: (eventId) => {
+          router.replace(`/sessions/${eventId}`);
+          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(latest, startedAt));
+        },
         onError: (caught) => setError(toBabbleError(caught).message),
       },
     );

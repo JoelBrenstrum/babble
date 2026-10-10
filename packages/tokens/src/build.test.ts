@@ -54,7 +54,17 @@ describe('parseTokenCss', () => {
       'red',
       'white-grey',
     ]);
-    for (const tracker of ['sleep', 'feed-left', 'feed-right', 'bottle', 'nappy', 'pump', 'growth', 'custom']) {
+    for (const tracker of [
+      'sleep',
+      'feed-left',
+      'feed-right',
+      'bottle',
+      'solids',
+      'nappy',
+      'pump',
+      'growth',
+      'custom',
+    ]) {
       expect(tokens.light).toHaveProperty(tracker);
       expect(tokens.light).toHaveProperty(`${tracker}-soft`);
       expect(tokens.light).toHaveProperty(`on-${tracker}`);

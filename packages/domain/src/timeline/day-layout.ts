@@ -24,13 +24,14 @@ const LANE: Partial<Record<BabyEvent['type'], keyof DayLayout>> = {
   sleep: 'sleep',
   breast_feed: 'feeds',
   bottle: 'feeds',
+  solids: 'feeds',
   nappy: 'nappies',
   pump: 'pumps',
 };
 
 export const MARKER_GAP_FRAC = 0.035;
 
-const INSTANT_TYPES = new Set<BabyEvent['type']>(['bottle', 'nappy']);
+const INSTANT_TYPES = new Set<BabyEvent['type']>(['bottle', 'solids', 'nappy']);
 
 export function eventSpan(event: BabyEvent, now: Date): TimeWindow {
   const start = new Date(event.startedAt);

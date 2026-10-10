@@ -1,4 +1,5 @@
 import { groupByDay } from '../events/group';
+import { hasFood } from '../events/foods';
 import { segmentTotals } from '../events/segments';
 import { summariseSleep } from '../events/sleep-stretches';
 import type { BabyEvent, Units } from '../events/types';
@@ -107,6 +108,11 @@ export function dayTotals(
         0,
       );
       return join(count(items.length, 'feed', 'feeds'), duration(breastMs), volume(bottleMl(items)));
+    }
+    case 'solids': {
+      const foods = items.flatMap((event) => (event.type === 'solids' ? event.details.foods : []));
+      const distinct = foods.filter((food, index) => !hasFood(foods.slice(0, index), food));
+      return join(count(items.length, 'meal', 'meals'), count(distinct.length, 'food', 'foods'));
     }
     case 'growth':
       return growthTotals(items, older, context);

@@ -10,6 +10,10 @@ export type PooTexture =
 
 export type BottleContent = 'breast_milk' | 'formula' | 'mixed' | 'other';
 
+export type SolidsAmount = 'taste' | 'some' | 'lots';
+
+export type SolidsReaction = 'loved' | 'liked' | 'unsure' | 'disliked';
+
 export type SleepLocation =
   | 'cot'
   | 'bassinet'
@@ -52,6 +56,12 @@ export interface BottleDetails {
   amountLeftMl: number | null;
 }
 
+export interface SolidsDetails {
+  foods: string[];
+  amount: SolidsAmount | null;
+  reaction: SolidsReaction | null;
+}
+
 export interface NappyDetails {
   wet: boolean;
   dirty: boolean;
@@ -90,6 +100,7 @@ export type EventDraft =
   | (EventBase & { type: 'sleep'; details: SleepDetails; segments: SleepStretch[] })
   | (EventBase & { type: 'breast_feed'; segments: TimedSegment[] })
   | (EventBase & { type: 'bottle'; details: BottleDetails })
+  | (EventBase & { type: 'solids'; details: SolidsDetails })
   | (EventBase & { type: 'nappy'; details: NappyDetails })
   | (EventBase & { type: 'pump'; details: PumpDetails; segments: TimedSegment[] })
   | (EventBase & { type: 'growth'; details: GrowthDetails })

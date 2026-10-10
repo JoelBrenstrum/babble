@@ -32,6 +32,9 @@
   --color-bottle: rgb(var(--bottle));
   --color-bottle-soft: rgb(var(--bottle-soft));
   --color-on-bottle: rgb(var(--on-bottle));
+  --color-solids: rgb(var(--solids));
+  --color-solids-soft: rgb(var(--solids-soft));
+  --color-on-solids: rgb(var(--on-solids));
   --color-nappy: rgb(var(--nappy));
   --color-nappy-soft: rgb(var(--nappy-soft));
   --color-on-nappy: rgb(var(--on-nappy));

@@ -51,6 +51,24 @@ describe('dayTotalCards', () => {
     );
     expect(cards.at(-1)).toMatchObject({ label: 'Pump', value: '210 ml' });
   });
+
+  it('adds solids after feeds when there were some', () => {
+    const cards = dayTotalCards(
+      { ...empty, solids: 2, solidsFoods: ['Avocado', 'Pear'], lastSolidsAt: '2026-10-06T05:30:00Z' },
+      'metric',
+      'UTC',
+    );
+    expect(cards.map((card) => card.label)).toEqual(['Sleep', 'Feeds', 'Solids', 'Nappies']);
+    expect(cards[2]).toEqual({
+      key: 'solids',
+      label: 'Solids',
+      value: '2',
+      details: [
+        { label: 'Foods', value: 'Avocado, Pear' },
+        { label: 'Last', value: '5:30 am' },
+      ],
+    });
+  });
 });
 
 describe('week summaries', () => {

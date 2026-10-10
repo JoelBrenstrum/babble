@@ -37,6 +37,8 @@ function itemLabel(item: TimelineItem, timeZone: string, units: Units): string {
       return `Pump ${at}, ${length}`;
     case 'bottle':
       return `Bottle ${at}${event.details.amountMl ? `, ${formatVolume(event.details.amountMl, units)}` : ''}`;
+    case 'solids':
+      return `Solids ${at}, ${event.details.foods.join(', ')}`;
     case 'nappy':
       return `Nappy ${at}, ${nappyKind(event.details).toLowerCase()}`;
     default:
@@ -194,6 +196,20 @@ function Item({ item, label, units }: { item: TimelineItem; label: string; units
         className={cn(marker, 'z-[1] border-bottle/50 bg-bottle-soft text-on-bottle')}
       >
         {event.details.amountMl ? formatVolume(event.details.amountMl, units) : 'Bottle'}
+      </TimelineItemLink>
+    );
+  }
+  if (event.type === 'solids') {
+    return (
+      <TimelineItemLink
+        event={event}
+        running={false}
+        label={label}
+        style={markerPosition(item)}
+        className={cn(marker, 'z-[1] max-w-full border-solids/50 bg-solids-soft text-on-solids')}
+      >
+        {event.details.foods[0] ?? 'Solids'}
+        {event.details.foods.length > 1 && ` +${event.details.foods.length - 1}`}
       </TimelineItemLink>
     );
   }

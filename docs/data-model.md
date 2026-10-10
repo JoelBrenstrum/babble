@@ -22,7 +22,7 @@ reminder_prefs      user_id, baby_id, feed_reminders bool   -- per-person opt-in
 events
   id               uuid (client-generated)
   baby_id          fk
-  type             enum: sleep | breast_feed | bottle | nappy | pump | growth | custom
+  type             enum: sleep | breast_feed | bottle | solids | nappy | pump | growth | custom
   started_at       timestamptz
   ended_at         timestamptz null      -- null = running; equals started_at for instant events
   notes            text null
@@ -50,6 +50,10 @@ timed_segments       id, event_id, side (left|right), started_at, ended_at null
 
 bottle_details       event_id, content (breast_milk|formula|mixed|other), amount_ml,
                      amount_left_ml?
+
+solids_details       event_id, foods text[] (1–20 names, each 1–40 chars),
+                     amount enum? (taste|some|lots),
+                     reaction enum? (loved|liked|unsure|disliked)
 
 nappy_details        event_id, wet bool, dirty bool,
                      wet_size enum? (tiny|little|medium|large|massive),

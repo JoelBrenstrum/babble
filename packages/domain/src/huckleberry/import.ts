@@ -9,8 +9,10 @@ import type {
   Side,
   Size,
   SleepLocation,
+  SolidsReaction,
   TimedSegment,
 } from '../events/types';
+import { addFood } from '../events/foods';
 import { zonedToUtc } from '../time/zoned';
 
 export const HUCKLEBERRY_HEADER = [
@@ -78,7 +80,6 @@ export const MAX_IMPORT_BYTES = 20 * 1024 * 1024;
 
 const UNSUPPORTED_TYPES: Record<string, string> = {
   Potty: 'Potty tracking is not supported',
-  Solids: 'Solids tracking is not supported',
   Temp: 'Temperature tracking is not supported',
   Medicine: 'Medicine tracking is not supported',
   Medication: 'Medicine tracking is not supported',
@@ -206,6 +207,8 @@ function mapRow(row: Row, timeZone: string, warn: (message: string) => void): Ma
       return mapPump(context);
     case 'Growth':
       return mapGrowth(context);
+    case 'Solids':
+      return mapSolids(context);
     default:
       if (ACTIVITY_TYPES.has(row.type)) return mapActivity(context);
       return { skip: `Unsupported type "${row.type}"` };
@@ -399,6 +402,41 @@ function mapGrowth({ row, startedAt, notes, warn }: RowContext): MapResult {
     endedAt: startedAt.toISOString(),
     notes,
     details: { weightG, lengthMm, headCircumferenceMm },
+  };
+}
+
+const SOLIDS_REACTIONS: Record<string, SolidsReaction> = {
+  loved: 'loved',
+  liked: 'liked',
+  meh: 'unsure',
+  neutral: 'unsure',
+  disliked: 'disliked',
+  hated: 'disliked',
+};
+
+function mapSolids({ row, startedAt, notes, warn }: RowContext): MapResult {
+  const items = row.startCondition
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+  const foods = items.reduce<string[]>((list, item) => {
+    const name = item.replace(/^\d+(\.\d+)?\s+of\s+/i, '');
+    return addFood(list, name.charAt(0).toUpperCase() + name.slice(1));
+  }, []);
+  if (foods.length === 0) return { skip: 'Solids entry has no foods' };
+
+  const reactionText = row.endCondition.trim();
+  const reaction = reactionText ? (lookup(SOLIDS_REACTIONS, reactionText.toLowerCase()) ?? null) : null;
+  if (reactionText && !reaction) warn(`Unrecognised solids reaction "${reactionText}"; kept in notes`);
+  const amounts = items.some((item) => /^\d/.test(item)) ? row.startCondition.trim() : null;
+  const extra = [amounts, reactionText && !reaction ? `Reaction: ${reactionText}` : null, notes];
+
+  return {
+    type: 'solids',
+    startedAt: startedAt.toISOString(),
+    endedAt: startedAt.toISOString(),
+    notes: extra.filter((part): part is string => !!part).join('\n') || null,
+    details: { foods, amount: null, reaction },
   };
 }
 

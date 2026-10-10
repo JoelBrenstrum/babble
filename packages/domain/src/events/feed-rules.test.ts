@@ -8,6 +8,7 @@ import {
   napPromptContent,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nappyPromptOnFeedStart,
   staleSessions,
 } from './feed-rules';
 import { makeEvent } from './test-events';
@@ -103,6 +104,29 @@ describe('nap prompts', () => {
     });
     expect(feedPromptOnNapStart([makeEvent('pump', { endedAt: null })], '2026-10-06T12:00:00Z')).toBeNull();
     expect(feedPromptOnNapStart([], '2026-10-06T12:00:00Z')).toBeNull();
+  });
+});
+
+describe('nappy prompt', () => {
+  it('asks for a nappy change when a feed starts, unless one was logged in the last 30 minutes', () => {
+    const at = '2026-10-06T12:00:00Z';
+    const nappyAt = (startedAt: string, deletedAt: string | null = null) =>
+      makeEvent('nappy', { startedAt, endedAt: startedAt, deletedAt });
+    expect(nappyPromptOnFeedStart([], at)).toEqual({ kind: 'nappy', feedStartedAt: at });
+    expect(nappyPromptOnFeedStart([nappyAt('2026-10-06T11:20:00Z')], at)).toEqual({ kind: 'nappy', feedStartedAt: at });
+    expect(nappyPromptOnFeedStart([nappyAt('2026-10-06T11:45:00Z')], at)).toBeNull();
+    expect(nappyPromptOnFeedStart([nappyAt('2026-10-06T11:45:00Z', '2026-10-06T11:46:00Z')], at)).not.toBeNull();
+  });
+
+  it('offers to log a nappy or skip', () => {
+    expect(napPromptContent({ kind: 'nappy', feedStartedAt: NOW.toISOString() }, 'Olivia', 'UTC', NOW)).toEqual({
+      title: "Change Olivia's nappy?",
+      body: 'Log a nappy change with this feed.',
+      options: [
+        { label: 'Yes, log a nappy', action: { kind: 'log-nappy' }, primary: true },
+        { label: 'Not now', action: null, primary: false },
+      ],
+    });
   });
 });
 

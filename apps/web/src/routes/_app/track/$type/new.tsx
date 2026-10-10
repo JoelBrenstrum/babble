@@ -4,6 +4,7 @@ import {
   feedPromptOnNapStart,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nappyPromptOnFeedStart,
   nextBreastSide,
   runningSessionLine,
   runningTone,
@@ -14,7 +15,7 @@ import {
   type Side,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, notFound, useNavigate, useRouter } from '@tanstack/react-router';
 import { ArrowRight, ChevronLeft, Clock, Moon, Play, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
@@ -31,6 +32,9 @@ import { cn } from '#/lib/cn';
 import { toBabbleError } from '@babble/api';
 
 export const Route = createFileRoute('/_app/track/$type/new')({
+  validateSearch: (search: Record<string, unknown>): { then?: 'back' } => ({
+    then: search.then === 'back' ? 'back' : undefined,
+  }),
   beforeLoad: ({ params }) => {
     if (!isEventType(params.type)) throw notFound();
     return { eventType: params.type };
@@ -53,13 +57,17 @@ function pastDraft(type: EventDraft['type'], now: Date): EventDraft {
 
 function NewEntry() {
   const { babble, baby, eventType } = Route.useRouteContext();
+  const { then } = Route.useSearch();
   const navigate = useNavigate();
+  const router = useRouter();
   const units = useUnits(babble.client, baby.id);
   const tracker = trackerFor(eventType);
   const [logPast, setLogPast] = useState(!isSessionType(eventType));
   const showNapPrompt = useNapPrompt();
   const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
-  const back = () => void navigate({ to: '/track/$type', params: { type: eventType } });
+  const latest = useQuery(latestEventsQuery(babble.client, baby.id)).data ?? [];
+  const back = () =>
+    then === 'back' ? router.history.back() : void navigate({ to: '/track/$type', params: { type: eventType } });
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
@@ -92,6 +100,7 @@ function NewEntry() {
                 napPromptOnFeedStart(running, draft.startedAt) ??
                   napPromptOnFeedEnd(running, draft.endedAt ?? draft.startedAt),
               );
+              showNapPrompt(nappyPromptOnFeedStart(latest, draft.startedAt));
             }}
             onDone={back}
           />
@@ -124,7 +133,10 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
     start.mutate(
       { type, side },
       {
-        onSuccess: (eventId) => void navigate({ to: '/sessions/$eventId', params: { eventId } }),
+        onSuccess: (eventId) => {
+          void navigate({ to: '/sessions/$eventId', params: { eventId } });
+          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(latest, startedAt));
+        },
         onError: (caught) => setError(toBabbleError(caught).message),
       },
     );

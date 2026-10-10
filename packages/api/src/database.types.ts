@@ -465,6 +465,35 @@ export type Database = {
           },
         ];
       };
+      solids_details: {
+        Row: {
+          amount: Database['public']['Enums']['solids_amount'] | null;
+          event_id: string;
+          foods: string[];
+          reaction: Database['public']['Enums']['solids_reaction'] | null;
+        };
+        Insert: {
+          amount?: Database['public']['Enums']['solids_amount'] | null;
+          event_id: string;
+          foods: string[];
+          reaction?: Database['public']['Enums']['solids_reaction'] | null;
+        };
+        Update: {
+          amount?: Database['public']['Enums']['solids_amount'] | null;
+          event_id?: string;
+          foods?: string[];
+          reaction?: Database['public']['Enums']['solids_reaction'] | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'solids_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       timed_segments: {
         Row: {
           ended_at: string | null;
@@ -592,7 +621,7 @@ export type Database = {
       baby_sex: 'female' | 'male';
       bottle_content: 'breast_milk' | 'formula' | 'mixed' | 'other';
       event_source: 'manual' | 'huckleberry_csv';
-      event_type: 'sleep' | 'breast_feed' | 'bottle' | 'nappy' | 'pump' | 'growth' | 'custom';
+      event_type: 'sleep' | 'breast_feed' | 'bottle' | 'solids' | 'nappy' | 'pump' | 'growth' | 'custom';
       fall_asleep: 'under_10_min' | '10_to_20_min' | 'long_time';
       family_role: 'owner' | 'caregiver' | 'viewer';
       mood: 'happy' | 'upset';
@@ -614,6 +643,8 @@ export type Database = {
         | 'co_sleep'
         | 'next_to_carer'
         | 'other';
+      solids_amount: 'taste' | 'some' | 'lots';
+      solids_reaction: 'loved' | 'liked' | 'unsure' | 'disliked';
       units: 'metric' | 'imperial';
     };
     CompositeTypes: {
@@ -725,7 +756,7 @@ export const Constants = {
       baby_sex: ['female', 'male'],
       bottle_content: ['breast_milk', 'formula', 'mixed', 'other'],
       event_source: ['manual', 'huckleberry_csv'],
-      event_type: ['sleep', 'breast_feed', 'bottle', 'nappy', 'pump', 'growth', 'custom'],
+      event_type: ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'],
       fall_asleep: ['under_10_min', '10_to_20_min', 'long_time'],
       family_role: ['owner', 'caregiver', 'viewer'],
       mood: ['happy', 'upset'],
@@ -748,6 +779,8 @@ export const Constants = {
         'next_to_carer',
         'other',
       ],
+      solids_amount: ['taste', 'some', 'lots'],
+      solids_reaction: ['loved', 'liked', 'unsure', 'disliked'],
       units: ['metric', 'imperial'],
     },
   },
