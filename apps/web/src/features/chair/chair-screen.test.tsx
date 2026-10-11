@@ -52,6 +52,7 @@ function makeActions(): ChairActions {
     endNap: vi.fn(async () => undefined),
     undoEntry: vi.fn(async () => undefined),
     wake: vi.fn(),
+    dimNow: vi.fn(),
   };
 }
 
@@ -231,6 +232,15 @@ describe('ChairScreen night and offline', () => {
     fireEvent.click(left);
     expect(actions.wake).toHaveBeenCalled();
     expect(actions.startFeed).not.toHaveBeenCalled();
+  });
+
+  it('dims on request, and hides the button while dimmed', () => {
+    const actions = makeActions();
+    const { rerender } = render(<ChairScreen data={makeData()} actions={actions} />);
+    tap('Dim now');
+    expect(actions.dimNow).toHaveBeenCalled();
+    rerender(<ChairScreen data={makeData({ dimmed: true })} actions={actions} />);
+    expect(screen.queryByRole('button', { name: 'Dim now' })).not.toBeInTheDocument();
   });
 
   it('acts on taps when awake', () => {

@@ -202,8 +202,13 @@ describe('chairDimmed', () => {
     expect(chairIsNight(null, late)).toBe(false);
   });
 
-  it('never dims during the day or without a night window', () => {
-    expect(chairDimmed(night, NOW, 0)).toBe(false);
-    expect(chairDimmed(null, late, 0)).toBe(false);
+  it('dims during the day only after 5 minutes without a touch', () => {
+    expect(chairDimmed(night, NOW, NOW.getTime() - 4 * 60_000)).toBe(false);
+    expect(chairDimmed(night, NOW, NOW.getTime() - 5 * 60_000)).toBe(true);
+  });
+
+  it('uses the 5 minute rule when there is no night window', () => {
+    expect(chairDimmed(null, late, late.getTime() - 60_000)).toBe(false);
+    expect(chairDimmed(null, late, late.getTime() - 5 * 60_000)).toBe(true);
   });
 });

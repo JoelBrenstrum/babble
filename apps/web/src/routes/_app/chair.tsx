@@ -2,6 +2,7 @@ import { babySettingsQuery, clock, latestEventsQuery, runningEventsQuery } from 
 import {
   babyAgeLabel,
   chairBottleDraft,
+  CHAIR_IDLE_DIM_MS,
   chairDimmed,
   chairIsNight,
   chairFeedSummary,
@@ -62,7 +63,6 @@ function ChairPage() {
   const showNapPrompt = useNapPrompt();
   const [lastTouchAt, setLastTouchAt] = useState(() => clock.now().getTime());
   const tones = useMemo(() => memberTones(family.members), [family.members]);
-  useScreenWakeLock(true);
 
   const night: NightWindow | null = settings
     ? { timeZone: baby.timezone, start: settings.night_start_minutes, end: settings.night_end_minutes }
@@ -76,6 +76,8 @@ function ChairPage() {
   const startedBy = feed
     ? (family.members.find((member) => member.user_id === feed.createdBy)?.display_name ?? null)
     : null;
+
+  useScreenWakeLock(feed !== null);
 
   const data: ChairData = {
     babyName: baby.name,
@@ -121,6 +123,7 @@ function ChairPage() {
     },
     undoEntry: (eventId) => remove.mutateAsync(eventId),
     wake: () => setLastTouchAt(clock.now().getTime()),
+    dimNow: () => setLastTouchAt(clock.now().getTime() - CHAIR_IDLE_DIM_MS),
   };
 
   return (

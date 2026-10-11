@@ -14,6 +14,7 @@ const ML_PER_OUNCE = 29.5735;
 
 export const CHAIR_WAKE_MS = 30_000;
 export const CHAIR_UNDO_MS = 5_000;
+export const CHAIR_IDLE_DIM_MS = 5 * 60_000;
 
 type BreastFeed = EventOfType<'breast_feed'>;
 
@@ -140,5 +141,6 @@ export function chairIsNight(night: NightWindow | null, now: Date): boolean {
 }
 
 export function chairDimmed(night: NightWindow | null, now: Date, lastTouchAt: number): boolean {
-  return now.getTime() - lastTouchAt >= CHAIR_WAKE_MS && chairIsNight(night, now);
+  const idleMs = now.getTime() - lastTouchAt;
+  return idleMs >= CHAIR_IDLE_DIM_MS || (idleMs >= CHAIR_WAKE_MS && chairIsNight(night, now));
 }

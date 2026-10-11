@@ -183,3 +183,19 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > On the landing page (`/welcome`), add a 14th feature card "Chair mode" (Lucide `tablet` on a `feed-left-soft` tile): "Turn a tablet or touchscreen by the feeding chair into a feed station, with giant buttons and a screen that stays on." After "Pause, don't stop", add a section "A feed station by the chair" with the paragraph "Chair mode turns an old tablet or a small touchscreen into a babble screen beside the feeding chair. Start a side, switch or pause with one big tap, even holding a baby in the dark. It asks about a nappy when a feed starts, offers a nap when it ends, and dims itself overnight. Open it from Settings." Below it, two framed 16:9 previews side by side (stacked on phones), in the same frame style as the other previews: chair mode Idle in light (caption "Between feeds: when the last one was, what's due, and which side is next.") and chair mode Feeding in dark (caption "During a feed: one big timer and three big buttons, dark at night.").
+
+---
+
+## 2026-10-11 · Chair mode dims in the day too
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Mode.dc.html`, the Night dim note should say chair mode also dims during the day after 5 minutes without a touch, using the same dim palette and "Dimmed · tap to wake" hint, and dims after 30 seconds inside the night window. Add a "Day dim · Idle" frame showing the dim palette over the light-theme idle layout at 800×480 and 1280×720. The screen is only held awake during a feed, so between feeds the device may switch the display off; the first tap after that only wakes it.
+
+---
+
+## 2026-10-11 · Chair mode: Dim now button
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Screen.dc.html`, add a "Dim now" pill to the top strip, just left of the clock: `surface` background, Lucide `moon` icon and label in `ink-2`, about 3.6cqmin text, 6cqmin tall. It dims the screen straight away and is replaced by the "Dimmed · tap to wake" hint while dimmed. Show it on Idle and Feeding in light and dark.

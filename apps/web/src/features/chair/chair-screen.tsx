@@ -70,6 +70,7 @@ export interface ChairActions {
   endNap: () => Promise<unknown>;
   undoEntry: (eventId: string) => Promise<unknown>;
   wake: () => void;
+  dimNow: () => void;
 }
 
 type Toast = { key: number; message: string; undo?: () => Promise<unknown> };
@@ -198,6 +199,16 @@ export function ChairScreen({
             </a>
             <span>{data.age}</span>
             <span className="flex-1" />
+            {!data.dimmed && (
+              <button
+                type="button"
+                onClick={actions.dimNow}
+                className="flex h-[6cqmin] items-center gap-[1cqmin] rounded-full bg-surface px-[2.4cqmin] text-[length:3.6cqmin] font-semibold text-ink-2"
+              >
+                <Moon className="size-[3.6cqmin]" strokeWidth={2.5} />
+                Dim now
+              </button>
+            )}
             {data.dimmed && (
               <span className="flex items-center gap-[1cqmin] text-ink-3">
                 <Moon className="size-[3.6cqmin]" strokeWidth={2.5} />

@@ -16,6 +16,14 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await expect(page.getByRole('navigation')).toHaveCount(0);
   await page.screenshot({ path: testInfo.outputPath('idle.png') });
 
+  await page.getByRole('button', { name: 'Dim now' }).click();
+  await expect(page.getByText('Dimmed · tap to wake')).toBeVisible();
+  await expect(page.getByTestId('chair')).toHaveClass(/chair-dim/);
+  await page.screenshot({ path: testInfo.outputPath('dimmed.png') });
+  await page.getByRole('button', { name: 'Start left' }).click();
+  await expect(page.getByText('Dimmed · tap to wake')).toHaveCount(0);
+  await expect(page.getByText('No feeds logged yet')).toBeVisible();
+
   await page.getByRole('button', { name: 'Start left' }).click();
   await expect(page.getByText('Feeding · Left')).toBeVisible();
   const nappyAsk = page.getByRole('dialog', { name: "Change Olivia's nappy?" });

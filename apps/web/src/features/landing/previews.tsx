@@ -133,6 +133,7 @@ const PREVIEW_ACTIONS: ChairActions = {
   endNap: noop,
   undoEntry: noop,
   wake: () => undefined,
+  dimNow: () => undefined,
 };
 
 export function ChairPreview({ now: fixedNow }: { now?: Date }) {
