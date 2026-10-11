@@ -16,6 +16,7 @@ import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
+import { Route as AppChairRouteImport } from './routes/_app/chair'
 import { Route as AppImportRouteImport } from './routes/_app/import'
 import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppStatsRouteImport } from './routes/_app/stats'
@@ -65,6 +66,11 @@ const WelcomeRoute = WelcomeRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppChairRoute = AppChairRouteImport.update({
+  id: '/chair',
+  path: '/chair',
   getParentRoute: () => AppRoute,
 } as any)
 const AppImportRoute = AppImportRouteImport.update({
@@ -155,6 +161,7 @@ export interface FileRoutesByFullPath {
   '/sign-in': typeof SignInRoute
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
+  '/chair': typeof AppChairRoute
   '/import': typeof AppImportRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
@@ -178,6 +185,7 @@ export interface FileRoutesByTo {
   '/sign-in': typeof SignInRoute
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
+  '/chair': typeof AppChairRoute
   '/import': typeof AppImportRoute
   '/settings': typeof AppSettingsRoute
   '/stats': typeof AppStatsRoute
@@ -204,6 +212,7 @@ export interface FileRoutesById {
   '/sign-in': typeof SignInRoute
   '/terms': typeof TermsRoute
   '/welcome': typeof WelcomeRoute
+  '/_app/chair': typeof AppChairRoute
   '/_app/import': typeof AppImportRoute
   '/_app/settings': typeof AppSettingsRoute
   '/_app/stats': typeof AppStatsRoute
@@ -231,6 +240,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/terms'
     | '/welcome'
+    | '/chair'
     | '/import'
     | '/settings'
     | '/stats'
@@ -254,6 +264,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/terms'
     | '/welcome'
+    | '/chair'
     | '/import'
     | '/settings'
     | '/stats'
@@ -279,6 +290,7 @@ export interface FileRouteTypes {
     | '/sign-in'
     | '/terms'
     | '/welcome'
+    | '/_app/chair'
     | '/_app/import'
     | '/_app/settings'
     | '/_app/stats'
@@ -360,6 +372,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/chair': {
+      id: '/_app/chair'
+      path: '/chair'
+      fullPath: '/chair'
+      preLoaderRoute: typeof AppChairRouteImport
       parentRoute: typeof AppRoute
     }
     '/_app/import': {
@@ -478,6 +497,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppChairRoute: typeof AppChairRoute
   AppImportRoute: typeof AppImportRoute
   AppSettingsRoute: typeof AppSettingsRoute
   AppStatsRoute: typeof AppStatsRoute
@@ -490,6 +510,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppChairRoute: AppChairRoute,
   AppImportRoute: AppImportRoute,
   AppSettingsRoute: AppSettingsRoute,
   AppStatsRoute: AppStatsRoute,

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}@keyframes chair-pulse{0%{transform:scale(1);opacity:.55}70%,100%{transform:scale(2.6);opacity:0}}@keyframes chair-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion: reduce){[data-pulse]{animation:none!important}[data-spin]{animation-duration:3s!important}}</style>
+</helmet>
+<div style="{{ frame }}">
+  <div style="position:absolute;inset:0;padding:4cqmin;display:flex;flex-direction:column;gap:3cqmin;box-sizing:border-box">
+
+    <sc-if value="{{ showTop }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;height:6cqmin;display:flex;align-items:center;gap:2cqmin;font-size:4.2cqmin;color:rgb(var(--ink-2))">
+        <span style="font-weight:700;color:rgb(var(--ink))">Olivia</span><span>11 days</span>
+        <span style="flex:1"></span>
+        <span style="display:{{ dimHintD }};align-items:center;gap:1cqmin;color:rgb(var(--ink-3))"><i class="icon-moon" style="font-size:3.6cqmin"></i>Dimmed · tap to wake</span>
+        <span style="font-weight:600;font-variant-numeric:tabular-nums">{{ clock }}</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.idle }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;display:flex;flex-direction:column;align-items:flex-start;gap:1.6cqmin">
+        <span style="font-size:5.8cqmin;font-weight:600;line-height:1.2;font-variant-numeric:tabular-nums">Last fed 2h 10m ago · Right side · 18m</span>
+        <span style="display:flex;align-items:center;gap:1.4cqmin;padding:1.2cqmin 2.6cqmin;border-radius:999px;background:{{ due.bg }};color:{{ due.c }};font-size:4.4cqmin;font-weight:600;font-variant-numeric:tabular-nums"><i class="{{ due.icon }}" style="font-size:4.4cqmin;color:{{ due.ic }}"></i>{{ due.text }}</span>
+      </div>
+      <div style="flex:1;min-height:0;display:flex;gap:3cqmin">
+        <sc-for list="{{ sides }}" as="sd" hint-placeholder-count="2">
+          <div style="flex:1;position:relative;border-radius:5cqmin;background:{{ sd.bg }};color:rgb(var(--ink-on-solid));box-shadow:{{ sd.ring }};display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4cqmin;cursor:pointer" style-active="filter:brightness(0.92)">
+            <span style="position:absolute;top:2.4cqmin;right:2.4cqmin;display:{{ sd.badgeD }};align-items:center;height:6.4cqmin;padding:0 2.6cqmin;border-radius:999px;background:rgb(var(--raised));color:rgb(var(--ink));font-size:4cqmin;font-weight:700">Next</span>
+            <span style="font-size:24cqmin;font-weight:700;line-height:0.9">{{ sd.letter }}</span>
+            <span style="display:flex;align-items:center;gap:1.4cqmin;font-size:5.4cqmin;font-weight:700"><i class="icon-play" style="font-size:4.6cqmin"></i>{{ sd.label }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <div style="flex:none;display:flex;gap:3cqmin">
+        <sc-for list="{{ quick }}" as="q" hint-placeholder-count="3">
+          <div style="flex:1;height:19cqmin;border-radius:4cqmin;background:{{ q.soft }};color:{{ q.on }};display:flex;align-items:center;justify-content:center;gap:2cqmin;font-size:5.4cqmin;font-weight:700;cursor:pointer" style-active="filter:brightness(0.92)"><i class="{{ q.icon }}" style="font-size:6.4cqmin;color:{{ q.solid }}"></i>{{ q.label }}</div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.feed }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:1.8cqmin">
+        <span style="display:flex;align-items:center;gap:2cqmin;padding:1.2cqmin 3cqmin 1.2cqmin 2.6cqmin;border-radius:999px;background:rgb(var(--raised) / 0.7);color:{{ fd.pillC }};font-size:5cqmin;font-weight:700">
+          <span style="position:relative;width:2.6cqmin;height:2.6cqmin;flex:none"><span data-pulse="" style="position:absolute;inset:0;border-radius:50%;background:{{ fd.dot }};animation:chair-pulse 2.4s ease-out infinite;display:{{ fd.pulseD }}"></span><span style="position:absolute;inset:0;border-radius:50%;background:{{ fd.dot }}"></span></span>{{ fd.title }}
+        </span>
+        <div style="display:flex;align-items:center;gap:4cqmin;flex-wrap:wrap">
+          <span style="font-size:22cqmin;font-weight:600;line-height:1;letter-spacing:-0.02em;font-variant-numeric:tabular-nums;opacity:{{ fd.timerOp }}">12:34</span>
+          <span style="display:{{ fd.chipD }};align-items:center;gap:1.4cqmin;height:9cqmin;padding:0 3cqmin;border-radius:999px;background:rgb(var(--session-paused));color:rgb(var(--ink-on-solid));font-size:4.6cqmin;font-weight:700"><i class="icon-pause" style="font-size:4.4cqmin"></i>Paused 3m</span>
+        </div>
+        <span style="font-size:6cqmin;font-weight:600;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Left 8:10 · Right 4:24</span>
+        <span style="display:flex;align-items:center;gap:1.6cqmin;font-size:4.2cqmin;color:rgb(var(--ink-2))"><span style="width:6cqmin;height:6cqmin;border-radius:50%;background:rgb(var(--growth-soft));color:rgb(var(--on-growth));display:grid;place-items:center;font-size:2.6cqmin;font-weight:700">Ja</span>Started 2:41 pm by Jane</span>
+      </div>
+      <div style="flex:none;display:flex;flex-wrap:wrap;gap:3cqmin">
+        <div style="flex:1.4 1 50cqmin;height:20cqmin;border-radius:4cqmin;background:rgb(var(--feed-right));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:2cqmin;font-size:5.6cqmin;font-weight:700;cursor:pointer"><i class="icon-arrow-left-right" style="font-size:6cqmin"></i>Switch to Right</div>
+        <div style="flex:1 1 25cqmin;height:20cqmin;border-radius:4cqmin;background:{{ fd.pauseBg }};color:{{ fd.pauseC }};border:0.5cqmin solid {{ fd.pauseBorder }};box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:2cqmin;font-size:5.6cqmin;font-weight:700;cursor:pointer"><i class="{{ fd.pauseIcon }}" style="font-size:6cqmin"></i>{{ fd.pause }}</div>
+        <div style="flex:1 1 25cqmin;height:20cqmin;border-radius:4cqmin;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:2cqmin;font-size:5.6cqmin;font-weight:700;cursor:pointer"><i class="icon-check" style="font-size:6cqmin"></i>End feed</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.ended }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4cqmin;text-align:center">
+        <span style="width:20cqmin;height:20cqmin;border-radius:50%;background:rgb(var(--success));color:rgb(var(--ink-on-solid));display:grid;place-items:center"><i class="icon-check" style="font-size:11cqmin"></i></span>
+        <span style="font-size:13cqmin;font-weight:700;line-height:1;font-variant-numeric:tabular-nums">Fed 24m</span>
+        <span style="font-size:6cqmin;font-weight:600;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">Left 14m · Right 10m</span>
+      </div>
+      <div style="flex:none;display:flex;flex-wrap:wrap;gap:3cqmin">
+        <div style="flex:1 1 30cqmin;height:20cqmin;border-radius:4cqmin;background:rgb(var(--raised));border:0.5cqmin solid rgb(var(--line-strong));box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:2cqmin;font-size:5.6cqmin;font-weight:700;cursor:pointer"><i class="icon-undo-2" style="font-size:6cqmin"></i>Undo</div>
+        <div style="flex:2 1 50cqmin;height:20cqmin;border-radius:4cqmin;background:rgb(var(--nappy));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:2cqmin;font-size:5.8cqmin;font-weight:700;cursor:pointer"><i class="icon-droplets" style="font-size:6.4cqmin"></i>Log a nappy?</div>
+      </div>
+      <span style="flex:none;align-self:center;font-size:3.8cqmin;color:rgb(var(--ink-2))">Back to the start screen in 5s</span>
+    </sc-if>
+
+    <sc-if value="{{ is.offline }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3cqmin;text-align:center">
+        <span data-spin="" style="width:13cqmin;height:13cqmin;border-radius:50%;border:1.6cqmin solid rgb(var(--line));border-top-color:rgb(var(--primary));box-sizing:border-box;animation:chair-spin 1.4s linear infinite"></span>
+        <span style="font-size:8cqmin;font-weight:700;line-height:1.15">Can't reach babble.</span>
+        <span style="font-size:5.4cqmin;color:rgb(var(--ink-2))">Retrying…</span>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.signedout }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4cqmin;text-align:center">
+        <span style="font-family:Caprasimo, serif;font-size:15cqmin;line-height:1;color:rgb(var(--primary))">babble</span>
+        <span style="font-size:5.4cqmin;color:rgb(var(--ink-2))">This screen is signed out.</span>
+        <div style="height:20cqmin;padding:0 9cqmin;border-radius:999px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:2.4cqmin;font-size:6cqmin;font-weight:700;cursor:pointer"><i class="icon-log-in" style="font-size:6.4cqmin"></i>Sign in on this screen</div>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ is.sheet }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.55)"></div>
+    <div style="position:absolute;left:3cqmin;right:3cqmin;top:5cqmin;bottom:3cqmin;padding:4cqmin;border-radius:6cqmin;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);display:flex;flex-direction:column;gap:3cqmin;box-sizing:border-box">
+      <div style="flex:none;display:flex;align-items:center;gap:3cqmin">
+        <span style="width:12cqmin;height:12cqmin;border-radius:50%;background:{{ sh.soft }};color:{{ sh.solid }};display:grid;place-items:center"><i class="{{ sh.icon }}" style="font-size:6.4cqmin"></i></span>
+        <span style="flex:1;font-size:8cqmin;font-weight:700">{{ sh.title }}</span>
+        <div style="width:18.4cqmin;height:18.4cqmin;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;cursor:pointer"><i class="icon-x" style="font-size:7cqmin"></i></div>
+      </div>
+
+      <sc-if value="{{ is.bottle }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:5cqmin">
+          <div style="width:22cqmin;height:22cqmin;flex:none;border-radius:50%;background:rgb(var(--surface));border:0.5cqmin solid rgb(var(--line-strong));box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer"><i class="icon-minus" style="font-size:8cqmin"></i><span style="font-size:3.6cqmin;font-weight:700;color:rgb(var(--ink-2))">{{ bt.step }}</span></div>
+          <span style="min-width:44cqmin;text-align:center;font-size:18cqmin;font-weight:700;line-height:1;font-variant-numeric:tabular-nums">{{ bt.value }}<span style="font-size:7cqmin;font-weight:600;color:rgb(var(--ink-2));margin-left:1.4cqmin">{{ bt.unit }}</span></span>
+          <div style="width:22cqmin;height:22cqmin;flex:none;border-radius:50%;background:rgb(var(--surface));border:0.5cqmin solid rgb(var(--line-strong));box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer"><i class="icon-plus" style="font-size:8cqmin"></i><span style="font-size:3.6cqmin;font-weight:700;color:rgb(var(--ink-2))">{{ bt.step }}</span></div>
+        </div>
+        <div style="flex:none;display:flex;flex-wrap:wrap;gap:3cqmin">
+          <div style="flex:3 1 90cqmin;display:flex;gap:2cqmin">
+            <sc-for list="{{ kinds }}" as="k" hint-placeholder-count="3"><div style="flex:1;height:18.4cqmin;border-radius:999px;background:{{ k.bg }};color:{{ k.c }};border:0.5cqmin solid {{ k.border }};box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:1.2cqmin;font-size:4.8cqmin;font-weight:700;white-space:nowrap;cursor:pointer"><i class="{{ k.icon }}" style="font-size:4.6cqmin"></i>{{ k.label }}</div></sc-for>
+          </div>
+          <div style="flex:1 1 40cqmin;height:18.4cqmin;border-radius:999px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;gap:2cqmin;font-size:6cqmin;font-weight:700;cursor:pointer"><i class="icon-check" style="font-size:6.4cqmin"></i>Save</div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.nappy }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:1;min-height:0;display:flex;flex-wrap:wrap;gap:3cqmin;align-content:stretch">
+          <sc-for list="{{ nappies }}" as="n" hint-placeholder-count="4">
+            <div style="flex:1 1 34cqmin;min-height:28cqmin;border-radius:5cqmin;background:rgb(var(--nappy-soft));color:rgb(var(--on-nappy));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2cqmin;cursor:pointer" style-active="filter:brightness(0.92)">
+              <span style="display:flex;align-items:center;gap:1.4cqmin;height:11cqmin"><i class="{{ n.icon }}" style="font-size:10cqmin;color:rgb(var(--nappy));display:{{ n.iconD }}"></i><span style="width:9cqmin;height:9cqmin;border-radius:50%;background:rgb(var(--poo-mustard));box-shadow:inset 0 0 0 0.5cqmin rgb(var(--swatch-edge) / 0.6);display:{{ n.pooD }}"></span></span>
+              <span style="font-size:7cqmin;font-weight:700">{{ n.label }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ is.toast }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;left:50%;bottom:4cqmin;transform:translateX(-50%);display:flex;align-items:center;gap:4cqmin;padding:1.4cqmin 1.4cqmin 1.4cqmin 4cqmin;border-radius:999px;background:rgb(var(--raised));border:0.3cqmin solid rgb(var(--line-strong));box-shadow:var(--shadow-toast);white-space:nowrap">
+      <i class="icon-check" style="font-size:5.4cqmin;color:rgb(var(--success))"></i>
+      <span style="font-size:5.4cqmin;font-weight:700">Nappy saved · Wet</span>
+      <div style="height:18.4cqmin;padding:0 6cqmin;border-radius:999px;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:flex;align-items:center;gap:1.6cqmin;font-size:5.4cqmin;font-weight:700;cursor:pointer"><i class="icon-undo-2" style="font-size:5.4cqmin"></i>Undo</div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:720},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;idle&quot;,&quot;idle-overdue&quot;,&quot;feeding&quot;,&quot;paused&quot;,&quot;ended&quot;,&quot;bottle&quot;,&quot;bottle-oz&quot;,&quot;nappy&quot;,&quot;nappy-saved&quot;,&quot;dim-idle&quot;,&quot;dim-feeding&quot;,&quot;offline&quot;,&quot;signedout&quot;],&quot;default&quot;:&quot;idle&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;s&quot;,&quot;l&quot;,&quot;p&quot;],&quot;default&quot;:&quot;l&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.state || 'idle';
+    const size = this.props.size || 'l';
+    const c = n => `rgb(var(--${n}))`;
+    const dim = s.startsWith('dim-');
+    const st = dim ? s.slice(4) : s;
+    const is = {
+      idle: ['idle', 'idle-overdue', 'bottle', 'bottle-oz', 'nappy', 'nappy-saved'].includes(st),
+      feed: st === 'feeding' || st === 'paused', ended: st === 'ended', offline: st === 'offline', signedout: st === 'signedout',
+      bottle: st.startsWith('bottle'), nappy: st === 'nappy', toast: st === 'nappy-saved'
+    };
+    is.sheet = is.bottle || is.nappy;
+    const paused = st === 'paused';
+    const dims = { s: [800, 480], l: [1280, 720], p: [480, 800] }[size];
+    const bgKey = st === 'feeding' ? 'feed-left-soft' : paused ? 'session-paused-soft' : 'bg';
+    const frame = { width: dims[0] + 'px', height: dims[1] + 'px', containerType: 'size', position: 'relative', overflow: 'hidden', background: c(bgKey), color: c('ink'), fontFamily: 'Figtree, system-ui, sans-serif' };
+    if (dim) {
+      const dark = { 'feed-left': [220, 130, 104], 'feed-right': [238, 176, 114], bottle: [220, 187, 98], nappy: [134, 196, 168], sleep: [165, 151, 212], primary: [174, 191, 146], success: [140, 196, 150], info: [134, 196, 186], caution: [214, 187, 130], growth: [147, 180, 198], 'session-paused': [196, 179, 131] };
+      const softs = { 'feed-left-soft': [58, 33, 26], 'feed-right-soft': [58, 41, 21], 'bottle-soft': [50, 41, 20], 'nappy-soft': [26, 46, 37], 'sleep-soft': [40, 35, 58], 'primary-soft': [42, 50, 32], 'info-soft': [22, 39, 36], 'caution-soft': [44, 36, 20], 'growth-soft': [26, 37, 43], 'session-paused-soft': [42, 38, 24] };
+      const dimify = ([r, g, b], k, sat) => { const y = 0.3 * r + 0.59 * g + 0.11 * b; return [r, g, b].map(v => Math.round((y + (v - y) * sat) * k)).join(' '); };
+      const v = { '--bg': '7 7 5', '--surface': '13 12 10', '--raised': '17 16 13', '--line': '30 28 23', '--line-strong': '46 43 35', '--ink': '156 134 108', '--ink-2': '118 101 82', '--ink-3': '96 83 68', '--ink-on-solid': '9 8 6', '--on-primary': '9 8 6', '--scrim': '0 0 0' };
+      for (const k in dark) v['--' + k] = dimify(dark[k], 0.5, 0.4);
+      for (const k in softs) v['--' + k] = dimify(softs[k], 0.45, 0.5);
+      for (const k of ['on-feed-left', 'on-feed-right', 'on-bottle', 'on-nappy', 'on-sleep', 'on-primary-soft', 'on-info', 'on-caution', 'on-growth', 'on-session-paused']) v['--' + k] = '150 128 104';
+      Object.assign(frame, v, { background: c(bgKey), color: c('ink') });
+    }
+    const overdue = st === 'idle-overdue';
+    const due = overdue
+      ? { text: 'Overdue 10m · was due 3:02 pm', bg: c('caution-soft'), c: c('on-caution'), ic: c('caution'), icon: 'icon-alarm-clock' }
+      : { text: 'Next feed due in 42m · around 3:02 pm', bg: c('info-soft'), c: c('on-info'), ic: c('info'), icon: 'icon-clock' };
+    const sides = [['L', 'Start left', 'feed-left', true], ['R', 'Start right', 'feed-right', false]].map(([letter, label, k, next]) => ({
+      letter, label, bg: c(k), badgeD: next ? 'flex' : 'none',
+      ring: next ? `0 0 0 1cqmin ${c('bg')}, 0 0 0 2.2cqmin ${c(k)}` : 'none'
+    }));
+    const quick = [['Bottle', 'icon-milk', 'bottle'], ['Nappy', 'icon-droplets', 'nappy'], ['Sleep', 'icon-moon', 'sleep']].map(([label, icon, k]) => ({ label, icon, soft: c(k + '-soft'), solid: c(k), on: c('on-' + k) }));
+    const fd = paused
+      ? { title: 'Paused · Left', pillC: c('on-session-paused'), dot: c('session-paused'), pulseD: 'none', timerOp: 0.45, chipD: 'flex', pause: 'Resume', pauseIcon: 'icon-play', pauseBg: c('session-paused'), pauseC: c('ink-on-solid'), pauseBorder: 'transparent' }
+      : { title: 'Feeding · Left', pillC: c('on-feed-left'), dot: c('feed-left'), pulseD: 'block', timerOp: 1, chipD: 'none', pause: 'Pause', pauseIcon: 'icon-pause', pauseBg: c('raised'), pauseC: c('ink'), pauseBorder: c('line-strong') };
+    const oz = st === 'bottle-oz';
+    const bt = oz ? { value: '4', unit: 'oz', step: '0.5' } : { value: '120', unit: 'ml', step: '10' };
+    const kinds = ['Breast milk', 'Formula', 'Mixed'].map(label => { const on = label === 'Breast milk'; return { label, icon: on ? 'icon-check' : '', bg: on ? c('primary-soft') : c('raised'), c: on ? c('on-primary-soft') : c('ink'), border: on ? c('primary') : c('line-strong') }; });
+    const nappies = [['Wet', 'icon-droplet', false], ['Dirty', '', true], ['Both', 'icon-droplet', true], ['Dry', 'icon-sun', false]].map(([label, icon, poo]) => ({ label, icon, iconD: icon ? 'block' : 'none', pooD: poo ? 'block' : 'none' }));
+    const sh = is.bottle ? { title: 'Bottle', icon: 'icon-milk', soft: c('bottle-soft'), solid: c('bottle') } : { title: 'Nappy', icon: 'icon-droplets', soft: c('nappy-soft'), solid: c('nappy') };
+    const clock = { 'idle-overdue': '3:12 pm', feeding: '2:54 pm', paused: '2:57 pm', ended: '3:05 pm' }[st] || '2:20 pm';
+    return { frame, is, due, sides, quick, fd, bt, kinds, nappies, sh, clock, showTop: !is.signedout && !is.ended, dimHintD: dim ? 'flex' : 'none' };
+  }
+}
+</script>
+</body>
+</html>

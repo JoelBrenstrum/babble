@@ -58,6 +58,11 @@ test('starting a feed offers to log a nappy, then returns to the feed', async ({
   await expect(page).toHaveURL(/\/sessions\//);
   await expect(page.getByText('Feeding · Left')).toBeVisible();
 
+  const keepOn = page.getByRole('switch', { name: 'Keep screen on' });
+  await keepOn.click();
+  await expect(keepOn).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByText(/Stays on while this screen is open/)).toBeVisible();
+
   await page.goto('/');
   await expect(
     page

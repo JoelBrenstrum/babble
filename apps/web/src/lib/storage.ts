@@ -23,6 +23,7 @@ export const storageKeys = {
   night: 'babble.night',
   installDismissedAt: 'babble.installDismissedAt',
   installed: 'babble.installed',
+  keepAwake: 'babble.keepAwake',
 } as const;
 
 export function clearAccountStorage(): void {

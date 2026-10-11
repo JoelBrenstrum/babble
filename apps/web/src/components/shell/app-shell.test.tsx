@@ -37,4 +37,11 @@ describe('AppShell', () => {
     expect(screen.queryByTestId('running-dot')).toBeNull();
     expect(screen.getAllByRole('link', { name: 'Home' })).toHaveLength(2);
   });
+
+  it('gives each family member their own avatar colour', async () => {
+    await renderShell(null);
+    const tone = (name: string) => screen.getAllByTitle(name)[0]!.dataset.tone;
+    expect(tone('John')).toBe('secondary');
+    expect(tone('Jane')).toBe('growth');
+  });
 });

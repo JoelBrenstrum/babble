@@ -7,6 +7,7 @@ import { Card, SectionLabel } from '#/components/ui/card';
 import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { RunningCard } from '#/features/events/running-card';
+import { KeepAwakeToggle } from '#/features/keep-awake-toggle';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { SleepDetailsEditor } from '#/features/events/sleep-details-editor';
@@ -73,6 +74,7 @@ function SessionPage() {
         members={family.members}
         onDiscarded={() => void navigate({ to: '/' })}
       />
+      {event.type !== 'sleep' && <KeepAwakeToggle />}
       {event.type === 'sleep' && (
         <section className="flex flex-col gap-2">
           <SectionLabel>Details</SectionLabel>

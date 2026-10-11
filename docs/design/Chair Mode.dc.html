@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>body{margin:0;background:#e8e4d9;font-family:Figtree,system-ui,sans-serif}a{color:#56633f;text-underline-offset:3px}a:hover{color:#3d472b}[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div data-theme="light" style="background:rgb(var(--surface));color:rgb(var(--ink));padding:64px 72px 96px;display:flex;flex-direction:column;gap:56px;min-width:3600px;box-sizing:border-box">
+  <header style="display:flex;flex-direction:column;gap:14px;max-width:1100px">
+    <div style="font-family:Caprasimo, serif;font-size:56px;line-height:1;color:rgb(var(--primary))">babble</div>
+    <div style="font-size:28px;font-weight:700">Chair mode</div>
+    <div style="font-size:17px;color:rgb(var(--ink-2));line-height:1.55">A full-screen page for a Raspberry Pi touchscreen beside the feeding chair. It stays on, is tapped one-handed in the dark and is read from about 1 m away. There's no navigation and no scrolling. Every target is at least 88px, and actions save on one tap with a 5-second Undo instead of confirm dialogs. The only motion is the live timer and the running pulse. Each state is shown at 800×480 (Touch Display 1) and 1280×720 (Touch Display 2), dark first. Sizes scale with the shorter screen edge, so the same layout fits both displays and a portrait mount.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px 20px;font-size:15px;color:rgb(var(--ink-2))"><span><b style="color:rgb(var(--ink))">Night dim</b> uses darker, less saturated versions of the dark tokens, with no new hues. The first tap while dimmed only wakes the screen for 30 seconds.</span></div>
+  </header>
+
+  <sc-for list="{{ rows }}" as="r" hint-placeholder-count="4">
+    <section style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;gap:14px"><span style="font:700 13px ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ r.n }}</span><span style="font-size:22px;font-weight:700">{{ r.title }}</span><span style="font-size:15px;color:rgb(var(--ink-2))">{{ r.note }}</span></div>
+      <div style="display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap">
+        <sc-for list="{{ r.frames }}" as="f" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2))">{{ f.label }}</span>
+            <div data-theme="{{ f.theme }}" style="padding:18px;border-radius:22px;background:#0b0c0a;box-shadow:0 18px 40px rgba(20,22,18,.25)">
+              <dc-import name="Chair Screen" state="{{ r.state }}" size="{{ f.size }}" hint-size="{{ f.hint }}"></dc-import>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const hint = { s: '800px,480px', l: '1280px,720px', p: '480px,800px' };
+    const lbl = { s: '800×480', l: '1280×720', p: '480×800 portrait' };
+    const F = (theme, size) => ({ theme, size, hint: hint[size], label: `${theme === 'dark' ? 'Dark' : 'Light'} · ${lbl[size]}` });
+    const both = [F('dark', 's'), F('dark', 'l'), F('light', 's'), F('light', 'l')];
+    const darkOnly = [F('dark', 's'), F('dark', 'l')];
+    const portrait = [F('dark', 'p'), F('light', 'p')];
+    const defs = [
+      ['idle', 'Idle', 'Next side is Left, because the last feed ended on Right.', both],
+      ['idle-overdue', 'Idle · feed overdue', 'The due line switches from info to caution.', both],
+      ['feeding', 'Feeding', 'The current side tints the whole screen. Switch uses the other side’s colour.', both],
+      ['paused', 'Paused', 'The timer dims and Resume replaces Pause. No pulse.', both],
+      ['ended', 'Feed ended', 'Shown for 5 seconds, then back to Idle.', both],
+      ['bottle', 'Quick bottle · ml', 'Opens from Bottle on Idle. Steps of 10 ml.', both],
+      ['bottle-oz', 'Quick bottle · oz', 'Imperial units. Steps of 0.5 oz.', both],
+      ['nappy', 'Quick nappy', 'One tap saves and closes.', both],
+      ['nappy-saved', 'Nappy saved', 'The Undo toast stays for 5 seconds.', both],
+      ['dim-idle', 'Night dim · Idle', 'Near-black, warm muted text, desaturated trackers.', darkOnly],
+      ['dim-feeding', 'Night dim · Feeding', 'The first tap only wakes the screen.', darkOnly],
+      ['offline', 'Offline', 'Retries on its own; nothing to tap.', both],
+      ['signedout', 'Signed out', '', both],
+      ['idle', 'Portrait · Idle', 'For screens mounted vertically.', portrait],
+      ['feeding', 'Portrait · Feeding', 'End feed wraps to its own row.', portrait]
+    ];
+    const rows = defs.map(([state, title, note, frames], i) => ({ state, title, note, frames, n: 'C' + String(i + 1).padStart(2, '0') }));
+    return { rows };
+  }
+}
+</script>
+</body>
+</html>

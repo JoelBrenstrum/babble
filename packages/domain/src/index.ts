@@ -11,6 +11,8 @@ export {
   type ImportWarning,
   type SkippedRow,
 } from './huckleberry/import';
+export { keepAwakeHint, parseKeepAwake, serialiseKeepAwake } from './device/keep-awake';
+export { MEMBER_TONES, memberTones, toneFor, type MemberTone, type MemberToneMap } from './format/member-tone';
 export { babyAgeLabel } from './format/baby-age';
 export { clockToMinutes, minutesToClock, todayInTimeZone } from './format/time-of-day';
 export {
@@ -250,3 +252,22 @@ export {
   trimAwakePeriod,
   type AwakePeriod,
 } from './events/awake-periods';
+export {
+  CHAIR_UNDO_MS,
+  CHAIR_WAKE_MS,
+  bottleStep,
+  chairBottleDraft,
+  chairDimmed,
+  chairFeedSummary,
+  chairIsNight,
+  chairFeedView,
+  chairNappyDraft,
+  defaultBottleAmount,
+  defaultBottleContent,
+  formatBottleAmount,
+  lastFeedLine,
+  lastNappyLine,
+  runningBreastFeed,
+  stepBottleAmount,
+  type ChairFeedView,
+} from './chair/chair';

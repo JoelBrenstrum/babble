@@ -69,6 +69,21 @@ function SettingsPage() {
         <ExportData client={babble.client} family={family} baby={baby} />
       </section>
       <AppearanceSettings client={babble.client} baby={baby} />
+      <section className="flex flex-col gap-3">
+        <SectionLabel>Chair mode</SectionLabel>
+        <Link
+          to="/chair"
+          className="flex min-h-tap items-center justify-between rounded-card bg-raised px-5 py-4 shadow-raised hover:bg-surface"
+        >
+          <span>
+            <span className="block text-row-title font-semibold">Open chair mode</span>
+            <span className="block text-meta text-ink-2">
+              A full-screen feed station for a tablet or touchscreen by the feeding chair. It keeps the screen on.
+            </span>
+          </span>
+          <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
+        </Link>
+      </section>
       <InstallSection />
       <AccountSection email={session.user.email ?? ''} />
       <AboutSection />

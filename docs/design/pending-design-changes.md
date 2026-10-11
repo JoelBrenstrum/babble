@@ -99,3 +99,79 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > Add a fourth sheet to the feed/nap prompts in `Phone Flows.dc.html`, in the same style as `prompt-endnap`, in light and dark. Use a `nappy-soft` round tile with a Lucide `droplets` icon in `on-nappy`, the title "Change Olivia's nappy?" and the body "Log a nappy change with this feed." Buttons: a primary "Yes, log a nappy" and a ghost "Not now". It appears over the live feed timer right after a breastfeed starts, and after a bottle is saved. Show it at 390px as a bottom sheet and at 1280px as a centred dialog.
+
+---
+
+## 2026-10-11 · Keep screen on during a feed
+
+Paste everything below this line into Claude Design.
+
+> On the live breastfeed (and pump) session screen in `Phone Flows.dc.html`, add a "Keep screen on" card directly under the running card, in light and dark at 390px and 1280px. It's a raised card with a `surface` round tile holding a Lucide `sun` icon in `ink-2`, the label "Keep screen on" (label, semibold), a meta hint in `ink-2`, and an iOS-style switch on the right (`primary` track when on, `line-strong` when off). Hints: off "Let the screen sleep as usual."; on and charging "Stays on while this screen is open. Plugged in."; on battery "Stays on while this screen is open. On battery, so plug in if you can."; battery unknown "Stays on while this screen is open." Keep the switch's tap area at least 44px.
+
+---
+
+## 2026-10-11 · A colour for each family member
+
+Paste everything below this line into Claude Design.
+
+> Family member avatars are no longer all peach. Each member gets a colour in the order they joined: 1 `secondary-soft` / `on-secondary-soft` (peach), 2 `growth-soft` / `on-growth` (blue), 3 `sleep-soft` / `on-sleep` (lavender), 4 `info-soft` / `on-info` (teal), 5 `pump-soft` / `on-pump` (plum), 6 `bottle-soft` / `on-bottle` (gold), then repeating. Update the avatar stacks in the header and sidebar, the author avatars on entry rows and running cards ("Started by Jane"), and the Settings members list so John is peach and Jane is blue, in light and dark. Check the initials stay readable on each tint and that overlapping avatars in the stack still separate clearly with their ring.
+
+---
+
+## 2026-10-11 · Chair mode (feed station on a wall-mounted touchscreen)
+
+Paste everything below this line into Claude Design.
+
+> Design a new **Chair mode** for babble: a full-screen page shown on a Raspberry Pi touchscreen mounted beside the feeding chair. It is always on, tapped one-handed (often while holding a baby, in the dark), and read from about 1 m away. Use the existing babble design system (tokens, Figtree, Caprasimo wordmark, Lucide icons, `feed-left` / `feed-right` / `bottle` / `nappy` tracker colours). Make a new file `Chair Mode.dc.html` with every state below, each at **800×480** (Pi Touch Display 1) and **1280×720** (Pi Touch Display 2), landscape, in **light and dark**. Dark is the main case because most use is at night.
+>
+> **Principles:** no navigation, menus, tab bar or scrolling. Every target is at least 88px tall, and the main actions are much bigger. One-tap actions with no confirm dialogs; mistakes are fixed with a 5-second Undo toast. Huge, high-contrast numbers. Nothing animates except the live timer and a soft running pulse.
+>
+> **1. Idle (no feed running):**
+> - Top strip: the baby's name and age on the left, the clock time on the right, small and quiet.
+> - A status line: "Last fed 2h 10m ago · Right side · 18m". Below it the feed due line in the info tone ("Next feed due in 42m · around 3:02 pm"), switching to caution when overdue ("Overdue 10m · was due 3:02 pm").
+> - Two giant buttons side by side filling most of the screen: **Left** (`feed-left`) and **Right** (`feed-right`), each with a big "L" / "R" and the label "Start left" / "Start right". The suggested next side gets a "Next" badge and a thicker border.
+> - A row of smaller secondary buttons underneath: **Bottle** (`bottle`, opens a quick amount picker), **Nappy** (`nappy`) and **Sleep** (`sleep`).
+>
+> **2. Feeding (breastfeed running):**
+> - The current side fills the background with its soft tint (`feed-left-soft` or `feed-right-soft`) and shows "Feeding · Left".
+> - A giant total timer (for example "12:34", about 160px at 1280 wide) with the current side's time smaller beneath it: "Left 8:10 · Right 4:24".
+> - Three big buttons: **Switch to Right** (the other side's colour), **Pause** (neutral), and **End feed** (primary, solid).
+> - A small "Started 2:41 pm by Jane" with Jane's avatar (avatars use the per-member colours: first member peach `secondary-soft`, second blue `growth-soft`).
+>
+> **3. Paused:** same layout using `session-paused` / `session-paused-soft`. The timer is dimmed with a "Paused 3m" chip, and **Resume** replaces Pause.
+>
+> **4. Feed ended:** a full-screen summary for 5 seconds: a check icon, "Fed 24m · Left 14m · Right 10m", an **Undo** button, and a large **Log a nappy?** button. Then it returns to Idle.
+>
+> **5. Quick bottle:** a large sheet over Idle with a big amount stepper (−/+ in 10 ml steps, showing "120 ml"), Breast milk / Formula / Mixed segmented chips, and a large **Save** button. Include a ml and an oz variant.
+>
+> **6. Quick nappy:** a large sheet with four huge choices: **Wet**, **Dirty**, **Both** and **Dry**. One tap saves and closes with an Undo toast.
+>
+> **7. Night dim:** a variant of Idle and Feeding at night where the whole UI drops to very low brightness: near-black background, text in a warm muted tone, and tracker colours desaturated, so it doesn't light up the room. Tapping anywhere while dimmed wakes it to normal dark brightness for 30 seconds before the tap does anything else.
+>
+> **8. Offline / signed out:** a calm full-screen message: "Can't reach babble. Retrying…" with a spinner, and a signed-out state with "Sign in on this screen" and a large button.
+>
+> Also show a **portrait 480×800** version of Idle and Feeding, for people who mount the screen vertically.
+
+---
+
+## 2026-10-11 · Chair mode as built
+
+Paste everything below this line into Claude Design.
+
+> Small changes to `Chair Mode.dc.html` / `Chair Screen.dc.html` from the build: (1) The baby's name in the top strip is a link back to Home (the only way out on a normal tablet); give it a subtle pressed state. (2) When a nap is running, the Sleep quick button reads "End nap · 32m" and ends it on tap; add that state to Idle. (3) The paused chip says "Just paused" for the first minute, then "Paused 3m". (4) Starting a nap shows the Undo toast "Nap started". (5) Settings gets a "Chair mode" section with a row "Open chair mode" and the hint "A full-screen feed station for a tablet or touchscreen by the feeding chair. It keeps the screen on.", styled like the "Import from Huckleberry" row; add it to the Settings screens in `Phone Account.dc.html` and `Web.dc.html`.
+
+---
+
+## 2026-10-11 · Chair mode: nappy when a feed starts, nap when it ends
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Screen.dc.html`, the **Feed ended** state's big right-hand button is now **"Olivia's asleep"** in solid `sleep` with a Lucide `moon` icon (it starts a nap and shows the "Nap started" Undo toast), replacing "Log a nappy?". When a nap is already running, only Undo shows, at full width. Add a new **Feed started · nappy** state over the Feeding screen: a chair sheet with a `nappy-soft` tile and `droplets` icon, the title "Change Olivia's nappy?", and two big buttons along the bottom: a bordered "Not now" and a solid `nappy` "Yes, log a nappy" (twice as wide). Yes opens the Quick nappy sheet. Show both at 800×480, 1280×720 and portrait, light and dark.
+
+---
+
+## 2026-10-11 · Chair mode: last nappy on the Nappy button, toasts at the top
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Screen.dc.html` Idle, the Nappy quick button gets a second line under "Nappy": the last change and how long ago, e.g. "Wet · 2h 10m ago" (about 3.6cqmin, semibold, `on-nappy` at 80% opacity, tabular figures), left-aligned with the label beside the droplets icon. It's hidden when no nappy has been logged. Check it fits the narrow portrait button. Also move the Undo toast ("Nappy saved · Wet", "Nap started") from the bottom to the top centre (3cqmin from the top, over the status line) so it never covers the quick buttons. A toast without Undo (e.g. "Nap ended") is a shorter pill with no empty button space.

@@ -132,9 +132,11 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 - The start screen has a context line: "Last feed ended on Right, 2h 14m ago. Next side: Left." (or "No breastfeeds logged yet. Start on either side."); pump "Last pump 6h 02m ago · 90 ml."; sleep "Awake 1h 05m since the last nap." If one is already running it shows "Right · 12m 23s · started by Jane" with Open timer.
 - Paused sessions look paused: the live dot turns the downtime colour and stops pulsing, and the timer turns grey. A paused feed or pump shows "Paused for 1m 12s", marks the last side "· last", and the growing idle row reads "idle · counting".
 - Running cards show "Started by Jane" next to the avatar at every width.
+- Each family member's avatar has its own colour, given in the order they joined: peach (`secondary-soft`), blue (`growth-soft`), lavender (`sleep-soft`), teal (`info-soft`), plum (`pump-soft`) and gold (`bottle-soft`), then repeating. The same person has the same colour in the header, on entries, on running cards and in Settings.
 - On the start screen, the suggested side carries a "Next" tag: the opposite of the side the last breastfeed ended on. Both sides stay one tap to start.
 - Start → if a nap is running, show the "End nap?" sheet first (Stage 2).
 - Once the feed has started (and after saving a bottle), a "Change Olivia's nappy?" sheet in the same style asks "Yes, log a nappy" or "Not now". Yes opens the usual Log nappy form, and saving it returns to the feed. It's skipped when a nappy was logged within 30 minutes of the feed's start, and it waits until any "End nap?" or "Is Olivia asleep?" sheet has been answered.
+- Under the running card on a feed or pump session, a "Keep screen on" card (sun icon, switch) stops the screen sleeping while that screen is open. The choice is remembered on the device. The hint says "Plugged in" or "On battery, so plug in if you can" when the device reports its battery (the native app, Chrome and Android); iPhone Safari can't, so it just says "Stays on while this screen is open." The card is hidden in browsers that can't keep the screen on.
 - Done → "Start nap?" sheet with "now" or "at feed end" (Stage 2).
 - Starting a nap while a breastfeed is running shows an "End feed?" sheet: "End feed" (at the nap's start) or "Keep feeding". A running pump is left alone.
 - Forgot to start the other side? On the live session page, the idle row just before the current side has a **−** button. Each tap takes a minute off by starting the current side a minute earlier, never before the previous side ended (`set_switch_time`).
@@ -204,7 +206,7 @@ The last 7 days (ending today, or on the chosen day) as 7 columns on every scree
 
 ## 14. Settings
 
-Baby profile (name, birth date, sex, timezone) · Caregivers & invites · Day start time · Units · Feed reminders (interval for the baby, opt-in for me) · Downtime merge threshold · Auto-end paused sessions after · Import from Huckleberry (web) · Export data · Theme · Account (delete account).
+Baby profile (name, birth date, sex, timezone) · Caregivers & invites · Day start time · Units · Feed reminders (interval for the baby, opt-in for me) · Downtime merge threshold · Auto-end paused sessions after · Import from Huckleberry (web) · Export data · Theme · Chair mode (web) · Account (delete account).
 
 **Export data** (under Data) downloads a JSON file on web, or opens the share sheet with the file on mobile. It contains the baby's profile, settings and every event with its details and timed segments, including deleted events (with `deletedAt` set). The file has `format: "babble-export"` and `version: 1` so it can be imported again later. "Export whole family" appears when the family has more than one baby.
 
@@ -213,6 +215,18 @@ Baby profile (name, birth date, sex, timezone) · Caregivers & invites · Day st
 **Theme:** System · Light · Dark · Dark at night. Dark at night is dark inside the active baby's night window (Tracking → Night, in the baby's timezone) and light outside it, checked every minute; the web caches the window on the device so the first paint is right. Without a window yet it follows the system.
 
 **Install app** (web): Settings → App explains how to add babble to the home screen, or says "Installed". Home also shows a dismissible card when the app isn't installed: iPhone Safari gets the Share → Add to Home Screen steps, other iPhone browsers are told to open babble in Safari, and Chrome and Edge get an Install button. "Not now" hides it for 14 days.
+
+## 14a. Chair mode (web)
+
+`/chair` is a full-screen feed station for a touchscreen beside the feeding chair, such as a Raspberry Pi in Chromium kiosk mode. Designs: `docs/design/Chair Mode.dc.html`. Open it from Settings → Chair mode. It has no navigation; the baby's name in the top strip links back to Home. The screen is kept awake with a wake lock. Sizes use container query units (`cqmin`), so one layout fits 800×480, 1280×720 and portrait mounts.
+
+- **Idle:** "Last fed 2h 10m ago · Right side · 18m" (or "· Bottle · 120 ml"), the feed due pill (info, or caution when overdue), giant **Left** / **Right** buttons with a "Next" badge and ring on the suggested side, and Bottle / Nappy / Sleep below. The Nappy button shows the last change under its label ("Wet · 2h 10m ago"). Sleep starts a nap; while one runs it reads "End nap · 32m". The feed length is left off "Last fed" when the feed was under a minute.
+- **Feeding:** the screen takes the current side's soft tint, with a "Feeding · Left" pill, a giant total timer, "Left 8:10 · Right 4:24", "Started 2:41 pm by Jane" with her avatar, and Switch to Right / Pause / End feed. **Paused** uses the paused tint, dims the timer, adds a "Paused 3m" chip ("Just paused" for the first minute) and swaps Pause for Resume.
+- **Feed started:** once the feed is running, a "Change Olivia's nappy?" sheet asks **Yes, log a nappy** (opens the quick nappy sheet over the timer) or **Not now**. It's skipped when a nappy was logged within 30 minutes.
+- **Feed ended:** "Fed 24m · Left 14m · Right 10m" for 5 seconds with **Undo** (resumes the feed) and **Olivia's asleep** (`sleep`, starts a nap with an Undo toast). The nap button is hidden when a nap is already running.
+- **Quick bottle:** a sheet with a −/+ stepper (10 ml or 0.5 oz, starting from the last bottle), Breast milk / Formula / Mixed and Save. **Quick nappy:** Wet / Dirty / Both / Dry, saved on one tap. Both show a 5-second toast with **Undo**, as does starting a nap. Toasts sit at the top of the screen so they never cover the buttons.
+- **Night:** inside the baby's night window it uses the dark theme, and after 30 seconds without a touch it drops to a dim palette (`.chair-dim`) with "Dimmed · tap to wake". The first tap only wakes it.
+- **Offline:** "Can't reach babble. Retrying…" while the browser is offline. When signed out it goes to the normal sign-in screen.
 
 ## 15. Import (Stage 5, web only)
 

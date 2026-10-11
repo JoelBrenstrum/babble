@@ -20,6 +20,8 @@ Exported from Claude Design on 2026-10-09. Direction: **"Sage"** (design system 
 | `Web.dc.html` | Desktop and tablet web: home, feeds split view, add dialog, timeline, import, settings |
 | `Screen.dc.html` | Phone screens. `screen` prop: `home`, `timer`, `nappy`, `feeds`, `day`, `week` (Timeline) |
 | `Phone.dc.html` | Home + breastfeed timer in a phone frame |
+| `Chair Mode.dc.html` | Chair mode for a wall-mounted touchscreen: idle, feeding, paused, ended, quick bottle and nappy, night dim, offline, signed out, at 800×480, 1280×720 and portrait |
+| `Chair Screen.dc.html` | The single chair mode screen. `state` and `size` (`s`, `l`, `p`) props |
 | `Babble Directions.dc.html` | The three explored directions (Clay, Sage, Lamplight). Sage was chosen. |
 | `tokens/babble-tokens.css` | **Source of truth for tokens.** CSS variables as RGB channels, light + dark, plus poo swatches, fonts and motion |
 | `tokens/babble-tokens.js` | The same tokens as hex values |

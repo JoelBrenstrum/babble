@@ -41,3 +41,48 @@ select {
 .tabular {
   font-variant-numeric: tabular-nums;
 }
+
+.chair-dim {
+  --bg: 7 7 5;
+  --surface: 13 12 10;
+  --raised: 17 16 13;
+  --line: 30 28 23;
+  --line-strong: 46 43 35;
+  --ink: 156 134 108;
+  --ink-2: 118 101 82;
+  --ink-3: 96 83 68;
+  --ink-on-solid: 9 8 6;
+  --on-primary: 9 8 6;
+  --scrim: 0 0 0;
+  --feed-left: 90 72 67;
+  --feed-right: 104 92 79;
+  --bottle: 100 94 76;
+  --nappy: 79 91 86;
+  --sleep: 82 79 91;
+  --primary: 89 92 83;
+  --success: 80 91 82;
+  --info: 80 92 90;
+  --caution: 99 94 83;
+  --growth: 81 88 91;
+  --session-paused: 93 89 80;
+  --feed-left-soft: 22 16 15;
+  --feed-right-soft: 23 19 15;
+  --bottle-soft: 21 19 14;
+  --nappy-soft: 15 19 17;
+  --sleep-soft: 18 17 22;
+  --primary-soft: 20 22 17;
+  --info-soft: 13 16 16;
+  --caution-soft: 18 16 13;
+  --growth-soft: 14 16 17;
+  --session-paused-soft: 18 17 14;
+  --on-feed-left: 150 128 104;
+  --on-feed-right: 150 128 104;
+  --on-bottle: 150 128 104;
+  --on-nappy: 150 128 104;
+  --on-sleep: 150 128 104;
+  --on-primary-soft: 150 128 104;
+  --on-info: 150 128 104;
+  --on-caution: 150 128 104;
+  --on-growth: 150 128 104;
+  --on-session-paused: 150 128 104;
+}

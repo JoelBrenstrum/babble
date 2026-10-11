@@ -7,6 +7,7 @@ import { Card, SectionLabel } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
 import { RunningCard } from '@/features/events/running-card';
+import { KeepAwakeToggle } from '@/features/keep-awake-toggle';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
@@ -58,6 +59,7 @@ function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnTy
           members={family.members}
           onDiscarded={() => router.replace('/')}
         />
+        {event.type !== 'sleep' && <KeepAwakeToggle />}
         {event.type === 'sleep' && (
           <View className="gap-2">
             <SectionLabel>Details</SectionLabel>

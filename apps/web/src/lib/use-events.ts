@@ -6,6 +6,7 @@ import {
   pauseSession,
   queryKeys,
   restoreEvent,
+  resumeFeed,
   resumeSession,
   setSessionStart,
   setSwitchTime,
@@ -111,6 +112,22 @@ export function useDeleteEvent(client: BabbleClient, babyId: string) {
       });
     },
     onError: (error) => toast({ message: toBabbleError(error).message }),
+    onSettled: () => refreshEvents(queryClient, babyId),
+  });
+}
+
+export function useRemoveEntry(client: BabbleClient, babyId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) => deleteEvent(client, eventId),
+    onSettled: () => refreshEvents(queryClient, babyId),
+  });
+}
+
+export function useResumeFeed(client: BabbleClient, babyId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) => resumeFeed(client, eventId),
     onSettled: () => refreshEvents(queryClient, babyId),
   });
 }

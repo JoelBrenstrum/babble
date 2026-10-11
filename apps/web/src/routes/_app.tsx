@@ -8,7 +8,7 @@ import {
 } from '@babble/api';
 import { runningIndicator } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Outlet, redirect, useRouter } from '@tanstack/react-router';
+import { createFileRoute, Outlet, redirect, useLocation, useRouter } from '@tanstack/react-router';
 import { AppShell } from '#/components/shell/app-shell';
 import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
@@ -48,6 +48,7 @@ export const Route = createFileRoute('/_app')({
 function AppLayout() {
   const { family, baby, babble, families } = Route.useRouteContext();
   const router = useRouter();
+  const pathname = useLocation({ select: (location) => location.pathname });
   useRealtimeEvents(babble.client, baby.id);
   useAutoEndStaleSessions(babble.client, baby.id);
   const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
@@ -62,6 +63,13 @@ function AppLayout() {
     void router.invalidate();
   }
 
+  const page = (
+    <NapPromptProvider client={babble.client} babyId={baby.id} babyName={baby.name} timeZone={baby.timezone}>
+      <Outlet />
+    </NapPromptProvider>
+  );
+  if (pathname === '/chair') return page;
+
   return (
     <AppShell
       family={family}
@@ -70,9 +78,7 @@ function AppLayout() {
       onSelectBaby={selectBaby}
       running={runningIndicator(running)}
     >
-      <NapPromptProvider client={babble.client} babyId={baby.id} babyName={baby.name} timeZone={baby.timezone}>
-        <Outlet />
-      </NapPromptProvider>
+      {page}
     </AppShell>
   );
 }
