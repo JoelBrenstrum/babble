@@ -5,11 +5,13 @@ import {
   Outlet,
   Scripts,
   createRootRouteWithContext,
+  useLocation,
   useRouter,
   type ErrorComponentProps,
 } from '@tanstack/react-router';
 import { useEffect, type ReactNode } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
+import { UpdateBanner } from '#/components/shell/update-banner';
 import { Button } from '#/components/ui/button';
 import { PageSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
@@ -17,6 +19,7 @@ import { ToastProvider } from '#/components/ui/toast';
 import { loadBabble } from '#/lib/babble';
 import { configProblem } from '#/lib/config-problem';
 import { themeBootScript, themeColorMeta } from '#/lib/theme';
+import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { clearAccountStorage } from '#/lib/storage';
 import appCss from '../styles.css?url';
 
@@ -104,9 +107,17 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <Outlet />
+        <ReleaseBanner />
       </ToastProvider>
     </QueryClientProvider>
   );
+}
+
+function ReleaseBanner() {
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const newRelease = useNewRelease();
+  if (!newRelease || pathname === '/chair') return null;
+  return <UpdateBanner onRefresh={reloadForRelease} />;
 }
 
 function RootError({ error, reset }: ErrorComponentProps) {

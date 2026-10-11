@@ -89,6 +89,7 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
     clock: formatTimeOfDay(now.toISOString(), timezone),
     night: false,
     dimmed: false,
+    updateReady: false,
     offline: false,
     lastFeed: lastFeedLine(events, now, 'metric'),
     due: due ? feedDueText(due, now, timezone) : null,

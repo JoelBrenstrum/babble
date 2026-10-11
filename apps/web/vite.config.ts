@@ -10,7 +10,10 @@ export default defineConfig(({ mode }) => {
   if (mode === 'development') {
     process.env = { ...loadEnv(mode, process.cwd(), ''), ...process.env };
   }
+  // Shared through process.env so every environment built in this run gets the same release id.
+  process.env.BABBLE_RELEASE ??= new Date().toISOString();
   return {
+    define: { __BABBLE_RELEASE__: JSON.stringify(process.env.BABBLE_RELEASE) },
     resolve: { tsconfigPaths: true },
     // CommonJS dependencies only reached from lazily loaded routes; pre-bundling avoids 504 "Outdated Optimize Dep" reloads in dev.
     optimizeDeps: { include: ['qrcode'] },

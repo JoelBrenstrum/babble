@@ -199,3 +199,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > In `Chair Screen.dc.html`, add a "Dim now" pill to the top strip, just left of the clock: `surface` background, Lucide `moon` icon and label in `ink-2`, about 3.6cqmin text, 6cqmin tall. It dims the screen straight away and is replaced by the "Dimmed · tap to wake" hint while dimmed. Show it on Idle and Feeding in light and dark.
+
+---
+
+## 2026-10-11 · New release banner
+
+Paste everything below this line into Claude Design.
+
+> Add a "new version" banner to the web app, in light and dark, at 390px and 1280px: a dark `ink` card pinned to the top centre (8px below the safe area, max 448px wide) with a Lucide `refresh-cw` icon in `primary-soft`, the text "A new version of babble is ready." in `bg`, a "Refresh" text button in `primary-soft` and a close (×) button. In `Chair Screen.dc.html`, add a "New version" state: the toast-style pill at the top centre with a `refresh-cw` icon in `primary`, "A new version of babble is ready" and a big solid `primary` "Refresh" button.

@@ -22,6 +22,7 @@ import { Route as AppSettingsRouteImport } from './routes/_app/settings'
 import { Route as AppStatsRouteImport } from './routes/_app/stats'
 import { Route as AppTimelineRouteImport } from './routes/_app/timeline'
 import { Route as ApiHealthRouteImport } from './routes/api/health'
+import { Route as ApiVersionRouteImport } from './routes/api/version'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthNewPasswordRouteImport } from './routes/auth/new-password'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
@@ -98,6 +99,11 @@ const ApiHealthRoute = ApiHealthRouteImport.update({
   path: '/api/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiVersionRoute = ApiVersionRouteImport.update({
+  id: '/api/version',
+  path: '/api/version',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthCallbackRoute = AuthCallbackRouteImport.update({
   id: '/auth/callback',
   path: '/auth/callback',
@@ -167,6 +173,7 @@ export interface FileRoutesByFullPath {
   '/stats': typeof AppStatsRoute
   '/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/version': typeof ApiVersionRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
@@ -191,6 +198,7 @@ export interface FileRoutesByTo {
   '/stats': typeof AppStatsRoute
   '/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/version': typeof ApiVersionRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
@@ -218,6 +226,7 @@ export interface FileRoutesById {
   '/_app/stats': typeof AppStatsRoute
   '/_app/timeline': typeof AppTimelineRoute
   '/api/health': typeof ApiHealthRoute
+  '/api/version': typeof ApiVersionRoute
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
@@ -246,6 +255,7 @@ export interface FileRouteTypes {
     | '/stats'
     | '/timeline'
     | '/api/health'
+    | '/api/version'
     | '/auth/callback'
     | '/auth/new-password'
     | '/join/$code'
@@ -270,6 +280,7 @@ export interface FileRouteTypes {
     | '/stats'
     | '/timeline'
     | '/api/health'
+    | '/api/version'
     | '/auth/callback'
     | '/auth/new-password'
     | '/join/$code'
@@ -296,6 +307,7 @@ export interface FileRouteTypes {
     | '/_app/stats'
     | '/_app/timeline'
     | '/api/health'
+    | '/api/version'
     | '/auth/callback'
     | '/auth/new-password'
     | '/join/$code'
@@ -318,6 +330,7 @@ export interface RootRouteChildren {
   TermsRoute: typeof TermsRoute
   WelcomeRoute: typeof WelcomeRoute
   ApiHealthRoute: typeof ApiHealthRoute
+  ApiVersionRoute: typeof ApiVersionRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthNewPasswordRoute: typeof AuthNewPasswordRoute
   JoinCodeRoute: typeof JoinCodeRoute
@@ -414,6 +427,13 @@ declare module '@tanstack/react-router' {
       path: '/api/health'
       fullPath: '/api/health'
       preLoaderRoute: typeof ApiHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/version': {
+      id: '/api/version'
+      path: '/api/version'
+      fullPath: '/api/version'
+      preLoaderRoute: typeof ApiVersionRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth/callback': {
@@ -550,6 +570,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermsRoute: TermsRoute,
   WelcomeRoute: WelcomeRoute,
   ApiHealthRoute: ApiHealthRoute,
+  ApiVersionRoute: ApiVersionRoute,
   AuthCallbackRoute: AuthCallbackRoute,
   AuthNewPasswordRoute: AuthNewPasswordRoute,
   JoinCodeRoute: JoinCodeRoute,

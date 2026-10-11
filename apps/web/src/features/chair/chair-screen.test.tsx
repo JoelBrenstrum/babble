@@ -24,6 +24,7 @@ function makeData(overrides: Partial<ChairData> = {}): ChairData {
     clock: '2:20 pm',
     night: false,
     dimmed: false,
+    updateReady: false,
     offline: false,
     lastFeed: 'Last fed 2h 10m ago · Right side · 18m',
     due: { text: 'Next feed due in 42m · around 3:02 pm', overdue: false },
@@ -53,6 +54,7 @@ function makeActions(): ChairActions {
     undoEntry: vi.fn(async () => undefined),
     wake: vi.fn(),
     dimNow: vi.fn(),
+    refresh: vi.fn(),
   };
 }
 
@@ -250,6 +252,14 @@ describe('ChairScreen night and offline', () => {
     fireEvent.pointerDown(left);
     fireEvent.click(left);
     expect(actions.startFeed).toHaveBeenCalledWith('left');
+  });
+
+  it('offers a refresh when a new version is out', () => {
+    const actions = makeActions();
+    render(<ChairScreen data={makeData({ updateReady: true })} actions={actions} />);
+    expect(screen.getByRole('status')).toHaveTextContent('A new version of babble is ready');
+    tap('Refresh');
+    expect(actions.refresh).toHaveBeenCalled();
   });
 
   it('shows the offline screen', () => {

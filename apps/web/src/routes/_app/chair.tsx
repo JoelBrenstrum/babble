@@ -28,7 +28,7 @@ import {
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { MemberTonesProvider } from '#/components/ui/avatar';
 import { ChairScreen, type ChairActions, type ChairData } from '#/features/chair/chair-screen';
 import { useNapPrompt } from '#/features/nap-prompt';
@@ -42,6 +42,7 @@ import {
 } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 import { useOnline } from '#/lib/use-online';
+import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { useScreenWakeLock } from '#/lib/wake-lock';
 
 export const Route = createFileRoute('/_app/chair')({ component: ChairPage });
@@ -61,6 +62,7 @@ function ChairPage() {
   const remove = useRemoveEntry(client, baby.id);
   const resume = useResumeFeed(client, baby.id);
   const showNapPrompt = useNapPrompt();
+  const updateReady = useNewRelease();
   const [lastTouchAt, setLastTouchAt] = useState(() => clock.now().getTime());
   const tones = useMemo(() => memberTones(family.members), [family.members]);
 
@@ -85,6 +87,7 @@ function ChairPage() {
     clock: formatTimeOfDay(now.toISOString(), baby.timezone),
     night: chairIsNight(night, now),
     dimmed: chairDimmed(night, now, lastTouchAt),
+    updateReady,
     offline: !online,
     lastFeed: lastFeedLine(latest, now, units),
     due: due ? feedDueText(due, now, baby.timezone) : null,
@@ -123,8 +126,14 @@ function ChairPage() {
     },
     undoEntry: (eventId) => remove.mutateAsync(eventId),
     wake: () => setLastTouchAt(clock.now().getTime()),
+    refresh: reloadForRelease,
     dimNow: () => setLastTouchAt(clock.now().getTime() - CHAIR_IDLE_DIM_MS),
   };
+
+  const refreshWhenIdle = updateReady && data.dimmed && !feed;
+  useEffect(() => {
+    if (refreshWhenIdle) reloadForRelease();
+  }, [refreshWhenIdle]);
 
   return (
     <MemberTonesProvider value={tones}>

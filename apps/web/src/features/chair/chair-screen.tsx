@@ -12,6 +12,7 @@ import {
 import {
   AlarmClock,
   ArrowLeftRight,
+  RefreshCw,
   Check,
   Clock,
   Droplet,
@@ -45,6 +46,7 @@ export interface ChairData {
   clock: string;
   night: boolean;
   dimmed: boolean;
+  updateReady: boolean;
   offline: boolean;
   lastFeed: string;
   due: { text: string; overdue: boolean } | null;
@@ -71,6 +73,7 @@ export interface ChairActions {
   undoEntry: (eventId: string) => Promise<unknown>;
   wake: () => void;
   dimNow: () => void;
+  refresh: () => void;
 }
 
 type Toast = { key: number; message: string; undo?: () => Promise<unknown> };
@@ -302,6 +305,21 @@ export function ChairScreen({
         />
       )}
 
+      {data.updateReady && !toast && (
+        <div
+          role="status"
+          className="absolute top-[3cqmin] left-1/2 flex -translate-x-1/2 items-center gap-[3cqmin] rounded-full border-[0.3cqmin] border-line-strong bg-raised py-[1.4cqmin] pr-[1.4cqmin] pl-[4cqmin] whitespace-nowrap shadow-toast"
+        >
+          <RefreshCw className="size-[5cqmin] text-primary" strokeWidth={2.75} />
+          <span className="text-[length:5cqmin] font-bold">A new version of babble is ready</span>
+          <BigButton
+            onClick={actions.refresh}
+            className="h-[16cqmin] rounded-full bg-primary px-[6cqmin] text-[length:5cqmin] text-on-primary"
+          >
+            Refresh
+          </BigButton>
+        </div>
+      )}
       {toast && (
         <div
           key={toast.key}
