@@ -15,6 +15,7 @@ import {
   Ruler,
   ShieldCheck,
   Smartphone,
+  Tablet,
   Sparkles,
   Users,
   type LucideIcon,
@@ -23,7 +24,7 @@ import type { ReactNode } from 'react';
 import { buttonClassName } from '#/components/ui/button';
 import { Wordmark } from '#/components/ui/wordmark';
 import { cn } from '#/lib/cn';
-import { HomePreview, PausePreview, TimelinePreview } from './previews';
+import { ChairPreview, HomePreview, PausePreview, TimelinePreview } from './previews';
 
 export const GITHUB_URL = 'https://github.com/JoelBrenstrum/babble';
 
@@ -88,6 +89,12 @@ export const FEATURES: Feature[] = [
     tone: 'bg-feed-right-soft text-on-feed-right',
     title: 'Feed reminders',
     body: 'See when the next feed is due and which side is next. It can stay quiet at night.',
+  },
+  {
+    icon: Tablet,
+    tone: 'bg-feed-left-soft text-on-feed-left',
+    title: 'Chair mode',
+    body: 'Turn a tablet or touchscreen by the feeding chair into a feed station, with giant buttons and a screen that stays on.',
   },
   {
     icon: Users,
@@ -222,6 +229,16 @@ export function LandingPage({ signedIn, now }: { signedIn: boolean; now?: Date }
             only count time actually feeding or asleep.
           </p>
           <PausePreview now={now} />
+        </Section>
+
+        <Section>
+          <h2 className="text-title font-bold">A feed station by the chair</h2>
+          <p className="mb-8 mt-2 max-w-2xl text-body text-ink-2">
+            Chair mode turns an old tablet or a small touchscreen into a babble screen beside the feeding chair. Start a
+            side, switch or pause with one big tap, even holding a baby in the dark. It asks about a nappy when a feed
+            starts, offers a nap when it ends, and dims itself overnight. Open it from Settings.
+          </p>
+          <ChairPreview now={now} />
         </Section>
 
         <Section>

@@ -175,3 +175,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > In `Chair Screen.dc.html` Idle, the Nappy quick button gets a second line under "Nappy": the last change and how long ago, e.g. "Wet · 2h 10m ago" (about 3.6cqmin, semibold, `on-nappy` at 80% opacity, tabular figures), left-aligned with the label beside the droplets icon. It's hidden when no nappy has been logged. Check it fits the narrow portrait button. Also move the Undo toast ("Nappy saved · Wet", "Nap started") from the bottom to the top centre (3cqmin from the top, over the status line) so it never covers the quick buttons. A toast without Undo (e.g. "Nap ended") is a shorter pill with no empty button space.
+
+---
+
+## 2026-10-11 · Welcome page: chair mode section
+
+Paste everything below this line into Claude Design.
+
+> On the landing page (`/welcome`), add a 14th feature card "Chair mode" (Lucide `tablet` on a `feed-left-soft` tile): "Turn a tablet or touchscreen by the feeding chair into a feed station, with giant buttons and a screen that stays on." After "Pause, don't stop", add a section "A feed station by the chair" with the paragraph "Chair mode turns an old tablet or a small touchscreen into a babble screen beside the feeding chair. Start a side, switch or pause with one big tap, even holding a baby in the dark. It asks about a nappy when a feed starts, offers a nap when it ends, and dims itself overnight. Open it from Settings." Below it, two framed 16:9 previews side by side (stacked on phones), in the same frame style as the other previews: chair mode Idle in light (caption "Between feeds: when the last one was, what's due, and which side is next.") and chair mode Feeding in dark (caption "During a feed: one big timer and three big buttons, dark at night.").

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { summariseSleep } from '@babble/domain';
-import { homePreview, pausePreview, timelinePreview } from './preview-data';
+import { chairPreview, homePreview, pausePreview, timelinePreview } from './preview-data';
 
 const now = new Date('2026-10-09T02:00:00Z');
 
@@ -38,5 +38,16 @@ describe('pausePreview', () => {
     expect(feed.segments.every((segment) => segment.endedAt !== null)).toBe(true);
     expect(nap).toMatchObject({ type: 'sleep', sessionState: 'paused', endedAt: null });
     expect(summariseSleep(nap, now)).toMatchObject({ paused: true, wakeUps: 2, asleepMs: 55 * 60_000 });
+  });
+});
+
+describe('chairPreview', () => {
+  it('shows an idle station with the last feed and nappy, and a feed running at night', () => {
+    const { idle, feeding } = chairPreview(now);
+    expect(idle.lastFeed).toMatch(/^Last fed /);
+    expect(idle.lastNappy).not.toBeNull();
+    expect(idle.feed).toBeNull();
+    expect(feeding.night).toBe(true);
+    expect(feeding.feed?.view.title).toBe('Feeding · Right');
   });
 });

@@ -1,13 +1,14 @@
 import { sampleBaby, sampleFamily } from '@babble/api/fixtures';
 import type { BabyEvent } from '@babble/domain';
 import { useMemo, useState, type ReactNode } from 'react';
+import { ChairScreen, type ChairActions } from '#/features/chair/chair-screen';
 import { RunningCard } from '#/features/events/running-card';
 import { HomeOverview } from '#/features/home-overview';
 import { DayTimeline } from '#/features/timeline/day-timeline';
 import { DayTotals } from '#/features/timeline/totals';
 import { fixtureClient } from '#/fixtures/client';
 import { cn } from '#/lib/cn';
-import { homePreview, pausePreview, timelinePreview } from './preview-data';
+import { chairPreview, homePreview, pausePreview, timelinePreview } from './preview-data';
 
 function PreviewFrame({
   label,
@@ -113,6 +114,48 @@ export function PausePreview({ now: fixedNow }: { now?: Date }) {
         caption="Woke for a cuddle? Pause the nap, then resume it. babble counts time asleep and the wake-ups."
       >
         {card(nap)}
+      </PreviewFrame>
+    </div>
+  );
+}
+
+const noop = async () => '';
+const PREVIEW_ACTIONS: ChairActions = {
+  startFeed: noop,
+  switchSide: () => undefined,
+  pause: () => undefined,
+  resume: () => undefined,
+  endFeed: noop,
+  resumeFeed: noop,
+  saveBottle: noop,
+  saveNappy: noop,
+  startNap: noop,
+  endNap: noop,
+  undoEntry: noop,
+  wake: () => undefined,
+};
+
+export function ChairPreview({ now: fixedNow }: { now?: Date }) {
+  const [now] = useState(() => fixedNow ?? new Date());
+  const { idle, feeding } = useMemo(() => chairPreview(now), [now]);
+  const screen = (data: typeof idle) => (
+    <div className="relative aspect-video overflow-hidden rounded-card">
+      <ChairScreen data={data} actions={PREVIEW_ACTIONS} embedded />
+    </div>
+  );
+  return (
+    <div className="grid min-w-0 gap-6 md:grid-cols-2 md:items-start">
+      <PreviewFrame
+        label="Preview of chair mode waiting for the next feed: when Olivia last fed, when the next feed is due, giant Left and Right buttons with Left marked next, and Bottle, Nappy and Sleep buttons."
+        caption="Between feeds: when the last one was, what's due, and which side is next."
+      >
+        {screen(idle)}
+      </PreviewFrame>
+      <PreviewFrame
+        label="Preview of chair mode during a night feed, in the dark theme: a giant timer, time on each side, and big Switch, Pause and End feed buttons."
+        caption="During a feed: one big timer and three big buttons, dark at night."
+      >
+        {screen(feeding)}
       </PreviewFrame>
     </div>
   );

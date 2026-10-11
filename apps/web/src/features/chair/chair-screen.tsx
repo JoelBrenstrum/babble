@@ -100,7 +100,15 @@ function errorMessage(caught: unknown): string {
   return caught instanceof Error ? caught.message : 'Something went wrong. Try again.';
 }
 
-export function ChairScreen({ data, actions }: { data: ChairData; actions: ChairActions }) {
+export function ChairScreen({
+  data,
+  actions,
+  embedded = false,
+}: {
+  data: ChairData;
+  actions: ChairActions;
+  embedded?: boolean;
+}) {
   const [sheet, setSheet] = useState<'bottle' | 'nappy' | 'nappy-ask' | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [ended, setEnded] = useState<Ended | null>(null);
@@ -166,7 +174,8 @@ export function ChairScreen({ data, actions }: { data: ChairData; actions: Chair
       data-theme={data.night ? 'dark' : undefined}
       data-testid="chair"
       className={cn(
-        'fixed inset-0 overflow-hidden font-sans text-ink select-none [container-type:size]',
+        embedded ? 'absolute' : 'fixed',
+        'inset-0 overflow-hidden font-sans text-ink select-none [container-type:size]',
         data.dimmed && 'chair-dim',
         feed ? (feed.view.paused ? 'bg-session-paused-soft' : SIDE_SOFT[feed.view.side]) : 'bg-bg',
       )}

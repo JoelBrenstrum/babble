@@ -1,15 +1,26 @@
 import { sampleBaby, sampleEvents, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
 import {
+  babyAgeLabel,
+  chairFeedSummary,
+  chairFeedView,
   dayKeyFor,
   dayLayout,
   dayTotalCards,
   dayWindow,
   fractionOf,
   hourTicks,
+  feedDueText,
+  formatTimeOfDay,
+  lastFeedLine,
+  lastNappyLine,
+  nextBreastSide,
+  nextFeedDue,
   summariseDay,
+  todayInTimeZone,
   type BabyEvent,
   type EventOfType,
 } from '@babble/domain';
+import type { ChairData } from '#/features/chair/chair-screen';
 
 const { timezone, day_start_minutes: dayStart } = sampleBaby;
 const NIGHT = { startMinutes: 19 * 60, endMinutes: 7 * 60 };
@@ -67,4 +78,41 @@ export function pausePreview(now: Date): { feed: EventOfType<'breast_feed'>; nap
     ],
   };
   return { feed, nap };
+}
+
+export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData } {
+  const events = sampleEvents(now);
+  const due = nextFeedDue(events, { feed_reminder_enabled: true, feed_reminder_interval_min: 180 });
+  const idle: ChairData = {
+    babyName: sampleBaby.name,
+    age: babyAgeLabel(sampleBaby.birth_date, todayInTimeZone(timezone, now)),
+    clock: formatTimeOfDay(now.toISOString(), timezone),
+    night: false,
+    dimmed: false,
+    offline: false,
+    lastFeed: lastFeedLine(events, now, 'metric'),
+    due: due ? feedDueText(due, now, timezone) : null,
+    suggested: nextBreastSide(events),
+    feed: null,
+    nap: null,
+    lastNappy: lastNappyLine(events, now),
+    nappyDue: false,
+    units: 'metric',
+    bottle: { amount: 120, content: 'breast_milk' },
+  };
+  const running = sampleRunningFeed(now) as EventOfType<'breast_feed'>;
+  return {
+    idle,
+    feeding: {
+      ...idle,
+      night: true,
+      feed: {
+        id: running.id,
+        view: chairFeedView(running, now),
+        summary: chairFeedSummary(running, now),
+        startedLine: `Started ${formatTimeOfDay(running.startedAt, timezone)} by Jane`,
+        startedBy: 'Jane',
+      },
+    },
+  };
 }

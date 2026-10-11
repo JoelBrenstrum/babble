@@ -35,6 +35,7 @@ describe('LandingPage', () => {
       'Nappies',
       'Feed reminders',
       'Import from Huckleberry',
+      'Chair mode',
     ]) {
       expect(screen.getByRole('heading', { level: 3, name: title })).toBeInTheDocument();
     }
@@ -73,6 +74,11 @@ describe('LandingPage', () => {
     expect(screen.getByRole('heading', { level: 2, name: "Pause, don't stop" })).toBeInTheDocument();
     expect(screen.getByRole('img', { name: /paused breastfeed/ }).textContent).toContain('Paused for');
     expect(screen.getByRole('img', { name: /paused nap/ }).textContent).toContain('Awake · nap paused');
+    expect(screen.getByRole('heading', { level: 2, name: 'A feed station by the chair' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: /chair mode waiting/ }).textContent).toContain('Start left');
+    const night = screen.getByRole('img', { name: /chair mode during a night feed/ });
+    expect(night.textContent).toContain('Feeding · Right');
+    expect(within(night).getByTestId('chair')).toHaveAttribute('data-theme', 'dark');
     for (const preview of screen.getAllByRole('img')) {
       expect(preview.firstElementChild).toHaveAttribute('inert');
       expect(preview.firstElementChild).toHaveAttribute('aria-hidden', 'true');
