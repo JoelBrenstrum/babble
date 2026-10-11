@@ -1,7 +1,9 @@
 import {
   bottleStep,
+  CHAIR_ENDED_MS,
   CHAIR_UNDO_MS,
   formatBottleAmount,
+  secondsLeft,
   stepBottleAmount,
   type BottleContent,
   type ChairFeedView,
@@ -24,6 +26,7 @@ import {
   Play,
   Plus,
   Sun,
+  Trash2,
   Undo2,
   X,
   type LucideIcon,
@@ -71,13 +74,14 @@ export interface ChairActions {
   startNap: () => Promise<string>;
   endNap: () => Promise<unknown>;
   undoEntry: (eventId: string) => Promise<unknown>;
+  restoreEntry: (eventId: string) => Promise<unknown>;
   wake: () => void;
   dimNow: () => void;
   refresh: () => void;
 }
 
 type Toast = { key: number; message: string; undo?: () => Promise<unknown> };
-type Ended = { id: string; title: string; sides: string };
+type Ended = { id: string; title: string; sides: string; until: number };
 
 const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
 const SIDE_BG: Record<Side, string> = { left: 'bg-feed-left', right: 'bg-feed-right' };
@@ -116,6 +120,7 @@ export function ChairScreen({
   const [sheet, setSheet] = useState<'bottle' | 'nappy' | 'nappy-ask' | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [ended, setEnded] = useState<Ended | null>(null);
+  const [endedNow, setEndedNow] = useState(0);
   const swallowClick = useRef(false);
   const toastKey = useRef(0);
 
@@ -127,8 +132,12 @@ export function ChairScreen({
 
   useEffect(() => {
     if (!ended) return;
-    const id = setTimeout(() => setEnded(null), CHAIR_UNDO_MS);
-    return () => clearTimeout(id);
+    const id = setInterval(() => {
+      const now = Date.now();
+      if (now >= ended.until) setEnded(null);
+      else setEndedNow(now);
+    }, 1000);
+    return () => clearInterval(id);
   }, [ended]);
 
   function show(message: string, undo?: () => Promise<unknown>) {
@@ -141,7 +150,9 @@ export function ChairScreen({
   }
 
   function endFeed(feed: ChairFeed) {
-    setEnded({ id: feed.id, ...feed.summary });
+    const now = Date.now();
+    setEndedNow(now);
+    setEnded({ id: feed.id, ...feed.summary, until: now + CHAIR_ENDED_MS });
     actions.endFeed().catch((caught: unknown) => {
       setEnded(null);
       show(errorMessage(caught));
@@ -227,6 +238,7 @@ export function ChairScreen({
         ) : ended ? (
           <EndedView
             ended={ended}
+            secondsLeft={secondsLeft(ended.until, endedNow)}
             babyName={data.babyName}
             onUndo={() => {
               setEnded(null);
@@ -242,7 +254,17 @@ export function ChairScreen({
             }
           />
         ) : feed ? (
-          <FeedingView feed={feed} actions={actions} onEnd={() => endFeed(feed)} />
+          <FeedingView
+            feed={feed}
+            actions={actions}
+            onEnd={() => endFeed(feed)}
+            onDiscard={() =>
+              run(async () => {
+                await actions.undoEntry(feed.id);
+                show('Feed discarded', () => actions.restoreEntry(feed.id));
+              })
+            }
+          />
         ) : (
           <IdleView
             data={data}
@@ -488,7 +510,17 @@ function IdleView({
   );
 }
 
-function FeedingView({ feed, actions, onEnd }: { feed: ChairFeed; actions: ChairActions; onEnd: () => void }) {
+function FeedingView({
+  feed,
+  actions,
+  onEnd,
+  onDiscard,
+}: {
+  feed: ChairFeed;
+  actions: ChairActions;
+  onEnd: () => void;
+  onDiscard: () => void;
+}) {
   const { view } = feed;
   const other = view.side === 'left' ? 'right' : 'left';
   return (
@@ -530,11 +562,28 @@ function FeedingView({ feed, actions, onEnd }: { feed: ChairFeed; actions: Chair
             </span>
           )}
         </div>
-        <span className="tabular text-[length:6cqmin] font-semibold text-ink-2">{view.sides}</span>
-        <span className="flex items-center gap-[1.6cqmin] text-[length:4.2cqmin] text-ink-2">
-          {feed.startedBy && <Avatar name={feed.startedBy} className="size-[6cqmin] text-[length:2.6cqmin]" />}
-          {feed.startedLine}
+        <span className="tabular flex flex-wrap items-center gap-x-[3cqmin] text-[length:6cqmin] font-semibold text-ink-2">
+          {view.sides}
+          {view.idle && (
+            <span className="flex items-center gap-[1.4cqmin] text-on-session-downtime">
+              <span className="size-[3cqmin] rounded-full border-[0.6cqmin] border-dashed border-session-downtime" />
+              {view.idle}
+            </span>
+          )}
         </span>
+        <div className="flex w-full items-center gap-[3cqmin]">
+          <span className="flex min-w-0 flex-1 items-center gap-[1.6cqmin] text-[length:4.2cqmin] text-ink-2">
+            {feed.startedBy && <Avatar name={feed.startedBy} className="size-[6cqmin] text-[length:2.6cqmin]" />}
+            {feed.startedLine}
+          </span>
+          <BigButton
+            onClick={onDiscard}
+            className="h-[12cqmin] flex-none rounded-full border-[0.4cqmin] border-line-strong bg-raised/70 px-[4cqmin] text-[length:4.4cqmin] text-ink-2"
+          >
+            <Trash2 className="size-[4.6cqmin]" strokeWidth={2.5} />
+            Discard
+          </BigButton>
+        </div>
       </div>
       <div className="flex flex-none flex-wrap gap-[3cqmin] text-[length:5.6cqmin]">
         <BigButton
@@ -574,11 +623,13 @@ function FeedingView({ feed, actions, onEnd }: { feed: ChairFeed; actions: Chair
 
 function EndedView({
   ended,
+  secondsLeft: remaining,
   babyName,
   onUndo,
   onAsleep,
 }: {
   ended: Ended;
+  secondsLeft: number;
   babyName: string;
   onUndo: () => void;
   onAsleep: (() => void) | null;
@@ -610,7 +661,7 @@ function EndedView({
           </BigButton>
         )}
       </div>
-      <span className="flex-none self-center text-[length:3.8cqmin] text-ink-2">Back to the start screen in 5s</span>
+      <span className="flex-none self-center text-[length:3.8cqmin] text-ink-2">{`Back to the start screen in ${remaining}s`}</span>
     </>
   );
 }

@@ -1,6 +1,6 @@
 import type { BabyEvent, Units } from '../events/types';
 import { formatLength, formatWeight } from '../format/units';
-import { dayKeyFor } from '../time/local-time';
+import { dayKeyFor, formatShortDate } from '../time/local-time';
 import { WHO_LMS } from './who-lms';
 
 export type BabySex = 'female' | 'male';
@@ -89,12 +89,18 @@ export interface ChartPoint {
   value: number;
 }
 
+export interface MeasuredPoint extends ChartPoint {
+  reading: string;
+  percentile: string | null;
+  at: string;
+}
+
 export interface GrowthChart {
   key: GrowthMeasure;
   label: string;
   unit: string;
   latest: { value: string; percentile: string | null; at: string };
-  points: ChartPoint[];
+  points: MeasuredPoint[];
   curves: { percentile: number; points: ChartPoint[] }[];
   xMax: number;
   yMin: number;
@@ -138,7 +144,6 @@ export function growthReport(
     if (!latest) continue;
 
     const display = DISPLAY[measure][units];
-    const latestLms = baby.sex ? lmsAt(measure, baby.sex, latest.months) : null;
     const xMax = Math.max(3, Math.ceil(Math.max(...measured.map((item) => item.months)) + 1));
     const curveEnd = Math.min(xMax, WHO_MAX_MONTHS);
     const curves = baby.sex
@@ -151,7 +156,17 @@ export function growthReport(
           return { percentile, points };
         })
       : [];
-    const points = measured.map((item) => ({ months: item.months, value: display.fromBase(item.value) }));
+    const points: MeasuredPoint[] = measured.map((item) => {
+      const lms = baby.sex ? lmsAt(measure, baby.sex, item.months) : null;
+      return {
+        months: item.months,
+        value: display.fromBase(item.value),
+        reading: formatBase(measure, item.value, units),
+        percentile: lms ? formatPercentile(normalCdf(zScore(item.value, lms)) * 100) : null,
+        at: item.event.startedAt,
+      };
+    });
+    const last = points.at(-1)!;
     const values = [...points, ...curves.flatMap((curve) => curve.points)].map((point) => point.value);
     const low = Math.min(...values);
     const high = Math.max(...values);
@@ -161,11 +176,7 @@ export function growthReport(
       key: measure,
       label: LABEL[measure],
       unit: display.unit,
-      latest: {
-        value: formatBase(measure, latest.value, units),
-        percentile: latestLms ? formatPercentile(normalCdf(zScore(latest.value, latestLms)) * 100) : null,
-        at: latest.event.startedAt,
-      },
+      latest: { value: last.reading, percentile: last.percentile, at: last.at },
       points,
       curves,
       xMax,
@@ -174,4 +185,14 @@ export function growthReport(
     });
   }
   return { needsSex: baby.sex === null && charts.length > 0, charts };
+}
+
+export function readoutEdge(fraction: number): 'left' | 'center' | 'right' {
+  if (fraction < 0.25) return 'left';
+  return fraction > 0.75 ? 'right' : 'center';
+}
+
+export function growthPointReadout(point: MeasuredPoint, timeZone: string): string {
+  const percentile = point.percentile ? ` · ${point.percentile} percentile` : '';
+  return `${formatShortDate(point.at, timeZone)} · ${point.reading}${percentile}`;
 }

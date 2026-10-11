@@ -102,7 +102,10 @@ export function barReadout(chart: StatsCard['chart'], bar: ChartBar): string {
   const values =
     chart.series.length === 1
       ? chartValue(bar.values[0]!, chart.unit)
-      : chart.legend.map((index) => `${chart.series[index]} ${chartValue(bar.values[index]!, chart.unit)}`).join(', ');
+      : `${chart.legend.map((index) => `${chart.series[index]} ${chartValue(bar.values[index]!, chart.unit)}`).join(', ')} · Total ${chartValue(
+          bar.values.reduce((sum, value) => sum + value, 0),
+          chart.unit,
+        )}`;
   return `${chart.weekly ? 'Week of ' : ''}${chartDayLabel(bar.label)}: ${values}`;
 }
 

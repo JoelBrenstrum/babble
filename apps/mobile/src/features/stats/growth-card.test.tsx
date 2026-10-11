@@ -1,5 +1,5 @@
 import { growthReport, type BabyEvent } from '@babble/domain';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { GrowthCard } from './growth-card';
 
 jest.mock('expo-router', () => ({ router: { push: jest.fn() } }));
@@ -26,6 +26,14 @@ describe('GrowthCard', () => {
     await render(<GrowthCard report={report} babyName="Olivia" timeZone="UTC" />);
     expect(screen.getByText('4.19 kg')).toBeTruthy();
     expect(screen.getByText('51st percentile')).toBeTruthy();
+  });
+
+  it('shows the measurement and percentile for a tapped point', async () => {
+    const report = growthReport([weighIn], { birthDate: '2026-09-01', sex: 'female', timeZone: 'UTC' }, 'metric');
+    await render(<GrowthCard report={report} babyName="Olivia" timeZone="UTC" />);
+    expect(screen.getByText('Tap a point to see it')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('growth-point-weight-0'));
+    expect(screen.getByText('1 Oct · 4.19 kg · 51st percentile')).toBeTruthy();
   });
 
   it('asks for the sex when it is not set', async () => {

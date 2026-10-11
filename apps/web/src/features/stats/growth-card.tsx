@@ -1,8 +1,10 @@
-import { formatShortDate, type GrowthChart, type GrowthReport } from '@babble/domain';
+import { formatShortDate, growthPointReadout, readoutEdge, type GrowthChart, type GrowthReport } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { Ruler } from 'lucide-react';
+import { useState } from 'react';
 import { Card } from '#/components/ui/card';
 import { StatusMessage } from '#/components/ui/status';
+import { cn } from '#/lib/cn';
 
 const WIDTH = 320;
 const HEIGHT = 180;
@@ -89,6 +91,8 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
   const xStep = chart.xMax <= 6 ? 1 : chart.xMax <= 12 ? 2 : chart.xMax <= 24 ? 3 : 6;
   const xTicks: number[] = [];
   for (let months = 0; months <= chart.xMax; months += xStep) xTicks.push(months);
+  const [active, setActive] = useState<number | null>(null);
+  const activePoint = active === null ? null : chart.points[active];
 
   return (
     <figure className="flex flex-col gap-2">
@@ -102,60 +106,102 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
           <span className="block text-caption text-ink-3">{formatShortDate(chart.latest.at, timeZone)}</span>
         </span>
       </figcaption>
-      <svg
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
-        role="img"
-        aria-label={`${chart.label} by age in months, latest ${chart.latest.value}${chart.latest.percentile ? `, ${chart.latest.percentile} percentile` : ''}`}
-        className="w-full overflow-visible"
-      >
-        {yTicks.map((value) => (
-          <g key={value}>
-            <line x1={PAD.left} x2={WIDTH - PAD.right} y1={y(value)} y2={y(value)} className="stroke-line" />
-            <text
-              x={PAD.left - 6}
-              y={y(value)}
-              textAnchor="end"
-              dominantBaseline="middle"
-              className="fill-ink-3 text-[10px]"
-            >
-              {Math.round(value * 10) / 10}
+      <div className="relative">
+        <svg
+          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          role="img"
+          aria-label={`${chart.label} by age in months, latest ${chart.latest.value}${chart.latest.percentile ? `, ${chart.latest.percentile} percentile` : ''}`}
+          className="w-full overflow-visible"
+        >
+          {yTicks.map((value) => (
+            <g key={value}>
+              <line x1={PAD.left} x2={WIDTH - PAD.right} y1={y(value)} y2={y(value)} className="stroke-line" />
+              <text
+                x={PAD.left - 6}
+                y={y(value)}
+                textAnchor="end"
+                dominantBaseline="middle"
+                className="fill-ink-3 text-[10px]"
+              >
+                {Math.round(value * 10) / 10}
+              </text>
+            </g>
+          ))}
+          {xTicks.map((months) => (
+            <text key={months} x={x(months)} y={HEIGHT - 6} textAnchor="middle" className="fill-ink-3 text-[10px]">
+              {months}
             </text>
-          </g>
-        ))}
-        {xTicks.map((months) => (
-          <text key={months} x={x(months)} y={HEIGHT - 6} textAnchor="middle" className="fill-ink-3 text-[10px]">
-            {months}
+          ))}
+          <text x={WIDTH - PAD.right} y={HEIGHT - 6} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-12}>
+            months
           </text>
-        ))}
-        <text x={WIDTH - PAD.right} y={HEIGHT - 6} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-12}>
-          months
-        </text>
-        <text x={PAD.left - 6} y={PAD.top - 2} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-2}>
-          {chart.unit}
-        </text>
-        {chart.curves.map((curve) => (
-          <path
-            key={curve.percentile}
-            d={path(curve.points)}
-            fill="none"
-            strokeWidth={1.5}
-            className={CURVE_STYLE[curve.percentile]}
+          <text x={PAD.left - 6} y={PAD.top - 2} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-2}>
+            {chart.unit}
+          </text>
+          {chart.curves.map((curve) => (
+            <path
+              key={curve.percentile}
+              d={path(curve.points)}
+              fill="none"
+              strokeWidth={1.5}
+              className={CURVE_STYLE[curve.percentile]}
+            />
+          ))}
+          {chart.points.length > 1 && (
+            <path d={path(chart.points)} fill="none" strokeWidth={2} className="stroke-growth" />
+          )}
+          {chart.points.map((point, index) => (
+            <g key={index}>
+              <circle
+                cx={x(point.months)}
+                cy={y(point.value)}
+                r={active === index ? 5.5 : 3.5}
+                className="pointer-events-none fill-growth stroke-raised"
+                strokeWidth={1.5}
+              />
+              <circle
+                cx={x(point.months)}
+                cy={y(point.value)}
+                r={12}
+                tabIndex={0}
+                role="img"
+                aria-label={growthPointReadout(point, timeZone)}
+                className="cursor-pointer fill-transparent outline-none focus-visible:stroke-primary"
+                strokeWidth={2}
+                onMouseEnter={() => setActive(index)}
+                onMouseLeave={() => setActive(null)}
+                onFocus={() => setActive(index)}
+                onBlur={() => setActive(null)}
+                onClick={() => setActive(index)}
+              />
+            </g>
+          ))}
+        </svg>
+        {activePoint && (
+          <PointTip
+            text={growthPointReadout(activePoint, timeZone)}
+            left={x(activePoint.months) / WIDTH}
+            top={y(activePoint.value) / HEIGHT}
           />
-        ))}
-        {chart.points.length > 1 && (
-          <path d={path(chart.points)} fill="none" strokeWidth={2} className="stroke-growth" />
         )}
-        {chart.points.map((point, index) => (
-          <circle
-            key={index}
-            cx={x(point.months)}
-            cy={y(point.value)}
-            r={3.5}
-            className="fill-growth stroke-raised"
-            strokeWidth={1.5}
-          />
-        ))}
-      </svg>
+      </div>
     </figure>
+  );
+}
+
+function PointTip({ text, left, top }: { text: string; left: number; top: number }) {
+  const edge = readoutEdge(left);
+  return (
+    <div
+      aria-hidden
+      className={cn(
+        'pointer-events-none absolute z-10 mb-3 w-max max-w-[16rem] -translate-y-full rounded-[10px] bg-ink px-2.5 py-1.5 text-caption font-semibold text-bg shadow-toast',
+        edge === 'center' && '-translate-x-1/2',
+        edge === 'right' && '-translate-x-full',
+      )}
+      style={{ left: `${left * 100}%`, top: `calc(${top * 100}% - 10px)` }}
+    >
+      {text}
+    </div>
   );
 }

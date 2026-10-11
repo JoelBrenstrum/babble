@@ -124,6 +124,14 @@ export function useRemoveEntry(client: BabbleClient, babyId: string) {
   });
 }
 
+export function useRestoreEntry(client: BabbleClient, babyId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (eventId: string) => restoreEvent(client, eventId),
+    onSettled: () => refreshEvents(queryClient, babyId),
+  });
+}
+
 export function useResumeFeed(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
   return useMutation({

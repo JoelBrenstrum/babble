@@ -3,8 +3,10 @@ import { makeEvent } from '../events/test-events';
 import {
   ageInMonths,
   formatPercentile,
+  growthPointReadout,
   growthReport,
   lmsAt,
+  readoutEdge,
   normalCdf,
   valueAtZ,
   zForPercentile,
@@ -55,6 +57,14 @@ describe('WHO maths', () => {
   });
 });
 
+describe('readoutEdge', () => {
+  it('keeps a readout inside the chart near either edge', () => {
+    expect(readoutEdge(0.1)).toBe('left');
+    expect(readoutEdge(0.5)).toBe('center');
+    expect(readoutEdge(0.9)).toBe('right');
+  });
+});
+
 describe('growthReport', () => {
   const baby = { birthDate: '2026-09-01', sex: 'female' as const, timeZone: 'UTC' };
 
@@ -69,6 +79,9 @@ describe('growthReport', () => {
     const weight = report.charts[0]!;
     expect(weight.latest).toEqual({ value: '4.19 kg', percentile: '51st', at: '2026-10-01T10:00:00Z' });
     expect(weight.points).toHaveLength(2);
+    expect(weight.points[0]).toMatchObject({ reading: '3.23 kg', percentile: '50th', at: '2026-09-01T10:00:00Z' });
+    expect(growthPointReadout(weight.points[0]!, 'UTC')).toBe('1 Sept · 3.23 kg · 50th percentile');
+    expect(growthPointReadout(weight.points[1]!, 'UTC')).toBe('1 Oct · 4.19 kg · 51st percentile');
     expect(weight.curves.map((curve) => curve.percentile)).toEqual([3, 15, 50, 85, 97]);
     expect(weight.xMax).toBe(3);
     expect(weight.curves[2]!.points[0]).toEqual({ months: 0, value: expect.closeTo(3.2322, 3) });
@@ -86,6 +99,7 @@ describe('growthReport', () => {
     expect(report.needsSex).toBe(true);
     expect(report.charts[0]!.latest.percentile).toBeNull();
     expect(report.charts[0]!.curves).toEqual([]);
+    expect(growthPointReadout(report.charts[0]!.points[0]!, 'UTC')).toBe('1 Oct · 4.00 kg');
   });
 
   it('has no percentile past two years but still charts the point', () => {

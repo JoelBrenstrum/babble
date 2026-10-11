@@ -1,6 +1,7 @@
-import { formatShortDate, type GrowthChart, type GrowthReport } from '@babble/domain';
+import { formatShortDate, growthPointReadout, type GrowthChart, type GrowthReport } from '@babble/domain';
 import { router } from 'expo-router';
 import { Ruler } from 'lucide-react-native';
+import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 import { Card } from '@/components/card';
@@ -81,6 +82,8 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
   const xStep = chart.xMax <= 6 ? 1 : chart.xMax <= 12 ? 2 : chart.xMax <= 24 ? 3 : 6;
   const xTicks: number[] = [];
   for (let months = 0; months <= chart.xMax; months += xStep) xTicks.push(months);
+  const [selected, setSelected] = useState<number | null>(null);
+  const selectedPoint = selected === null ? null : chart.points[selected];
 
   return (
     <View className="gap-2">
@@ -94,6 +97,9 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
           <Text className="font-sans text-caption text-ink-3">{formatShortDate(chart.latest.at, timeZone)}</Text>
         </View>
       </View>
+      <Text className={selectedPoint ? 'font-semibold text-caption text-ink' : 'font-sans text-caption text-ink-3'}>
+        {selectedPoint ? growthPointReadout(selectedPoint, timeZone) : 'Tap a point to see it'}
+      </Text>
       <Svg
         width="100%"
         height={HEIGHT}
@@ -135,10 +141,22 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
             key={index}
             cx={x(point.months)}
             cy={y(point.value)}
-            r={3.5}
+            r={selected === index ? 5.5 : 3.5}
             fill={growth}
             stroke={raised}
             strokeWidth={1.5}
+          />
+        ))}
+        {chart.points.map((point, index) => (
+          <Circle
+            key={`hit${index}`}
+            testID={`growth-point-${chart.key}-${index}`}
+            accessibilityLabel={growthPointReadout(point, timeZone)}
+            cx={x(point.months)}
+            cy={y(point.value)}
+            r={14}
+            fill="transparent"
+            onPress={() => setSelected(selected === index ? null : index)}
           />
         ))}
       </Svg>

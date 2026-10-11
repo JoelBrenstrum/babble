@@ -11,6 +11,7 @@ const feed: ChairFeed = {
     timer: '12:34',
     sides: 'Left 8:10 · Right 4:24',
     pausedFor: null,
+    idle: null,
   },
   summary: { title: 'Fed 13m', sides: 'Left 8m · Right 4m' },
   startedLine: 'Started 2:41 pm by Jane',
@@ -52,6 +53,7 @@ function makeActions(): ChairActions {
     startNap: vi.fn(async () => 'nap-1'),
     endNap: vi.fn(async () => undefined),
     undoEntry: vi.fn(async () => undefined),
+    restoreEntry: vi.fn(async () => undefined),
     wake: vi.fn(),
     dimNow: vi.fn(),
     refresh: vi.fn(),
@@ -173,6 +175,28 @@ describe('ChairScreen feeding', () => {
     expect(actions.pause).toHaveBeenCalled();
   });
 
+  it('discards a running feed with an Undo that brings it back', async () => {
+    const actions = makeActions();
+    render(<ChairScreen data={makeData({ feed })} actions={actions} />);
+    tap('Discard');
+    await flush();
+    expect(actions.undoEntry).toHaveBeenCalledWith('feed-1');
+    expect(screen.getByRole('status')).toHaveTextContent('Feed discarded');
+    tap('Undo');
+    await flush();
+    expect(actions.restoreEntry).toHaveBeenCalledWith('feed-1');
+  });
+
+  it('shows idle time once there is some', () => {
+    render(
+      <ChairScreen
+        data={makeData({ feed: { ...feed, view: { ...feed.view, idle: 'Idle 1:12' } } })}
+        actions={makeActions()}
+      />,
+    );
+    expect(screen.getByText('Idle 1:12')).toBeInTheDocument();
+  });
+
   it('resumes a paused feed on the same side', () => {
     const actions = makeActions();
     const paused = { ...feed, view: { ...feed.view, paused: true, title: 'Paused · Left', pausedFor: 'Paused 3m' } };
@@ -191,7 +215,10 @@ describe('ChairScreen feeding', () => {
     expect(actions.endFeed).toHaveBeenCalled();
     expect(screen.getByText('Fed 13m')).toBeInTheDocument();
     expect(screen.getByText('Left 8m · Right 4m')).toBeInTheDocument();
+    expect(screen.getByText('Back to the start screen in 30s')).toBeInTheDocument();
     await act(async () => vi.advanceTimersByTime(5_000));
+    expect(screen.getByText('Back to the start screen in 25s')).toBeInTheDocument();
+    await act(async () => vi.advanceTimersByTime(25_000));
     expect(screen.queryByText('Fed 13m')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start left' })).toBeInTheDocument();
   });

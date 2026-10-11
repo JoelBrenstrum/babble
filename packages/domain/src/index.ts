@@ -175,10 +175,13 @@ export {
 export {
   ageInMonths,
   formatPercentile,
+  growthPointReadout,
   growthReport,
+  readoutEdge,
   type BabySex,
   type ChartPoint,
   type GrowthChart,
+  type MeasuredPoint,
   type GrowthMeasure,
   type GrowthReport,
 } from './growth/growth';
@@ -254,6 +257,7 @@ export {
 } from './events/awake-periods';
 export {
   CHAIR_IDLE_DIM_MS,
+  CHAIR_ENDED_MS,
   CHAIR_UNDO_MS,
   CHAIR_WAKE_MS,
   bottleStep,
@@ -269,6 +273,7 @@ export {
   lastFeedLine,
   lastNappyLine,
   runningBreastFeed,
+  secondsLeft,
   stepBottleAmount,
   type ChairFeedView,
 } from './chair/chair';

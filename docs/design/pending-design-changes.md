@@ -215,3 +215,27 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > Replace the family member avatar colours (which reused tracker tokens) with a dedicated person palette, so an avatar never reads as a nap, feed, bottle or nappy. New tokens, each with `-soft` and `on-` variants: `person-1` azure `#2468b0` / soft `#d6e6f7` / on `#154677` (dark `#7fb3ea` / `#14263b` / `#c6def7`); `person-2` raspberry `#b02f5e` / `#f8d9e4` / `#7a1d40` (dark `#ec8fb0` / `#3b1624` / `#f7cadb`); `person-3` cyan `#13808f` / `#d3eef1` / `#0c5660` (dark `#6fcbd6` / `#0f2e33` / `#c2ecf1`); `person-4` charcoal `#4a4d52` / `#e3e4e6` / `#2c2e31` (dark `#b9bdc3` / `#2a2c2f` / `#e2e4e7`). Members get them in join order and repeat after four. Avatars use the soft tint with `on-` initials. Please check each is clearly distinct from every tracker colour (especially azure vs `growth`, raspberry vs `pump` and `feed-left`, cyan vs `nappy`) and refine the hues if needed, then update the avatar stacks, entry rows, running cards, chair mode and Settings members so John is azure and Jane is raspberry.
+
+---
+
+## 2026-10-11 · Stats tooltips with totals, growth point readouts
+
+Paste everything below this line into Claude Design.
+
+> In `Stats Cards.dc.html`: (1) bar tooltips for multi-series charts end with a total, e.g. "7 Oct: Night 5h, Naps 4.5h · Total 9.5h" and "7 Oct: Breast 8, Bottle 1 · Total 9"; single-series bars stay as they are. (2) Growth charts get a hover/tap state on each measured point: the point grows from 3.5 to 5.5 radius and a dark `ink` tooltip (same style as the bar tooltip) sits above it reading "1 Oct · 4.19 kg · 51st percentile" (no percentile part when the sex isn't set or the baby is over 2). Near the left or right edge the tooltip aligns to that edge instead of centring. On the phone (Expo) layout, show a caption line above each growth chart: "Tap a point to see it" in `ink-3`, replaced by the tapped point's readout in `ink` semibold.
+
+---
+
+## 2026-10-11 · Chair mode: discard a feed
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Screen.dc.html` Feeding (and Paused), put a "Discard" pill at the right end of the "Started 2:41 pm by Jane" row: about 12cqmin tall, `raised` at 70% with a `line-strong` border, Lucide `trash-2` icon and label in `ink-2`. It's deliberately smaller than and separate from the Switch / Pause / End feed row so it isn't hit by accident. Tapping it returns to Idle and shows the top toast "Feed discarded" with Undo. Show it at 800×480, 1280×720 and portrait.
+
+---
+
+## 2026-10-11 · Chair mode: idle time, 30-second feed summary
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Screen.dc.html` Feeding and Paused, after "Left 8:10 · Right 4:24" add "Idle 1:12" in `on-session-downtime` with a small dashed `session-downtime` ring before it, shown only when there's idle time (gaps longer than the downtime merge threshold, plus the current pause while paused). The Feed ended state now reads "Left 14m · Right 10m · idle 2m" when there was a minute or more of idle time, stays up for 30 seconds instead of 5, and its footer counts down live: "Back to the start screen in 30s", 29s, 28s…

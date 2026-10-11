@@ -2,6 +2,7 @@ import { emptyDraft } from '../events/drafts';
 import { withNappyType, type NappyType } from '../events/nappy';
 import { pausedForMs } from '../events/session-context';
 import { segmentTotals } from '../events/segments';
+import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent, BottleContent, EventDraft, EventOfType, Side, Units } from '../events/types';
 import { formatAgo, formatDuration, formatTimer } from '../format/duration';
 import { formatVolume, volumeToMl } from '../format/units';
@@ -14,6 +15,7 @@ const ML_PER_OUNCE = 29.5735;
 
 export const CHAIR_WAKE_MS = 30_000;
 export const CHAIR_UNDO_MS = 5_000;
+export const CHAIR_ENDED_MS = 30_000;
 export const CHAIR_IDLE_DIM_MS = 5 * 60_000;
 
 type BreastFeed = EventOfType<'breast_feed'>;
@@ -56,13 +58,25 @@ export interface ChairFeedView {
   timer: string;
   sides: string;
   pausedFor: string | null;
+  idle: string | null;
 }
 
-export function chairFeedView(feed: BreastFeed, now: Date): ChairFeedView {
+function lastSegmentEnd(feed: BreastFeed): string | null {
+  const ends = feed.segments.map((segment) => segment.endedAt);
+  if (ends.length === 0 || ends.includes(null)) return null;
+  return ends.reduce((latest, end) => (Date.parse(end!) > Date.parse(latest!) ? end : latest))!;
+}
+
+export function chairFeedView(feed: BreastFeed, now: Date, mergeGapMs: number): ChairFeedView {
   const totals = segmentTotals(feed.segments, now);
   const side = totals.openSide ?? totals.lastSide ?? 'left';
   const paused = totals.openSide === null;
   const pausedMs = paused ? pausedForMs(feed.segments, now) : null;
+  const { downtimeMs } = summariseSegments(feed.segments, {
+    mergeGapMs,
+    now,
+    pausedSince: paused ? lastSegmentEnd(feed) : null,
+  });
   return {
     paused,
     side,
@@ -75,16 +89,27 @@ export function chairFeedView(feed: BreastFeed, now: Date): ChairFeedView {
         : pausedMs < 60_000
           ? 'Just paused'
           : `Paused ${formatDuration(pausedMs, { seconds: false })}`,
+    idle: downtimeMs > 0 ? `Idle ${formatTimer(downtimeMs)}` : null,
   };
 }
 
-export function chairFeedSummary(feed: BreastFeed, endedAt: Date): { title: string; sides: string } {
+export function chairFeedSummary(
+  feed: BreastFeed,
+  endedAt: Date,
+  mergeGapMs: number,
+): { title: string; sides: string } {
   const totals = segmentTotals(feed.segments, endedAt);
+  const { downtimeMs } = summariseSegments(feed.segments, { mergeGapMs, now: endedAt });
   const parts = (['left', 'right'] as const)
     .map((side) => ({ side, ms: side === 'left' ? totals.leftMs : totals.rightMs }))
     .filter(({ ms }) => ms >= 60_000)
     .map(({ side, ms }) => `${SIDE_LABEL[side]} ${formatDuration(ms, { seconds: false })}`);
+  if (downtimeMs >= 60_000) parts.push(`idle ${formatDuration(downtimeMs, { seconds: false })}`);
   return { title: `Fed ${formatDuration(totals.activeMs, { seconds: false })}`, sides: parts.join(' · ') };
+}
+
+export function secondsLeft(untilMs: number, nowMs: number): number {
+  return Math.max(0, Math.ceil((untilMs - nowMs) / 1000));
 }
 
 export function bottleStep(units: Units): number {

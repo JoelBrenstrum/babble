@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, uniqueEmail } from './helpers';
+import { onboard, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 test('stats summarise what has been logged over a range', async ({ page }, testInfo) => {
-  await signIn(page, uniqueEmail('john', testInfo.project.name));
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
   await onboard(page);
 
   await page.getByRole('link', { name: 'Stats' }).filter({ visible: true }).click();
@@ -25,6 +25,10 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
   }
   await expect(page.getByRole('group', { name: 'Nappies per day' })).toBeVisible();
+  const nappyBar = page.getByRole('group', { name: 'Nappies per day' }).getByRole('img').last();
+  await expect(nappyBar).toHaveAccessibleName(/· Total 1$/);
+  await nappyBar.hover();
+  await expect(page.getByText(/· Total 1$/)).toBeVisible();
 
   await page.getByRole('radio', { name: '30d' }).click();
   await expect(page).toHaveURL(/range=30d/);
@@ -34,7 +38,7 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
 });
 
 test('growth is compared with the WHO charts once the sex is set', async ({ page }, testInfo) => {
-  await signIn(page, uniqueEmail('john', testInfo.project.name));
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
   await onboard(page);
 
   await page.getByRole('link', { name: 'Log growth' }).click();
@@ -54,6 +58,10 @@ test('growth is compared with the WHO charts once the sex is set', async ({ page
   await page.goto('/stats');
   await expect(growth.getByText(/^\d+(st|nd|rd|th) percentile$/)).toBeVisible();
   await expect(growth.getByText("Set Olivia's sex in")).toHaveCount(0);
+  const point = growth.getByRole('img', { name: /4\.10 kg · \d+(st|nd|rd|th) percentile$/ });
+  await point.hover();
+  await expect(growth.getByText(/4\.10 kg · \d+(st|nd|rd|th) percentile$/)).toBeVisible();
+  await growth.screenshot({ path: testInfo.outputPath('growth-tip.png') });
 
   await page.goto('/');
   await page.getByRole('link', { name: 'Log growth' }).click();

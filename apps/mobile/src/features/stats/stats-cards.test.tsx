@@ -40,12 +40,12 @@ describe('StatsCards', () => {
       },
     };
     await render(<StatsCards cards={[card]} />);
-    const bar = screen.getByRole('button', { name: '7 Oct: Breast 9, Bottle 0' });
+    const bar = screen.getByRole('button', { name: '7 Oct: Breast 9, Bottle 0 · Total 9' });
     await fireEvent.press(bar);
-    expect(screen.getByText('7 Oct: Breast 9, Bottle 0')).toBeTruthy();
-    await fireEvent.press(screen.getByRole('button', { name: '6 Oct: Breast 8, Bottle 1' }));
-    expect(screen.getByText('6 Oct: Breast 8, Bottle 1')).toBeTruthy();
-    await fireEvent.press(screen.getByRole('button', { name: '6 Oct: Breast 8, Bottle 1' }));
+    expect(screen.getByText('7 Oct: Breast 9, Bottle 0 · Total 9')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: '6 Oct: Breast 8, Bottle 1 · Total 9' }));
+    expect(screen.getByText('6 Oct: Breast 8, Bottle 1 · Total 9')).toBeTruthy();
+    await fireEvent.press(screen.getByRole('button', { name: '6 Oct: Breast 8, Bottle 1 · Total 9' }));
     expect(screen.getByText('Tap a bar to see its day')).toBeTruthy();
   });
 });

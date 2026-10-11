@@ -231,8 +231,10 @@ describe('barReadout', () => {
   it('reads a bar in legend order with the day and units', () => {
     const feeds = chartFor('feeds');
     expect(feeds.legend.map((index) => feeds.series[index])).toEqual(['Breast', 'Bottle']);
-    expect(barReadout(feeds, feeds.bars[0]!)).toBe('7 Oct: Breast 0, Bottle 1');
-    expect(barReadout(chartFor('sleep'), { label: '2026-10-07', values: [5, 4.5] })).toBe('7 Oct: Night 5h, Naps 4.5h');
+    expect(barReadout(feeds, feeds.bars[0]!)).toBe('7 Oct: Breast 0, Bottle 1 · Total 1');
+    expect(barReadout(chartFor('sleep'), { label: '2026-10-07', values: [5, 4.5] })).toBe(
+      '7 Oct: Night 5h, Naps 4.5h · Total 9.5h',
+    );
   });
 
   it('leaves out the series name when there is only one, and marks weekly bars', () => {

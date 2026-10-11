@@ -132,6 +132,7 @@ const PREVIEW_ACTIONS: ChairActions = {
   startNap: noop,
   endNap: noop,
   undoEntry: noop,
+  restoreEntry: noop,
   wake: () => undefined,
   dimNow: () => undefined,
   refresh: () => undefined,

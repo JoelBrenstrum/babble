@@ -13,6 +13,7 @@ import {
   lastFeedLine,
   lastNappyLine,
   runningBreastFeed,
+  secondsLeft,
   stepBottleAmount,
 } from './chair';
 
@@ -98,13 +99,14 @@ describe('chairFeedView', () => {
         { side: 'right', startedAt: at('12:08'), endedAt: null },
       ],
     });
-    expect(chairFeedView(feed, new Date('2026-10-06T12:12:34Z'))).toEqual({
+    expect(chairFeedView(feed, new Date('2026-10-06T12:12:34Z'), 15_000)).toEqual({
       paused: false,
       side: 'right',
       title: 'Feeding · Right',
       timer: '12:34',
       sides: 'Left 8:00 · Right 4:34',
       pausedFor: null,
+      idle: null,
     });
   });
 
@@ -114,20 +116,21 @@ describe('chairFeedView', () => {
       endedAt: null,
       segments: [{ side: 'left', startedAt: at('12:00'), endedAt: at('12:10') }],
     });
-    expect(chairFeedView(feed, new Date('2026-10-06T12:13:00Z'))).toMatchObject({
+    expect(chairFeedView(feed, new Date('2026-10-06T12:13:00Z'), 15_000)).toMatchObject({
       paused: true,
       side: 'left',
       title: 'Paused · Left',
       timer: '10:00',
       pausedFor: 'Paused 3m',
+      idle: 'Idle 3:00',
     });
-    expect(chairFeedView(feed, new Date('2026-10-06T12:10:20Z')).pausedFor).toBe('Just paused');
+    expect(chairFeedView(feed, new Date('2026-10-06T12:10:20Z'), 15_000).pausedFor).toBe('Just paused');
   });
 });
 
 describe('chairFeedSummary', () => {
   it('totals the feed and each side used', () => {
-    expect(chairFeedSummary(endedFeed, new Date(at('10:20')))).toEqual({
+    expect(chairFeedSummary(endedFeed, new Date(at('10:20')), 15_000)).toEqual({
       title: 'Fed 20m',
       sides: 'Left 12m · Right 8m',
     });
@@ -138,7 +141,40 @@ describe('chairFeedSummary', () => {
       ...endedFeed,
       segments: [{ side: 'left' as const, startedAt: at('10:00'), endedAt: at('10:15') }],
     };
-    expect(chairFeedSummary(oneSide, new Date(at('10:15'))).sides).toBe('Left 15m');
+    expect(chairFeedSummary(oneSide, new Date(at('10:15')), 15_000).sides).toBe('Left 15m');
+  });
+});
+
+describe('idle time', () => {
+  const withGap = makeEvent('breast_feed', {
+    startedAt: at('12:00'),
+    endedAt: null,
+    segments: [
+      { side: 'left', startedAt: at('12:00'), endedAt: at('12:08') },
+      { side: 'right', startedAt: at('12:10'), endedAt: null },
+    ],
+  });
+
+  it('counts gaps longer than the merge threshold as idle', () => {
+    expect(chairFeedView(withGap, new Date(at('12:15')), 15_000).idle).toBe('Idle 2:00');
+    expect(chairFeedView(withGap, new Date(at('12:15')), 5 * 60_000).idle).toBeNull();
+  });
+
+  it('adds idle time to the summary once it reaches a minute', () => {
+    const ended = { ...withGap, segments: [withGap.segments[0]!, { ...withGap.segments[1]!, endedAt: at('12:20') }] };
+    expect(chairFeedSummary(ended, new Date(at('12:20')), 15_000)).toEqual({
+      title: 'Fed 18m',
+      sides: 'Left 8m · Right 10m · idle 2m',
+    });
+  });
+});
+
+describe('secondsLeft', () => {
+  it('counts down in whole seconds and stops at zero', () => {
+    expect(secondsLeft(30_000, 0)).toBe(30);
+    expect(secondsLeft(30_000, 500)).toBe(30);
+    expect(secondsLeft(30_000, 29_001)).toBe(1);
+    expect(secondsLeft(30_000, 31_000)).toBe(0);
   });
 });
 

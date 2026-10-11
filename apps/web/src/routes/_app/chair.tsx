@@ -34,10 +34,12 @@ import { ChairScreen, type ChairActions, type ChairData } from '#/features/chair
 import { useNapPrompt } from '#/features/nap-prompt';
 import {
   useRemoveEntry,
+  useRestoreEntry,
   useResumeFeed,
   useSaveEvent,
   useSessionAction,
   useStartSession,
+  useTrackingSettings,
   useUnits,
 } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
@@ -53,6 +55,7 @@ function ChairPage() {
   const now = useNow(1000);
   const online = useOnline();
   const units = useUnits(client, baby.id);
+  const { mergeGapMs } = useTrackingSettings(client, baby.id);
   const running = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
   const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
@@ -61,6 +64,7 @@ function ChairPage() {
   const save = useSaveEvent(client, baby.id);
   const remove = useRemoveEntry(client, baby.id);
   const resume = useResumeFeed(client, baby.id);
+  const restore = useRestoreEntry(client, baby.id);
   const showNapPrompt = useNapPrompt();
   const updateReady = useNewRelease();
   const [lastTouchAt, setLastTouchAt] = useState(() => clock.now().getTime());
@@ -94,8 +98,8 @@ function ChairPage() {
     suggested: nextBreastSide(latest),
     feed: feed && {
       id: feed.id,
-      view: chairFeedView(feed, now),
-      summary: chairFeedSummary(feed, now),
+      view: chairFeedView(feed, now, mergeGapMs),
+      summary: chairFeedSummary(feed, now, mergeGapMs),
       startedLine: `Started ${formatTimeOfDay(feed.startedAt, baby.timezone)}${startedBy ? ` by ${startedBy}` : ''}`,
       startedBy,
     },
@@ -125,6 +129,7 @@ function ChairPage() {
       if (nap) await session.mutateAsync({ event: nap, action: { kind: 'end' } });
     },
     undoEntry: (eventId) => remove.mutateAsync(eventId),
+    restoreEntry: (eventId) => restore.mutateAsync(eventId),
     wake: () => setLastTouchAt(clock.now().getTime()),
     refresh: reloadForRelease,
     dimNow: () => setLastTouchAt(clock.now().getTime() - CHAIR_IDLE_DIM_MS),

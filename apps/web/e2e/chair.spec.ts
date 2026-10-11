@@ -62,6 +62,17 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await page.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByText(/^Last fed just now · Right side/)).toBeVisible();
 
+  await page.getByRole('button', { name: 'Start right' }).click();
+  await expect(page.getByText('Feeding · Right')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('feeding.png') });
+  await page.getByRole('button', { name: 'Discard' }).click();
+  await expect(page.getByRole('status')).toContainText('Feed discarded');
+  await expect(page.getByRole('button', { name: 'Start right' })).toBeVisible();
+  await page.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByText('Feeding · Right')).toBeVisible();
+  await page.getByRole('button', { name: 'Discard' }).click();
+  await expect(page.getByRole('button', { name: 'Start right' })).toBeVisible();
+
   await page.goto('/track/nappy');
   await expect(page.getByText('Wet').first()).toBeVisible();
 });

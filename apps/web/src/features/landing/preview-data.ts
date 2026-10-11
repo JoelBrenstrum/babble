@@ -109,8 +109,8 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
       night: true,
       feed: {
         id: running.id,
-        view: chairFeedView(running, now),
-        summary: chairFeedSummary(running, now),
+        view: chairFeedView(running, now, 15_000),
+        summary: chairFeedSummary(running, now, 15_000),
         startedLine: `Started ${formatTimeOfDay(running.startedAt, timezone)} by Jane`,
         startedBy: 'Jane',
       },
