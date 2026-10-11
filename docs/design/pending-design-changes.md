@@ -207,3 +207,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > Add a "new version" banner to the web app, in light and dark, at 390px and 1280px: a dark `ink` card pinned to the top centre (8px below the safe area, max 448px wide) with a Lucide `refresh-cw` icon in `primary-soft`, the text "A new version of babble is ready." in `bg`, a "Refresh" text button in `primary-soft` and a close (×) button. In `Chair Screen.dc.html`, add a "New version" state: the toast-style pill at the top centre with a `refresh-cw` icon in `primary`, "A new version of babble is ready" and a big solid `primary` "Refresh" button.
+
+---
+
+## 2026-10-11 · Person colours separate from tracker colours
+
+Paste everything below this line into Claude Design.
+
+> Replace the family member avatar colours (which reused tracker tokens) with a dedicated person palette, so an avatar never reads as a nap, feed, bottle or nappy. New tokens, each with `-soft` and `on-` variants: `person-1` azure `#2468b0` / soft `#d6e6f7` / on `#154677` (dark `#7fb3ea` / `#14263b` / `#c6def7`); `person-2` raspberry `#b02f5e` / `#f8d9e4` / `#7a1d40` (dark `#ec8fb0` / `#3b1624` / `#f7cadb`); `person-3` cyan `#13808f` / `#d3eef1` / `#0c5660` (dark `#6fcbd6` / `#0f2e33` / `#c2ecf1`); `person-4` charcoal `#4a4d52` / `#e3e4e6` / `#2c2e31` (dark `#b9bdc3` / `#2a2c2f` / `#e2e4e7`). Members get them in join order and repeat after four. Avatars use the soft tint with `on-` initials. Please check each is clearly distinct from every tracker colour (especially azure vs `growth`, raspberry vs `pump` and `feed-left`, cyan vs `nappy`) and refine the hues if needed, then update the avatar stacks, entry rows, running cards, chair mode and Settings members so John is azure and Jane is raspberry.

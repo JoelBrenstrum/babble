@@ -70,6 +70,17 @@ describe('parseTokenCss', () => {
       expect(tokens.light).toHaveProperty(`on-${tracker}`);
     }
   });
+
+  it('has its own avatar colours for people, in light and dark', () => {
+    const tokens = parseTokenCss(read('css/babble-tokens.css'));
+    for (const person of ['person-1', 'person-2', 'person-3', 'person-4']) {
+      for (const mode of [tokens.light, tokens.dark]) {
+        expect(mode).toHaveProperty(person);
+        expect(mode).toHaveProperty(`${person}-soft`);
+        expect(mode).toHaveProperty(`on-${person}`);
+      }
+    }
+  });
 });
 
 describe('generated files', () => {

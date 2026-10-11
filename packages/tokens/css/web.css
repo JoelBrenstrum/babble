@@ -47,6 +47,18 @@
   --color-custom: rgb(var(--custom));
   --color-custom-soft: rgb(var(--custom-soft));
   --color-on-custom: rgb(var(--on-custom));
+  --color-person-1: rgb(var(--person-1));
+  --color-person-1-soft: rgb(var(--person-1-soft));
+  --color-on-person-1: rgb(var(--on-person-1));
+  --color-person-2: rgb(var(--person-2));
+  --color-person-2-soft: rgb(var(--person-2-soft));
+  --color-on-person-2: rgb(var(--on-person-2));
+  --color-person-3: rgb(var(--person-3));
+  --color-person-3-soft: rgb(var(--person-3-soft));
+  --color-on-person-3: rgb(var(--on-person-3));
+  --color-person-4: rgb(var(--person-4));
+  --color-person-4-soft: rgb(var(--person-4-soft));
+  --color-on-person-4: rgb(var(--on-person-4));
   --color-session-active: rgb(var(--session-active));
   --color-session-active-soft: rgb(var(--session-active-soft));
   --color-on-session-active: rgb(var(--on-session-active));

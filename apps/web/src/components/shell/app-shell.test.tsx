@@ -41,7 +41,7 @@ describe('AppShell', () => {
   it('gives each family member their own avatar colour', async () => {
     await renderShell(null);
     const tone = (name: string) => screen.getAllByTitle(name)[0]!.dataset.tone;
-    expect(tone('John')).toBe('secondary');
-    expect(tone('Jane')).toBe('growth');
+    expect(tone('John')).toBe('person-1');
+    expect(tone('Jane')).toBe('person-2');
   });
 });

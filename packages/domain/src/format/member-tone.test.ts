@@ -10,20 +10,20 @@ const member = (display_name: string, created_at: string, user_id = display_name
 describe('memberTones', () => {
   it('gives each member a different tone in the order they joined', () => {
     const tones = memberTones([member('Jane', '2026-02-01T00:00:00Z'), member('John', '2026-01-01T00:00:00Z')]);
-    expect(toneFor('John', tones)).toBe('secondary');
-    expect(toneFor('Jane', tones)).toBe('growth');
+    expect(toneFor('John', tones)).toBe('person-1');
+    expect(toneFor('Jane', tones)).toBe('person-2');
   });
 
   it('matches names regardless of case and spacing', () => {
     const tones = memberTones([member('John', '2026-01-01T00:00:00Z'), member('Jane', '2026-02-01T00:00:00Z')]);
-    expect(toneFor(' jane ', tones)).toBe('growth');
+    expect(toneFor(' jane ', tones)).toBe('person-2');
   });
 
   it('wraps around after the last tone', () => {
     const many = Array.from({ length: MEMBER_TONES.length + 1 }, (_, index) =>
       member(`Person ${index}`, `2026-01-${String(index + 1).padStart(2, '0')}T00:00:00Z`),
     );
-    expect(toneFor(`Person ${MEMBER_TONES.length}`, memberTones(many))).toBe('secondary');
+    expect(toneFor(`Person ${MEMBER_TONES.length}`, memberTones(many))).toBe('person-1');
   });
 });
 

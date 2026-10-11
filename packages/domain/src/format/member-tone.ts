@@ -1,4 +1,4 @@
-export const MEMBER_TONES = ['secondary', 'growth', 'sleep', 'info', 'pump', 'bottle'] as const;
+export const MEMBER_TONES = ['person-1', 'person-2', 'person-3', 'person-4'] as const;
 export type MemberTone = (typeof MEMBER_TONES)[number];
 
 export type MemberToneMap = ReadonlyMap<string, MemberTone>;

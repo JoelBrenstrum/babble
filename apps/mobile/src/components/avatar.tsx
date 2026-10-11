@@ -3,12 +3,10 @@ import { createContext, useContext } from 'react';
 import { Text, View } from 'react-native';
 
 const TONE_CLASSES: Record<MemberTone, { bg: string; text: string }> = {
-  secondary: { bg: 'bg-secondary-soft', text: 'text-on-secondary-soft' },
-  growth: { bg: 'bg-growth-soft', text: 'text-on-growth' },
-  sleep: { bg: 'bg-sleep-soft', text: 'text-on-sleep' },
-  info: { bg: 'bg-info-soft', text: 'text-on-info' },
-  pump: { bg: 'bg-pump-soft', text: 'text-on-pump' },
-  bottle: { bg: 'bg-bottle-soft', text: 'text-on-bottle' },
+  'person-1': { bg: 'bg-person-1-soft', text: 'text-on-person-1' },
+  'person-2': { bg: 'bg-person-2-soft', text: 'text-on-person-2' },
+  'person-3': { bg: 'bg-person-3-soft', text: 'text-on-person-3' },
+  'person-4': { bg: 'bg-person-4-soft', text: 'text-on-person-4' },
 };
 
 const MemberTonesContext = createContext<MemberToneMap>(new Map());

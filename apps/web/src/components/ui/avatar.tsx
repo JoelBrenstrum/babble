@@ -3,12 +3,10 @@ import { createContext, useContext } from 'react';
 import { cn } from '#/lib/cn';
 
 const TONE_CLASSES: Record<MemberTone, string> = {
-  secondary: 'bg-secondary-soft text-on-secondary-soft',
-  growth: 'bg-growth-soft text-on-growth',
-  sleep: 'bg-sleep-soft text-on-sleep',
-  info: 'bg-info-soft text-on-info',
-  pump: 'bg-pump-soft text-on-pump',
-  bottle: 'bg-bottle-soft text-on-bottle',
+  'person-1': 'bg-person-1-soft text-on-person-1',
+  'person-2': 'bg-person-2-soft text-on-person-2',
+  'person-3': 'bg-person-3-soft text-on-person-3',
+  'person-4': 'bg-person-4-soft text-on-person-4',
 };
 
 const MemberTonesContext = createContext<MemberToneMap>(new Map());

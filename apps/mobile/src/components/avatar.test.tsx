@@ -29,7 +29,7 @@ describe('Avatar', () => {
         <Avatar name="Jane" />
       </MemberTonesProvider>,
     );
-    expect(screen.getByTestId('avatar-secondary')).toHaveProp('accessibilityLabel', 'John');
-    expect(screen.getByTestId('avatar-growth')).toHaveProp('accessibilityLabel', 'Jane');
+    expect(screen.getByTestId('avatar-person-1')).toHaveProp('accessibilityLabel', 'John');
+    expect(screen.getByTestId('avatar-person-2')).toHaveProp('accessibilityLabel', 'Jane');
   });
 });
