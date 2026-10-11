@@ -91,7 +91,7 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
     dimmed: false,
     updateReady: false,
     offline: false,
-    lastFeed: lastFeedLine(events, now, 'metric'),
+    lastFeed: lastFeedLine(events, now, 'metric', timezone),
     due: due ? feedDueText(due, now, timezone) : null,
     suggested: nextBreastSide(events),
     feed: null,

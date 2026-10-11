@@ -147,6 +147,10 @@ select isnt(
   public.start_session('00000000-0000-0000-0000-0000000000b1', 'sleep'),
   (select id from feed), 'a sleep can run at the same time as a feed');
 
+-- Everything in this transaction shares one now(), so give the left segment an earlier start to make "last side" unambiguous.
+select pg_temp.sign_out();
+update public.timed_segments set started_at = now() - interval '10 minutes' where event_id = (select id from feed);
+select pg_temp.sign_in_as('00000000-0000-0000-0000-0000000000a1');
 select lives_ok($$ select public.switch_side((select id from feed), 'right') $$, 'switches side');
 select is(
   (select string_agg(side::text || ':' || (ended_at is null)::text, ',' order by started_at, side)

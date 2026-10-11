@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { babyChoices, canEdit, memberRole, resolveOnboarding } from './onboarding';
+import {
+  babyChoices,
+  canEdit,
+  canRemoveMember,
+  canRenameMember,
+  memberNameError,
+  memberRole,
+  resolveOnboarding,
+} from './onboarding';
 import type { BabyRow, Family } from './types';
 
 const baby = (id: string): BabyRow => ({
@@ -85,6 +93,25 @@ describe('roles', () => {
   it('lets owners and caregivers edit', () => {
     expect(canEdit(family('f'), 'john')).toBe(true);
     expect(canEdit(family('f'), 'gran')).toBe(false);
+  });
+
+  it('lets owners rename anyone and members rename themselves', () => {
+    expect(canRenameMember(family('f'), 'john', 'gran')).toBe(true);
+    expect(canRenameMember(family('f'), 'gran', 'gran')).toBe(true);
+    expect(canRenameMember(family('f'), 'gran', 'john')).toBe(false);
+  });
+
+  it('lets owners remove other members but not themselves', () => {
+    expect(canRemoveMember(family('f'), 'john', 'gran')).toBe(true);
+    expect(canRemoveMember(family('f'), 'john', 'john')).toBe(false);
+    expect(canRemoveMember(family('f'), 'gran', 'john')).toBe(false);
+    expect(canRemoveMember(family('f'), 'john', 'nobody')).toBe(false);
+  });
+
+  it('checks a member name', () => {
+    expect(memberNameError('  Nana ')).toBeNull();
+    expect(memberNameError('   ')).toBe('Enter a name.');
+    expect(memberNameError('x'.repeat(61))).toBe('Keep it under 60 characters.');
   });
 });
 

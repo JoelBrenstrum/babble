@@ -93,7 +93,7 @@ function ChairPage() {
     dimmed: chairDimmed(night, now, lastTouchAt),
     updateReady,
     offline: !online,
-    lastFeed: lastFeedLine(latest, now, units),
+    lastFeed: lastFeedLine(latest, now, units, baby.timezone),
     due: due ? feedDueText(due, now, baby.timezone) : null,
     suggested: nextBreastSide(latest),
     feed: feed && {

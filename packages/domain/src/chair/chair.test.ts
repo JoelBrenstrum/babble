@@ -32,7 +32,7 @@ const endedFeed = makeEvent('breast_feed', {
 
 describe('lastFeedLine', () => {
   it('describes the last breastfeed with its final side and length', () => {
-    expect(lastFeedLine([endedFeed], NOW, 'metric')).toBe('Last fed 2h 10m ago · Right side · 20m');
+    expect(lastFeedLine([endedFeed], NOW, 'metric', 'UTC')).toBe('Last fed 10:00 am · 2h 30m ago · Right side · 20m');
   });
 
   it('uses a later bottle instead', () => {
@@ -41,8 +41,12 @@ describe('lastFeedLine', () => {
       endedAt: at('11:30'),
       details: { content: 'formula', amountMl: 120, amountLeftMl: null },
     });
-    expect(lastFeedLine([endedFeed, bottle], NOW, 'metric')).toBe('Last fed 1h 00m ago · Bottle · 120 ml');
-    expect(lastFeedLine([bottle], NOW, 'imperial')).toBe('Last fed 1h 00m ago · Bottle · 4.1 oz');
+    expect(lastFeedLine([endedFeed, bottle], NOW, 'metric', 'UTC')).toBe(
+      'Last fed 11:30 am · 1h 00m ago · Bottle · 120 ml',
+    );
+    expect(lastFeedLine([bottle], NOW, 'imperial', 'Pacific/Auckland')).toBe(
+      'Last fed 12:30 am · 1h 00m ago · Bottle · 4.1 oz',
+    );
   });
 
   it('leaves out the length of a feed under a minute', () => {
@@ -50,13 +54,13 @@ describe('lastFeedLine', () => {
       ...endedFeed,
       segments: [{ side: 'left' as const, startedAt: '2026-10-06T10:18:30Z', endedAt: at('10:19') }],
     };
-    expect(lastFeedLine([short], NOW, 'metric')).toBe('Last fed 2h 10m ago · Left side');
+    expect(lastFeedLine([short], NOW, 'metric', 'UTC')).toBe('Last fed 10:00 am · 2h 30m ago · Left side');
   });
 
   it('skips running and deleted feeds', () => {
     const running = makeEvent('breast_feed', { startedAt: at('12:00'), endedAt: null });
     const deleted = { ...endedFeed, deletedAt: at('11:00') };
-    expect(lastFeedLine([running, deleted], NOW, 'metric')).toBe('No feeds logged yet');
+    expect(lastFeedLine([running, deleted], NOW, 'metric', 'UTC')).toBe('No feeds logged yet');
   });
 });
 

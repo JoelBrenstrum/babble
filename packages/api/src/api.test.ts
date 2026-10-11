@@ -10,6 +10,8 @@ import {
   getInstanceSettings,
   listFamilies,
   listPendingInvites,
+  removeMember,
+  renameMember,
   revokeInvite,
 } from './families';
 import { fakeClient } from './test-utils';
@@ -214,6 +216,24 @@ describe('pending invites', () => {
     expect(requests[0]!.method).toBe('DELETE');
     expect(requests[0]!.url.pathname).toBe('/rest/v1/family_invites');
     expect(requests[0]!.url.searchParams.get('id')).toBe('eq.invite-1');
+  });
+
+  it('renames a family member with a trimmed name', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await renameMember(client, { familyId: 'family-1', userId: 'user-2' }, '  Nana ');
+    const { url, method, body } = requests[0]!;
+    expect(method).toBe('PATCH');
+    expect(url.pathname).toBe('/rest/v1/family_members');
+    expect(url.searchParams.get('family_id')).toBe('eq.family-1');
+    expect(url.searchParams.get('user_id')).toBe('eq.user-2');
+    expect(body).toEqual({ display_name: 'Nana' });
+  });
+
+  it('removes a family member', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await removeMember(client, { familyId: 'family-1', userId: 'user-2' });
+    expect(requests[0]!.method).toBe('DELETE');
+    expect(requests[0]!.url.searchParams.get('user_id')).toBe('eq.user-2');
   });
 
   it('surfaces a failed revoke', async () => {

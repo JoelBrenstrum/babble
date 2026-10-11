@@ -239,3 +239,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > In `Chair Screen.dc.html` Feeding and Paused, after "Left 8:10 · Right 4:24" add "Idle 1:12" in `on-session-downtime` with a small dashed `session-downtime` ring before it, shown only when there's idle time (gaps longer than the downtime merge threshold, plus the current pause while paused). The Feed ended state now reads "Left 14m · Right 10m · idle 2m" when there was a minute or more of idle time, stays up for 30 seconds instead of 5, and its footer counts down live: "Back to the start screen in 30s", 29s, 28s…
+
+---
+
+## 2026-10-11 · Rename and remove caregivers; chair last-fed start time
+
+Paste everything below this line into Claude Design.
+
+> (1) Settings → Caregivers (`Phone Account.dc.html` and `Web.dc.html`): for the owner, each other member row gets ghost "Rename" and danger "Remove" text buttons on the right; your own row gets just "Rename" (caregivers and viewers see "Rename" only on their own row). Rename expands the row into a "Jane's name" text field with Save and Cancel. Remove expands a `danger-soft` box: "Remove Jane from The Smiths? They'll lose access straight away. What they logged stays." with a destructive "Remove" and a ghost "Cancel" (same pattern as revoking an invite). Show the rename and remove states in light and dark. (2) In `Chair Screen.dc.html` Idle, the status line now leads with the last feed's start time: "Last fed 1:32 pm · 2h 28m ago · Right side · 18m".

@@ -1,14 +1,14 @@
 import { canEdit, deleteMyAccount, updatePassword, queryKeys, signOut, toBabbleError, updateBaby } from '@babble/api';
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router';
 import { ChevronRight, LogOut, UserPlus } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
-import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { Card, SectionLabel } from '#/components/ui/card';
 import { SexField } from '#/features/sex-field';
 import { SelectField, TextField } from '#/components/ui/field';
 import { StatusMessage } from '#/components/ui/status';
 import { DayStartPicker } from '#/features/day-start-picker';
+import { FamilyMembers } from '#/features/family-members';
 import { InvitePanel } from '#/features/invite-panel';
 import { CaregiversLabel, PendingInvites, useCreateInvite } from '#/features/pending-invites';
 import { PasswordForm } from '#/features/password-form';
@@ -22,10 +22,9 @@ import { listTimeZones } from '#/lib/timezones';
 
 export const Route = createFileRoute('/_app/settings')({ component: SettingsPage });
 
-const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
-
 function SettingsPage() {
-  const { family, session, babble, baby } = Route.useRouteContext();
+  const { family, session, babble, baby, queryClient } = Route.useRouteContext();
+  const router = useRouter();
   const editable = canEdit(family, session.user.id);
 
   return (
@@ -35,20 +34,15 @@ function SettingsPage() {
 
       <section className="flex flex-col gap-3">
         <CaregiversLabel client={babble.client} familyId={family.id} editable={editable} />
-        <Card className="divide-y divide-line">
-          {family.members.map((member) => (
-            <div key={member.user_id} className="flex items-center gap-3 px-4 py-3">
-              <Avatar name={member.display_name} />
-              <div className="flex-1">
-                <div className="text-row-title font-semibold">
-                  {member.display_name}
-                  {member.user_id === session.user.id && <span className="text-ink-3"> (you)</span>}
-                </div>
-                <div className="text-meta text-ink-2">{ROLE_LABELS[member.role]}</div>
-              </div>
-            </div>
-          ))}
-        </Card>
+        <FamilyMembers
+          client={babble.client}
+          family={family}
+          userId={session.user.id}
+          onChanged={async () => {
+            await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
+            await router.invalidate();
+          }}
+        />
         {editable && <PendingInvites client={babble.client} family={family} />}
         {editable && <InviteToggle familyId={family.id} />}
       </section>

@@ -47,7 +47,7 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await page.getByRole('button', { name: /^End nap/ }).click();
   await expect(page.getByRole('status')).toContainText('Nap ended');
 
-  await expect(page.getByText(/^Last fed just now · Right side/)).toBeVisible();
+  await expect(page.getByText(/^Last fed .+ · just now · Right side/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start left' })).toContainText('Next');
   await expect(page.getByRole('button', { name: /^Nappy/ })).toContainText('Wet · just now');
   await expect(page.getByRole('status')).toHaveCount(0, { timeout: 7_000 });
@@ -60,7 +60,7 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByRole('status')).toContainText('Bottle saved · 130 ml');
   await page.getByRole('button', { name: 'Undo' }).click();
-  await expect(page.getByText(/^Last fed just now · Right side/)).toBeVisible();
+  await expect(page.getByText(/^Last fed .+ · just now · Right side/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Start right' }).click();
   await expect(page.getByText('Feeding · Right')).toBeVisible();

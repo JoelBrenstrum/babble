@@ -12,7 +12,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
-import { Avatar } from '@/components/avatar';
 import { Button } from '@/components/button';
 import { Card, SectionLabel } from '@/components/card';
 import { Screen } from '@/components/screen';
@@ -20,6 +19,7 @@ import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
 import { DateField } from '@/features/date-field';
 import { DayStartPicker } from '@/features/day-start-picker';
+import { FamilyMembers } from '@/features/family-members';
 import { InvitePanel } from '@/features/invite-panel';
 import { CaregiversLabel, PendingInvites, useCreateInvite } from '@/features/pending-invites';
 import { TrackingSettings } from '@/features/tracking-settings';
@@ -31,8 +31,6 @@ import { AboutSection } from '@/features/legal-links';
 import { useBabble } from '@/lib/babble';
 import { useThemePreference } from '@/lib/theme';
 import { useReadyState } from '@/lib/use-onboarding';
-
-const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
 
 export default function SettingsTab() {
   const ready = useReadyState();
@@ -111,28 +109,18 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
 
 function CaregiversSection({ family, userId, editable }: { family: Family; userId: string; editable: boolean }) {
   const { client, config } = useBabble();
+  const queryClient = useQueryClient();
   const [inviting, setInviting] = useState(false);
   const onCreate = useCreateInvite(client, family.id);
   return (
     <View className="gap-3">
       <CaregiversLabel client={client} familyId={family.id} editable={editable} />
-      <Card>
-        {family.members.map((member, index) => (
-          <View
-            key={member.user_id}
-            className={`flex-row items-center gap-3 px-4 py-3 ${index > 0 ? 'border-t border-line' : ''}`}
-          >
-            <Avatar name={member.display_name} />
-            <View className="flex-1">
-              <Text className="font-semibold text-row-title text-ink">
-                {member.display_name}
-                {member.user_id === userId ? ' (you)' : ''}
-              </Text>
-              <Text className="font-sans text-meta text-ink-2">{ROLE_LABELS[member.role]}</Text>
-            </View>
-          </View>
-        ))}
-      </Card>
+      <FamilyMembers
+        client={client}
+        family={family}
+        userId={userId}
+        onChanged={() => queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' })}
+      />
       {editable && <PendingInvites client={client} family={family} />}
       {editable &&
         (inviting ? (

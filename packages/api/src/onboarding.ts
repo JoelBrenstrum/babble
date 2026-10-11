@@ -34,6 +34,22 @@ export function canEdit(family: Family, userId: string): boolean {
   return role === 'owner' || role === 'caregiver';
 }
 
+export function canRenameMember(family: Family, userId: string, memberId: string): boolean {
+  return userId === memberId || memberRole(family, userId) === 'owner';
+}
+
+export function canRemoveMember(family: Family, userId: string, memberId: string): boolean {
+  return userId !== memberId && memberRole(family, userId) === 'owner' && memberRole(family, memberId) !== null;
+}
+
+export const MAX_MEMBER_NAME = 60;
+
+export function memberNameError(name: string): string | null {
+  const trimmed = name.trim();
+  if (!trimmed) return 'Enter a name.';
+  return trimmed.length > MAX_MEMBER_NAME ? `Keep it under ${MAX_MEMBER_NAME} characters.` : null;
+}
+
 export interface BabyChoice {
   baby: BabyRow;
   familyId: string;

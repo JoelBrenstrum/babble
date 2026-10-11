@@ -124,6 +124,28 @@ export async function revokeInvite(client: BabbleClient, inviteId: string): Prom
   if (error) throw toBabbleError(error);
 }
 
+export async function renameMember(
+  client: BabbleClient,
+  member: { familyId: string; userId: string },
+  displayName: string,
+): Promise<void> {
+  const { error } = await client
+    .from('family_members')
+    .update({ display_name: displayName.trim() })
+    .eq('family_id', member.familyId)
+    .eq('user_id', member.userId);
+  if (error) throw toBabbleError(error);
+}
+
+export async function removeMember(client: BabbleClient, member: { familyId: string; userId: string }): Promise<void> {
+  const { error } = await client
+    .from('family_members')
+    .delete()
+    .eq('family_id', member.familyId)
+    .eq('user_id', member.userId);
+  if (error) throw toBabbleError(error);
+}
+
 export async function acceptInvite(
   client: BabbleClient,
   options: { code: string; displayName: string },

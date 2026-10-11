@@ -6,7 +6,7 @@ import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent, BottleContent, EventDraft, EventOfType, Side, Units } from '../events/types';
 import { formatAgo, formatDuration, formatTimer } from '../format/duration';
 import { formatVolume, volumeToMl } from '../format/units';
-import { isWithinNight } from '../time/local-time';
+import { formatTimeOfDay, isWithinNight } from '../time/local-time';
 import { nappyKind } from '../timeline/totals';
 import type { NightWindow } from '../theme/theme-preference';
 
@@ -25,12 +25,12 @@ export function runningBreastFeed(running: readonly BabyEvent[]): BreastFeed | n
     null) as BreastFeed | null;
 }
 
-export function lastFeedLine(events: readonly BabyEvent[], now: Date, units: Units): string {
+export function lastFeedLine(events: readonly BabyEvent[], now: Date, units: Units, timeZone: string): string {
   const last = events
     .filter((event) => !event.deletedAt && (event.type === 'bottle' || (event.type === 'breast_feed' && event.endedAt)))
-    .sort((a, b) => Date.parse(b.endedAt ?? b.startedAt) - Date.parse(a.endedAt ?? a.startedAt))[0];
+    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
   if (!last) return 'No feeds logged yet';
-  const ago = `Last fed ${formatAgo(now.getTime() - Date.parse(last.endedAt ?? last.startedAt))}`;
+  const ago = `Last fed ${formatTimeOfDay(last.startedAt, timeZone)} · ${formatAgo(now.getTime() - Date.parse(last.startedAt))}`;
   if (last.type === 'bottle') {
     const amount = last.details.amountMl === null ? null : formatVolume(last.details.amountMl, units);
     return amount ? `${ago} · Bottle · ${amount}` : `${ago} · Bottle`;
