@@ -1,7 +1,7 @@
 import { toBabbleError, type Invite } from '@babble/api';
 import { Copy, Share2 } from 'lucide-react';
 import QRCode from 'qrcode';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
@@ -20,10 +20,12 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
   const [qr, setQr] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const creating = useRef<Promise<Invite> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    onCreate()
+    creating.current ??= onCreate();
+    creating.current
       .then(async (created) => {
         if (cancelled) return;
         setInvite(created);

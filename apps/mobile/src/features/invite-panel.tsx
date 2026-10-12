@@ -1,5 +1,5 @@
 import { toBabbleError, type Invite } from '@babble/api';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTokenColor } from '@/lib/theme';
 import { ActivityIndicator, Share, Text, View } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
@@ -11,10 +11,12 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
   const spinnerColor = useTokenColor('--primary');
   const [invite, setInvite] = useState<Invite | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const creating = useRef<Promise<Invite> | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    onCreate()
+    creating.current ??= onCreate();
+    creating.current
       .then((created) => !cancelled && setInvite(created))
       .catch((caught) => !cancelled && setError(toBabbleError(caught).message));
     return () => {
