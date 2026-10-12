@@ -1,5 +1,14 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
-import { dayKeyFor, dayWindow, growthReport, rangeDays, statsReport, type StatsRange } from '@babble/domain';
+import {
+  dayKeyFor,
+  dayWindow,
+  growthReport,
+  rangeDays,
+  STATS_RANGES,
+  statsCaption,
+  statsForRange,
+  type StatsRange,
+} from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { ChartColumn } from 'lucide-react-native';
 import { useState } from 'react';
@@ -36,7 +45,7 @@ function StatsContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadyState
 
   const report =
     events.data && settings
-      ? statsReport(events.data, keys, todayKey, now, {
+      ? statsForRange(range, events.data, keys, todayKey, now, {
           timeZone: baby.timezone,
           dayStartMinutes: baby.day_start_minutes,
           nightStartMinutes: settings.night_start_minutes,
@@ -50,22 +59,8 @@ function StatsContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadyState
     <Screen edges={['top']}>
       <View className="gap-4">
         <Text className="font-bold text-title text-ink">Stats</Text>
-        <Segmented<StatsRange>
-          value={range}
-          onChange={setRange}
-          options={[
-            { value: '7d', label: '7d' },
-            { value: '30d', label: '30d' },
-            { value: 'all', label: 'All' },
-          ]}
-        />
-        {report && (
-          <Text className="font-sans text-meta text-ink-2">
-            {report.todayOnly
-              ? 'Showing today so far. Daily averages start once a full day has been logged.'
-              : `Daily averages over ${report.days} finished ${report.days === 1 ? 'day' : 'days'}; today is charted but not averaged.`}
-          </Text>
-        )}
+        <Segmented<StatsRange> value={range} onChange={setRange} options={STATS_RANGES} />
+        {report && <Text className="font-sans text-meta text-ink-2">{statsCaption(range, report)}</Text>}
         {!report ? (
           <PageSpinner />
         ) : events.data!.length === 0 ? (

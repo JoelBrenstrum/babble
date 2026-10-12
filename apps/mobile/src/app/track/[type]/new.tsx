@@ -4,6 +4,7 @@ import {
   feedPromptOnNapStart,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nappyPromptAfterBottle,
   nappyPromptOnFeedStart,
   nextBreastSide,
   runningSessionLine,
@@ -34,7 +35,7 @@ import { EventForm } from '@/features/events/event-form';
 import { useNapPrompt } from '@/features/nap-prompt';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
-import { useStartSession, useUnits } from '@/lib/use-events';
+import { useStartSession, useTrackingSettings, useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
 import { useReadyState } from '@/lib/use-onboarding';
 
@@ -65,6 +66,7 @@ function NewEntryContent({
 }) {
   const { client } = useBabble();
   const units = useUnits(client, baby.id);
+  const { nappyPrompt } = useTrackingSettings(client, baby.id);
   const tracker = trackerFor(eventType);
   const [logPast, setLogPast] = useState(!isSessionType(eventType));
   const showNapPrompt = useNapPrompt();
@@ -94,7 +96,7 @@ function NewEntryContent({
                 napPromptOnFeedStart(runningEvents, draft.startedAt) ??
                   napPromptOnFeedEnd(runningEvents, draft.endedAt ?? draft.startedAt),
               );
-              showNapPrompt(nappyPromptOnFeedStart(latest, draft.startedAt));
+              showNapPrompt(nappyPromptAfterBottle(nappyPrompt, latest, draft.startedAt));
             }}
             onDone={() => router.back()}
           />
@@ -117,6 +119,7 @@ function StartSession({
 }) {
   const { client } = useBabble();
   const units = useUnits(client, babyId);
+  const { nappyPrompt } = useTrackingSettings(client, babyId);
   const now = useNow(1000);
   const onPrimary = useTokenColor('--on-primary');
   const onSolid = useTokenColor('--ink-on-solid');
@@ -142,7 +145,7 @@ function StartSession({
       {
         onSuccess: (eventId) => {
           router.replace(`/sessions/${eventId}`);
-          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(latest, startedAt));
+          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(nappyPrompt, latest, startedAt));
         },
         onError: (caught) => setError(toBabbleError(caught).message),
       },

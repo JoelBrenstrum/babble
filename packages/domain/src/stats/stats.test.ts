@@ -3,9 +3,15 @@ import { makeEvent } from '../events/test-events';
 import {
   barAnchor,
   barReadout,
+  barTitle,
+  chartEnds,
   chartValue,
   gapsBetween,
+  isStatsRange,
   rangeDays,
+  rollingStatsReport,
+  statsCaption,
+  statsForRange,
   statsReport,
   topSegment,
   weeklyBars,
@@ -257,5 +263,74 @@ describe('barAnchor', () => {
     expect(barAnchor(3, 4)).toEqual({ edge: 'right', percent: 0 });
     expect(barAnchor(1, 3)).toEqual({ edge: 'center', percent: 50 });
     expect(barAnchor(0, 1)).toEqual({ edge: 'left', percent: 0 });
+  });
+});
+
+describe('rollingStatsReport', () => {
+  const now = new Date('2026-10-08T14:30:00Z');
+  const events = [
+    makeEvent('bottle', { id: 'old', startedAt: '2026-10-07T13:00:00Z', endedAt: '2026-10-07T13:00:00Z' }),
+    makeEvent('bottle', { id: 'b1', startedAt: '2026-10-07T15:00:00Z', endedAt: '2026-10-07T15:00:00Z' }),
+    makeEvent('bottle', { id: 'b2', startedAt: '2026-10-08T14:10:00Z', endedAt: '2026-10-08T14:10:00Z' }),
+    makeEvent('nappy', { id: 'n1', startedAt: '2026-10-08T09:00:00Z', endedAt: '2026-10-08T09:00:00Z' }),
+  ];
+  const report = rollingStatsReport(events, now, settings);
+  const card = (key: string) => report.cards.find((item) => item.key === key)!;
+
+  it('totals the last 24 hours, leaving out anything older', () => {
+    expect(card('feeds').figures[0]).toEqual({ label: 'Last 24h', value: '2' });
+    expect(card('nappies').figures.map((figure) => figure.label)).toEqual(['Wet', 'Dirty']);
+    expect(card('nappies').figures[0]!.value).toBe('1');
+  });
+
+  it('charts the window hour by hour with clock-hour titles', () => {
+    const bars = card('feeds').chart.bars;
+    expect(bars).toHaveLength(25);
+    expect(barTitle(bars[0]!)).toBe('2 pm');
+    expect(barTitle(bars.at(-1)!)).toBe('2 pm');
+    expect(bars.at(-1)!.values).toEqual([1, 0]);
+    expect(new Set(bars.map((bar) => bar.label)).size).toBe(25);
+    expect(card('feeds').chart.weekly).toBe(false);
+    expect(barReadout(card('feeds').chart, bars.at(-1)!)).toBe('2 pm: Breast 0, Bottle 1 · Total 1');
+    expect(chartEnds(card('feeds').chart)).toEqual(['2 pm', 'Now']);
+  });
+});
+
+describe('short ranges', () => {
+  it('covers today, or today and yesterday for the rolling 24 hours', () => {
+    expect(rangeDays('today', '2026-10-08', '2026-09-26')).toEqual(['2026-10-08']);
+    expect(rangeDays('24h', '2026-10-08', '2026-09-26')).toEqual(['2026-10-07', '2026-10-08']);
+  });
+});
+
+describe('statsForRange', () => {
+  const now = new Date('2026-10-08T14:30:00Z');
+  const events = [
+    makeEvent('bottle', { id: 'y', startedAt: '2026-10-07T20:00:00Z', endedAt: '2026-10-07T20:00:00Z' }),
+    makeEvent('bottle', { id: 't', startedAt: '2026-10-08T08:00:00Z', endedAt: '2026-10-08T08:00:00Z' }),
+  ];
+  const keys = ['2026-10-07', '2026-10-08'];
+  const feeds = (range: '24h' | 'today' | '7d') =>
+    statsForRange(range, events, keys, '2026-10-08', now, settings).cards.find((card) => card.key === 'feeds')!;
+
+  it('counts today from the day start, hour by hour', () => {
+    expect(feeds('today').figures[0]).toEqual({ label: 'Today so far', value: '1' });
+    expect(feeds('today').chart.bars).toHaveLength(15);
+    expect(feeds('24h').figures[0]).toEqual({ label: 'Last 24h', value: '2' });
+  });
+
+  it('describes each range', () => {
+    const today = statsForRange('today', events, keys, '2026-10-08', now, settings);
+    expect(statsCaption('today', today)).toBe('Totals for today so far, charted hour by hour.');
+    expect(statsCaption('24h', today)).toBe('Totals for the last 24 hours, charted hour by hour.');
+    expect(statsCaption('7d', statsForRange('7d', events, keys, '2026-10-08', now, settings))).toBe(
+      'Daily averages over 1 finished day; today is charted but not averaged.',
+    );
+  });
+
+  it('recognises range names from the address bar', () => {
+    expect(isStatsRange('24h')).toBe(true);
+    expect(isStatsRange('today')).toBe(true);
+    expect(isStatsRange('week')).toBe(false);
   });
 });

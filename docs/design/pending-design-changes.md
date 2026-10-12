@@ -247,3 +247,19 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > (1) Settings → Caregivers (`Phone Account.dc.html` and `Web.dc.html`): for the owner, each other member row gets ghost "Rename" and danger "Remove" text buttons on the right; your own row gets just "Rename" (caregivers and viewers see "Rename" only on their own row). Rename expands the row into a "Jane's name" text field with Save and Cancel. Remove expands a `danger-soft` box: "Remove Jane from The Smiths? They'll lose access straight away. What they logged stays." with a destructive "Remove" and a ghost "Cancel" (same pattern as revoking an invite). Show the rename and remove states in light and dark. (2) In `Chair Screen.dc.html` Idle, the status line now leads with the last feed's start time: "Last fed 1:32 pm · 2h 28m ago · Right side · 18m".
+
+---
+
+## 2026-10-12 · Breastfeed breakdown merges same-side stretches
+
+Paste everything below this line into Claude Design.
+
+> In the breastfeed session breakdown (`Phone Flows.dc.html` feed detail and the live timer's Session card), consecutive stretches on the same side now show as a single row, with the pauses between them combined into one "Downtime · idle" row right after it. For example Left 5m, pause 1m, Left 6m reads "Left 11m" then "Downtime 1m". A finished side shorter than the merge threshold (e.g. "Right 3s" from a mistaken tap) is left out entirely. Show a breakdown example with Left, Downtime, Right, Downtime rows and one where three Left stretches collapse into "Left 13m" + "Downtime 3m" (the minus button for taking a minute off idle sits on that downtime row).
+
+---
+
+## 2026-10-12 · Stats 24h and Today, nappy question timing, chair full screen
+
+Paste everything below this line into Claude Design.
+
+> (1) `Stats Cards.dc.html`: the range picker becomes 24h / Today / 7d / 30d / All. On 24h and Today the figure tiles are totals ("Last 24h" or "Today so far" as the first tile label, no "per day"), and each chart has one bar per clock hour (24–25 bars), with the axis reading e.g. "6 pm" on the left and "Now" on the right and tooltips like "2 pm: Breast 0, Bottle 1 · Total 1". The caption reads "Totals for the last 24 hours, charted hour by hour." / "Totals for today so far, charted hour by hour." (2) Settings → Tracking (`Phone Account.dc.html`, `Web.dc.html`): add "Ask about a nappy" single-choice chips — When a feed starts / After the first side / When the feed ends / Don't ask — with the hint "When to ask about a nappy change during a breastfeed. Bottles ask after saving." The "Ignore gaps shorter than" hint becomes "Short pauses, like switching sides, won't show as downtime, and a side shorter than this is left out." (3) `Chair Screen.dc.html`: add a "Full screen" / "Exit full screen" pill (Lucide `maximize` / `minimize`, same style as "Dim now") to the top strip, left of Dim now.

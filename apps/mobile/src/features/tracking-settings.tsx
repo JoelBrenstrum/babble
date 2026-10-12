@@ -1,5 +1,13 @@
 import { babySettingsQuery, queryKeys, toBabbleError, updateBabySettings, type BabbleClient } from '@babble/api';
-import { feedReminderChoice, feedReminderOptions, feedReminderPatch, minutesToClock, type Units } from '@babble/domain';
+import {
+  feedReminderChoice,
+  feedReminderOptions,
+  feedReminderPatch,
+  minutesToClock,
+  type Units,
+  NAPPY_PROMPT_LABELS,
+  type NappyPromptTiming,
+} from '@babble/domain';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
@@ -78,6 +86,20 @@ export function TrackingSettings({
           </View>
         )}
         <View className="gap-1">
+          <SingleChips<NappyPromptTiming>
+            label="Ask about a nappy"
+            options={(Object.keys(NAPPY_PROMPT_LABELS) as NappyPromptTiming[]).map((value) => ({
+              value,
+              label: NAPPY_PROMPT_LABELS[value],
+            }))}
+            value={settings.nappy_prompt}
+            onChange={(nappy_prompt) => nappy_prompt !== null && save({ nappy_prompt })}
+          />
+          <Text className="font-sans text-meta text-ink-2">
+            When to ask about a nappy change during a breastfeed. Bottles ask after saving.
+          </Text>
+        </View>
+        <View className="gap-1">
           <Stepper
             label="Ignore gaps shorter than"
             unit="sec"
@@ -88,7 +110,7 @@ export function TrackingSettings({
             onChange={(value) => value !== null && save({ downtime_merge_threshold_sec: value })}
           />
           <Text className="font-sans text-meta text-ink-2">
-            Short pauses, like switching sides, won't show as downtime.
+            Short pauses, like switching sides, won't show as downtime, and a side shorter than this is left out.
           </Text>
         </View>
         <View className="gap-1">

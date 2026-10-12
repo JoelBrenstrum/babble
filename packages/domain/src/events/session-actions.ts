@@ -130,6 +130,15 @@ export function startChangeError(event: BabyEvent, startedAt: string, now: Date)
   return null;
 }
 
+const DAY_MS = 24 * 3_600_000;
+
+// Just after midnight the picker still shows today's date, so 11:45 pm means last night, not tonight.
+export function pickedPastTime(iso: string, now: Date): string {
+  const at = Date.parse(iso);
+  if (Number.isNaN(at) || at <= now.getTime() || at - DAY_MS > now.getTime()) return iso;
+  return new Date(at - DAY_MS).toISOString();
+}
+
 export const EARLIER_START_OPTIONS_MIN = [5, 10, 15] as const;
 
 export function earlierStart(event: Pick<BabyEvent, 'startedAt'>, minutes: number): string {

@@ -22,7 +22,7 @@ describe('summariseSegments', () => {
       { kind: 'side', side: 'left', durationMs: min(10, 32), running: false },
       { kind: 'downtime', durationMs: min(3, 2), running: false },
       { kind: 'side', side: 'right', durationMs: min(12, 23), running: false },
-      { kind: 'downtime', durationMs: min(4, 3), running: false },
+      { kind: 'downtime', durationMs: min(4, 3), running: false, latest: true },
       { kind: 'side', side: 'left', durationMs: min(0, 30), running: false },
     ]);
     expect(summary.downtimeMs).toBe(min(7, 5));
@@ -41,12 +41,42 @@ describe('summariseSegments', () => {
     expect(summary.rows).toEqual([{ kind: 'side', side: 'left', durationMs: min(15) - 4000, running: false }]);
   });
 
-  it('keeps same-side pauses over the threshold as separate rows', () => {
-    const summary = summariseSegments([seg('left', [0], [5]), seg('left', [6], [11])], opts);
+  it('merges same-side stretches across pauses, keeping the pauses as one downtime row', () => {
+    const summary = summariseSegments([seg('left', [0], [5]), seg('left', [6], [11]), seg('left', [13], [16])], opts);
     expect(summary.rows).toEqual([
-      { kind: 'side', side: 'left', durationMs: min(5), running: false },
-      { kind: 'downtime', durationMs: min(1), running: false },
-      { kind: 'side', side: 'left', durationMs: min(5), running: false },
+      { kind: 'side', side: 'left', durationMs: min(13), running: false },
+      { kind: 'downtime', durationMs: min(3), running: false, latest: true },
+    ]);
+    expect(summary.downtimeMs).toBe(min(3));
+  });
+
+  it('ignores a side shorter than the threshold, like a mistaken tap', () => {
+    const summary = summariseSegments(
+      [seg('left', [0], [5]), seg('right', [5], [5, 3]), seg('left', [5, 3], [11, 3])],
+      opts,
+    );
+    expect(summary.rows).toEqual([{ kind: 'side', side: 'left', durationMs: min(11), running: false }]);
+    expect(summary).toMatchObject({ leftMs: min(11), rightMs: 0, activeMs: min(11), downtimeMs: 0 });
+  });
+
+  it('always shows the side running now, however short', () => {
+    const summary = summariseSegments([seg('left', [0], [10]), seg('right', [39, 55], null)], opts);
+    expect(summary.rows.at(-1)).toEqual({ kind: 'side', side: 'right', durationMs: 5000, running: true });
+  });
+
+  it('keeps very short sides when they are all there is', () => {
+    const summary = summariseSegments([seg('left', [0], [0, 5])], opts);
+    expect(summary.rows).toEqual([{ kind: 'side', side: 'left', durationMs: 5000, running: false }]);
+  });
+
+  it('adds a live pause to the downtime after a merged side', () => {
+    const summary = summariseSegments([seg('left', [0], [5]), seg('left', [6], [10])], {
+      ...opts,
+      pausedSince: at(10),
+    });
+    expect(summary.rows).toEqual([
+      { kind: 'side', side: 'left', durationMs: min(9), running: false },
+      { kind: 'downtime', durationMs: min(31), running: true, latest: true },
     ]);
   });
 

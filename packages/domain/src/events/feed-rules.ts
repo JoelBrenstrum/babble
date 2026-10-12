@@ -46,7 +46,7 @@ export type NapPrompt =
   | { kind: 'end-nap'; nap: BabyEvent; feedStartedAt: string }
   | { kind: 'start-nap'; feedEndedAt: string }
   | { kind: 'end-feed'; feed: BabyEvent; napStartedAt: string }
-  | { kind: 'nappy'; feedStartedAt: string };
+  | { kind: 'nappy'; at: string };
 
 export function napPromptOnFeedStart(running: readonly BabyEvent[], feedStartedAt: string): NapPrompt | null {
   const nap = running.find((event) => event.type === 'sleep' && event.endedAt === null);
@@ -60,15 +60,67 @@ export function napPromptOnFeedEnd(running: readonly BabyEvent[], feedEndedAt: s
 
 export const NAPPY_PROMPT_SKIP_MS = 30 * 60_000;
 
-export function nappyPromptOnFeedStart(events: readonly BabyEvent[], feedStartedAt: string): NapPrompt | null {
-  const start = Date.parse(feedStartedAt);
+export type NappyPromptTiming = 'feed_start' | 'first_side' | 'feed_end' | 'off';
+
+export const NAPPY_PROMPT_LABELS: Record<NappyPromptTiming, string> = {
+  feed_start: 'When a feed starts',
+  first_side: 'After the first side',
+  feed_end: 'When the feed ends',
+  off: "Don't ask",
+};
+
+function nappyPrompt(events: readonly BabyEvent[], at: string): NapPrompt | null {
+  const moment = Date.parse(at);
   const recent = events.some(
     (event) =>
       event.type === 'nappy' &&
       !event.deletedAt &&
-      Math.abs(start - Date.parse(event.startedAt)) < NAPPY_PROMPT_SKIP_MS,
+      Math.abs(moment - Date.parse(event.startedAt)) < NAPPY_PROMPT_SKIP_MS,
   );
-  return recent ? null : { kind: 'nappy', feedStartedAt };
+  return recent ? null : { kind: 'nappy', at };
+}
+
+function onlySide(feed: BabyEvent): Side | null {
+  if (feed.type !== 'breast_feed') return null;
+  const sides = new Set(feed.segments.map((segment) => segment.side));
+  return sides.size === 1 ? [...sides][0]! : null;
+}
+
+export function nappyPromptOnFeedStart(
+  timing: NappyPromptTiming,
+  events: readonly BabyEvent[],
+  at: string,
+): NapPrompt | null {
+  return timing === 'feed_start' ? nappyPrompt(events, at) : null;
+}
+
+export function nappyPromptOnSideChange(
+  timing: NappyPromptTiming,
+  feed: BabyEvent,
+  nextSide: Side,
+  events: readonly BabyEvent[],
+  at: string,
+): NapPrompt | null {
+  const first = onlySide(feed);
+  return timing === 'first_side' && first !== null && first !== nextSide ? nappyPrompt(events, at) : null;
+}
+
+export function nappyPromptOnFeedFinish(
+  timing: NappyPromptTiming,
+  feed: BabyEvent,
+  events: readonly BabyEvent[],
+  at: string,
+): NapPrompt | null {
+  if (timing === 'feed_end') return nappyPrompt(events, at);
+  return timing === 'first_side' && onlySide(feed) !== null ? nappyPrompt(events, at) : null;
+}
+
+export function nappyPromptAfterBottle(
+  timing: NappyPromptTiming,
+  events: readonly BabyEvent[],
+  at: string,
+): NapPrompt | null {
+  return timing === 'off' ? null : nappyPrompt(events, at);
 }
 
 export function feedPromptOnNapStart(running: readonly BabyEvent[], napStartedAt: string): NapPrompt | null {

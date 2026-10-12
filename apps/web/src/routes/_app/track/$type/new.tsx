@@ -4,6 +4,7 @@ import {
   feedPromptOnNapStart,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nappyPromptAfterBottle,
   nappyPromptOnFeedStart,
   nextBreastSide,
   runningSessionLine,
@@ -26,7 +27,7 @@ import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventForm } from '#/features/events/event-form';
 import { useNapPrompt } from '#/features/nap-prompt';
 import { isEventType, isSessionType, trackerFor, type SessionType } from '@babble/domain';
-import { useStartSession, useUnits } from '#/lib/use-events';
+import { useStartSession, useTrackingSettings, useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 import { cn } from '#/lib/cn';
 import { toBabbleError } from '@babble/api';
@@ -61,6 +62,7 @@ function NewEntry() {
   const navigate = useNavigate();
   const router = useRouter();
   const units = useUnits(babble.client, baby.id);
+  const { nappyPrompt } = useTrackingSettings(babble.client, baby.id);
   const tracker = trackerFor(eventType);
   const [logPast, setLogPast] = useState(!isSessionType(eventType));
   const showNapPrompt = useNapPrompt();
@@ -100,7 +102,7 @@ function NewEntry() {
                 napPromptOnFeedStart(running, draft.startedAt) ??
                   napPromptOnFeedEnd(running, draft.endedAt ?? draft.startedAt),
               );
-              showNapPrompt(nappyPromptOnFeedStart(latest, draft.startedAt));
+              showNapPrompt(nappyPromptAfterBottle(nappyPrompt, latest, draft.startedAt));
             }}
             onDone={back}
           />
@@ -113,6 +115,7 @@ function NewEntry() {
 function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () => void }) {
   const { babble, baby, family } = Route.useRouteContext();
   const units = useUnits(babble.client, baby.id);
+  const { nappyPrompt } = useTrackingSettings(babble.client, baby.id);
   const now = useNow(1000);
   const navigate = useNavigate();
   const start = useStartSession(babble.client, baby.id);
@@ -135,7 +138,7 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
       {
         onSuccess: (eventId) => {
           void navigate({ to: '/sessions/$eventId', params: { eventId } });
-          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(latest, startedAt));
+          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(nappyPrompt, latest, startedAt));
         },
         onError: (caught) => setError(toBabbleError(caught).message),
       },

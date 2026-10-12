@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, signUpWithPassword, skipNappyPrompt, uniqueEmail } from './helpers';
+import { onboard, signUpWithPassword, skipNappyPrompt, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 async function newFamily(page: Page, project: string) {
-  await signIn(page, uniqueEmail('john', project));
+  await signUpWithPassword(page, uniqueEmail('john', project));
   await onboard(page);
 }
 

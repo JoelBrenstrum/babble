@@ -1,12 +1,12 @@
 import { expect, test, type Page } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, signUpWithPassword, skipNappyPrompt, uniqueEmail } from './helpers';
+import { onboard, signUpWithPassword, skipNappyPrompt, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 async function newFamily(page: Page, project: string) {
-  await signIn(page, uniqueEmail('john', project));
+  await signUpWithPassword(page, uniqueEmail('john', project));
   await onboard(page);
 }
 
@@ -122,9 +122,11 @@ test('a running feed can be backdated', async ({ page }, testInfo) => {
 });
 
 test('idle time from a forgotten switch can be taken off', async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
   await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
   await onboard(page);
   await startFeed(page);
+  await page.waitForTimeout(16_000);
   await page.getByRole('button', { name: 'Pause' }).click();
   await page.waitForTimeout(20_000);
   await page.getByRole('button', { name: /^R Right/ }).click();
@@ -170,4 +172,23 @@ test('timers stay accurate when the device clock is wrong', async ({ page }, tes
   await page.waitForTimeout(3000);
   const timer = page.locator('.tabular.text-timer-lg').first();
   await expect(timer).toHaveText(/^0:0[1-9]$/);
+});
+
+test('the nappy question can wait until the feed ends', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+  await page.goto('/settings');
+  await page.getByRole('checkbox', { name: 'When the feed ends' }).click();
+  await expect(page.getByRole('checkbox', { name: 'When the feed ends', checked: true })).toBeVisible();
+
+  await page.goto('/');
+  await tapStartFeed(page);
+  await expect(page.getByText('Feeding · Left')).toBeVisible();
+  await expect(page.getByRole('dialog', { name: "Change Olivia's nappy?" })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Finish' }).click();
+  await page.getByRole('dialog', { name: 'Is Olivia asleep?' }).getByRole('button', { name: 'Not now' }).click();
+  const nappy = page.getByRole('dialog', { name: "Change Olivia's nappy?" });
+  await expect(nappy).toBeVisible();
+  await nappy.getByRole('button', { name: 'Not now' }).click();
+  await expect(nappy).toHaveCount(0);
 });

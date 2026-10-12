@@ -26,6 +26,7 @@ function makeData(overrides: Partial<ChairData> = {}): ChairData {
     night: false,
     dimmed: false,
     updateReady: false,
+    fullscreen: { supported: true, active: false, wanted: true },
     offline: false,
     lastFeed: 'Last fed 2h 10m ago · Right side · 18m',
     due: { text: 'Next feed due in 42m · around 3:02 pm', overdue: false },
@@ -33,7 +34,7 @@ function makeData(overrides: Partial<ChairData> = {}): ChairData {
     feed: null,
     nap: null,
     lastNappy: null,
-    nappyDue: false,
+    nappyAsk: { start: false, switch: false, end: false },
     units: 'metric',
     bottle: { amount: 120, content: 'breast_milk' },
     ...overrides,
@@ -57,6 +58,8 @@ function makeActions(): ChairActions {
     wake: vi.fn(),
     dimNow: vi.fn(),
     refresh: vi.fn(),
+    enterFullscreen: vi.fn(),
+    exitFullscreen: vi.fn(),
   };
 }
 
@@ -79,10 +82,14 @@ describe('ChairScreen idle', () => {
 
   it('asks about a nappy once the feed has started, when none was logged recently', async () => {
     const actions = makeActions();
-    const { rerender } = render(<ChairScreen data={makeData({ nappyDue: true })} actions={actions} />);
+    const { rerender } = render(
+      <ChairScreen data={makeData({ nappyAsk: { start: true, switch: false, end: false } })} actions={actions} />,
+    );
     tap('Start left');
     await flush();
-    rerender(<ChairScreen data={makeData({ feed, nappyDue: true })} actions={actions} />);
+    rerender(
+      <ChairScreen data={makeData({ feed, nappyAsk: { start: true, switch: false, end: false } })} actions={actions} />,
+    );
     expect(screen.getByRole('dialog', { name: "Change Olivia's nappy?" })).toBeInTheDocument();
     tap('Yes, log a nappy');
     tap('Dirty');
@@ -91,9 +98,31 @@ describe('ChairScreen idle', () => {
     expect(screen.getByRole('timer')).toHaveTextContent('12:34');
   });
 
+  it('asks about a nappy after the first side when set to', () => {
+    const actions = makeActions();
+    render(
+      <ChairScreen data={makeData({ feed, nappyAsk: { start: false, switch: true, end: false } })} actions={actions} />,
+    );
+    tap('Switch to Right');
+    expect(actions.switchSide).toHaveBeenCalledWith('right');
+    expect(screen.getByRole('dialog', { name: "Change Olivia's nappy?" })).toBeInTheDocument();
+  });
+
+  it('asks about a nappy when the feed ends when set to', () => {
+    const actions = makeActions();
+    render(
+      <ChairScreen data={makeData({ feed, nappyAsk: { start: false, switch: false, end: true } })} actions={actions} />,
+    );
+    tap('End feed');
+    expect(screen.getByText('Fed 13m')).toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: "Change Olivia's nappy?" })).toBeInTheDocument();
+  });
+
   it('can skip the nappy question, and does not ask when a nappy was just logged', async () => {
     const actions = makeActions();
-    const { unmount } = render(<ChairScreen data={makeData({ nappyDue: true })} actions={actions} />);
+    const { unmount } = render(
+      <ChairScreen data={makeData({ nappyAsk: { start: true, switch: false, end: false } })} actions={actions} />,
+    );
     tap('Start left');
     await flush();
     tap('Not now');
@@ -287,6 +316,35 @@ describe('ChairScreen night and offline', () => {
     expect(screen.getByRole('status')).toHaveTextContent('A new version of babble is ready');
     tap('Refresh');
     expect(actions.refresh).toHaveBeenCalled();
+  });
+
+  it('goes full screen on the first tap, and can leave and re-enter it', () => {
+    const actions = makeActions();
+    const { rerender } = render(<ChairScreen data={makeData()} actions={actions} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Start left' }));
+    expect(actions.enterFullscreen).toHaveBeenCalledTimes(1);
+
+    const inFullscreen = makeData({ fullscreen: { supported: true, active: true, wanted: true } });
+    rerender(<ChairScreen data={inFullscreen} actions={actions} />);
+    tap('Exit full screen');
+    expect(actions.exitFullscreen).toHaveBeenCalled();
+
+    const windowed = makeData({ fullscreen: { supported: true, active: false, wanted: false } });
+    rerender(<ChairScreen data={windowed} actions={actions} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Start left' }));
+    expect(actions.enterFullscreen).toHaveBeenCalledTimes(1);
+    tap('Full screen');
+    expect(actions.enterFullscreen).toHaveBeenCalledTimes(2);
+  });
+
+  it('hides the full screen button where the browser cannot do it', () => {
+    render(
+      <ChairScreen
+        data={makeData({ fullscreen: { supported: false, active: false, wanted: true } })}
+        actions={makeActions()}
+      />,
+    );
+    expect(screen.queryByRole('button', { name: /full screen/i })).not.toBeInTheDocument();
   });
 
   it('shows the offline screen', () => {

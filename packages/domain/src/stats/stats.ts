@@ -6,14 +6,16 @@ import { formatVolume } from '../format/units';
 import { lastDays, type TimeWindow } from '../timeline/days';
 import { bucketByDay } from '../timeline/day-layout';
 import { countedDays, feedTimeSplit } from '../timeline/totals';
-import { dayKeyFor, formatShortDate, shiftDay } from '../time/local-time';
+import { dayKeyFor, dayWindow, formatShortDate, formatTimeOfDay, shiftDay } from '../time/local-time';
 
-export type StatsRange = '7d' | '30d' | 'all';
+export type StatsRange = '24h' | 'today' | '7d' | '30d' | 'all';
 
 export const MAX_GAP_MS = 12 * 3_600_000;
 const WEEKLY_AFTER_DAYS = 31;
 
 export function rangeDays(range: StatsRange, todayKey: string, birthDate: string): string[] {
+  if (range === 'today') return [todayKey];
+  if (range === '24h') return lastDays(todayKey, 2);
   if (range === '7d') return lastDays(todayKey, 7);
   if (range === '30d') return lastDays(todayKey, 30);
   const keys: string[] = [];
@@ -33,6 +35,7 @@ export interface StatsSettings {
 export interface ChartBar {
   label: string;
   values: number[];
+  title?: string;
 }
 
 export interface StatsCard {
@@ -98,6 +101,15 @@ export function chartValue(value: number, unit: string): string {
 
 export const chartDayLabel = (key: string) => formatShortDate(`${key}T12:00:00Z`, 'UTC');
 
+export const barTitle = (bar: ChartBar) => bar.title ?? chartDayLabel(bar.label);
+
+export function chartEnds(chart: StatsCard['chart']): [string, string] | null {
+  const first = chart.bars[0];
+  const last = chart.bars.at(-1);
+  if (!first || !last) return null;
+  return [barTitle(first), last.title ? 'Now' : barTitle(last)];
+}
+
 export function barReadout(chart: StatsCard['chart'], bar: ChartBar): string {
   const values =
     chart.series.length === 1
@@ -106,7 +118,7 @@ export function barReadout(chart: StatsCard['chart'], bar: ChartBar): string {
           bar.values.reduce((sum, value) => sum + value, 0),
           chart.unit,
         )}`;
-  return `${chart.weekly ? 'Week of ' : ''}${chartDayLabel(bar.label)}: ${values}`;
+  return `${chart.weekly ? 'Week of ' : ''}${barTitle(bar)}: ${values}`;
 }
 
 export function barAnchor(index: number, count: number): { edge: 'left' | 'center' | 'right'; percent: number } {
@@ -121,7 +133,7 @@ function chart(
   bars: ChartBar[],
   legend = series.map((_, index) => index),
 ): StatsCard['chart'] {
-  const grouped = weeklyBars(bars);
+  const grouped = bars.some((bar) => bar.title) ? bars : weeklyBars(bars);
   const max = grouped.reduce(
     (highest, bar) =>
       Math.max(
@@ -172,14 +184,135 @@ export function statsReport(
   const counted = countedKeys.map((key) => summaries.get(key)!);
   const days = counted.length;
   const todayOnly = countedKeys.length === 1 && countedKeys[0] === todayKey;
-  const daily = (label: string) => (todayOnly ? label : `${label} per day`);
   const first = todayOnly ? 'Today so far' : 'Per day';
-  const average = (pick: (day: DaySummary) => number) =>
-    days ? counted.reduce((total, day) => total + pick(day), 0) / days : 0;
   const bars = (pick: (day: DaySummary) => number[]) =>
     keys.map((key) => ({ label: key, values: pick(summaries.get(key)!) }));
 
   const range = { start: buckets[0]!.window.start, end: buckets.at(-1)!.window.end };
+  const cards = buildCards({
+    counted,
+    single: todayOnly,
+    first,
+    bars,
+    range,
+    logged,
+    now,
+    settings,
+    showPump: counted.some((day) => day.pumps > 0) || Boolean(summaries.get(todayKey)?.pumps),
+  });
+  return { days, todayOnly, cards };
+}
+
+const DAY_MS = 24 * HOUR;
+
+export function rollingStatsReport(events: readonly BabyEvent[], now: Date, settings: StatsSettings): StatsReport {
+  return windowStatsReport(events, { start: new Date(now.getTime() - DAY_MS), end: now }, now, settings, 'Last 24h');
+}
+
+function windowStatsReport(
+  events: readonly BabyEvent[],
+  window: TimeWindow,
+  now: Date,
+  settings: StatsSettings,
+  first: string,
+): StatsReport {
+  const logged = events.filter((event) => !event.deletedAt);
+  const options = {
+    now,
+    mergeGapMs: settings.mergeGapMs,
+    night: {
+      dayKey: dayKeyFor(now.toISOString(), settings.timeZone, settings.dayStartMinutes),
+      timeZone: settings.timeZone,
+      startMinutes: settings.nightStartMinutes,
+      endMinutes: settings.nightEndMinutes,
+    },
+  };
+  const total = summariseDay(logged, window, options);
+  const firstHour = Math.floor(window.start.getTime() / HOUR) * HOUR;
+  const hours: TimeWindow[] = [];
+  for (let start = firstHour; start < now.getTime(); start += HOUR) {
+    hours.push({
+      start: new Date(Math.max(start, window.start.getTime())),
+      end: new Date(Math.min(start + HOUR, now.getTime())),
+    });
+  }
+  const hourly = hours.map((hour) => summariseDay(logged, hour, options));
+  const bars = (pick: (day: DaySummary) => number[]) =>
+    hours.map((hour, index) => ({
+      label: hour.start.toISOString(),
+      title: formatTimeOfDay(
+        new Date(Math.floor(hour.start.getTime() / HOUR) * HOUR).toISOString(),
+        settings.timeZone,
+      ).replace(':00', ''),
+      values: pick(hourly[index]!),
+    }));
+  const cards = buildCards({
+    counted: [total],
+    single: true,
+    first,
+    bars,
+    range: window,
+    logged,
+    now,
+    settings,
+    showPump: total.pumps > 0,
+  });
+  return { days: 1, todayOnly: false, cards };
+}
+
+export const STATS_RANGES: { value: StatsRange; label: string }[] = [
+  { value: '24h', label: '24h' },
+  { value: 'today', label: 'Today' },
+  { value: '7d', label: '7d' },
+  { value: '30d', label: '30d' },
+  { value: 'all', label: 'All' },
+];
+
+export function isStatsRange(value: unknown): value is StatsRange {
+  return STATS_RANGES.some((range) => range.value === value);
+}
+
+export function statsForRange(
+  range: StatsRange,
+  events: readonly BabyEvent[],
+  dayKeys: readonly string[],
+  todayKey: string,
+  now: Date,
+  settings: StatsSettings,
+): StatsReport {
+  if (range === '24h') return rollingStatsReport(events, now, settings);
+  if (range === 'today') {
+    const start = dayWindow(todayKey, settings.timeZone, settings.dayStartMinutes).start;
+    return { ...windowStatsReport(events, { start, end: now }, now, settings, 'Today so far'), todayOnly: true };
+  }
+  return statsReport(events, dayKeys, todayKey, now, settings);
+}
+
+export function statsCaption(range: StatsRange, report: StatsReport): string {
+  if (range === '24h') return 'Totals for the last 24 hours, charted hour by hour.';
+  if (range === 'today') return 'Totals for today so far, charted hour by hour.';
+  if (report.todayOnly) return 'Showing today so far. Daily averages start once a full day has been logged.';
+  const days = `${report.days} finished ${report.days === 1 ? 'day' : 'days'}`;
+  return `Daily averages over ${days}; today is charted but not averaged.`;
+}
+
+interface CardInput {
+  counted: DaySummary[];
+  single: boolean;
+  first: string;
+  bars: (pick: (day: DaySummary) => number[]) => ChartBar[];
+  range: TimeWindow;
+  logged: BabyEvent[];
+  now: Date;
+  settings: StatsSettings;
+  showPump: boolean;
+}
+
+function buildCards({ counted, single, first, bars, range, logged, now, settings, showPump }: CardInput): StatsCard[] {
+  const days = counted.length;
+  const daily = (label: string) => (single ? label : `${label} per day`);
+  const average = (pick: (day: DaySummary) => number) =>
+    days ? counted.reduce((total, day) => total + pick(day), 0) / days : 0;
   const inRange = logged;
   const span = (event: BabyEvent) => ({
     start: Date.parse(event.startedAt),
@@ -224,7 +357,7 @@ export function statsReport(
         { label: 'Night', value: hours(average((day) => day.nightMs)) },
         { label: daily('Naps'), value: perDay(average((day) => day.naps)) },
         { label: 'Longest stretch', value: longest ? hours(longest) : '—' },
-        ...(todayOnly ? [] : [{ label: 'Wake window', value: wake.count ? hours(wake.totalMs / wake.count) : '—' }]),
+        ...(single ? [] : [{ label: 'Wake window', value: wake.count ? hours(wake.totalMs / wake.count) : '—' }]),
       ],
       chart: chart(
         'h',
@@ -244,7 +377,7 @@ export function statsReport(
             ? `${Math.round((leftMs / sideTotal) * 100)}% / ${Math.round((rightMs / sideTotal) * 100)}%`
             : '—',
         },
-        ...(todayOnly
+        ...(single
           ? []
           : [
               {
@@ -290,7 +423,7 @@ export function statsReport(
     },
   ];
 
-  if (counted.some((day) => day.pumps > 0) || summaries.get(todayKey)?.pumps) {
+  if (showPump) {
     const pumpLeft = average((day) => day.pumpLeftMl);
     const pumpRight = average((day) => day.pumpRightMl);
     cards.push({
@@ -318,5 +451,5 @@ export function statsReport(
     });
   }
 
-  return { days, todayOnly, cards };
+  return cards;
 }

@@ -1,5 +1,13 @@
 import { babySettingsQuery, queryKeys, toBabbleError, updateBabySettings, type BabbleClient } from '@babble/api';
-import { clockToMinutes, feedReminderChoice, feedReminderOptions, feedReminderPatch, type Units } from '@babble/domain';
+import {
+  clockToMinutes,
+  feedReminderChoice,
+  feedReminderOptions,
+  feedReminderPatch,
+  NAPPY_PROMPT_LABELS,
+  type NappyPromptTiming,
+  type Units,
+} from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Card, SectionLabel } from '#/components/ui/card';
@@ -79,6 +87,21 @@ export function TrackingSettings({
             </div>
           )}
           <div className="flex flex-col gap-1">
+            <SingleChips<NappyPromptTiming>
+              label="Ask about a nappy"
+              options={(Object.keys(NAPPY_PROMPT_LABELS) as NappyPromptTiming[]).map((value) => ({
+                value,
+                label: NAPPY_PROMPT_LABELS[value],
+              }))}
+              value={settings.nappy_prompt}
+              allowNone={false}
+              onChange={(nappy_prompt) => nappy_prompt && save({ nappy_prompt })}
+            />
+            <p className="text-meta text-ink-2">
+              When to ask about a nappy change during a breastfeed. Bottles ask after saving.
+            </p>
+          </div>
+          <div className="flex flex-col gap-1">
             <Stepper
               label="Ignore gaps shorter than"
               unit="sec"
@@ -88,7 +111,9 @@ export function TrackingSettings({
               value={settings.downtime_merge_threshold_sec}
               onChange={(value) => value !== null && save({ downtime_merge_threshold_sec: value })}
             />
-            <p className="text-meta text-ink-2">Short pauses, like switching sides, won't show as downtime.</p>
+            <p className="text-meta text-ink-2">
+              Short pauses, like switching sides, won't show as downtime, and a side shorter than this is left out.
+            </p>
           </div>
           <div className="flex flex-col gap-1">
             <Stepper

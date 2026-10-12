@@ -14,6 +14,7 @@ const settings: BabySettingsRow = {
   feed_reminder_enabled: false,
   feed_reminder_interval_min: null,
   feed_reminder_at_night: true,
+  nappy_prompt: 'feed_start',
   updated_at: '2026-10-01T00:00:00Z',
 };
 

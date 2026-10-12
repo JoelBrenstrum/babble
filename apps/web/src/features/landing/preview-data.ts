@@ -90,6 +90,7 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
     night: false,
     dimmed: false,
     updateReady: false,
+    fullscreen: { supported: false, active: false, wanted: false },
     offline: false,
     lastFeed: lastFeedLine(events, now, 'metric', timezone),
     due: due ? feedDueText(due, now, timezone) : null,
@@ -97,7 +98,7 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
     feed: null,
     nap: null,
     lastNappy: lastNappyLine(events, now),
-    nappyDue: false,
+    nappyAsk: { start: false, switch: false, end: false },
     units: 'metric',
     bottle: { amount: 120, content: 'breast_milk' },
   };

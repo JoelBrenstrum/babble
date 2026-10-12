@@ -19,13 +19,15 @@ The script source is [`apps/web/public/pi/setup.sh`](../apps/web/public/pi/setup
 ## What the script does
 
 - Installs Chromium if it's missing.
-- Adds `~/.local/bin/babble-chair`, which opens `/chair` full screen with `--ozone-platform=wayland --disable-gpu` (the Pi's GPU drivers otherwise give a white screen), restarts Chromium if it exits or crashed after a power cut, and keeps Chromium's cache in memory.
+- Adds `~/.local/bin/babble-chair`, which opens `/chair` as a maximised app window (`--app`, no address bar) with `--ozone-platform=wayland --disable-gpu` (the Pi's GPU drivers otherwise give a white screen), restarts Chromium if it exits or crashed after a power cut, and keeps Chromium's cache in memory.
 - Adds `babble-chair-stop` and a **babble chair** desktop icon, and lets the desktop run it on a double tap without asking.
 - Starts chair mode 10 seconds after the desktop loads (labwc autostart), replacing any older chromium line. Set `BABBLE_CHAIR_AUTOSTART=no` before running to skip this.
 - Boots to the desktop with auto-login, and turns on screen blanking so the display switches off after 10 minutes idle (a tap wakes it; chair mode keeps it on during a feed).
 - Cuts SD card writes: system logs go to memory and swap is turned off.
 
 ## Day to day
+
+- Chair mode goes full screen on the first tap (browsers only allow full screen after a tap). **Exit full screen** in its top strip drops back to a normal window for debugging, and **Full screen** goes back; the choice is remembered on the Pi.
 
 - Stop chair mode: `ssh` in and run `babble-chair-stop`.
 - Start it again: the **babble chair** desktop icon, or `babble-chair`.

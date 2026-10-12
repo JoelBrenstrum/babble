@@ -1,4 +1,4 @@
-import { barReadout, chartDayLabel, chartValue, topSegment, type StatsCard } from '@babble/domain';
+import { barReadout, chartEnds, chartValue, topSegment, type StatsCard } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -100,10 +100,10 @@ function StatsCardView({ card }: { card: StatsCard }) {
             );
           })}
         </View>
-        {chart.bars.length > 0 && (
+        {chartEnds(chart) && (
           <View className="flex-row justify-between">
-            <Text className="font-sans text-caption text-ink-3">{chartDayLabel(chart.bars[0]!.label)}</Text>
-            <Text className="font-sans text-caption text-ink-3">{chartDayLabel(chart.bars.at(-1)!.label)}</Text>
+            <Text className="font-sans text-caption text-ink-3">{chartEnds(chart)![0]}</Text>
+            <Text className="font-sans text-caption text-ink-3">{chartEnds(chart)![1]}</Text>
           </View>
         )}
       </View>

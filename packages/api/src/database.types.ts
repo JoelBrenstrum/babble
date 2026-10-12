@@ -55,6 +55,7 @@ export type Database = {
           feed_reminder_at_night: boolean;
           feed_reminder_enabled: boolean;
           feed_reminder_interval_min: number | null;
+          nappy_prompt: Database['public']['Enums']['nappy_prompt_timing'];
           night_end_minutes: number;
           night_start_minutes: number;
           units: Database['public']['Enums']['units'];
@@ -67,6 +68,7 @@ export type Database = {
           feed_reminder_at_night?: boolean;
           feed_reminder_enabled?: boolean;
           feed_reminder_interval_min?: number | null;
+          nappy_prompt?: Database['public']['Enums']['nappy_prompt_timing'];
           night_end_minutes?: number;
           night_start_minutes?: number;
           units?: Database['public']['Enums']['units'];
@@ -79,6 +81,7 @@ export type Database = {
           feed_reminder_at_night?: boolean;
           feed_reminder_enabled?: boolean;
           feed_reminder_interval_min?: number | null;
+          nappy_prompt?: Database['public']['Enums']['nappy_prompt_timing'];
           night_end_minutes?: number;
           night_start_minutes?: number;
           units?: Database['public']['Enums']['units'];
@@ -625,6 +628,7 @@ export type Database = {
       fall_asleep: 'under_10_min' | '10_to_20_min' | 'long_time';
       family_role: 'owner' | 'caregiver' | 'viewer';
       mood: 'happy' | 'upset';
+      nappy_prompt_timing: 'feed_start' | 'first_side' | 'feed_end' | 'off';
       poo_colour: 'yellow' | 'mustard' | 'green' | 'dark_green' | 'brown' | 'orange' | 'black' | 'red' | 'white_grey';
       poo_texture: 'runny' | 'loose' | 'seedy' | 'pasty' | 'formed' | 'mucousy' | 'solid' | 'pebbles' | 'diarrhea';
       session_state: 'running' | 'paused' | 'ended';
@@ -760,6 +764,7 @@ export const Constants = {
       fall_asleep: ['under_10_min', '10_to_20_min', 'long_time'],
       family_role: ['owner', 'caregiver', 'viewer'],
       mood: ['happy', 'upset'],
+      nappy_prompt_timing: ['feed_start', 'first_side', 'feed_end', 'off'],
       poo_colour: ['yellow', 'mustard', 'green', 'dark_green', 'brown', 'orange', 'black', 'red', 'white_grey'],
       poo_texture: ['runny', 'loose', 'seedy', 'pasty', 'formed', 'mucousy', 'solid', 'pebbles', 'diarrhea'],
       session_state: ['running', 'paused', 'ended'],

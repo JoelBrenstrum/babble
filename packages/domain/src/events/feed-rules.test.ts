@@ -8,7 +8,10 @@ import {
   napPromptContent,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,
+  nappyPromptAfterBottle,
+  nappyPromptOnFeedFinish,
   nappyPromptOnFeedStart,
+  nappyPromptOnSideChange,
   staleSessions,
 } from './feed-rules';
 import { makeEvent } from './test-events';
@@ -108,18 +111,56 @@ describe('nap prompts', () => {
 });
 
 describe('nappy prompt', () => {
-  it('asks for a nappy change when a feed starts, unless one was logged in the last 30 minutes', () => {
-    const at = '2026-10-06T12:00:00Z';
-    const nappyAt = (startedAt: string, deletedAt: string | null = null) =>
-      makeEvent('nappy', { startedAt, endedAt: startedAt, deletedAt });
-    expect(nappyPromptOnFeedStart([], at)).toEqual({ kind: 'nappy', feedStartedAt: at });
-    expect(nappyPromptOnFeedStart([nappyAt('2026-10-06T11:20:00Z')], at)).toEqual({ kind: 'nappy', feedStartedAt: at });
-    expect(nappyPromptOnFeedStart([nappyAt('2026-10-06T11:45:00Z')], at)).toBeNull();
-    expect(nappyPromptOnFeedStart([nappyAt('2026-10-06T11:45:00Z', '2026-10-06T11:46:00Z')], at)).not.toBeNull();
+  const at = '2026-10-06T12:00:00Z';
+  const nappyAt = (startedAt: string, deletedAt: string | null = null) =>
+    makeEvent('nappy', { startedAt, endedAt: startedAt, deletedAt });
+  const oneSide = makeEvent('breast_feed', {
+    startedAt: '2026-10-06T11:50:00Z',
+    endedAt: null,
+    segments: [{ side: 'left', startedAt: '2026-10-06T11:50:00Z', endedAt: null }],
+  });
+  const bothSides = {
+    ...oneSide,
+    segments: [
+      { side: 'left' as const, startedAt: '2026-10-06T11:50:00Z', endedAt: '2026-10-06T11:55:00Z' },
+      { side: 'right' as const, startedAt: '2026-10-06T11:55:00Z', endedAt: null },
+    ],
+  };
+
+  it('asks when a feed starts, unless a nappy was logged in the last 30 minutes', () => {
+    expect(nappyPromptOnFeedStart('feed_start', [], at)).toEqual({ kind: 'nappy', at });
+    expect(nappyPromptOnFeedStart('feed_start', [nappyAt('2026-10-06T11:20:00Z')], at)).toEqual({ kind: 'nappy', at });
+    expect(nappyPromptOnFeedStart('feed_start', [nappyAt('2026-10-06T11:45:00Z')], at)).toBeNull();
+    expect(
+      nappyPromptOnFeedStart('feed_start', [nappyAt('2026-10-06T11:45:00Z', '2026-10-06T11:46:00Z')], at),
+    ).not.toBeNull();
+    for (const timing of ['first_side', 'feed_end', 'off'] as const) {
+      expect(nappyPromptOnFeedStart(timing, [], at)).toBeNull();
+    }
+  });
+
+  it('asks after the first side, when moving to the other side for the first time', () => {
+    expect(nappyPromptOnSideChange('first_side', oneSide, 'right', [], at)).toEqual({ kind: 'nappy', at });
+    expect(nappyPromptOnSideChange('first_side', oneSide, 'left', [], at)).toBeNull();
+    expect(nappyPromptOnSideChange('first_side', bothSides, 'left', [], at)).toBeNull();
+    expect(nappyPromptOnSideChange('feed_start', oneSide, 'right', [], at)).toBeNull();
+  });
+
+  it('asks when the feed ends, or then if the feed only used one side', () => {
+    expect(nappyPromptOnFeedFinish('feed_end', bothSides, [], at)).toEqual({ kind: 'nappy', at });
+    expect(nappyPromptOnFeedFinish('first_side', oneSide, [], at)).toEqual({ kind: 'nappy', at });
+    expect(nappyPromptOnFeedFinish('first_side', bothSides, [], at)).toBeNull();
+    expect(nappyPromptOnFeedFinish('feed_start', bothSides, [], at)).toBeNull();
+    expect(nappyPromptOnFeedFinish('off', oneSide, [], at)).toBeNull();
+  });
+
+  it('asks after a bottle unless prompts are off', () => {
+    expect(nappyPromptAfterBottle('feed_end', [], at)).toEqual({ kind: 'nappy', at });
+    expect(nappyPromptAfterBottle('off', [], at)).toBeNull();
   });
 
   it('offers to log a nappy or skip', () => {
-    expect(napPromptContent({ kind: 'nappy', feedStartedAt: NOW.toISOString() }, 'Olivia', 'UTC', NOW)).toEqual({
+    expect(napPromptContent({ kind: 'nappy', at: NOW.toISOString() }, 'Olivia', 'UTC', NOW)).toEqual({
       title: "Change Olivia's nappy?",
       body: 'Log a nappy change with this feed.',
       options: [

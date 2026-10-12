@@ -7,6 +7,7 @@ import {
   earlierStart,
   earliestEnd,
   endChangeError,
+  pickedPastTime,
   sessionNoun,
   startChangeError,
   suggestedEnd,
@@ -136,6 +137,20 @@ describe('changing the start of a running session', () => {
 
   it('offers starts earlier than the current one', () => {
     expect(earlierStart(running, 10)).toBe('2026-10-06T09:50:00.000Z');
+  });
+});
+
+describe('pickedPastTime', () => {
+  const now = new Date('2026-10-11T12:10:00Z');
+
+  it('reads a time later today as the same time yesterday', () => {
+    expect(pickedPastTime('2026-10-11T23:45:00Z', now)).toBe('2026-10-10T23:45:00.000Z');
+  });
+
+  it('keeps times that are already in the past, and anything more than a day ahead', () => {
+    expect(pickedPastTime('2026-10-11T12:05:00Z', now)).toBe('2026-10-11T12:05:00Z');
+    expect(pickedPastTime('2026-10-13T09:00:00Z', now)).toBe('2026-10-13T09:00:00Z');
+    expect(pickedPastTime('', now)).toBe('');
   });
 });
 

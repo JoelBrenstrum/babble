@@ -18,7 +18,10 @@ import {
   lastNappyLine,
   memberTones,
   napPromptOnFeedStart,
+  nappyPromptOnFeedFinish,
   nappyPromptOnFeedStart,
+  nappyPromptOnSideChange,
+  otherSide,
   nextBreastSide,
   nextFeedDue,
   runningBreastFeed,
@@ -44,6 +47,7 @@ import {
 } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 import { useOnline } from '#/lib/use-online';
+import { useFullscreen } from '#/lib/fullscreen';
 import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { useScreenWakeLock } from '#/lib/wake-lock';
 
@@ -55,7 +59,7 @@ function ChairPage() {
   const now = useNow(1000);
   const online = useOnline();
   const units = useUnits(client, baby.id);
-  const { mergeGapMs } = useTrackingSettings(client, baby.id);
+  const { mergeGapMs, nappyPrompt } = useTrackingSettings(client, baby.id);
   const running = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
   const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
@@ -67,6 +71,7 @@ function ChairPage() {
   const restore = useRestoreEntry(client, baby.id);
   const showNapPrompt = useNapPrompt();
   const updateReady = useNewRelease();
+  const fullscreen = useFullscreen();
   const [lastTouchAt, setLastTouchAt] = useState(() => clock.now().getTime());
   const tones = useMemo(() => memberTones(family.members), [family.members]);
 
@@ -92,6 +97,7 @@ function ChairPage() {
     night: chairIsNight(night, now),
     dimmed: chairDimmed(night, now, lastTouchAt),
     updateReady,
+    fullscreen: { supported: fullscreen.supported, active: fullscreen.active, wanted: fullscreen.wanted },
     offline: !online,
     lastFeed: lastFeedLine(latest, now, units, baby.timezone),
     due: due ? feedDueText(due, now, baby.timezone) : null,
@@ -105,7 +111,19 @@ function ChairPage() {
     },
     nap: nap?.type === 'sleep' ? formatDuration(summariseSleep(nap, now).asleepMs, { seconds: false }) : null,
     lastNappy: lastNappyLine(latest, now),
-    nappyDue: nappyPromptOnFeedStart(latest, now.toISOString()) !== null,
+    nappyAsk: {
+      start: nappyPromptOnFeedStart(nappyPrompt, latest, now.toISOString()) !== null,
+      switch:
+        feed !== null &&
+        nappyPromptOnSideChange(
+          nappyPrompt,
+          feed,
+          otherSide(chairFeedView(feed, now, mergeGapMs).side),
+          latest,
+          now.toISOString(),
+        ) !== null,
+      end: feed !== null && nappyPromptOnFeedFinish(nappyPrompt, feed, latest, now.toISOString()) !== null,
+    },
     units,
     bottle: { amount: defaultBottleAmount(latest, units), content: defaultBottleContent(latest) },
   };
@@ -132,6 +150,8 @@ function ChairPage() {
     restoreEntry: (eventId) => restore.mutateAsync(eventId),
     wake: () => setLastTouchAt(clock.now().getTime()),
     refresh: reloadForRelease,
+    enterFullscreen: fullscreen.enter,
+    exitFullscreen: fullscreen.exit,
     dimNow: () => setLastTouchAt(clock.now().getTime() - CHAIR_IDLE_DIM_MS),
   };
 

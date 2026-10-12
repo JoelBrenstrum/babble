@@ -21,7 +21,6 @@ export function SessionBreakdown({
   const lastEnd = segments.at(-1)?.endedAt ?? null;
   const summary = summariseSegments(segments, { mergeGapMs, now, pausedSince: paused ? lastEnd : null });
   if (summary.rows.length === 0) return null;
-  const trimmableIndex = summary.rows.at(-1)?.kind === 'side' ? summary.rows.length - 2 : -1;
 
   return (
     <Card className="divide-y divide-line">
@@ -51,7 +50,7 @@ export function SessionBreakdown({
             </span>
           )}
           <span className="tabular w-24 text-right text-body">{formatDuration(row.durationMs)}</span>
-          {onTrimIdle && row.kind === 'downtime' && index === trimmableIndex && (
+          {onTrimIdle && row.kind === 'downtime' && row.latest && !row.running && (
             <button
               type="button"
               aria-label="Take a minute off the idle time"

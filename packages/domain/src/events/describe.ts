@@ -129,7 +129,7 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
       const idleMs = !running && event.source === 'manual' ? Math.max(0, spanMs - totals.activeMs) : 0;
       const parts = sidesInOrder(event.segments, idleMs, (side) => {
         const ms = side === 'left' ? totals.leftMs : totals.rightMs;
-        if (ms <= 0) return null;
+        if (ms <= 0 || (ms < IDLE_MIN_MS && totals.activeMs - ms >= IDLE_MIN_MS)) return null;
         return side === 'left'
           ? { text: `L ${short(ms)}`, tone: 'feed-left' }
           : { text: `R ${short(ms)}`, tone: 'feed-right' };

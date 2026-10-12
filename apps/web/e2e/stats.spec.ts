@@ -30,6 +30,15 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
   await nappyBar.hover();
   await expect(page.getByText(/· Total 1$/)).toBeVisible();
 
+  await page.getByRole('radio', { name: '24h' }).click();
+  await expect(page).toHaveURL(/range=24h/);
+  await expect(page.getByText('Totals for the last 24 hours, charted hour by hour.')).toBeVisible();
+  await expect(page.getByText('Last 24h').first()).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('stats-24h.png'), fullPage: true });
+  await page.getByRole('radio', { name: 'Today' }).click();
+  await expect(page).toHaveURL(/range=today/);
+  await expect(page.getByText('Totals for today so far, charted hour by hour.')).toBeVisible();
+
   await page.getByRole('radio', { name: '30d' }).click();
   await expect(page).toHaveURL(/range=30d/);
   await page.getByRole('radio', { name: 'All' }).click();

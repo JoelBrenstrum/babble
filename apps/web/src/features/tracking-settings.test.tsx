@@ -17,6 +17,7 @@ const settings: BabySettingsRow = {
   feed_reminder_enabled: false,
   feed_reminder_interval_min: null,
   feed_reminder_at_night: true,
+  nappy_prompt: 'feed_start',
   updated_at: '2026-10-01T00:00:00Z',
 };
 
@@ -64,5 +65,19 @@ describe('TrackingSettings feed reminders', () => {
       feed_reminder_at_night: false,
     });
     expect(await screen.findByRole('radio', { name: 'Quiet', checked: true })).toBeInTheDocument();
+  });
+
+  it('chooses when to ask about a nappy', async () => {
+    current = settings;
+    updateBabySettings.mockResolvedValue({ ...settings, nappy_prompt: 'first_side' });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <TrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole('checkbox', { name: 'When a feed starts', checked: true })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('checkbox', { name: 'After the first side' }));
+    expect(updateBabySettings).toHaveBeenLastCalledWith(fixtureClient, sampleBaby.id, { nappy_prompt: 'first_side' });
+    expect(await screen.findByRole('checkbox', { name: 'After the first side', checked: true })).toBeInTheDocument();
   });
 });

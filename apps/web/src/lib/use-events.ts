@@ -26,6 +26,7 @@ import {
   staleSessions,
   type BabyEvent,
   type EventDraft,
+  type NappyPromptTiming,
   type SessionAction,
   type Side,
   type Units,
@@ -52,6 +53,7 @@ export interface TrackingSettings {
   units: Units;
   mergeGapMs: number;
   autoEndPausedMinutes: number;
+  nappyPrompt: NappyPromptTiming;
 }
 
 export function useTrackingSettings(client: BabbleClient, babyId: string): TrackingSettings {
@@ -60,6 +62,7 @@ export function useTrackingSettings(client: BabbleClient, babyId: string): Track
     units: settings?.units ?? 'metric',
     mergeGapMs: (settings?.downtime_merge_threshold_sec ?? 15) * 1000,
     autoEndPausedMinutes: settings?.auto_end_paused_session_min ?? 30,
+    nappyPrompt: settings?.nappy_prompt ?? 'feed_start',
   };
 }
 

@@ -152,6 +152,19 @@ describe('describeEvent', () => {
     expect(describeEvent(event, NOW, 'metric').parts.map((p) => p.text)).toEqual(['R 10m', 'L 15m', '5m']);
   });
 
+  it('leaves out a side tapped by mistake for a few seconds', () => {
+    const event = makeEvent('breast_feed', {
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: '2026-10-06T10:11:03Z',
+      segments: [
+        { side: 'left', startedAt: '2026-10-06T10:00:00Z', endedAt: '2026-10-06T10:05:00Z' },
+        { side: 'right', startedAt: '2026-10-06T10:05:00Z', endedAt: '2026-10-06T10:05:03Z' },
+        { side: 'left', startedAt: '2026-10-06T10:05:03Z', endedAt: '2026-10-06T10:11:03Z' },
+      ],
+    });
+    expect(describeEvent(event, NOW, 'metric').parts.map((p) => p.text)).toEqual(['L 11m']);
+  });
+
   it('hides downtime for imported feeds', () => {
     const event = makeEvent('breast_feed', {
       source: 'huckleberry_csv',

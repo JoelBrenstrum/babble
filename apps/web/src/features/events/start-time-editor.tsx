@@ -4,6 +4,7 @@ import {
   earlierStart,
   formatTimeOfDay,
   startChangeError,
+  pickedPastTime,
   type BabyEvent,
 } from '@babble/domain';
 import { Pencil } from 'lucide-react';
@@ -69,7 +70,7 @@ export function StartTimeEditor({
       <DateTimeField
         label="Start time"
         value={value}
-        onChange={setValue}
+        onChange={(picked) => setValue(pickedPastTime(picked, clock.now()))}
         timeZone={timeZone}
         error={error ?? undefined}
       />

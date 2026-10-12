@@ -6,6 +6,7 @@ import {
   formatTimeOfDay,
   sessionNoun,
   suggestedEnd,
+  pickedPastTime,
   type BabyEvent,
 } from '@babble/domain';
 import { useState } from 'react';
@@ -61,7 +62,7 @@ export function EndTimeEditor({
       <DateTimeField
         label="End time"
         value={value}
-        onChange={setValue}
+        onChange={(picked) => setValue(pickedPastTime(picked, clock.now()))}
         timeZone={timeZone}
         error={error ?? undefined}
       />

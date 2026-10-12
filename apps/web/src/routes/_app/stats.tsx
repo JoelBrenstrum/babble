@@ -1,5 +1,15 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
-import { dayKeyFor, dayWindow, growthReport, rangeDays, statsReport, type StatsRange } from '@babble/domain';
+import {
+  dayKeyFor,
+  dayWindow,
+  growthReport,
+  isStatsRange,
+  rangeDays,
+  STATS_RANGES,
+  statsCaption,
+  statsForRange,
+  type StatsRange,
+} from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ChartColumn } from 'lucide-react';
@@ -13,7 +23,7 @@ import { useNow } from '#/lib/use-now';
 
 export const Route = createFileRoute('/_app/stats')({
   validateSearch: (search: Record<string, unknown>): { range?: StatsRange } => ({
-    range: search.range === '7d' || search.range === '30d' || search.range === 'all' ? search.range : undefined,
+    range: isStatsRange(search.range) ? search.range : undefined,
   }),
   component: StatsPage,
 });
@@ -34,7 +44,7 @@ function StatsPage() {
 
   const report =
     events.data && settings
-      ? statsReport(events.data, keys, todayKey, now, {
+      ? statsForRange(range, events.data, keys, todayKey, now, {
           timeZone: baby.timezone,
           dayStartMinutes: baby.day_start_minutes,
           nightStartMinutes: settings.night_start_minutes,
@@ -49,24 +59,14 @@ function StatsPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-title font-bold">Stats</h1>
-          {report && (
-            <p className="mt-1 text-meta text-ink-2">
-              {report.todayOnly
-                ? 'Showing today so far. Daily averages start once a full day has been logged.'
-                : `Daily averages over ${report.days} finished ${report.days === 1 ? 'day' : 'days'}; today is charted but not averaged.`}
-            </p>
-          )}
+          {report && <p className="mt-1 text-meta text-ink-2">{statsCaption(range, report)}</p>}
         </div>
-        <div className="w-56">
+        <div className="w-full sm:w-80">
           <Segmented<StatsRange>
             label="Range"
             value={range}
             onChange={(next) => void navigate({ search: { range: next } })}
-            options={[
-              { value: '7d', label: '7d' },
-              { value: '30d', label: '30d' },
-              { value: 'all', label: 'All' },
-            ]}
+            options={STATS_RANGES}
           />
         </div>
       </div>

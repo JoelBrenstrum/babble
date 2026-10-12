@@ -19,7 +19,9 @@ import {
   Clock,
   Droplet,
   Droplets,
+  Maximize,
   Milk,
+  Minimize,
   Minus,
   Moon,
   Pause,
@@ -50,6 +52,7 @@ export interface ChairData {
   night: boolean;
   dimmed: boolean;
   updateReady: boolean;
+  fullscreen: { supported: boolean; active: boolean; wanted: boolean };
   offline: boolean;
   lastFeed: string;
   due: { text: string; overdue: boolean } | null;
@@ -57,7 +60,7 @@ export interface ChairData {
   feed: ChairFeed | null;
   nap: string | null;
   lastNappy: string | null;
-  nappyDue: boolean;
+  nappyAsk: { start: boolean; switch: boolean; end: boolean };
   units: Units;
   bottle: { amount: number; content: BottleContent };
 }
@@ -78,6 +81,8 @@ export interface ChairActions {
   wake: () => void;
   dimNow: () => void;
   refresh: () => void;
+  enterFullscreen: () => void;
+  exitFullscreen: () => void;
 }
 
 type Toast = { key: number; message: string; undo?: () => Promise<unknown> };
@@ -153,6 +158,7 @@ export function ChairScreen({
     const now = Date.now();
     setEndedNow(now);
     setEnded({ id: feed.id, ...feed.summary, until: now + CHAIR_ENDED_MS });
+    if (data.nappyAsk.end) setSheet('nappy-ask');
     actions.endFeed().catch((caught: unknown) => {
       setEnded(null);
       show(errorMessage(caught));
@@ -168,7 +174,7 @@ export function ChairScreen({
   }
 
   function startFeed(side: Side) {
-    const askNappy = data.nappyDue;
+    const askNappy = data.nappyAsk.start;
     run(async () => {
       await actions.startFeed(side);
       if (askNappy) setSheet('nappy-ask');
@@ -199,6 +205,8 @@ export function ChairScreen({
         actions.wake();
       }}
       onClickCapture={(event) => {
+        const { supported, active, wanted } = data.fullscreen;
+        if (supported && wanted && !active) actions.enterFullscreen();
         if (!swallowClick.current) return;
         swallowClick.current = false;
         event.stopPropagation();
@@ -213,6 +221,24 @@ export function ChairScreen({
             </a>
             <span>{data.age}</span>
             <span className="flex-1" />
+            {data.fullscreen.supported && !data.dimmed && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (data.fullscreen.active) actions.exitFullscreen();
+                  else actions.enterFullscreen();
+                }}
+                className="flex h-[6cqmin] items-center gap-[1cqmin] rounded-full bg-surface px-[2.4cqmin] text-[length:3.6cqmin] font-semibold text-ink-2"
+              >
+                {data.fullscreen.active ? (
+                  <Minimize className="size-[3.6cqmin]" strokeWidth={2.5} />
+                ) : (
+                  <Maximize className="size-[3.6cqmin]" strokeWidth={2.5} />
+                )}
+                {data.fullscreen.active ? 'Exit full screen' : 'Full screen'}
+              </button>
+            )}
             {!data.dimmed && (
               <button
                 type="button"
@@ -258,6 +284,10 @@ export function ChairScreen({
             feed={feed}
             actions={actions}
             onEnd={() => endFeed(feed)}
+            onSwitch={(side) => {
+              actions.switchSide(side);
+              if (data.nappyAsk.switch) setSheet('nappy-ask');
+            }}
             onDiscard={() =>
               run(async () => {
                 await actions.undoEntry(feed.id);
@@ -514,11 +544,13 @@ function FeedingView({
   feed,
   actions,
   onEnd,
+  onSwitch,
   onDiscard,
 }: {
   feed: ChairFeed;
   actions: ChairActions;
   onEnd: () => void;
+  onSwitch: (side: Side) => void;
   onDiscard: () => void;
 }) {
   const { view } = feed;
@@ -587,7 +619,7 @@ function FeedingView({
       </div>
       <div className="flex flex-none flex-wrap gap-[3cqmin] text-[length:5.6cqmin]">
         <BigButton
-          onClick={() => actions.switchSide(other)}
+          onClick={() => onSwitch(other)}
           className={cn('h-[20cqmin] flex-[1.4_1_50cqmin] rounded-[4cqmin] text-ink-on-solid', SIDE_BG[other])}
         >
           <ArrowLeftRight className="size-[6cqmin]" strokeWidth={2.75} />

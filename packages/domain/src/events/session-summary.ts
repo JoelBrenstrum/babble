@@ -2,7 +2,7 @@ import type { Side, TimedSegment } from './types';
 
 export type SessionRow =
   | { kind: 'side'; side: Side; durationMs: number; running: boolean }
-  | { kind: 'downtime'; durationMs: number; running: boolean };
+  | { kind: 'downtime'; durationMs: number; running: boolean; latest?: true };
 
 export interface SessionSummary {
   rows: SessionRow[];
@@ -25,7 +25,7 @@ export function summariseSegments(
   options: { mergeGapMs: number; now: Date; pausedSince?: string | null },
 ): SessionSummary {
   const now = options.now.getTime();
-  const intervals: Interval[] = [...segments]
+  const all: Interval[] = [...segments]
     .sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt))
     .map((segment) => ({
       side: segment.side,
@@ -33,41 +33,57 @@ export function summariseSegments(
       end: segment.endedAt ? Date.parse(segment.endedAt) : now,
       open: segment.endedAt === null,
     }));
+  const meaningful = all.filter((interval) => interval.open || interval.end - interval.start >= options.mergeGapMs);
+  const intervals = meaningful.length > 0 ? meaningful : all;
 
   const rows: SessionRow[] = [];
   let downtimeMs = 0;
+  let latestGap: Extract<SessionRow, { kind: 'downtime' }> | null = null;
+  let lastSide: Extract<SessionRow, { kind: 'side' }> | null = null;
 
-  intervals.forEach((interval, index) => {
+  const addDowntime = (durationMs: number, running: boolean) => {
+    const last = rows.at(-1);
+    if (last?.kind === 'downtime') {
+      last.durationMs += durationMs;
+      last.running = running;
+      return last;
+    }
+    const row = { kind: 'downtime' as const, durationMs, running };
+    rows.push(row);
+    return row;
+  };
+
+  for (const [index, interval] of intervals.entries()) {
     const previous = intervals[index - 1];
     const gap = previous ? Math.max(0, interval.start - previous.end) : 0;
-    const last = rows.at(-1);
-
     if (previous && gap >= options.mergeGapMs) {
-      rows.push({ kind: 'downtime', durationMs: gap, running: false });
+      latestGap = addDowntime(gap, false);
       downtimeMs += gap;
     }
-
     const duration = Math.max(0, interval.end - interval.start);
-    const continues = previous && gap < options.mergeGapMs && last?.kind === 'side' && last.side === interval.side;
-    if (continues && last.kind === 'side') {
-      last.durationMs += duration;
-      last.running = interval.open;
+    if (lastSide && lastSide.side === interval.side) {
+      lastSide.durationMs += duration;
+      lastSide.running = interval.open;
     } else {
-      rows.push({ kind: 'side', side: interval.side, durationMs: duration, running: interval.open });
+      lastSide = { kind: 'side', side: interval.side, durationMs: duration, running: interval.open };
+      rows.push(lastSide);
     }
-  });
+  }
+  if (latestGap) latestGap.latest = true;
 
   const lastInterval = intervals.at(-1);
   if (options.pausedSince && lastInterval && !lastInterval.open) {
     const idle = Math.max(0, now - Math.max(Date.parse(options.pausedSince), lastInterval.end));
     if (idle > 0) {
-      rows.push({ kind: 'downtime', durationMs: idle, running: true });
+      addDowntime(idle, true);
       downtimeMs += idle;
     }
   }
 
-  const leftMs = intervals.filter((i) => i.side === 'left').reduce((sum, i) => sum + Math.max(0, i.end - i.start), 0);
-  const rightMs = intervals.filter((i) => i.side === 'right').reduce((sum, i) => sum + Math.max(0, i.end - i.start), 0);
+  const sideMs = (side: Side) =>
+    intervals.filter((i) => i.side === side).reduce((sum, i) => sum + Math.max(0, i.end - i.start), 0);
+  const leftMs = sideMs('left');
+  const rightMs = sideMs('right');
   const first = intervals[0];
   const spanEnd = options.pausedSince ? now : (lastInterval?.end ?? now);
 

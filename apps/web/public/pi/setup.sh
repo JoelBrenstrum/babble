@@ -30,9 +30,9 @@ sleep 1
 while [ ! -e "\$HOME/.babble-chair-off" ]; do
   # After a power cut Chromium thinks it crashed and offers to restore pages; mark the last exit as clean.
   [ -f "\$PREFS" ] && sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]*"/"exit_type":"Normal"/' "\$PREFS"
-  "\$BROWSER" --ozone-platform=wayland --disable-gpu --kiosk --noerrdialogs --disable-infobars \\
-    --disable-session-crashed-bubble --password-store=basic --disk-cache-dir=/dev/shm/babble-chair "\$URL" \\
-    > /tmp/babble-chair.log 2>&1
+  "\$BROWSER" --ozone-platform=wayland --disable-gpu --app="\$URL" --start-maximized --noerrdialogs \\
+    --disable-infobars --disable-session-crashed-bubble --password-store=basic \\
+    --disk-cache-dir=/dev/shm/babble-chair > /tmp/babble-chair.log 2>&1
   sleep 3
 done
 EOF
@@ -89,5 +89,6 @@ fi
 say "Done."
 echo "Reboot with: sudo reboot"
 echo "Sign in once on the touchscreen, and it stays signed in after that."
+echo "Chair mode goes full screen on the first tap. Its Exit full screen button gives you a normal window."
 echo "Stop chair mode over SSH with: babble-chair-stop"
 echo "Start it again with the 'babble chair' desktop icon, or: babble-chair"

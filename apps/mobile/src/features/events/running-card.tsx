@@ -1,10 +1,12 @@
-import type { BabbleClient, FamilyMemberRow } from '@babble/api';
+import type { BabbleClient, BabySettingsRow, FamilyMemberRow } from '@babble/api';
 import {
   discardNeedsConfirmation,
   formatDuration,
   formatTimer,
   feedEndTime,
   napPromptOnFeedEnd,
+  nappyPromptOnFeedFinish,
+  nappyPromptOnSideChange,
   pausedForMs,
   segmentTotals,
   sessionNoun,
@@ -188,11 +190,27 @@ export function RunningCard({
   const currentMs = totals.openSegmentStartedAt ? now.getTime() - Date.parse(totals.openSegmentStartedAt) : 0;
   const title = event.type === 'pump' ? 'Pumping' : 'Feeding';
 
+  const latestEvents = () => queryClient.getQueryData<BabyEvent[]>(queryKeys.latestEvents(event.babyId)) ?? [];
+  const nappyTiming = () =>
+    queryClient.getQueryData<BabySettingsRow>(queryKeys.babySettings(event.babyId))?.nappy_prompt ?? 'feed_start';
+
+  function pressSide(side: Side, active: boolean) {
+    action.mutate({
+      event,
+      action: active ? { kind: 'pause' } : paused ? { kind: 'resume', side } : { kind: 'switch', side },
+    });
+    if (!active && event.type === 'breast_feed') {
+      showNapPrompt(nappyPromptOnSideChange(nappyTiming(), event, side, latestEvents(), clock.now().toISOString()));
+    }
+  }
+
   function finish(at?: string) {
     const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
     const ended = action.mutateAsync({ event, action: { kind: 'end', at } });
     if (event.type === 'breast_feed') {
-      showNapPrompt(napPromptOnFeedEnd(running, at ?? feedEndTime(event, clock.now())));
+      const endedAt = at ?? feedEndTime(event, clock.now());
+      showNapPrompt(napPromptOnFeedEnd(running, endedAt));
+      showNapPrompt(nappyPromptOnFeedFinish(nappyTiming(), event, latestEvents(), endedAt));
     }
     if (event.type === 'pump') {
       ended
@@ -234,12 +252,7 @@ export function RunningCard({
               accessibilityRole="button"
               accessibilityLabel={`${SIDE_LABEL[side]}${state.replace(' ·', ',')}`}
               accessibilityState={{ selected: active }}
-              onPress={() =>
-                action.mutate({
-                  event,
-                  action: active ? { kind: 'pause' } : paused ? { kind: 'resume', side } : { kind: 'switch', side },
-                })
-              }
+              onPress={() => pressSide(side, active)}
               className={`min-h-tap-lg flex-1 flex-row items-center gap-3 rounded-card px-4 py-3 ${active ? solid : soft}`}
             >
               <Text className={`font-bold text-row-title ${text}`}>{side === 'left' ? 'L' : 'R'}</Text>

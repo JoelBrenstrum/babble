@@ -1,4 +1,4 @@
-import { barAnchor, barReadout, chartDayLabel, chartValue, topSegment, type StatsCard } from '@babble/domain';
+import { barAnchor, barReadout, chartEnds, chartValue, topSegment, type StatsCard } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { Card } from '#/components/ui/card';
@@ -37,6 +37,7 @@ function StatsCardView({ card }: { card: StatsCard }) {
   const [focusIndex, setFocusIndex] = useState(chart.bars.length - 1);
   const bars = useRef<(HTMLDivElement | null)[]>([]);
   const tabStop = Math.min(focusIndex, chart.bars.length - 1);
+  const ends = chartEnds(chart);
 
   const onKeyDown = (event: KeyboardEvent, index: number) => {
     const next =
@@ -134,10 +135,10 @@ function StatsCardView({ card }: { card: StatsCard }) {
             </div>
           )}
         </div>
-        {chart.bars.length > 0 && (
+        {ends && (
           <div className="flex justify-between text-caption text-ink-3">
-            <span>{chartDayLabel(chart.bars[0]!.label)}</span>
-            <span>{chartDayLabel(chart.bars.at(-1)!.label)}</span>
+            <span>{ends[0]}</span>
+            <span>{ends[1]}</span>
           </div>
         )}
       </div>

@@ -136,6 +136,8 @@ const PREVIEW_ACTIONS: ChairActions = {
   wake: () => undefined,
   dimNow: () => undefined,
   refresh: () => undefined,
+  enterFullscreen: () => undefined,
+  exitFullscreen: () => undefined,
 };
 
 export function ChairPreview({ now: fixedNow }: { now?: Date }) {
