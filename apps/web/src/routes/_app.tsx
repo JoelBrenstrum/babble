@@ -1,21 +1,16 @@
-import {
-  babyChoices,
-  babySettingsQuery,
-  familiesQuery,
-  resolveOnboarding,
-  runningEventsQuery,
-  type BabyChoice,
-} from '@babble/api';
+import { babyChoices, babySettingsQuery, familiesQuery, resolveOnboarding, runningEventsQuery } from '@babble/api';
+import { canAddBaby } from '@babble/config';
 import { runningIndicator } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Outlet, redirect, useLocation, useRouter } from '@tanstack/react-router';
+import { createFileRoute, Outlet, redirect, useLocation } from '@tanstack/react-router';
 import { AppShell } from '#/components/shell/app-shell';
 import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
-import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
+import { readStorage, storageKeys } from '#/lib/storage';
 import { NapPromptProvider } from '#/features/nap-prompt';
 import { useAutoEndStaleSessions, useRealtimeEvents } from '#/lib/use-events';
 import { useNightTheme } from '#/lib/use-night-theme';
+import { useSelectBaby } from '#/lib/use-select-baby';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context }) => {
@@ -47,7 +42,7 @@ export const Route = createFileRoute('/_app')({
 
 function AppLayout() {
   const { family, baby, babble, families } = Route.useRouteContext();
-  const router = useRouter();
+  const selectBaby = useSelectBaby();
   const pathname = useLocation({ select: (location) => location.pathname });
   useRealtimeEvents(babble.client, baby.id);
   useAutoEndStaleSessions(babble.client, baby.id);
@@ -56,12 +51,6 @@ function AppLayout() {
   useNightTheme(
     settings ? { timeZone: baby.timezone, start: settings.night_start_minutes, end: settings.night_end_minutes } : null,
   );
-
-  function selectBaby(choice: BabyChoice) {
-    writeStorage(storageKeys.activeFamily, choice.familyId);
-    writeStorage(storageKeys.activeBaby, choice.baby.id);
-    void router.invalidate();
-  }
 
   const page = (
     <NapPromptProvider client={babble.client} babyId={baby.id} babyName={baby.name} timeZone={baby.timezone}>
@@ -77,6 +66,7 @@ function AppLayout() {
       choices={babyChoices(families)}
       onSelectBaby={selectBaby}
       running={runningIndicator(running)}
+      addBabyLocked={!canAddBaby(babble.config.billingEnabled, family.plan, family.babies.length)}
     >
       {page}
     </AppShell>

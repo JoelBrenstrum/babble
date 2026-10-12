@@ -353,3 +353,36 @@ describe('ChairScreen night and offline', () => {
     expect(screen.queryByRole('button', { name: 'Start left' })).not.toBeInTheDocument();
   });
 });
+
+describe('ChairScreen baby switch', () => {
+  const babies = [
+    { id: 'baby-olivia', name: 'Olivia', detail: '11 days', selected: true },
+    { id: 'baby-jacob', name: 'Jacob', detail: '14 months', selected: false },
+  ];
+
+  it('switches to another baby from the name in the top strip', () => {
+    const actions = { ...makeActions(), selectBaby: vi.fn() };
+    render(<ChairScreen data={makeData({ babies })} actions={actions} />);
+    tap('Olivia, 11 days. Switch baby');
+    expect(screen.getByRole('link', { name: 'Leave chair mode' })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('dialog', { name: 'Switch baby' })).toBeInTheDocument();
+    tap('Jacob');
+    expect(actions.selectBaby).toHaveBeenCalledWith('baby-jacob');
+    expect(screen.queryByRole('dialog', { name: 'Switch baby' })).toBeNull();
+  });
+
+  it('keeps the current baby when it is picked again', () => {
+    const actions = { ...makeActions(), selectBaby: vi.fn() };
+    render(<ChairScreen data={makeData({ babies })} actions={actions} />);
+    tap(/Switch baby/);
+    tap('Olivia');
+    expect(actions.selectBaby).not.toHaveBeenCalled();
+  });
+
+  it('keeps the name as the way out with only one baby', () => {
+    const actions = { ...makeActions(), selectBaby: vi.fn() };
+    render(<ChairScreen data={makeData({ babies: babies.slice(0, 1) })} actions={actions} />);
+    expect(screen.queryByRole('button', { name: /Switch baby/ })).toBeNull();
+    expect(screen.getByRole('link', { name: "Leave chair mode, back to Olivia's home" })).toBeInTheDocument();
+  });
+});

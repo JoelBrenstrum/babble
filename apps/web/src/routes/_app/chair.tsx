@@ -1,4 +1,4 @@
-import { babySettingsQuery, clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { babyChoices, babySettingsQuery, clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
 import {
   babyAgeLabel,
   chairBottleDraft,
@@ -46,6 +46,7 @@ import {
   useUnits,
 } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
+import { useSelectBaby } from '#/lib/use-select-baby';
 import { useOnline } from '#/lib/use-online';
 import { useFullscreen } from '#/lib/fullscreen';
 import { reloadForRelease, useNewRelease } from '#/lib/release';
@@ -54,7 +55,7 @@ import { useScreenWakeLock } from '#/lib/wake-lock';
 export const Route = createFileRoute('/_app/chair')({ component: ChairPage });
 
 function ChairPage() {
-  const { babble, baby, family } = Route.useRouteContext();
+  const { babble, baby, family, families } = Route.useRouteContext();
   const client = babble.client;
   const now = useNow(1000);
   const online = useOnline();
@@ -74,6 +75,9 @@ function ChairPage() {
   const fullscreen = useFullscreen();
   const [lastTouchAt, setLastTouchAt] = useState(() => clock.now().getTime());
   const tones = useMemo(() => memberTones(family.members), [family.members]);
+  const selectBaby = useSelectBaby();
+  const choices = babyChoices(families);
+  const multipleFamilies = new Set(choices.map((choice) => choice.familyId)).size > 1;
 
   const night: NightWindow | null = settings
     ? { timeZone: baby.timezone, start: settings.night_start_minutes, end: settings.night_end_minutes }
@@ -93,6 +97,14 @@ function ChairPage() {
   const data: ChairData = {
     babyName: baby.name,
     age: babyAgeLabel(baby.birth_date, todayInTimeZone(baby.timezone, now)),
+    babies: choices.map((choice) => ({
+      id: choice.baby.id,
+      name: choice.baby.name,
+      detail: `${babyAgeLabel(choice.baby.birth_date, todayInTimeZone(choice.baby.timezone, now))}${
+        multipleFamilies ? ` · ${choice.familyName}` : ''
+      }`,
+      selected: choice.baby.id === baby.id,
+    })),
     clock: formatTimeOfDay(now.toISOString(), baby.timezone),
     night: chairIsNight(night, now),
     dimmed: chairDimmed(night, now, lastTouchAt),
@@ -153,6 +165,10 @@ function ChairPage() {
     enterFullscreen: fullscreen.enter,
     exitFullscreen: fullscreen.exit,
     dimNow: () => setLastTouchAt(clock.now().getTime() - CHAIR_IDLE_DIM_MS),
+    selectBaby: (babyId) => {
+      const choice = choices.find((candidate) => candidate.baby.id === babyId);
+      if (choice) selectBaby(choice);
+    },
   };
 
   const refreshWhenIdle = updateReady && data.dimmed && !feed;

@@ -14,11 +14,14 @@ import {
 import {
   AlarmClock,
   ArrowLeftRight,
+  Baby,
   RefreshCw,
   Check,
+  ChevronsUpDown,
   Clock,
   Droplet,
   Droplets,
+  LogOut,
   Maximize,
   Milk,
   Minimize,
@@ -45,9 +48,17 @@ export interface ChairFeed {
   startedBy: string | null;
 }
 
+export interface ChairBaby {
+  id: string;
+  name: string;
+  detail: string;
+  selected: boolean;
+}
+
 export interface ChairData {
   babyName: string;
   age: string;
+  babies?: ChairBaby[];
   clock: string;
   night: boolean;
   dimmed: boolean;
@@ -83,6 +94,7 @@ export interface ChairActions {
   refresh: () => void;
   enterFullscreen: () => void;
   exitFullscreen: () => void;
+  selectBaby?: (babyId: string) => void;
 }
 
 type Toast = { key: number; message: string; undo?: () => Promise<unknown> };
@@ -122,7 +134,7 @@ export function ChairScreen({
   actions: ChairActions;
   embedded?: boolean;
 }) {
-  const [sheet, setSheet] = useState<'bottle' | 'nappy' | 'nappy-ask' | null>(null);
+  const [sheet, setSheet] = useState<'bottle' | 'nappy' | 'nappy-ask' | 'baby' | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [ended, setEnded] = useState<Ended | null>(null);
   const [endedNow, setEndedNow] = useState(0);
@@ -188,6 +200,7 @@ export function ChairScreen({
   }
 
   const feed = ended ? null : data.feed;
+  const canSwitchBaby = (data.babies?.length ?? 0) > 1 && actions.selectBaby !== undefined;
 
   return (
     <div
@@ -208,9 +221,25 @@ export function ChairScreen({
       <div className="absolute inset-0 box-border flex flex-col gap-[3cqmin] p-[4cqmin]">
         {!ended && !data.offline && (
           <div className="flex h-[6cqmin] flex-none items-center gap-[2cqmin] text-[length:4.2cqmin] text-ink-2">
-            <a href="/" aria-label={`Leave chair mode, back to ${data.babyName}'s home`} className="font-bold text-ink">
-              {data.babyName}
-            </a>
+            {canSwitchBaby ? (
+              <button
+                type="button"
+                aria-label={`${data.babyName}, ${data.age}. Switch baby`}
+                onClick={() => setSheet('baby')}
+                className="flex h-[6cqmin] items-center gap-[1.2cqmin] rounded-full bg-surface px-[2.4cqmin] font-bold text-ink"
+              >
+                {data.babyName}
+                <ChevronsUpDown className="size-[3.6cqmin] text-ink-2" strokeWidth={2.5} />
+              </button>
+            ) : (
+              <a
+                href="/"
+                aria-label={`Leave chair mode, back to ${data.babyName}'s home`}
+                className="font-bold text-ink"
+              >
+                {data.babyName}
+              </a>
+            )}
             <span>{data.age}</span>
             <span className="flex-1" />
             {data.fullscreen.supported && !data.dimmed && (
@@ -317,6 +346,46 @@ export function ChairScreen({
             )
           }
         />
+      )}
+      {sheet === 'baby' && data.babies && (
+        <Sheet
+          title="Switch baby"
+          icon={Baby}
+          tone="bg-primary-soft text-on-primary-soft"
+          onClose={() => setSheet(null)}
+        >
+          <div className="flex min-h-0 flex-1 flex-col gap-[3cqmin] overflow-y-auto">
+            {data.babies.map((baby) => (
+              <BigButton
+                key={baby.id}
+                label={baby.name}
+                onClick={() => {
+                  setSheet(null);
+                  if (!baby.selected) actions.selectBaby?.(baby.id);
+                }}
+                className={cn(
+                  'min-h-[20cqmin] flex-none justify-start rounded-[5cqmin] px-[5cqmin] text-left',
+                  baby.selected
+                    ? 'bg-primary-soft text-on-primary-soft'
+                    : 'border-[0.5cqmin] border-line-strong bg-raised',
+                )}
+              >
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-[length:7cqmin]">{baby.name}</span>
+                  <span className="text-[length:4cqmin] font-semibold text-ink-2">{baby.detail}</span>
+                </span>
+                {baby.selected && <Check className="size-[7cqmin] flex-none" strokeWidth={3} />}
+              </BigButton>
+            ))}
+            <a
+              href="/"
+              className="mt-auto flex min-h-[16cqmin] flex-none items-center justify-center gap-[2cqmin] rounded-[5cqmin] bg-surface text-[length:5cqmin] font-bold text-ink-2"
+            >
+              <LogOut className="size-[5cqmin]" strokeWidth={2.75} />
+              Leave chair mode
+            </a>
+          </div>
+        </Sheet>
       )}
       {sheet === 'nappy-ask' && (
         <Sheet
