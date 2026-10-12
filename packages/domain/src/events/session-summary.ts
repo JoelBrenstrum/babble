@@ -61,7 +61,7 @@ export function summariseSegments(
       downtimeMs += gap;
     }
     const duration = Math.max(0, interval.end - interval.start);
-    if (lastSide && lastSide.side === interval.side) {
+    if (lastSide && rows.at(-1) === lastSide && lastSide.side === interval.side) {
       lastSide.durationMs += duration;
       lastSide.running = interval.open;
     } else {

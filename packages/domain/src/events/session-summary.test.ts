@@ -41,13 +41,18 @@ describe('summariseSegments', () => {
     expect(summary.rows).toEqual([{ kind: 'side', side: 'left', durationMs: min(15) - 4000, running: false }]);
   });
 
-  it('merges same-side stretches across pauses, keeping the pauses as one downtime row', () => {
-    const summary = summariseSegments([seg('left', [0], [5]), seg('left', [6], [11]), seg('left', [13], [16])], opts);
+  it('starts a new row after a pause over the threshold, even on the same side', () => {
+    const summary = summariseSegments(
+      [seg('right', [0], [10]), seg('left', [10], [15]), seg('left', [20], [24])],
+      opts,
+    );
     expect(summary.rows).toEqual([
-      { kind: 'side', side: 'left', durationMs: min(13), running: false },
-      { kind: 'downtime', durationMs: min(3), running: false, latest: true },
+      { kind: 'side', side: 'right', durationMs: min(10), running: false },
+      { kind: 'side', side: 'left', durationMs: min(5), running: false },
+      { kind: 'downtime', durationMs: min(5), running: false, latest: true },
+      { kind: 'side', side: 'left', durationMs: min(4), running: false },
     ]);
-    expect(summary.downtimeMs).toBe(min(3));
+    expect(summary.downtimeMs).toBe(min(5));
   });
 
   it('ignores a side shorter than the threshold, like a mistaken tap', () => {
@@ -69,14 +74,16 @@ describe('summariseSegments', () => {
     expect(summary.rows).toEqual([{ kind: 'side', side: 'left', durationMs: 5000, running: false }]);
   });
 
-  it('adds a live pause to the downtime after a merged side', () => {
+  it('shows a live pause after the last side', () => {
     const summary = summariseSegments([seg('left', [0], [5]), seg('left', [6], [10])], {
       ...opts,
       pausedSince: at(10),
     });
     expect(summary.rows).toEqual([
-      { kind: 'side', side: 'left', durationMs: min(9), running: false },
-      { kind: 'downtime', durationMs: min(31), running: true, latest: true },
+      { kind: 'side', side: 'left', durationMs: min(5), running: false },
+      { kind: 'downtime', durationMs: min(1), running: false, latest: true },
+      { kind: 'side', side: 'left', durationMs: min(4), running: false },
+      { kind: 'downtime', durationMs: min(30), running: true },
     ]);
   });
 

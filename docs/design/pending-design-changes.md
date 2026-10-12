@@ -279,3 +279,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > Undo the 24h range on Stats (the picker is Today / 7d / 30d / All). Instead, the Timeline's view switch becomes Day / 24h / 7d (`Screen.dc.html` day/week, `Web.dc.html` timeline). 24h shows the same vertical day timeline and the same totals cards, but for the rolling last 24 hours: the header reads "Last 24 hours" with no date arrows, hour ticks fall on clock hours (e.g. 06, 09, 12…), and the now line sits at the end. Show it at 390px and 1280px, light and dark.
+
+---
+
+## 2026-10-13 · Breastfeed breakdown: pauses start new rows again
+
+Paste everything below this line into Claude Design.
+
+> Correction to "Breastfeed breakdown merges same-side stretches": a pause at or over the merge threshold now starts a new row with a Downtime row before it, even on the same side (Right 10m, Left 5m, Downtime 5m, Left running). Only pauses shorter than the threshold merge into one row. A finished side shorter than the threshold (e.g. "Right 3s") is still left out.
