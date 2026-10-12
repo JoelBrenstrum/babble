@@ -1,4 +1,5 @@
 import {
+  babyChoices,
   canEdit,
   deleteMyAccount,
   pendingInvitesQuery,
@@ -9,63 +10,76 @@ import {
   updateBaby,
   type Family,
 } from '@babble/api';
-import { canInviteCarer, planSummary } from '@babble/config';
+import { canAddBaby, canInviteCarer, planSummary } from '@babble/config';
+import { settingsGroups, type SettingsGroup } from '@babble/domain';
 import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight, Lock, LogOut, UserPlus } from 'lucide-react';
-import { useMemo, useState, type FormEvent } from 'react';
+import { useMemo, useState, type FormEvent, type ReactNode } from 'react';
 import { Button } from '#/components/ui/button';
-import { Card, SectionLabel } from '#/components/ui/card';
+import { Card } from '#/components/ui/card';
 import { SexField } from '#/features/sex-field';
 import { SelectField, TextField } from '#/components/ui/field';
 import { StatusMessage } from '#/components/ui/status';
 import { DayStartPicker } from '#/features/day-start-picker';
 import { FamilyMembers } from '#/features/family-members';
 import { InvitePanel } from '#/features/invite-panel';
-import { FamilyLabel, PendingInvites, useCreateInvite } from '#/features/pending-invites';
+import { MembersLabel, PendingInvites, useCreateInvite } from '#/features/pending-invites';
 import { PasswordForm } from '#/features/password-form';
 import { PlusBadge, PlusDialog } from '#/features/plus-dialog';
 import { PlusPlan } from '#/features/plus-plan';
-import { TrackingSettings } from '#/features/tracking-settings';
+import { BabyTrackingSettings, FamilyTrackingSettings } from '#/features/tracking-settings';
+import { SettingsBabyPicker } from '#/features/settings-baby-picker';
 import { ExportData } from '#/features/export-data';
 import { InstallSection } from '#/features/install-app';
 import { AppearanceSettings } from '#/features/appearance-settings';
 import { AboutSection } from '#/features/legal/legal-links';
 import { clearAccountStorage } from '#/lib/storage';
 import { listTimeZones } from '#/lib/timezones';
+import { useSelectBaby } from '#/lib/use-select-baby';
 
 export const Route = createFileRoute('/_app/settings')({ component: SettingsPage });
 
 function SettingsPage() {
-  const { family, session, babble, baby, queryClient } = Route.useRouteContext();
+  const { family, families, session, babble, baby, queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const selectBaby = useSelectBaby();
   const editable = canEdit(family, session.user.id);
   const plan = planSummary(babble.config.billingEnabled, family.plan);
+  const groups = settingsGroups(baby.name, family.name);
+  const [babyGroup, familyGroup, deviceGroup, accountGroup] = groups as [
+    SettingsGroup,
+    SettingsGroup,
+    SettingsGroup,
+    SettingsGroup,
+  ];
 
   return (
-    <div className="flex flex-col gap-8">
-      <h1 className="text-title font-bold">Settings</h1>
-      <BabySection disabled={!editable} />
+    <div className="flex flex-col gap-10">
+      <div className="flex flex-col gap-4">
+        <h1 className="text-title font-bold">Settings</h1>
+        <nav aria-label="Settings sections" className="flex flex-wrap gap-2">
+          {groups.map((group) => (
+            <a
+              key={group.id}
+              href={`#settings-${group.id}`}
+              className="min-h-tap-sm inline-flex items-center rounded-full bg-surface px-4 text-label font-semibold text-ink-2 hover:bg-line hover:text-ink"
+            >
+              {group.nav}
+            </a>
+          ))}
+        </nav>
+      </div>
 
-      <section className="flex flex-col gap-3">
-        <FamilyLabel client={babble.client} familyId={family.id} editable={editable} plus={plan?.plus ?? false} />
-        <FamilyMembers
-          client={babble.client}
-          family={family}
-          userId={session.user.id}
-          onChanged={async () => {
-            await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
-            await router.invalidate();
-          }}
+      <SettingsGroupSection group={babyGroup}>
+        <SettingsBabyPicker
+          choices={babyChoices(families)}
+          activeId={baby.id}
+          onSelect={selectBaby}
+          addBabyLocked={!canAddBaby(babble.config.billingEnabled, family.plan, family.babies.length)}
         />
-        {editable && <PendingInvites client={babble.client} family={family} />}
-        {editable && <InviteToggle family={family} />}
-      </section>
-      {plan && <PlusPlan summary={plan} />}
-
-      <TrackingSettings client={babble.client} babyId={baby.id} disabled={!editable} />
-      <section className="flex flex-col gap-3">
-        <SectionLabel>Data</SectionLabel>
+        <BabySection key={baby.id} disabled={!editable} />
+        <BabyTrackingSettings client={babble.client} babyId={baby.id} disabled={!editable} />
         <Link
           to="/import"
           className="flex min-h-tap items-center justify-between rounded-card bg-raised px-5 py-4 shadow-raised hover:bg-surface"
@@ -76,11 +90,31 @@ function SettingsPage() {
           </span>
           <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
         </Link>
-        <ExportData client={babble.client} family={family} baby={baby} />
-      </section>
-      <AppearanceSettings client={babble.client} baby={baby} />
-      <section className="flex flex-col gap-3">
-        <SectionLabel>Chair mode</SectionLabel>
+        <ExportData client={babble.client} family={family} baby={baby} scope="baby" />
+      </SettingsGroupSection>
+
+      <SettingsGroupSection group={familyGroup} badge={plan?.plus ? <PlusBadge /> : null}>
+        <section className="flex flex-col gap-3">
+          <MembersLabel client={babble.client} familyId={family.id} editable={editable} />
+          <FamilyMembers
+            client={babble.client}
+            family={family}
+            userId={session.user.id}
+            onChanged={async () => {
+              await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
+              await router.invalidate();
+            }}
+          />
+          {editable && <PendingInvites client={babble.client} family={family} />}
+          {editable && <InviteToggle family={family} />}
+        </section>
+        {plan && <PlusPlan summary={plan} />}
+        <FamilyTrackingSettings client={babble.client} familyId={family.id} babyId={baby.id} disabled={!editable} />
+        {family.babies.length > 1 && <ExportData client={babble.client} family={family} baby={baby} scope="family" />}
+      </SettingsGroupSection>
+
+      <SettingsGroupSection group={deviceGroup}>
+        <AppearanceSettings client={babble.client} baby={baby} />
         <Link
           to="/chair"
           className="flex min-h-tap items-center justify-between rounded-card bg-raised px-5 py-4 shadow-raised hover:bg-surface"
@@ -93,11 +127,43 @@ function SettingsPage() {
           </span>
           <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
         </Link>
-      </section>
-      <InstallSection />
-      <AccountSection email={session.user.email ?? ''} />
-      <AboutSection />
+        <InstallSection />
+      </SettingsGroupSection>
+
+      <SettingsGroupSection group={accountGroup}>
+        <AccountSection email={session.user.email ?? ''} />
+        <AboutSection />
+      </SettingsGroupSection>
     </div>
+  );
+}
+
+function SettingsGroupSection({
+  group,
+  badge,
+  children,
+}: {
+  group: SettingsGroup;
+  badge?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <section
+      id={`settings-${group.id}`}
+      aria-labelledby={`settings-${group.id}-title`}
+      className="flex scroll-mt-6 flex-col gap-4"
+    >
+      <div>
+        <div className="flex items-center gap-2">
+          <h2 id={`settings-${group.id}-title`} className="text-heading font-bold">
+            {group.title}
+          </h2>
+          {badge}
+        </div>
+        <p className="text-meta text-ink-2">{group.description}</p>
+      </div>
+      {children}
+    </section>
   );
 }
 
@@ -130,42 +196,40 @@ function BabySection({ disabled }: { disabled: boolean }) {
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <SectionLabel>Baby</SectionLabel>
-      <Card className="p-5">
-        <form onSubmit={save} className="flex flex-col gap-5">
-          <fieldset disabled={disabled} className="flex flex-col gap-5 disabled:opacity-60">
-            <div className="grid gap-5 md:grid-cols-2">
-              <TextField label="Name" value={name} onChange={(event) => setName(event.target.value)} />
-              <TextField
-                label="Birth date"
-                type="date"
-                value={birthDate}
-                onChange={(event) => setBirthDate(event.target.value)}
-              />
-            </div>
-            <SexField value={sex} onChange={setSex} />
-            <SelectField label="Timezone" value={timezone} onChange={(event) => setTimezone(event.target.value)}>
-              {timeZones.map((zone) => (
-                <option key={zone} value={zone}>
-                  {zone.replaceAll('_', ' ')}
-                </option>
-              ))}
-            </SelectField>
-            <div className="flex flex-col gap-2">
-              <span className="text-label font-semibold">Day starts at</span>
-              <DayStartPicker value={dayStart} onChange={setDayStart} />
-            </div>
-          </fieldset>
-          {status && <StatusMessage tone={status.tone}>{status.text}</StatusMessage>}
-          {!disabled && (
-            <Button type="submit" className="self-start" disabled={!name.trim() || !birthDate}>
-              Save changes
-            </Button>
-          )}
-        </form>
-      </Card>
-    </section>
+    <Card className="p-5">
+      <form onSubmit={save} className="flex flex-col gap-5">
+        <h3 className="text-row-title font-semibold">Profile</h3>
+        <fieldset disabled={disabled} className="flex flex-col gap-5 disabled:opacity-60">
+          <div className="grid gap-5 md:grid-cols-2">
+            <TextField label="Name" value={name} onChange={(event) => setName(event.target.value)} />
+            <TextField
+              label="Birth date"
+              type="date"
+              value={birthDate}
+              onChange={(event) => setBirthDate(event.target.value)}
+            />
+          </div>
+          <SexField value={sex} onChange={setSex} />
+          <SelectField label="Timezone" value={timezone} onChange={(event) => setTimezone(event.target.value)}>
+            {timeZones.map((zone) => (
+              <option key={zone} value={zone}>
+                {zone.replaceAll('_', ' ')}
+              </option>
+            ))}
+          </SelectField>
+          <div className="flex flex-col gap-2">
+            <span className="text-label font-semibold">Day starts at</span>
+            <DayStartPicker value={dayStart} onChange={setDayStart} />
+          </div>
+        </fieldset>
+        {status && <StatusMessage tone={status.tone}>{status.text}</StatusMessage>}
+        {!disabled && (
+          <Button type="submit" className="self-start" disabled={!name.trim() || !birthDate}>
+            Save changes
+          </Button>
+        )}
+      </form>
+    </Card>
   );
 }
 
@@ -213,49 +277,46 @@ function AccountSection({ email }: { email: string }) {
   }
 
   return (
-    <section className="flex flex-col gap-3">
-      <SectionLabel>Account</SectionLabel>
-      <Card className="flex flex-col gap-4 p-5">
-        <div className="text-body text-ink-2">
-          Signed in as <span className="font-semibold text-ink">{email}</span>
-        </div>
-        <ChangePassword />
-        <Button variant="secondary" className="self-start" onClick={() => leave(() => signOut(babble.client))}>
-          <LogOut className="size-5" strokeWidth={2.75} />
-          Sign out
-        </Button>
-        {confirming ? (
-          <div className="flex flex-col gap-4 rounded-tile bg-danger-soft p-4">
-            <p className="text-meta text-on-danger">
-              You'll be signed out on every device and your login is removed. Your family keeps its records while
-              another member remains.
-            </p>
-            <TextField
-              label="Type DELETE to confirm"
-              value={confirmText}
-              onChange={(event) => setConfirmText(event.target.value)}
-            />
-            <div className="flex gap-3">
-              <Button
-                variant="destructive"
-                disabled={confirmText !== 'DELETE'}
-                onClick={() => leave(() => deleteMyAccount(babble.client))}
-              >
-                Delete account
-              </Button>
-              <Button variant="ghost" onClick={() => setConfirming(false)}>
-                Cancel
-              </Button>
-            </div>
+    <Card className="flex flex-col gap-4 p-5">
+      <div className="text-body text-ink-2">
+        Signed in as <span className="font-semibold text-ink">{email}</span>
+      </div>
+      <ChangePassword />
+      <Button variant="secondary" className="self-start" onClick={() => leave(() => signOut(babble.client))}>
+        <LogOut className="size-5" strokeWidth={2.75} />
+        Sign out
+      </Button>
+      {confirming ? (
+        <div className="flex flex-col gap-4 rounded-tile bg-danger-soft p-4">
+          <p className="text-meta text-on-danger">
+            You'll be signed out on every device and your login is removed. Your family keeps its records while another
+            member remains.
+          </p>
+          <TextField
+            label="Type DELETE to confirm"
+            value={confirmText}
+            onChange={(event) => setConfirmText(event.target.value)}
+          />
+          <div className="flex gap-3">
+            <Button
+              variant="destructive"
+              disabled={confirmText !== 'DELETE'}
+              onClick={() => leave(() => deleteMyAccount(babble.client))}
+            >
+              Delete account
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              Cancel
+            </Button>
           </div>
-        ) : (
-          <Button variant="ghost" className="self-start text-danger" onClick={() => setConfirming(true)}>
-            Delete account
-          </Button>
-        )}
-        {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-      </Card>
-    </section>
+        </div>
+      ) : (
+        <Button variant="ghost" className="self-start text-danger" onClick={() => setConfirming(true)}>
+          Delete account
+        </Button>
+      )}
+      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+    </Card>
   );
 }
 

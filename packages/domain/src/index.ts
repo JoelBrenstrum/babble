@@ -124,7 +124,8 @@ export {
 } from './events/session-actions';
 export { runningIndicator, type RunningIndicator } from './events/running-indicator';
 export { entryAuthorText, entryEndedText } from './format/entry-author';
-export { familyHeading, inviteExpiryText, pendingInviteMeta } from './format/invites';
+export { membersHeading, inviteExpiryText, pendingInviteMeta } from './format/invites';
+export { possessive, settingsGroups, type SettingsGroup, type SettingsGroupId } from './format/settings-groups';
 export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input';
 export {
   editableRowsToSegments,

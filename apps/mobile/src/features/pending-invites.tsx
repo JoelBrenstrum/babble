@@ -8,32 +8,28 @@ import {
   type Family,
   type PendingInvite,
 } from '@babble/api';
-import { familyHeading, pendingInviteMeta } from '@babble/domain';
+import { membersHeading, pendingInviteMeta } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ticket } from 'lucide-react-native';
 import { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Card, SectionLabel } from '@/components/card';
-import { PlusBadge } from '@/components/plus';
 import { StatusMessage } from '@/components/status-message';
 import { useTokenColor } from '@/lib/theme';
 
-export function FamilyLabel({
+export function MembersLabel({
   client,
   familyId,
   editable,
-  plus = false,
 }: {
   client: BabbleClient;
   familyId: string;
   editable: boolean;
-  plus?: boolean;
 }) {
   const invites = useQuery({ ...pendingInvitesQuery(client, familyId), enabled: editable }).data;
   return (
     <View className="flex-row items-center gap-2">
-      <SectionLabel>{familyHeading(editable ? (invites?.length ?? 0) : 0)}</SectionLabel>
-      {plus && <PlusBadge />}
+      <SectionLabel>{membersHeading(editable ? (invites?.length ?? 0) : 0)}</SectionLabel>
     </View>
   );
 }

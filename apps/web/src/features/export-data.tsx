@@ -14,12 +14,22 @@ function downloadJson(fileName: string, data: unknown) {
   URL.revokeObjectURL(url);
 }
 
-export function ExportData({ client, family, baby }: { client: BabbleClient; family: Family; baby: BabyRow }) {
-  const [pending, setPending] = useState<'baby' | 'family' | null>(null);
+export function ExportData({
+  client,
+  family,
+  baby,
+  scope,
+}: {
+  client: BabbleClient;
+  family: Family;
+  baby: BabyRow;
+  scope: 'baby' | 'family';
+}) {
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function run(scope: 'baby' | 'family') {
-    setPending(scope);
+  async function run() {
+    setPending(true);
     setError(null);
     try {
       const ids = scope === 'baby' ? [baby.id] : family.babies.map((item) => item.id);
@@ -28,7 +38,7 @@ export function ExportData({ client, family, baby }: { client: BabbleClient; fam
     } catch {
       setError("Couldn't export. Check your connection and try again.");
     } finally {
-      setPending(null);
+      setPending(false);
     }
   }
 
@@ -37,31 +47,15 @@ export function ExportData({ client, family, baby }: { client: BabbleClient; fam
       <div>
         <h3 className="text-row-title font-semibold">Export data</h3>
         <p className="text-meta text-ink-2">
-          Download everything as a JSON file: profile, settings and every entry, including deleted ones.
+          {scope === 'baby'
+            ? 'Download everything as a JSON file: profile, settings and every entry, including deleted ones.'
+            : 'Every baby in the family in one JSON file, with family settings and every entry.'}
         </p>
       </div>
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          loading={pending === 'baby'}
-          disabled={pending !== null}
-          onClick={() => run('baby')}
-        >
-          {pending !== 'baby' && <Download className="size-4" strokeWidth={2.75} />}
-          Export {baby.name}
-        </Button>
-        {family.babies.length > 1 && (
-          <Button
-            variant="secondary"
-            loading={pending === 'family'}
-            disabled={pending !== null}
-            onClick={() => run('family')}
-          >
-            {pending !== 'family' && <Download className="size-4" strokeWidth={2.75} />}
-            Export whole family
-          </Button>
-        )}
-      </div>
+      <Button variant="secondary" className="self-start" loading={pending} onClick={run}>
+        {!pending && <Download className="size-4" strokeWidth={2.75} />}
+        {scope === 'baby' ? `Export ${baby.name}` : 'Export whole family'}
+      </Button>
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
     </Card>
   );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { familyHeading, inviteExpiryText, pendingInviteMeta } from './invites';
+import { membersHeading, inviteExpiryText, pendingInviteMeta } from './invites';
 
 const now = new Date('2026-10-09T09:00:00Z');
 
@@ -32,10 +32,10 @@ describe('pendingInviteMeta', () => {
   });
 });
 
-describe('familyHeading', () => {
+describe('membersHeading', () => {
   it.each([
-    [0, 'Family'],
-    [1, 'Family · 1 pending'],
-    [2, 'Family · 2 pending'],
-  ])('%i pending → %s', (count, expected) => expect(familyHeading(count)).toBe(expected));
+    [0, 'Members'],
+    [1, 'Members · 1 pending'],
+    [2, 'Members · 2 pending'],
+  ])('%i pending → %s', (count, expected) => expect(membersHeading(count)).toBe(expected));
 });

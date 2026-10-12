@@ -6,6 +6,7 @@ import { checkInvite, getBabySettings, getInstanceSettings, listFamilies, listPe
 export const queryKeys = {
   instanceSettings: ['instance-settings'] as const,
   families: ['families'] as const,
+  allBabySettings: ['baby-settings'] as const,
   babySettings: (babyId: string) => ['baby-settings', babyId] as const,
   invite: (code: string) => ['invite', code] as const,
   pendingInvites: (familyId: string) => ['pending-invites', familyId] as const,

@@ -5,7 +5,7 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { fixtureClient } from '#/fixtures/client';
-import { TrackingSettings } from './tracking-settings';
+import { BabyTrackingSettings, FamilyTrackingSettings } from './tracking-settings';
 
 const settings: BabySettingsRow = {
   baby_id: sampleBaby.id,
@@ -23,6 +23,7 @@ const settings: BabySettingsRow = {
 
 let current = settings;
 const updateBabySettings = vi.fn();
+const updateFamilySettings = vi.fn();
 vi.mock('@babble/api', async (importOriginal) => {
   const api = await importOriginal<typeof import('@babble/api')>();
   return {
@@ -32,15 +33,16 @@ vi.mock('@babble/api', async (importOriginal) => {
       queryFn: async () => current,
     }),
     updateBabySettings: (...args: unknown[]) => updateBabySettings(...args),
+    updateFamilySettings: (...args: unknown[]) => updateFamilySettings(...args),
   };
 });
 
-describe('TrackingSettings feed reminders', () => {
+describe('BabyTrackingSettings', () => {
   it('turns reminders on at the chosen interval', async () => {
     updateBabySettings.mockResolvedValue({ ...settings, feed_reminder_enabled: true, feed_reminder_interval_min: 150 });
     render(
       <QueryClientProvider client={new QueryClient()}>
-        <TrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
+        <BabyTrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
       </QueryClientProvider>,
     );
     expect(await screen.findByRole('checkbox', { name: 'Off', checked: true })).toBeInTheDocument();
@@ -57,7 +59,7 @@ describe('TrackingSettings feed reminders', () => {
     updateBabySettings.mockResolvedValue({ ...current, feed_reminder_at_night: false });
     render(
       <QueryClientProvider client={new QueryClient()}>
-        <TrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
+        <BabyTrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
       </QueryClientProvider>,
     );
     await userEvent.click(await screen.findByRole('radio', { name: 'Quiet' }));
@@ -72,12 +74,38 @@ describe('TrackingSettings feed reminders', () => {
     updateBabySettings.mockResolvedValue({ ...settings, nappy_prompt: 'first_side' });
     render(
       <QueryClientProvider client={new QueryClient()}>
-        <TrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
+        <BabyTrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
       </QueryClientProvider>,
     );
     expect(await screen.findByRole('checkbox', { name: 'When a feed starts', checked: true })).toBeInTheDocument();
     await userEvent.click(screen.getByRole('checkbox', { name: 'After the first side' }));
     expect(updateBabySettings).toHaveBeenLastCalledWith(fixtureClient, sampleBaby.id, { nappy_prompt: 'first_side' });
     expect(await screen.findByRole('checkbox', { name: 'After the first side', checked: true })).toBeInTheDocument();
+  });
+});
+
+describe('FamilyTrackingSettings', () => {
+  it('saves units for the whole family', async () => {
+    current = settings;
+    updateFamilySettings.mockResolvedValue({ family_id: 'family-1', units: 'imperial' });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <FamilyTrackingSettings client={fixtureClient} familyId="family-1" babyId={sampleBaby.id} disabled={false} />
+      </QueryClientProvider>,
+    );
+    await userEvent.click(await screen.findByRole('radio', { name: 'Imperial (oz, lb, in)' }));
+    expect(updateFamilySettings).toHaveBeenCalledWith(fixtureClient, 'family-1', { units: 'imperial' });
+    expect(updateBabySettings).not.toHaveBeenCalledWith(fixtureClient, sampleBaby.id, { units: 'imperial' });
+  });
+
+  it('leaves baby-only settings out', async () => {
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <FamilyTrackingSettings client={fixtureClient} familyId="family-1" babyId={sampleBaby.id} disabled={false} />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByText('Units and feeds')).toBeInTheDocument();
+    expect(screen.queryByText('Feed reminders')).toBeNull();
+    expect(screen.queryByLabelText('Night starts')).toBeNull();
   });
 });

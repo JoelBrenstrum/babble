@@ -7,12 +7,14 @@ import {
   checkInvite,
   createFamily,
   createInvite,
+  getBabySettings,
   getInstanceSettings,
   listFamilies,
   listPendingInvites,
   removeMember,
   renameMember,
   revokeInvite,
+  updateFamilySettings,
 } from './families';
 import { fakeClient } from './test-utils';
 
@@ -239,5 +241,48 @@ describe('pending invites', () => {
   it('surfaces a failed revoke', async () => {
     const { client } = fakeClient(() => ({ status: 403, body: { code: '42501', message: 'permission denied' } }));
     await expect(revokeInvite(client, 'invite-1')).rejects.toBeInstanceOf(BabbleError);
+  });
+});
+
+describe('settings', () => {
+  const babyRow = {
+    baby_id: 'baby-1',
+    units: 'metric',
+    downtime_merge_threshold_sec: 15,
+    auto_end_paused_session_min: 30,
+    night_start_minutes: 1140,
+  };
+
+  it('reads baby settings with units and feed rules from the family', async () => {
+    const family = {
+      family_id: 'family-1',
+      units: 'imperial',
+      downtime_merge_threshold_sec: 40,
+      auto_end_paused_session_min: 60,
+    };
+    const { client, requests } = fakeClient(() => ({
+      body: { ...babyRow, babies: { families: { family_settings: family } } },
+    }));
+    expect(await getBabySettings(client, 'baby-1')).toEqual({
+      ...babyRow,
+      units: 'imperial',
+      downtime_merge_threshold_sec: 40,
+      auto_end_paused_session_min: 60,
+    });
+    expect(requests[0]!.url.searchParams.get('select')).toBe('*,babies(families(family_settings(*)))');
+  });
+
+  it('falls back to the baby row when the family settings are missing', async () => {
+    const { client } = fakeClient(() => ({ body: { ...babyRow, babies: null } }));
+    expect(await getBabySettings(client, 'baby-1')).toEqual(babyRow);
+  });
+
+  it('updates family settings', async () => {
+    const { client, requests } = fakeClient(() => ({ body: { family_id: 'family-1', units: 'imperial' } }));
+    await updateFamilySettings(client, 'family-1', { units: 'imperial' });
+    expect(requests[0]!.method).toBe('PATCH');
+    expect(requests[0]!.url.pathname).toBe('/rest/v1/family_settings');
+    expect(requests[0]!.url.searchParams.get('family_id')).toBe('eq.family-1');
+    expect(requests[0]!.body).toEqual({ units: 'imperial' });
   });
 });

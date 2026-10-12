@@ -17,7 +17,7 @@ const AVATAR_TONES = [
   ['bg-growth', 'text-ink-on-solid'],
 ] as const;
 
-function BabyAvatar({ name, index, small = false }: { name: string; index: number; small?: boolean }) {
+export function BabyAvatar({ name, index, small = false }: { name: string; index: number; small?: boolean }) {
   const [bg, fg] = AVATAR_TONES[Math.max(0, index) % AVATAR_TONES.length]!;
   return (
     <View className={`items-center justify-center rounded-full ${small ? 'size-9' : 'size-11'} ${bg}`}>
@@ -41,9 +41,7 @@ export function BabyHeader({
 }) {
   const [open, setOpen] = useState(false);
   const [pitching, setPitching] = useState(false);
-  const muted = useTokenColor('--ink-2');
   const chevron = useTokenColor('--ink-2');
-  const check = useTokenColor('--primary');
   const index = choices.findIndex((choice) => choice.baby.id === baby.id);
   const age = babyAgeLabel(baby.birth_date, todayInTimeZone(baby.timezone));
   const close = () => {
@@ -83,65 +81,99 @@ export function BabyHeader({
           ) : (
             <>
               <Text className="mb-2 px-2 font-bold text-heading text-ink">Switch baby</Text>
-              {choices.map((choice, choiceIndex) => {
-                const selected = choice.baby.id === baby.id;
-                return (
-                  <Pressable
-                    key={choice.baby.id}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: selected }}
-                    accessibilityLabel={choice.baby.name}
-                    onPress={() => {
-                      close();
-                      if (!selected) onSelect?.(choice);
-                    }}
-                    className="min-h-tap-lg flex-row items-center gap-3 rounded-button px-2 py-2 active:bg-surface"
-                  >
-                    <BabyAvatar name={choice.baby.name} index={choiceIndex} small />
-                    <View className="flex-1">
-                      <Text className="font-semibold text-body text-ink">{choice.baby.name}</Text>
-                      <Text className="font-sans text-meta text-ink-2">
-                        {`${babyAgeLabel(choice.baby.birth_date, todayInTimeZone(choice.baby.timezone))}${
-                          new Set(choices.map((c) => c.familyId)).size > 1 ? ` · ${choice.familyName}` : ''
-                        }`}
-                      </Text>
-                    </View>
-                    {selected && <Check size={20} color={check} strokeWidth={3} />}
-                  </Pressable>
-                );
-              })}
-              {addBabyLocked ? (
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Add a baby, Babble Plus"
-                  onPress={() => setPitching(true)}
-                  className="mt-1 min-h-tap-lg flex-row items-center gap-3 border-t border-line px-2 pt-3"
-                >
-                  <View className="size-9 items-center justify-center rounded-full border-2 border-dashed border-line-strong">
-                    <Lock size={16} color={muted} strokeWidth={2.75} />
-                  </View>
-                  <Text className="flex-1 font-semibold text-body text-ink-2">Add a baby</Text>
-                  <PlusBadge />
-                </Pressable>
-              ) : (
-                <Pressable
-                  accessibilityRole="button"
-                  onPress={() => {
-                    setOpen(false);
-                    router.push({ pathname: '/onboarding/baby', params: { mode: 'add' } });
-                  }}
-                  className="mt-1 min-h-tap-lg flex-row items-center gap-3 border-t border-line px-2 pt-3"
-                >
-                  <View className="size-9 items-center justify-center rounded-full border-2 border-dashed border-primary">
-                    <Plus size={16} color={check} strokeWidth={3} />
-                  </View>
-                  <Text className="font-semibold text-body text-primary">Add a baby</Text>
-                </Pressable>
-              )}
+              <BabyChoiceList
+                choices={choices}
+                activeId={baby.id}
+                addBabyLocked={addBabyLocked}
+                onSelect={(choice) => {
+                  close();
+                  onSelect?.(choice);
+                }}
+                onAdd={() => setOpen(false)}
+                onPitch={() => setPitching(true)}
+              />
             </>
           )}
         </SafeAreaView>
       </Modal>
+    </View>
+  );
+}
+
+export function BabyChoiceList({
+  choices,
+  activeId,
+  addBabyLocked,
+  onSelect,
+  onAdd,
+  onPitch,
+}: {
+  choices: readonly BabyChoice[];
+  activeId: string;
+  addBabyLocked: boolean;
+  onSelect: (choice: BabyChoice) => void;
+  onAdd?: () => void;
+  onPitch: () => void;
+}) {
+  const muted = useTokenColor('--ink-2');
+  const check = useTokenColor('--primary');
+  const multipleFamilies = new Set(choices.map((choice) => choice.familyId)).size > 1;
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel="Baby">
+      {choices.map((choice, choiceIndex) => {
+        const selected = choice.baby.id === activeId;
+        return (
+          <Pressable
+            key={choice.baby.id}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selected }}
+            accessibilityLabel={choice.baby.name}
+            onPress={() => !selected && onSelect(choice)}
+            className={`min-h-tap-lg flex-row items-center gap-3 rounded-button px-2 py-2 ${
+              selected ? 'bg-primary-soft' : 'active:bg-surface'
+            }`}
+          >
+            <BabyAvatar name={choice.baby.name} index={choiceIndex} small />
+            <View className="flex-1">
+              <Text className="font-semibold text-body text-ink">{choice.baby.name}</Text>
+              <Text className="font-sans text-meta text-ink-2">
+                {`${babyAgeLabel(choice.baby.birth_date, todayInTimeZone(choice.baby.timezone))}${
+                  multipleFamilies ? ` · ${choice.familyName}` : ''
+                }`}
+              </Text>
+            </View>
+            {selected && <Check size={20} color={check} strokeWidth={3} />}
+          </Pressable>
+        );
+      })}
+      {addBabyLocked ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add a baby, Babble Plus"
+          onPress={onPitch}
+          className="mt-1 min-h-tap-lg flex-row items-center gap-3 border-t border-line px-2 pt-3"
+        >
+          <View className="size-9 items-center justify-center rounded-full border-2 border-dashed border-line-strong">
+            <Lock size={16} color={muted} strokeWidth={2.75} />
+          </View>
+          <Text className="flex-1 font-semibold text-body text-ink-2">Add a baby</Text>
+          <PlusBadge />
+        </Pressable>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => {
+            onAdd?.();
+            router.push({ pathname: '/onboarding/baby', params: { mode: 'add' } });
+          }}
+          className="mt-1 min-h-tap-lg flex-row items-center gap-3 border-t border-line px-2 pt-3"
+        >
+          <View className="size-9 items-center justify-center rounded-full border-2 border-dashed border-primary">
+            <Plus size={16} color={check} strokeWidth={3} />
+          </View>
+          <Text className="font-semibold text-body text-primary">Add a baby</Text>
+        </Pressable>
+      )}
     </View>
   );
 }

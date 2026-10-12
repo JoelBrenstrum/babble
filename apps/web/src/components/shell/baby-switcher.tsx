@@ -142,38 +142,49 @@ export function BabySwitcher({
             })}
           </ul>
           <div className="mt-1 border-t border-line pt-1">
-            {addBabyLocked ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  setPitching(true);
-                }}
-                className="flex min-h-tap w-full items-center gap-3 rounded-button px-3 py-2 text-left text-body font-semibold text-ink-2 hover:bg-surface"
-              >
-                <span className="grid size-8 place-items-center rounded-full border-2 border-dashed border-line-strong">
-                  <Lock className="size-4" strokeWidth={2.75} />
-                </span>
-                <span className="flex-1">Add a baby</span>
-                <PlusBadge />
-              </button>
-            ) : (
-              <Link
-                to="/onboarding/baby"
-                search={{ mode: 'add' }}
-                onClick={() => setOpen(false)}
-                className="flex min-h-tap items-center gap-3 rounded-button px-3 py-2 text-body font-semibold text-primary hover:bg-surface"
-              >
-                <span className="grid size-8 place-items-center rounded-full border-2 border-dashed border-primary/60">
-                  <Plus className="size-4" strokeWidth={3} />
-                </span>
-                Add a baby
-              </Link>
-            )}
+            <AddBabyRow
+              locked={addBabyLocked}
+              onAdd={() => setOpen(false)}
+              onPitch={() => {
+                setOpen(false);
+                setPitching(true);
+              }}
+            />
           </div>
         </div>
       )}
       {pitching && <PlusDialog feature="multiple_babies" onClose={() => setPitching(false)} />}
     </div>
+  );
+}
+
+export function AddBabyRow({ locked, onAdd, onPitch }: { locked: boolean; onAdd?: () => void; onPitch: () => void }) {
+  if (!locked) {
+    return (
+      <Link
+        to="/onboarding/baby"
+        search={{ mode: 'add' }}
+        onClick={onAdd}
+        className="flex min-h-tap items-center gap-3 rounded-button px-3 py-2 text-body font-semibold text-primary hover:bg-surface"
+      >
+        <span className="grid size-8 place-items-center rounded-full border-2 border-dashed border-primary/60">
+          <Plus className="size-4" strokeWidth={3} />
+        </span>
+        Add a baby
+      </Link>
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onPitch}
+      className="flex min-h-tap w-full items-center gap-3 rounded-button px-3 py-2 text-left text-body font-semibold text-ink-2 hover:bg-surface"
+    >
+      <span className="grid size-8 place-items-center rounded-full border-2 border-dashed border-line-strong">
+        <Lock className="size-4" strokeWidth={2.75} />
+      </span>
+      <span className="flex-1">Add a baby</span>
+      <PlusBadge />
+    </button>
   );
 }

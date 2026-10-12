@@ -2,7 +2,7 @@ import { clock, exportData, exportFileName, type BabbleClient, type BabyRow, typ
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
-import { Text, View } from 'react-native';
+import { Text } from 'react-native';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { StatusMessage } from '@/components/status-message';
@@ -14,12 +14,22 @@ async function shareJson(fileName: string, data: unknown) {
   await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json', dialogTitle: fileName });
 }
 
-export function ExportData({ client, family, baby }: { client: BabbleClient; family: Family; baby: BabyRow }) {
-  const [pending, setPending] = useState<'baby' | 'family' | null>(null);
+export function ExportData({
+  client,
+  family,
+  baby,
+  scope,
+}: {
+  client: BabbleClient;
+  family: Family;
+  baby: BabyRow;
+  scope: 'baby' | 'family';
+}) {
+  const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function run(scope: 'baby' | 'family') {
-    setPending(scope);
+  async function run() {
+    setPending(true);
     setError(null);
     try {
       const ids = scope === 'baby' ? [baby.id] : family.babies.map((item) => item.id);
@@ -28,7 +38,7 @@ export function ExportData({ client, family, baby }: { client: BabbleClient; fam
     } catch {
       setError("Couldn't export. Check your connection and try again.");
     } finally {
-      setPending(null);
+      setPending(false);
     }
   }
 
@@ -36,28 +46,13 @@ export function ExportData({ client, family, baby }: { client: BabbleClient; fam
     <Card className="gap-3 p-5">
       <Text className="font-semibold text-row-title text-ink">Export data</Text>
       <Text className="font-sans text-meta text-ink-2">
-        Save everything as a JSON file: profile, settings and every entry, including deleted ones.
+        {scope === 'baby'
+          ? 'Save everything as a JSON file: profile, settings and every entry, including deleted ones.'
+          : 'Every baby in the family in one JSON file, with family settings and every entry.'}
       </Text>
-      <View className="gap-2">
-        <Button
-          variant="secondary"
-          loading={pending === 'baby'}
-          disabled={pending !== null}
-          onPress={() => void run('baby')}
-        >
-          {`Export ${baby.name}`}
-        </Button>
-        {family.babies.length > 1 && (
-          <Button
-            variant="secondary"
-            loading={pending === 'family'}
-            disabled={pending !== null}
-            onPress={() => void run('family')}
-          >
-            Export whole family
-          </Button>
-        )}
-      </View>
+      <Button variant="secondary" loading={pending} onPress={() => void run()}>
+        {scope === 'baby' ? `Export ${baby.name}` : 'Export whole family'}
+      </Button>
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
     </Card>
   );

@@ -23,7 +23,7 @@ jest.mock('expo-file-system', () => ({
 describe('ExportData', () => {
   it('writes the export to a file and opens the share sheet', async () => {
     mockExportData.mockResolvedValue({ format: 'babble-export', version: 1, exportedAt: '2026-10-08T09:00:00.000Z' });
-    await render(<ExportData client={fixtureClient} family={sampleFamily} baby={sampleBaby} />);
+    await render(<ExportData client={fixtureClient} family={sampleFamily} baby={sampleBaby} scope="baby" />);
     await fireEvent.press(screen.getByRole('button', { name: `Export ${sampleBaby.name}` }));
     await waitFor(() =>
       expect(mockShare).toHaveBeenCalledWith(
@@ -37,9 +37,23 @@ describe('ExportData', () => {
 
   it('shows a friendly error when the export fails', async () => {
     mockExportData.mockRejectedValue(new Error('Network request failed'));
-    await render(<ExportData client={fixtureClient} family={sampleFamily} baby={sampleBaby} />);
+    await render(<ExportData client={fixtureClient} family={sampleFamily} baby={sampleBaby} scope="baby" />);
     await fireEvent.press(screen.getByRole('button', { name: `Export ${sampleBaby.name}` }));
     expect(await screen.findByText("Couldn't export. Check your connection and try again.")).toBeTruthy();
     expect(screen.queryByText(/Network request failed/)).toBeNull();
+  });
+
+  it('exports every baby in the family', async () => {
+    mockExportData.mockReset().mockResolvedValue({ exportedAt: '2026-10-08T09:00:00.000Z' });
+    await render(<ExportData client={fixtureClient} family={sampleFamily} baby={sampleBaby} scope="family" />);
+    await fireEvent.press(screen.getByRole('button', { name: 'Export whole family' }));
+    await waitFor(() =>
+      expect(mockExportData).toHaveBeenCalledWith(
+        fixtureClient,
+        sampleFamily,
+        sampleFamily.babies.map((baby) => baby.id),
+        expect.any(Date),
+      ),
+    );
   });
 });

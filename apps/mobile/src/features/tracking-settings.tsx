@@ -1,4 +1,14 @@
-import { babySettingsQuery, queryKeys, toBabbleError, updateBabySettings, type BabbleClient } from '@babble/api';
+import {
+  babySettingsQuery,
+  queryKeys,
+  toBabbleError,
+  updateBabySettings,
+  updateFamilySettings,
+  type BabbleClient,
+  type BabySettingsRow,
+  type BabySettingsUpdate,
+  type FamilySettings,
+} from '@babble/api';
 import {
   feedReminderChoice,
   feedReminderOptions,
@@ -12,13 +22,26 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
-import { Card, SectionLabel } from '@/components/card';
+import { Card } from '@/components/card';
 import { SingleChips } from '@/components/chips';
 import { Segmented } from '@/components/segmented';
 import { StatusMessage } from '@/components/status-message';
 import { Stepper } from '@/components/stepper';
 
-export function TrackingSettings({
+function useSaveError() {
+  const [error, setError] = useState<string | null>(null);
+  async function attempt(action: () => Promise<void>) {
+    setError(null);
+    try {
+      await action();
+    } catch (caught) {
+      setError(toBabbleError(caught).message);
+    }
+  }
+  return { error, attempt };
+}
+
+export function BabyTrackingSettings({
   client,
   babyId,
   disabled,
@@ -29,127 +52,152 @@ export function TrackingSettings({
 }) {
   const queryClient = useQueryClient();
   const settings = useQuery(babySettingsQuery(client, babyId)).data;
-  const [error, setError] = useState<string | null>(null);
+  const { error, attempt } = useSaveError();
 
-  async function save(patch: Parameters<typeof updateBabySettings>[2]) {
-    setError(null);
-    try {
-      const next = await updateBabySettings(client, babyId, patch);
-      queryClient.setQueryData(queryKeys.babySettings(babyId), next);
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    }
-  }
+  const save = (patch: BabySettingsUpdate) =>
+    attempt(async () => {
+      queryClient.setQueryData(queryKeys.babySettings(babyId), await updateBabySettings(client, babyId, patch));
+    });
 
   if (!settings) return null;
 
   return (
-    <View className="gap-3">
-      <SectionLabel>Tracking</SectionLabel>
-      <Card className={`gap-6 p-5 ${disabled ? 'opacity-60' : ''}`} pointerEvents={disabled ? 'none' : 'auto'}>
+    <Card className={`gap-6 p-5 ${disabled ? 'opacity-60' : ''}`} pointerEvents={disabled ? 'none' : 'auto'}>
+      <Text className="font-semibold text-row-title text-ink">Reminders and night</Text>
+      <View className="gap-1">
+        <SingleChips
+          label="Feed reminders"
+          options={feedReminderOptions(settings)}
+          value={feedReminderChoice(settings)}
+          onChange={(choice) => choice !== null && save(feedReminderPatch(choice))}
+        />
+        <Text className="font-sans text-meta text-ink-2">
+          Home shows when the next feed is due, counted from the start of the last feed.
+        </Text>
+      </View>
+      {settings.feed_reminder_enabled && (
         <View className="gap-2">
-          <Text className="font-semibold text-label text-ink">Units</Text>
-          <Segmented<Units>
-            value={settings.units}
-            onChange={(units) => save({ units })}
+          <Text className="font-semibold text-label text-ink">At night</Text>
+          <Segmented<'remind' | 'quiet'>
+            value={settings.feed_reminder_at_night ? 'remind' : 'quiet'}
+            onChange={(choice) => save({ feed_reminder_at_night: choice === 'remind' })}
             options={[
-              { value: 'metric', label: 'Metric' },
-              { value: 'imperial', label: 'Imperial' },
+              { value: 'remind', label: 'Remind' },
+              { value: 'quiet', label: 'Quiet' },
             ]}
           />
+          <Text className="font-sans text-meta text-ink-2">Quiet hides feed reminders during the night set below.</Text>
         </View>
-        <View className="gap-1">
-          <SingleChips
-            label="Feed reminders"
-            options={feedReminderOptions(settings)}
-            value={feedReminderChoice(settings)}
-            onChange={(choice) => choice !== null && save(feedReminderPatch(choice))}
+      )}
+      <View className="gap-1">
+        <SingleChips<NappyPromptTiming>
+          label="Ask about a nappy"
+          options={(Object.keys(NAPPY_PROMPT_LABELS) as NappyPromptTiming[]).map((value) => ({
+            value,
+            label: NAPPY_PROMPT_LABELS[value],
+          }))}
+          value={settings.nappy_prompt}
+          onChange={(nappy_prompt) => nappy_prompt !== null && save({ nappy_prompt })}
+        />
+        <Text className="font-sans text-meta text-ink-2">
+          When to ask about a nappy change during a breastfeed. Bottles ask after saving.
+        </Text>
+      </View>
+      <View className="gap-2">
+        <Text className="font-semibold text-label text-ink">Night</Text>
+        <View className="flex-row items-center gap-3">
+          <Text className="font-sans text-meta text-ink-2">From</Text>
+          <TimeButton
+            label="Night starts"
+            minutes={settings.night_start_minutes}
+            onChange={(night_start_minutes) => save({ night_start_minutes })}
           />
-          <Text className="font-sans text-meta text-ink-2">
-            Home shows when the next feed is due, counted from the start of the last feed.
-          </Text>
-        </View>
-        {settings.feed_reminder_enabled && (
-          <View className="gap-2">
-            <Text className="font-semibold text-label text-ink">At night</Text>
-            <Segmented<'remind' | 'quiet'>
-              value={settings.feed_reminder_at_night ? 'remind' : 'quiet'}
-              onChange={(choice) => save({ feed_reminder_at_night: choice === 'remind' })}
-              options={[
-                { value: 'remind', label: 'Remind' },
-                { value: 'quiet', label: 'Quiet' },
-              ]}
-            />
-            <Text className="font-sans text-meta text-ink-2">
-              Quiet hides feed reminders during the night set below.
-            </Text>
-          </View>
-        )}
-        <View className="gap-1">
-          <SingleChips<NappyPromptTiming>
-            label="Ask about a nappy"
-            options={(Object.keys(NAPPY_PROMPT_LABELS) as NappyPromptTiming[]).map((value) => ({
-              value,
-              label: NAPPY_PROMPT_LABELS[value],
-            }))}
-            value={settings.nappy_prompt}
-            onChange={(nappy_prompt) => nappy_prompt !== null && save({ nappy_prompt })}
+          <Text className="font-sans text-meta text-ink-2">to</Text>
+          <TimeButton
+            label="Night ends"
+            minutes={settings.night_end_minutes}
+            onChange={(night_end_minutes) => save({ night_end_minutes })}
           />
-          <Text className="font-sans text-meta text-ink-2">
-            When to ask about a nappy change during a breastfeed. Bottles ask after saving.
-          </Text>
         </View>
-        <View className="gap-1">
-          <Stepper
-            label="Ignore gaps shorter than"
-            unit="sec"
-            step={5}
-            min={0}
-            max={300}
-            value={settings.downtime_merge_threshold_sec}
-            onChange={(value) => value !== null && save({ downtime_merge_threshold_sec: value })}
-          />
-          <Text className="font-sans text-meta text-ink-2">
-            Short pauses, like switching sides, won't show as downtime, and a side shorter than this is left out.
-          </Text>
-        </View>
-        <View className="gap-1">
-          <Stepper
-            label="Finish paused feeds after"
-            unit="min"
-            step={5}
-            min={5}
-            max={240}
-            value={settings.auto_end_paused_session_min}
-            onChange={(value) => value !== null && save({ auto_end_paused_session_min: value })}
-          />
-          <Text className="font-sans text-meta text-ink-2">
-            A paused feed or pump left this long is finished automatically.
-          </Text>
-        </View>
-        <View className="gap-2">
-          <Text className="font-semibold text-label text-ink">Night</Text>
-          <View className="flex-row items-center gap-3">
-            <Text className="font-sans text-meta text-ink-2">From</Text>
-            <TimeButton
-              label="Night starts"
-              minutes={settings.night_start_minutes}
-              onChange={(night_start_minutes) => save({ night_start_minutes })}
-            />
-            <Text className="font-sans text-meta text-ink-2">to</Text>
-            <TimeButton
-              label="Night ends"
-              minutes={settings.night_end_minutes}
-              onChange={(night_end_minutes) => save({ night_end_minutes })}
-            />
-          </View>
-          <Text className="font-sans text-meta text-ink-2">
-            Sleep in this window counts as night sleep; the rest are naps.
-          </Text>
-        </View>
-        {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-      </Card>
-    </View>
+        <Text className="font-sans text-meta text-ink-2">
+          Sleep in this window counts as night sleep; the rest are naps. Dark at night follows it too.
+        </Text>
+      </View>
+      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+    </Card>
+  );
+}
+
+export function FamilyTrackingSettings({
+  client,
+  familyId,
+  babyId,
+  disabled,
+}: {
+  client: BabbleClient;
+  familyId: string;
+  babyId: string;
+  disabled: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const settings = useQuery(babySettingsQuery(client, babyId)).data;
+  const { error, attempt } = useSaveError();
+
+  const save = (patch: Partial<FamilySettings>) =>
+    attempt(async () => {
+      await updateFamilySettings(client, familyId, patch);
+      queryClient.setQueryData<BabySettingsRow>(queryKeys.babySettings(babyId), (current) =>
+        current ? { ...current, ...patch } : current,
+      );
+      await queryClient.invalidateQueries({ queryKey: queryKeys.allBabySettings });
+    });
+
+  if (!settings) return null;
+
+  return (
+    <Card className={`gap-6 p-5 ${disabled ? 'opacity-60' : ''}`} pointerEvents={disabled ? 'none' : 'auto'}>
+      <Text className="font-semibold text-row-title text-ink">Units and feeds</Text>
+      <View className="gap-2">
+        <Text className="font-semibold text-label text-ink">Units</Text>
+        <Segmented<Units>
+          value={settings.units}
+          onChange={(units) => save({ units })}
+          options={[
+            { value: 'metric', label: 'Metric' },
+            { value: 'imperial', label: 'Imperial' },
+          ]}
+        />
+      </View>
+      <View className="gap-1">
+        <Stepper
+          label="Ignore gaps shorter than"
+          unit="sec"
+          step={5}
+          min={0}
+          max={300}
+          value={settings.downtime_merge_threshold_sec}
+          onChange={(value) => value !== null && save({ downtime_merge_threshold_sec: value })}
+        />
+        <Text className="font-sans text-meta text-ink-2">
+          Short pauses, like switching sides, won't show as downtime, and a side shorter than this is left out.
+        </Text>
+      </View>
+      <View className="gap-1">
+        <Stepper
+          label="Finish paused feeds after"
+          unit="min"
+          step={5}
+          min={5}
+          max={240}
+          value={settings.auto_end_paused_session_min}
+          onChange={(value) => value !== null && save({ auto_end_paused_session_min: value })}
+        />
+        <Text className="font-sans text-meta text-ink-2">
+          A paused feed or pump left this long is finished automatically.
+        </Text>
+      </View>
+      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+    </Card>
   );
 }
 

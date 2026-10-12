@@ -311,6 +311,38 @@ export type Database = {
           },
         ];
       };
+      family_settings: {
+        Row: {
+          auto_end_paused_session_min: number;
+          downtime_merge_threshold_sec: number;
+          family_id: string;
+          units: Database['public']['Enums']['units'];
+          updated_at: string;
+        };
+        Insert: {
+          auto_end_paused_session_min?: number;
+          downtime_merge_threshold_sec?: number;
+          family_id: string;
+          units?: Database['public']['Enums']['units'];
+          updated_at?: string;
+        };
+        Update: {
+          auto_end_paused_session_min?: number;
+          downtime_merge_threshold_sec?: number;
+          family_id?: string;
+          units?: Database['public']['Enums']['units'];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'family_settings_family_id_fkey';
+            columns: ['family_id'];
+            isOneToOne: true;
+            referencedRelation: 'families';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       growth_details: {
         Row: {
           event_id: string;

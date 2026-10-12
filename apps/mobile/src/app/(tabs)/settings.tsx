@@ -9,14 +9,16 @@ import {
   type BabyRow,
   type Family,
 } from '@babble/api';
-import { canInviteCarer, planSummary } from '@babble/config';
+import { canAddBaby, canInviteCarer, planSummary } from '@babble/config';
+import { settingsGroups, type SettingsGroup } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Lock } from 'lucide-react-native';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
-import { Card, SectionLabel } from '@/components/card';
+import { BabyChoiceList } from '@/components/baby-header';
+import { Card } from '@/components/card';
 import { PlusBadge, PlusDialog } from '@/components/plus';
 import { Screen } from '@/components/screen';
 import { StatusMessage } from '@/components/status-message';
@@ -25,8 +27,8 @@ import { DateField } from '@/features/date-field';
 import { DayStartPicker } from '@/features/day-start-picker';
 import { FamilyMembers } from '@/features/family-members';
 import { InvitePanel } from '@/features/invite-panel';
-import { FamilyLabel, PendingInvites, useCreateInvite } from '@/features/pending-invites';
-import { TrackingSettings } from '@/features/tracking-settings';
+import { MembersLabel, PendingInvites, useCreateInvite } from '@/features/pending-invites';
+import { BabyTrackingSettings, FamilyTrackingSettings } from '@/features/tracking-settings';
 import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
 import { ExportData } from '@/features/export-data';
@@ -35,32 +37,85 @@ import { AppearanceSettings } from '@/features/appearance-settings';
 import { AboutSection } from '@/features/legal-links';
 import { useBabble } from '@/lib/babble';
 import { useThemePreference, useTokenColor } from '@/lib/theme';
-import { useReadyState } from '@/lib/use-onboarding';
+import { useOnboarding, useReadyState } from '@/lib/use-onboarding';
+import { useActiveBaby } from '@/lib/active-baby';
 
 export default function SettingsTab() {
   const ready = useReadyState();
+  const { choices } = useOnboarding();
+  const active = useActiveBaby();
+  const [pitching, setPitching] = useState(false);
   const { session, client, config } = useBabble();
   if (!ready || !session) return null;
-  const editable = canEdit(ready.family, session.user.id);
-  const plan = planSummary(config.billingEnabled, ready.family.plan);
+  const { family, baby } = ready;
+  const editable = canEdit(family, session.user.id);
+  const plan = planSummary(config.billingEnabled, family.plan);
+  const [babyGroup, familyGroup, deviceGroup, accountGroup] = settingsGroups(baby.name, family.name) as [
+    SettingsGroup,
+    SettingsGroup,
+    SettingsGroup,
+    SettingsGroup,
+  ];
 
   return (
     <Screen edges={['top']}>
       <Text className="mb-6 font-bold text-title text-ink">Settings</Text>
-      <View className="gap-8">
-        <BabySection baby={ready.baby} disabled={!editable} />
-        <CaregiversSection family={ready.family} userId={session.user.id} editable={editable} />
-        {plan && <PlusPlan summary={plan} />}
-        <TrackingSettings client={client} babyId={ready.baby.id} disabled={!editable} />
-        <View className="gap-3">
-          <SectionLabel>Data</SectionLabel>
-          <ExportData client={client} family={ready.family} baby={ready.baby} />
-        </View>
-        <AppearanceSection babyName={ready.baby.name} />
-        <AccountSection email={session.user.email ?? ''} />
-        <AboutSection publicUrl={config.publicUrl} />
+      <View className="gap-10">
+        <SettingsGroupSection group={babyGroup}>
+          <Card className="p-2">
+            <BabyChoiceList
+              choices={choices}
+              activeId={baby.id}
+              addBabyLocked={!canAddBaby(config.billingEnabled, family.plan, family.babies.length)}
+              onSelect={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}
+              onPitch={() => setPitching(true)}
+            />
+          </Card>
+          <BabySection key={baby.id} baby={baby} disabled={!editable} />
+          <BabyTrackingSettings client={client} babyId={baby.id} disabled={!editable} />
+          <ExportData client={client} family={family} baby={baby} scope="baby" />
+        </SettingsGroupSection>
+        <SettingsGroupSection group={familyGroup} plus={plan?.plus ?? false}>
+          <MembersSection family={family} userId={session.user.id} editable={editable} />
+          {plan && <PlusPlan summary={plan} />}
+          <FamilyTrackingSettings client={client} familyId={family.id} babyId={baby.id} disabled={!editable} />
+          {family.babies.length > 1 && <ExportData client={client} family={family} baby={baby} scope="family" />}
+        </SettingsGroupSection>
+        <SettingsGroupSection group={deviceGroup}>
+          <AppearanceSection babyName={baby.name} />
+        </SettingsGroupSection>
+        <SettingsGroupSection group={accountGroup}>
+          <AccountSection email={session.user.email ?? ''} />
+          <AboutSection publicUrl={config.publicUrl} />
+        </SettingsGroupSection>
       </View>
+      <PlusDialog feature={pitching ? 'multiple_babies' : null} onClose={() => setPitching(false)} />
     </Screen>
+  );
+}
+
+function SettingsGroupSection({
+  group,
+  plus = false,
+  children,
+}: {
+  group: SettingsGroup;
+  plus?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <View className="gap-4">
+      <View>
+        <View className="flex-row items-center gap-2">
+          <Text accessibilityRole="header" className="font-bold text-heading text-ink">
+            {group.title}
+          </Text>
+          {plus && <PlusBadge />}
+        </View>
+        <Text className="font-sans text-meta text-ink-2">{group.description}</Text>
+      </View>
+      {children}
+    </View>
   );
 }
 
@@ -92,29 +147,27 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
   }
 
   return (
-    <View className="gap-3">
-      <SectionLabel>Baby</SectionLabel>
-      <Card className={`gap-5 p-5 ${disabled ? 'opacity-60' : ''}`} pointerEvents={disabled ? 'none' : 'auto'}>
-        <TextField label="Name" value={name} onChangeText={setName} />
-        <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={new Date()} />
-        <SexField value={sex} onChange={setSex} />
-        <TimezoneField value={timezone} onChange={setTimezone} />
-        <View className="gap-2">
-          <Text className="font-semibold text-label text-ink">Day starts at</Text>
-          <DayStartPicker value={dayStart} onChange={setDayStart} />
-        </View>
-        {status && <StatusMessage tone={status.tone}>{status.text}</StatusMessage>}
-        {!disabled && (
-          <Button onPress={save} disabled={!name.trim()}>
-            Save changes
-          </Button>
-        )}
-      </Card>
-    </View>
+    <Card className={`gap-5 p-5 ${disabled ? 'opacity-60' : ''}`} pointerEvents={disabled ? 'none' : 'auto'}>
+      <Text className="font-semibold text-row-title text-ink">Profile</Text>
+      <TextField label="Name" value={name} onChangeText={setName} />
+      <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={new Date()} />
+      <SexField value={sex} onChange={setSex} />
+      <TimezoneField value={timezone} onChange={setTimezone} />
+      <View className="gap-2">
+        <Text className="font-semibold text-label text-ink">Day starts at</Text>
+        <DayStartPicker value={dayStart} onChange={setDayStart} />
+      </View>
+      {status && <StatusMessage tone={status.tone}>{status.text}</StatusMessage>}
+      {!disabled && (
+        <Button onPress={save} disabled={!name.trim()}>
+          Save changes
+        </Button>
+      )}
+    </Card>
   );
 }
 
-function CaregiversSection({ family, userId, editable }: { family: Family; userId: string; editable: boolean }) {
+function MembersSection({ family, userId, editable }: { family: Family; userId: string; editable: boolean }) {
   const { client, config } = useBabble();
   const queryClient = useQueryClient();
   const [inviting, setInviting] = useState(false);
@@ -125,12 +178,7 @@ function CaregiversSection({ family, userId, editable }: { family: Family; userI
   const muted = useTokenColor('--ink-2');
   return (
     <View className="gap-3">
-      <FamilyLabel
-        client={client}
-        familyId={family.id}
-        editable={editable}
-        plus={planSummary(config.billingEnabled, family.plan)?.plus ?? false}
-      />
+      <MembersLabel client={client} familyId={family.id} editable={editable} />
       <FamilyMembers
         client={client}
         family={family}
@@ -186,43 +234,40 @@ function AccountSection({ email }: { email: string }) {
   }
 
   return (
-    <View className="gap-3">
-      <SectionLabel>Account</SectionLabel>
-      <Card className="gap-4 p-5">
-        <Text className="font-sans text-body text-ink-2">{`Signed in as ${email}`}</Text>
-        <Button variant="secondary" onPress={() => leave(() => signOut(client))}>
-          Sign out
-        </Button>
-        {confirming ? (
-          <View className="gap-4 rounded-tile bg-danger-soft p-4">
-            <Text className="font-sans text-meta text-on-danger">
-              You'll be signed out on every device and your login is removed. Your family keeps its records while
-              another member remains.
-            </Text>
-            <TextField
-              label="Type DELETE to confirm"
-              value={confirmText}
-              onChangeText={setConfirmText}
-              autoCapitalize="characters"
-            />
-            <Button
-              variant="destructive"
-              disabled={confirmText !== 'DELETE'}
-              onPress={() => leave(() => deleteMyAccount(client))}
-            >
-              Delete account
-            </Button>
-            <Button variant="ghost" onPress={() => setConfirming(false)}>
-              Cancel
-            </Button>
-          </View>
-        ) : (
-          <Button variant="ghost" onPress={() => setConfirming(true)}>
+    <Card className="gap-4 p-5">
+      <Text className="font-sans text-body text-ink-2">{`Signed in as ${email}`}</Text>
+      <Button variant="secondary" onPress={() => leave(() => signOut(client))}>
+        Sign out
+      </Button>
+      {confirming ? (
+        <View className="gap-4 rounded-tile bg-danger-soft p-4">
+          <Text className="font-sans text-meta text-on-danger">
+            You'll be signed out on every device and your login is removed. Your family keeps its records while another
+            member remains.
+          </Text>
+          <TextField
+            label="Type DELETE to confirm"
+            value={confirmText}
+            onChangeText={setConfirmText}
+            autoCapitalize="characters"
+          />
+          <Button
+            variant="destructive"
+            disabled={confirmText !== 'DELETE'}
+            onPress={() => leave(() => deleteMyAccount(client))}
+          >
             Delete account
           </Button>
-        )}
-        {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-      </Card>
-    </View>
+          <Button variant="ghost" onPress={() => setConfirming(false)}>
+            Cancel
+          </Button>
+        </View>
+      ) : (
+        <Button variant="ghost" onPress={() => setConfirming(true)}>
+          Delete account
+        </Button>
+      )}
+      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+    </Card>
   );
 }

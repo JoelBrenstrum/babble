@@ -8,8 +8,13 @@ export type Units = PublicSchema['Enums']['units'];
 export type FamilyRow = PublicSchema['Tables']['families']['Row'];
 export type FamilyMemberRow = PublicSchema['Tables']['family_members']['Row'];
 export type BabyRow = PublicSchema['Tables']['babies']['Row'];
+export type FamilySettingsRow = PublicSchema['Tables']['family_settings']['Row'];
+export type FamilySettings = Omit<FamilySettingsRow, 'family_id' | 'updated_at'>;
 export type BabySettingsRow = PublicSchema['Tables']['baby_settings']['Row'];
-export type BabySettingsUpdate = PublicSchema['Tables']['baby_settings']['Update'];
+export type BabySettingsUpdate = Omit<
+  PublicSchema['Tables']['baby_settings']['Update'],
+  'baby_id' | 'updated_at' | keyof FamilySettings
+>;
 
 export interface Family extends FamilyRow {
   members: FamilyMemberRow[];

@@ -23,6 +23,6 @@ export function pendingInviteMeta(
   return `${ROLE_LABELS[invite.role] ?? invite.role} · by ${creator} · ${inviteExpiryText(invite.expiresAt, now)}`;
 }
 
-export function familyHeading(pendingCount: number): string {
-  return pendingCount > 0 ? `Family · ${pendingCount} pending` : 'Family';
+export function membersHeading(pendingCount: number): string {
+  return pendingCount > 0 ? `Members · ${pendingCount} pending` : 'Members';
 }

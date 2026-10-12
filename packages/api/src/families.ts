@@ -6,6 +6,8 @@ import type {
   BabySettingsRow,
   BabySettingsUpdate,
   Family,
+  FamilySettings,
+  FamilySettingsRow,
   FamilyRole,
   InstanceSettings,
   Invite,
@@ -73,16 +75,48 @@ export async function updateBaby(
   return unwrap(await client.from('babies').update(patch).eq('id', babyId).select().single());
 }
 
+const BABY_SETTINGS_WITH_FAMILY = '*, babies(families(family_settings(*)))';
+
+type BabySettingsWithFamily = BabySettingsRow & {
+  babies: { families: { family_settings: FamilySettingsRow | null } | null } | null;
+};
+
+export function withFamilySettings(row: BabySettingsWithFamily): BabySettingsRow {
+  const { babies, ...settings } = row;
+  const family = babies?.families?.family_settings;
+  if (!family) return settings;
+  return {
+    ...settings,
+    units: family.units,
+    downtime_merge_threshold_sec: family.downtime_merge_threshold_sec,
+    auto_end_paused_session_min: family.auto_end_paused_session_min,
+  };
+}
+
 export async function getBabySettings(client: BabbleClient, babyId: string): Promise<BabySettingsRow> {
-  return unwrap(await client.from('baby_settings').select('*').eq('baby_id', babyId).single());
+  return withFamilySettings(
+    unwrap(await client.from('baby_settings').select(BABY_SETTINGS_WITH_FAMILY).eq('baby_id', babyId).single()),
+  );
 }
 
 export async function updateBabySettings(
   client: BabbleClient,
   babyId: string,
-  patch: Omit<BabySettingsUpdate, 'baby_id' | 'updated_at'>,
+  patch: BabySettingsUpdate,
 ): Promise<BabySettingsRow> {
-  return unwrap(await client.from('baby_settings').update(patch).eq('baby_id', babyId).select().single());
+  return withFamilySettings(
+    unwrap(
+      await client.from('baby_settings').update(patch).eq('baby_id', babyId).select(BABY_SETTINGS_WITH_FAMILY).single(),
+    ),
+  );
+}
+
+export async function updateFamilySettings(
+  client: BabbleClient,
+  familyId: string,
+  patch: Partial<FamilySettings>,
+): Promise<FamilySettingsRow> {
+  return unwrap(await client.from('family_settings').update(patch).eq('family_id', familyId).select().single());
 }
 
 export async function createInvite(
