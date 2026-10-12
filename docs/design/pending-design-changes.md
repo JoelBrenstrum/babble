@@ -271,3 +271,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > In `Chair Screen.dc.html`, the Feed ended state now stays up for 10 seconds (not 30); its footer counts down "Back to the start screen in 10s", 9s, 8s…
+
+---
+
+## 2026-10-12 · 24h moves from Stats to the Timeline
+
+Paste everything below this line into Claude Design.
+
+> Undo the 24h range on Stats (the picker is Today / 7d / 30d / All). Instead, the Timeline's view switch becomes Day / 24h / 7d (`Screen.dc.html` day/week, `Web.dc.html` timeline). 24h shows the same vertical day timeline and the same totals cards, but for the rolling last 24 hours: the header reads "Last 24 hours" with no date arrows, hour ticks fall on clock hours (e.g. 06, 09, 12…), and the now line sits at the end. Show it at 390px and 1280px, light and dark.

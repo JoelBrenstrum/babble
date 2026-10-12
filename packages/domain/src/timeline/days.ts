@@ -36,6 +36,29 @@ export function hourTicks(
   return ticks;
 }
 
+const QUARTER_HOUR = 15 * 60_000;
+
+export function lastDayWindow(now: Date): TimeWindow {
+  return { start: new Date(now.getTime() - 24 * 3_600_000), end: now };
+}
+
+export function windowTicks(
+  window: TimeWindow,
+  timeZone: string,
+  everyHours: number,
+): { frac: number; label: string }[] {
+  const parts = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone });
+  const ticks: { frac: number; label: string }[] = [];
+  const first = Math.ceil(window.start.getTime() / QUARTER_HOUR) * QUARTER_HOUR;
+  for (let instant = first; instant <= window.end.getTime(); instant += QUARTER_HOUR) {
+    const [hour, minute] = parts.format(new Date(instant)).split(':').map(Number);
+    if (minute === 0 && hour! % everyHours === 0) {
+      ticks.push({ frac: fractionOf(window, instant), label: String(hour).padStart(2, '0') });
+    }
+  }
+  return ticks;
+}
+
 export function nightIntervals(
   dayKey: string,
   timeZone: string,

@@ -1,12 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { setSignupMode } from './db';
-import { onboard, signIn, uniqueEmail } from './helpers';
+import { onboard, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 test('the timeline shows the day and the last 7 days and opens entries', async ({ page }, testInfo) => {
-  await signIn(page, uniqueEmail('john', testInfo.project.name));
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
   await onboard(page);
 
   for (const kind of ['Both', 'Wet', 'Dirty']) {
@@ -44,4 +44,21 @@ test('the timeline shows the day and the last 7 days and opens entries', async (
     .first()
     .click();
   await expect(page.getByRole('radio', { name: 'Day' })).toHaveAttribute('aria-checked', 'true');
+});
+
+test('the timeline shows the last 24 hours with totals for that window', async ({ page }, testInfo) => {
+  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
+  await onboard(page);
+  await page.getByRole('link', { name: 'Log nappy' }).click();
+  await page.getByRole('radio', { name: 'Wet' }).click();
+  await page.getByRole('button', { name: 'Save' }).click();
+
+  await page.goto('/timeline');
+  await page.getByRole('radio', { name: '24h' }).click();
+  await expect(page).toHaveURL(/view=24h/);
+  await expect(page.getByText('Last 24 hours')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Previous day' })).toHaveCount(0);
+  await expect(page.getByTestId('day-timeline')).toBeVisible();
+  await expect(page.getByText('Wet').first()).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('timeline-24h.png'), fullPage: true });
 });

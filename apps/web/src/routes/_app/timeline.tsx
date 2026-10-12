@@ -11,12 +11,14 @@ import {
   formatDayRange,
   fractionOf,
   hourTicks,
+  lastDayWindow,
   shiftDay,
   summariseDay,
   summariseWeek,
   lastDays,
   weekSummaryStrip,
   weekTableRows,
+  windowTicks,
   type DaySummary,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
@@ -31,12 +33,12 @@ import { cn } from '#/lib/cn';
 import { useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 
-type View = 'day' | '7d';
+type View = 'day' | '24h' | '7d';
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 export const Route = createFileRoute('/_app/timeline')({
   validateSearch: (search: Record<string, unknown>): { view?: View; date?: string } => ({
-    view: search.view === '7d' || search.view === 'day' ? search.view : undefined,
+    view: search.view === '7d' || search.view === 'day' || search.view === '24h' ? search.view : undefined,
     date: typeof search.date === 'string' && DAY_KEY.test(search.date) ? search.date : undefined,
   }),
   component: TimelinePage,
@@ -52,8 +54,15 @@ function TimelinePage() {
   const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
   const dayKey = date && date <= todayKey ? date : todayKey;
   const keys = view === 'day' ? [dayKey] : lastDays(dayKey, 7);
-  const from = dayWindow(keys[0]!, baby.timezone, baby.day_start_minutes).start.toISOString();
-  const to = dayWindow(keys.at(-1)!, baby.timezone, baby.day_start_minutes).end.toISOString();
+  const rolling = lastDayWindow(now);
+  const from =
+    view === '24h'
+      ? rolling.start.toISOString()
+      : dayWindow(keys[0]!, baby.timezone, baby.day_start_minutes).start.toISOString();
+  const to =
+    view === '24h'
+      ? rolling.end.toISOString()
+      : dayWindow(keys.at(-1)!, baby.timezone, baby.day_start_minutes).end.toISOString();
   const events = useQuery(eventsBetweenQuery(babble.client, baby.id, from, to));
 
   const step = view === 'day' ? 1 : 7;
@@ -79,6 +88,23 @@ function TimelinePage() {
     return { ...day, summary, layout: future ? null : dayLayout(day.events, day.window, now) };
   });
 
+  const lastDay =
+    view === '24h'
+      ? {
+          summary: summariseDay(events.data ?? [], rolling, {
+            now,
+            mergeGapMs: settings && settings.downtime_merge_threshold_sec * 1000,
+            night: settings && {
+              dayKey: todayKey,
+              timeZone: baby.timezone,
+              startMinutes: settings.night_start_minutes,
+              endMinutes: settings.night_end_minutes,
+            },
+          }),
+          layout: dayLayout(events.data ?? [], rolling, now),
+        }
+      : null;
+
   const counted = new Set(countedDays(keys, todayKey));
   const week = summariseWeek(days.flatMap((day) => (counted.has(day.dayKey) && day.summary ? [day.summary] : [])));
   const today = days[0]!;
@@ -87,47 +113,68 @@ function TimelinePage() {
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-title font-bold">Timeline</h1>
-        <div className="w-40">
+        <div className="w-56">
           <Segmented<View>
             label="Timeline view"
             value={view}
             onChange={(next) => void navigate({ search: { view: next, date } })}
             options={[
               { value: 'day', label: 'Day' },
+              { value: '24h', label: '24h' },
               { value: '7d', label: '7d' },
             ]}
           />
         </div>
       </div>
-      <div className="flex items-center justify-between">
-        <Link
-          to="/timeline"
-          search={{ view, date: previousKey }}
-          aria-label={view === 'day' ? 'Previous day' : 'Previous 7 days'}
-          className="grid size-tap place-items-center rounded-full bg-surface hover:bg-line"
-        >
-          <ChevronLeft className="size-5" strokeWidth={2.75} />
-        </Link>
-        <span className="text-row-title font-semibold" aria-live="polite">
-          {rangeLabel}
-        </span>
-        <Link
-          to="/timeline"
-          search={{ view, date: nextKey }}
-          aria-label={view === 'day' ? 'Next day' : 'Next 7 days'}
-          aria-disabled={!canGoNext}
-          tabIndex={canGoNext ? undefined : -1}
-          className={cn(
-            'grid size-tap place-items-center rounded-full bg-surface hover:bg-line',
-            !canGoNext && 'pointer-events-none opacity-40',
-          )}
-        >
-          <ChevronRight className="size-5" strokeWidth={2.75} />
-        </Link>
-      </div>
+      {view === '24h' ? (
+        <p className="flex min-h-tap items-center justify-center text-row-title font-semibold">Last 24 hours</p>
+      ) : (
+        <div className="flex items-center justify-between">
+          <Link
+            to="/timeline"
+            search={{ view, date: previousKey }}
+            aria-label={view === 'day' ? 'Previous day' : 'Previous 7 days'}
+            className="grid size-tap place-items-center rounded-full bg-surface hover:bg-line"
+          >
+            <ChevronLeft className="size-5" strokeWidth={2.75} />
+          </Link>
+          <span className="text-row-title font-semibold" aria-live="polite">
+            {rangeLabel}
+          </span>
+          <Link
+            to="/timeline"
+            search={{ view, date: nextKey }}
+            aria-label={view === 'day' ? 'Next day' : 'Next 7 days'}
+            aria-disabled={!canGoNext}
+            tabIndex={canGoNext ? undefined : -1}
+            className={cn(
+              'grid size-tap place-items-center rounded-full bg-surface hover:bg-line',
+              !canGoNext && 'pointer-events-none opacity-40',
+            )}
+          >
+            <ChevronRight className="size-5" strokeWidth={2.75} />
+          </Link>
+        </div>
+      )}
 
       {events.isPending ? (
         <PageSpinner />
+      ) : lastDay ? (
+        <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-start">
+          <div className="flex flex-col gap-4">
+            <div className="md:hidden">
+              <SummaryStrip items={daySummaryStrip(lastDay.summary)} />
+            </div>
+            <DayTimeline
+              layout={lastDay.layout}
+              ticks={windowTicks(rolling, baby.timezone, 3)}
+              timeZone={baby.timezone}
+              units={units}
+              nowFrac={1}
+            />
+          </div>
+          <DayTotals cards={dayTotalCards(lastDay.summary, units, baby.timezone)} />
+        </div>
       ) : view === 'day' ? (
         <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-start">
           <div className="flex flex-col gap-4">

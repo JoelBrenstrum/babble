@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hourTicks, lastDays, localInstant, nightIntervals } from './days';
+import { hourTicks, lastDays, lastDayWindow, localInstant, nightIntervals, windowTicks } from './days';
 
 describe('localInstant', () => {
   it('rolls minutes past midnight into the next day', () => {
@@ -47,5 +47,24 @@ describe('lastDays', () => {
       '2026-10-02',
       '2026-10-03',
     ]);
+  });
+});
+
+describe('the last 24 hours', () => {
+  const now = new Date('2026-10-08T14:20:00Z');
+
+  it('runs from 24 hours ago until now', () => {
+    expect(lastDayWindow(now)).toEqual({ start: new Date('2026-10-07T14:20:00Z'), end: now });
+  });
+
+  it('ticks on local clock hours inside the window', () => {
+    const ticks = windowTicks(lastDayWindow(now), 'Pacific/Auckland', 3);
+    expect(ticks.map((tick) => tick.label)).toEqual(['06', '09', '12', '15', '18', '21', '00', '03']);
+    expect(ticks[0]!.frac).toBeCloseTo(160 / 1440, 5);
+  });
+
+  it('handles half-hour time zones', () => {
+    const ticks = windowTicks(lastDayWindow(now), 'Asia/Kolkata', 6);
+    expect(ticks.map((tick) => tick.label)).toEqual(['00', '06', '12', '18']);
   });
 });

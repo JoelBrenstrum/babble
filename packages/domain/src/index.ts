@@ -77,7 +77,16 @@ export {
   type NightSettings,
   type WeekSummary,
 } from './events/day-summary';
-export { fractionOf, hourTicks, localInstant, nightIntervals, lastDays, type TimeWindow } from './timeline/days';
+export {
+  fractionOf,
+  hourTicks,
+  lastDayWindow,
+  localInstant,
+  nightIntervals,
+  lastDays,
+  windowTicks,
+  type TimeWindow,
+} from './timeline/days';
 export { bucketByDay, dayLayout, markerShiftPercent, type DayLayout, type TimelineItem } from './timeline/day-layout';
 export {
   countedDays,
@@ -172,7 +181,6 @@ export {
   gapsBetween,
   isStatsRange,
   rangeDays,
-  rollingStatsReport,
   STATS_RANGES,
   statsCaption,
   statsForRange,

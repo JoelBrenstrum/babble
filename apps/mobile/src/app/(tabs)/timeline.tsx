@@ -11,12 +11,14 @@ import {
   formatDayRange,
   fractionOf,
   hourTicks,
+  lastDayWindow,
   shiftDay,
   summariseDay,
   summariseWeek,
   lastDays,
   weekSummaryStrip,
   weekTableRows,
+  windowTicks,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
@@ -34,7 +36,7 @@ import { useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
 import { useReadyState } from '@/lib/use-onboarding';
 
-type View_ = 'day' | '7d';
+type View_ = 'day' | '24h' | '7d';
 
 export default function TimelineTab() {
   const ready = useReadyState();
@@ -54,8 +56,15 @@ function TimelineContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadySt
   const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
   const dayKey = date && date <= todayKey ? date : todayKey;
   const keys = view === 'day' ? [dayKey] : lastDays(dayKey, 7);
-  const from = dayWindow(keys[0]!, baby.timezone, baby.day_start_minutes).start.toISOString();
-  const to = dayWindow(keys.at(-1)!, baby.timezone, baby.day_start_minutes).end.toISOString();
+  const rolling = lastDayWindow(now);
+  const from =
+    view === '24h'
+      ? rolling.start.toISOString()
+      : dayWindow(keys[0]!, baby.timezone, baby.day_start_minutes).start.toISOString();
+  const to =
+    view === '24h'
+      ? rolling.end.toISOString()
+      : dayWindow(keys.at(-1)!, baby.timezone, baby.day_start_minutes).end.toISOString();
   const events = useQuery(eventsBetweenQuery(client, baby.id, from, to));
 
   const step = view === 'day' ? 1 : 7;
@@ -82,6 +91,22 @@ function TimelineContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadySt
           }),
     };
   });
+  const lastDay =
+    view === '24h'
+      ? {
+          summary: summariseDay(events.data ?? [], rolling, {
+            now,
+            mergeGapMs: settings && settings.downtime_merge_threshold_sec * 1000,
+            night: settings && {
+              dayKey: todayKey,
+              timeZone: baby.timezone,
+              startMinutes: settings.night_start_minutes,
+              endMinutes: settings.night_end_minutes,
+            },
+          }),
+          layout: dayLayout(events.data ?? [], rolling, now),
+        }
+      : null;
   const counted = new Set(countedDays(keys, todayKey));
   const week = summariseWeek(days.flatMap((day) => (counted.has(day.dayKey) && day.summary ? [day.summary] : [])));
   const today = days[0]!;
@@ -91,43 +116,61 @@ function TimelineContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadySt
       <View className="gap-4">
         <View className="flex-row items-center justify-between gap-4">
           <Text className="font-bold text-title text-ink">Timeline</Text>
-          <View className="w-40">
+          <View className="w-56">
             <Segmented<View_>
               value={view}
               onChange={setView}
               options={[
                 { value: 'day', label: 'Day' },
+                { value: '24h', label: '24h' },
                 { value: '7d', label: '7d' },
               ]}
             />
           </View>
         </View>
-        <View className="flex-row items-center justify-between">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={view === 'day' ? 'Previous day' : 'Previous 7 days'}
-            onPress={() => setDate(previousKey)}
-            className="h-11 w-11 items-center justify-center rounded-full bg-surface"
-          >
-            <ChevronLeft size={20} color={ink} strokeWidth={2.75} />
-          </Pressable>
-          <Text className="font-semibold text-row-title text-ink">
-            {view === 'day' ? formatDayLabel(dayKey, todayKey) : formatDayRange(keys)}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={view === 'day' ? 'Next day' : 'Next 7 days'}
-            accessibilityState={{ disabled: !canGoNext }}
-            disabled={!canGoNext}
-            onPress={() => setDate(nextKey)}
-            className={`h-11 w-11 items-center justify-center rounded-full bg-surface ${canGoNext ? '' : 'opacity-40'}`}
-          >
-            <ChevronRight size={20} color={ink} strokeWidth={2.75} />
-          </Pressable>
-        </View>
+        {view === '24h' ? (
+          <Text className="min-h-tap text-center font-semibold text-row-title text-ink">Last 24 hours</Text>
+        ) : (
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={view === 'day' ? 'Previous day' : 'Previous 7 days'}
+              onPress={() => setDate(previousKey)}
+              className="h-11 w-11 items-center justify-center rounded-full bg-surface"
+            >
+              <ChevronLeft size={20} color={ink} strokeWidth={2.75} />
+            </Pressable>
+            <Text className="font-semibold text-row-title text-ink">
+              {view === 'day' ? formatDayLabel(dayKey, todayKey) : formatDayRange(keys)}
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={view === 'day' ? 'Next day' : 'Next 7 days'}
+              accessibilityState={{ disabled: !canGoNext }}
+              disabled={!canGoNext}
+              onPress={() => setDate(nextKey)}
+              className={`h-11 w-11 items-center justify-center rounded-full bg-surface ${canGoNext ? '' : 'opacity-40'}`}
+            >
+              <ChevronRight size={20} color={ink} strokeWidth={2.75} />
+            </Pressable>
+          </View>
+        )}
 
         {events.isPending ? (
           <PageSpinner />
+        ) : lastDay ? (
+          <>
+            <SummaryStrip items={daySummaryStrip(lastDay.summary)} />
+            <DayTimeline
+              layout={lastDay.layout}
+              ticks={windowTicks(rolling, baby.timezone, 3)}
+              timeZone={baby.timezone}
+              units={units}
+              now={now}
+              nowFrac={1}
+            />
+            <DayTotals cards={dayTotalCards(lastDay.summary, units, baby.timezone)} />
+          </>
         ) : view === 'day' ? (
           <>
             <SummaryStrip items={daySummaryStrip(today.summary!)} />

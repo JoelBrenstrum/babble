@@ -8,14 +8,13 @@ import { bucketByDay } from '../timeline/day-layout';
 import { countedDays, feedTimeSplit } from '../timeline/totals';
 import { dayKeyFor, dayWindow, formatShortDate, formatTimeOfDay, shiftDay } from '../time/local-time';
 
-export type StatsRange = '24h' | 'today' | '7d' | '30d' | 'all';
+export type StatsRange = 'today' | '7d' | '30d' | 'all';
 
 export const MAX_GAP_MS = 12 * 3_600_000;
 const WEEKLY_AFTER_DAYS = 31;
 
 export function rangeDays(range: StatsRange, todayKey: string, birthDate: string): string[] {
   if (range === 'today') return [todayKey];
-  if (range === '24h') return lastDays(todayKey, 2);
   if (range === '7d') return lastDays(todayKey, 7);
   if (range === '30d') return lastDays(todayKey, 30);
   const keys: string[] = [];
@@ -203,12 +202,6 @@ export function statsReport(
   return { days, todayOnly, cards };
 }
 
-const DAY_MS = 24 * HOUR;
-
-export function rollingStatsReport(events: readonly BabyEvent[], now: Date, settings: StatsSettings): StatsReport {
-  return windowStatsReport(events, { start: new Date(now.getTime() - DAY_MS), end: now }, now, settings, 'Last 24h');
-}
-
 function windowStatsReport(
   events: readonly BabyEvent[],
   window: TimeWindow,
@@ -261,7 +254,6 @@ function windowStatsReport(
 }
 
 export const STATS_RANGES: { value: StatsRange; label: string }[] = [
-  { value: '24h', label: '24h' },
   { value: 'today', label: 'Today' },
   { value: '7d', label: '7d' },
   { value: '30d', label: '30d' },
@@ -280,7 +272,6 @@ export function statsForRange(
   now: Date,
   settings: StatsSettings,
 ): StatsReport {
-  if (range === '24h') return rollingStatsReport(events, now, settings);
   if (range === 'today') {
     const start = dayWindow(todayKey, settings.timeZone, settings.dayStartMinutes).start;
     return { ...windowStatsReport(events, { start, end: now }, now, settings, 'Today so far'), todayOnly: true };
@@ -289,7 +280,6 @@ export function statsForRange(
 }
 
 export function statsCaption(range: StatsRange, report: StatsReport): string {
-  if (range === '24h') return 'Totals for the last 24 hours, charted hour by hour.';
   if (range === 'today') return 'Totals for today so far, charted hour by hour.';
   if (report.todayOnly) return 'Showing today so far. Daily averages start once a full day has been logged.';
   const days = `${report.days} finished ${report.days === 1 ? 'day' : 'days'}`;
