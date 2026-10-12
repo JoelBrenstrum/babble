@@ -1,5 +1,14 @@
 import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
-import { dayKeyFor, dayWindow, feedDueText, feedRemindersQuiet, nextFeedDue, summariseDay } from '@babble/domain';
+import {
+  dayKeyFor,
+  dayWindow,
+  feedDueText,
+  feedRemindersQuiet,
+  nextFeedDue,
+  predictionText,
+  summariseDay,
+} from '@babble/domain';
+import { canAddBaby } from '@babble/config';
 import { useQuery } from '@tanstack/react-query';
 import { Screen } from '@/components/screen';
 import { RunningCard } from '@/features/events/running-card';
@@ -9,6 +18,7 @@ import { useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
 import { useActiveBaby } from '@/lib/active-baby';
 import { useOnboarding, useReadyState } from '@/lib/use-onboarding';
+import { usePrediction } from '@/lib/use-prediction';
 
 export default function Home() {
   const ready = useReadyState();
@@ -17,7 +27,7 @@ export default function Home() {
 }
 
 function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useReadyState>>, 'family' | 'baby'>) {
-  const { client } = useBabble();
+  const { client, config } = useBabble();
   const now = useNow(30_000);
   const units = useUnits(client, baby.id);
   const window = dayWindow(
@@ -34,6 +44,7 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
     settings && !feedRemindersQuiet(settings, now, baby.timezone)
       ? nextFeedDue([...(latest.data ?? []), ...(running.data ?? [])], settings)
       : null;
+  const prediction = usePrediction(baby, family, now);
   const { choices } = useOnboarding();
   const active = useActiveBaby();
 
@@ -47,6 +58,8 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
         running={running.data ?? []}
         latest={latest.data ?? []}
         feedDue={due ? feedDueText(due, now, baby.timezone) : null}
+        prediction={predictionText(prediction, baby.timezone)}
+        addBabyLocked={!canAddBaby(config.billingEnabled, family.plan, family.babies.length)}
         summary={recent.data ? summariseDay(recent.data, { start: window.start, end: now }) : null}
         choices={choices}
         onSelectBaby={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}

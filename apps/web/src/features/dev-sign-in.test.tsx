@@ -17,4 +17,11 @@ describe('DevSignIn', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Sign in as John' }));
     expect(await screen.findByRole('alert')).toHaveTextContent('pnpm --filter @babble/db reset');
   });
+
+  it('offers a free-plan account alongside the plus family', async () => {
+    const onSignIn = vi.fn().mockResolvedValue(undefined);
+    render(<DevSignIn onSignIn={onSignIn} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Sign in as Sam' }));
+    expect(onSignIn).toHaveBeenCalledWith({ email: 'sam@babble.dev', password: 'password' });
+  });
 });

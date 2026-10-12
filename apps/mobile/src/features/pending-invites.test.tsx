@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { fixtureClient } from '@/fixtures/client';
-import { CaregiversLabel, PendingInvites } from './pending-invites';
+import { FamilyLabel, PendingInvites } from './pending-invites';
 
 let mockPending: PendingInvite[] = [];
 const mockRevokeInvite = jest.fn();
@@ -23,7 +23,7 @@ jest.mock('@babble/api', () => {
 async function renderInvites() {
   await render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { gcTime: Infinity } } })}>
-      <CaregiversLabel client={fixtureClient} familyId={sampleFamily.id} editable />
+      <FamilyLabel client={fixtureClient} familyId={sampleFamily.id} editable />
       <PendingInvites client={fixtureClient} family={sampleFamily} />
     </QueryClientProvider>,
   );
@@ -48,7 +48,7 @@ describe('PendingInvites', () => {
     await renderInvites();
     expect(await screen.findByText('K7Q4M-D2XPA')).toBeTruthy();
     expect(screen.getByText('Viewer · by Jane · Expires in 3h')).toBeTruthy();
-    expect(screen.getByText('Caregivers · 1 pending')).toBeTruthy();
+    expect(screen.getByText('Family · 1 pending')).toBeTruthy();
   });
 
   it('confirms before revoking, then removes the invite', async () => {
@@ -64,6 +64,6 @@ describe('PendingInvites', () => {
     await act(async () => buttons.find((button) => button.text === 'Revoke')!.onPress!());
     await waitFor(() => expect(screen.queryByText('K7Q4M-D2XPA')).toBeNull());
     expect(mockRevokeInvite).toHaveBeenCalledWith(fixtureClient, 'invite-1');
-    expect(screen.getByText('Caregivers')).toBeTruthy();
+    expect(screen.getByText('Family')).toBeTruthy();
   });
 });

@@ -11,7 +11,7 @@ import {
   type Units,
 } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
-import { AlarmClock, Plus } from 'lucide-react';
+import { AlarmClock, Moon, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Card } from '#/components/ui/card';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
@@ -26,6 +26,7 @@ export interface HomeOverviewProps {
   now: Date;
   renderRunning: (event: BabyEvent) => ReactNode;
   feedDue?: { text: string; overdue: boolean } | null;
+  prediction?: string | null;
 }
 
 export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units, timeZone: string): string {
@@ -49,6 +50,7 @@ export function HomeOverview({
   now,
   renderRunning,
   feedDue = null,
+  prediction = null,
 }: HomeOverviewProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -71,6 +73,13 @@ export function HomeOverview({
         >
           <AlarmClock aria-hidden className="size-5 shrink-0" strokeWidth={2.75} />
           {feedDue.text}
+        </p>
+      )}
+
+      {prediction && (
+        <p className="flex items-center gap-3 rounded-card bg-sleep-soft px-4 py-3 text-body font-semibold text-on-sleep">
+          <Moon aria-hidden className="size-5 shrink-0" strokeWidth={2.75} />
+          {prediction}
         </p>
       )}
 

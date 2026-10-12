@@ -20,4 +20,28 @@ describe('DayTimeline', () => {
     await fireEvent.press(screen.getAllByRole('button', { name: /^Sleep / })[layout.sleep.indexOf(sleep)]!);
     expect(router.push).toHaveBeenCalledWith(`/events/${sleep.event.id}`);
   });
+
+  it('draws predicted blocks with their likely times', async () => {
+    const now = new Date();
+    const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
+    const predicted = {
+      sleep: [
+        { kind: 'sleep' as const, startFrac: 0.55, endFrac: 0.6, opacity: 0.8, label: 'Likely asleep 2:10 pm–3:20 pm' },
+      ],
+      feeds: [],
+    };
+
+    await render(
+      <DayTimeline
+        layout={dayLayout([], window, now)}
+        ticks={[]}
+        timeZone={sampleBaby.timezone}
+        units="metric"
+        nowFrac={0.5}
+        now={now}
+        predicted={predicted}
+      />,
+    );
+    expect(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm')).toBeTruthy();
+  });
 });

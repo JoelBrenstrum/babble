@@ -28,6 +28,7 @@ export function AppShell({
   choices,
   onSelectBaby,
   running = null,
+  addBabyLocked = false,
   children,
 }: {
   family: Family;
@@ -35,6 +36,7 @@ export function AppShell({
   choices: readonly BabyChoice[];
   onSelectBaby: (choice: BabyChoice) => void;
   running?: RunningIndicator | null;
+  addBabyLocked?: boolean;
   children: ReactNode;
 }) {
   const pathname = useLocation({ select: (location) => location.pathname });
@@ -49,10 +51,22 @@ export function AppShell({
             <span className="font-brand text-[28px] text-primary xl:hidden">b</span>
           </div>
           <div className="mx-3 mb-4 hidden xl:mx-4 xl:block">
-            <BabySwitcher choices={choices} activeId={baby.id} onSelect={onSelectBaby} layout="sidebar" />
+            <BabySwitcher
+              choices={choices}
+              activeId={baby.id}
+              onSelect={onSelectBaby}
+              addBabyLocked={addBabyLocked}
+              layout="sidebar"
+            />
           </div>
           <div className="mx-3 mb-4 xl:hidden">
-            <BabySwitcher choices={choices} activeId={baby.id} onSelect={onSelectBaby} layout="rail" />
+            <BabySwitcher
+              choices={choices}
+              activeId={baby.id}
+              onSelect={onSelectBaby}
+              addBabyLocked={addBabyLocked}
+              layout="rail"
+            />
           </div>
           <nav className="flex flex-1 flex-col gap-1 px-3 xl:px-4" aria-label="Main">
             {NAV.map((item) => {
@@ -87,7 +101,13 @@ export function AppShell({
         </aside>
 
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-line bg-bg/95 px-4 py-3 backdrop-blur md:hidden">
-          <BabySwitcher choices={choices} activeId={baby.id} onSelect={onSelectBaby} layout="header" />
+          <BabySwitcher
+            choices={choices}
+            activeId={baby.id}
+            onSelect={onSelectBaby}
+            addBabyLocked={addBabyLocked}
+            layout="header"
+          />
           <div className="flex -space-x-2">
             {family.members.map((member) => (
               <Avatar key={member.user_id} name={member.display_name} className="ring-2 ring-bg" />

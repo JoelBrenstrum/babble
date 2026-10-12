@@ -16,6 +16,7 @@ import {
   summariseDay,
   summariseWeek,
   lastDays,
+  predictedLayout,
   weekSummaryStrip,
   weekTableRows,
   windowTicks,
@@ -35,16 +36,17 @@ import { useTokenColor } from '@/lib/theme';
 import { useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
 import { useReadyState } from '@/lib/use-onboarding';
+import { usePrediction } from '@/lib/use-prediction';
 
 type View_ = 'day' | '24h' | '7d';
 
 export default function TimelineTab() {
   const ready = useReadyState();
   if (!ready) return null;
-  return <TimelineContent baby={ready.baby} />;
+  return <TimelineContent family={ready.family} baby={ready.baby} />;
 }
 
-function TimelineContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadyState>>, 'baby'>) {
+function TimelineContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useReadyState>>, 'family' | 'baby'>) {
   const { client } = useBabble();
   const now = useNow(60_000);
   const units = useUnits(client, baby.id);
@@ -110,6 +112,10 @@ function TimelineContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadySt
   const counted = new Set(countedDays(keys, todayKey));
   const week = summariseWeek(days.flatMap((day) => (counted.has(day.dayKey) && day.summary ? [day.summary] : [])));
   const today = days[0]!;
+  const prediction = usePrediction(baby, family, now);
+  const predicted =
+    view === 'day' && dayKey === todayKey ? predictedLayout(prediction, today.window, now, baby.timezone) : null;
+  const showsPrediction = Boolean(predicted && (predicted.sleep.length || predicted.feeds.length));
 
   return (
     <Screen edges={['top']}>
@@ -181,7 +187,13 @@ function TimelineContent({ baby }: Pick<NonNullable<ReturnType<typeof useReadySt
               units={units}
               now={now}
               nowFrac={dayKey === todayKey ? fractionOf(today.window, now.getTime()) : null}
+              predicted={predicted}
             />
+            {showsPrediction && (
+              <Text className="font-sans text-caption text-ink-3">
+                Dashed blocks show likely sleeps and feeds for the next few hours.
+              </Text>
+            )}
             <DayTotals cards={dayTotalCards(today.summary!, units, baby.timezone)} />
           </>
         ) : (

@@ -1,5 +1,13 @@
 import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
-import { dayKeyFor, dayWindow, feedDueText, feedRemindersQuiet, nextFeedDue, summariseDay } from '@babble/domain';
+import {
+  dayKeyFor,
+  dayWindow,
+  feedDueText,
+  feedRemindersQuiet,
+  nextFeedDue,
+  predictionText,
+  summariseDay,
+} from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
 import { RunningCard } from '#/features/events/running-card';
@@ -8,6 +16,7 @@ import { InstallCard } from '#/features/install-app';
 import { useInstall } from '#/lib/install-prompt';
 import { useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
+import { usePrediction } from '#/lib/use-prediction';
 
 export const Route = createFileRoute('/_app/')({ component: HomePage });
 
@@ -26,6 +35,7 @@ function HomePage() {
   const recent = useQuery(eventsSinceQuery(babble.client, baby.id, `${since}:00:00Z`));
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
   const install = useInstall();
+  const prediction = usePrediction(babble, baby, family, now);
   const due =
     settings && !feedRemindersQuiet(settings, now, baby.timezone)
       ? nextFeedDue([...(latest.data ?? []), ...(running.data ?? [])], settings)
@@ -40,6 +50,7 @@ function HomePage() {
         running={running.data ?? []}
         latest={latest.data ?? []}
         feedDue={due ? feedDueText(due, now, baby.timezone) : null}
+        prediction={predictionText(prediction, baby.timezone)}
         summary={recent.data ? summariseDay(recent.data, { start: window.start, end: now }) : null}
         renderRunning={(event) => (
           <RunningCard event={event} client={babble.client} timeZone={baby.timezone} members={family.members} compact />

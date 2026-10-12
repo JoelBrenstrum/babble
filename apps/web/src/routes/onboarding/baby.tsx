@@ -1,3 +1,4 @@
+import { canAddBaby } from '@babble/config';
 import { addBaby, familiesQuery, queryKeys, resolveOnboarding, toBabbleError } from '@babble/api';
 import { todayInTimeZone, type BabySex } from '@babble/domain';
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
@@ -14,7 +15,7 @@ export const Route = createFileRoute('/onboarding/baby')({
   validateSearch: (search: Record<string, unknown>): { mode?: 'add' } => ({
     mode: search.mode === 'add' ? 'add' : undefined,
   }),
-  beforeLoad: async ({ context }) => {
+  beforeLoad: async ({ context, search }) => {
     const families = await context.queryClient.ensureQueryData(familiesQuery(context.babble.client));
     const state = resolveOnboarding({
       signedIn: true,
@@ -23,6 +24,12 @@ export const Route = createFileRoute('/onboarding/baby')({
     });
     if (state.step === 'family') throw redirect({ to: '/onboarding/family' });
     if (state.step !== 'baby' && state.step !== 'ready') throw redirect({ to: '/' });
+    if (
+      search.mode === 'add' &&
+      !canAddBaby(context.babble.config.billingEnabled, state.family.plan, state.family.babies.length)
+    ) {
+      throw redirect({ to: '/' });
+    }
     return { family: state.family };
   },
   component: BabyStep,

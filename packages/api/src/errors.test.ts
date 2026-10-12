@@ -4,6 +4,8 @@ import { BabbleError, toBabbleError, unwrap } from './errors';
 describe('toBabbleError', () => {
   it.each([
     [{ code: 'P0001', message: 'Sign-up on this Babble server requires a valid invite code' }, 'invite_required'],
+    [{ code: 'PL001', message: 'Adding more than one baby to a family needs Babble Plus' }, 'baby_limit'],
+    [{ code: 'PL002', message: 'A free family can have two carers' }, 'carer_limit'],
     [{ message: 'Database error saving new user', status: 500 }, 'invite_required'],
     [{ code: 'P0002', message: 'This invite code is invalid, used or expired' }, 'invite_invalid'],
     [{ code: 'invalid_credentials', message: 'Invalid login credentials', status: 400 }, 'invalid_credentials'],

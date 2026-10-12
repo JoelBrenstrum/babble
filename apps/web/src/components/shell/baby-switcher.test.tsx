@@ -8,10 +8,16 @@ import { BabySwitcher } from './baby-switcher';
 
 const choices = babyChoices([sampleFamily, { ...sampleFamily, id: 'family-2', name: 'Grandparents', babies: [] }]);
 
-async function renderSwitcher(onSelect = vi.fn()) {
+async function renderSwitcher(onSelect = vi.fn(), addBabyLocked = false) {
   render(
     <FixtureRouter>
-      <BabySwitcher choices={choices} activeId="baby-olivia" onSelect={onSelect} layout="sidebar" />
+      <BabySwitcher
+        choices={choices}
+        activeId="baby-olivia"
+        onSelect={onSelect}
+        layout="sidebar"
+        addBabyLocked={addBabyLocked}
+      />
     </FixtureRouter>,
   );
   await screen.findByRole('button', { name: /switch baby/i });
@@ -47,5 +53,13 @@ describe('BabySwitcher', () => {
     await userEvent.keyboard('{Escape}');
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it('shows the plus pitch instead of linking to add a baby when locked', async () => {
+    await renderSwitcher(vi.fn(), true);
+    await userEvent.click(screen.getByRole('button', { name: /switch baby/i }));
+    expect(screen.queryByRole('link', { name: 'Add a baby' })).toBeNull();
+    await userEvent.click(screen.getByRole('button', { name: /Add a baby/ }));
+    expect(screen.getByRole('dialog', { name: 'Babble Plus' })).toBeInTheDocument();
   });
 });

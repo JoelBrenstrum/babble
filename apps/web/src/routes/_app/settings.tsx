@@ -1,6 +1,18 @@
-import { canEdit, deleteMyAccount, updatePassword, queryKeys, signOut, toBabbleError, updateBaby } from '@babble/api';
+import {
+  canEdit,
+  deleteMyAccount,
+  pendingInvitesQuery,
+  updatePassword,
+  queryKeys,
+  signOut,
+  toBabbleError,
+  updateBaby,
+  type Family,
+} from '@babble/api';
+import { canInviteCarer, planSummary } from '@babble/config';
 import { createFileRoute, Link, useNavigate, useRouter } from '@tanstack/react-router';
-import { ChevronRight, LogOut, UserPlus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { ChevronRight, Lock, LogOut, UserPlus } from 'lucide-react';
 import { useMemo, useState, type FormEvent } from 'react';
 import { Button } from '#/components/ui/button';
 import { Card, SectionLabel } from '#/components/ui/card';
@@ -10,8 +22,10 @@ import { StatusMessage } from '#/components/ui/status';
 import { DayStartPicker } from '#/features/day-start-picker';
 import { FamilyMembers } from '#/features/family-members';
 import { InvitePanel } from '#/features/invite-panel';
-import { CaregiversLabel, PendingInvites, useCreateInvite } from '#/features/pending-invites';
+import { FamilyLabel, PendingInvites, useCreateInvite } from '#/features/pending-invites';
 import { PasswordForm } from '#/features/password-form';
+import { PlusBadge, PlusDialog } from '#/features/plus-dialog';
+import { PlusPlan } from '#/features/plus-plan';
 import { TrackingSettings } from '#/features/tracking-settings';
 import { ExportData } from '#/features/export-data';
 import { InstallSection } from '#/features/install-app';
@@ -26,6 +40,7 @@ function SettingsPage() {
   const { family, session, babble, baby, queryClient } = Route.useRouteContext();
   const router = useRouter();
   const editable = canEdit(family, session.user.id);
+  const plan = planSummary(babble.config.billingEnabled, family.plan);
 
   return (
     <div className="flex flex-col gap-8">
@@ -33,7 +48,7 @@ function SettingsPage() {
       <BabySection disabled={!editable} />
 
       <section className="flex flex-col gap-3">
-        <CaregiversLabel client={babble.client} familyId={family.id} editable={editable} />
+        <FamilyLabel client={babble.client} familyId={family.id} editable={editable} plus={plan?.plus ?? false} />
         <FamilyMembers
           client={babble.client}
           family={family}
@@ -44,8 +59,9 @@ function SettingsPage() {
           }}
         />
         {editable && <PendingInvites client={babble.client} family={family} />}
-        {editable && <InviteToggle familyId={family.id} />}
+        {editable && <InviteToggle family={family} />}
       </section>
+      {plan && <PlusPlan summary={plan} />}
 
       <TrackingSettings client={babble.client} babyId={baby.id} disabled={!editable} />
       <section className="flex flex-col gap-3">
@@ -153,17 +169,27 @@ function BabySection({ disabled }: { disabled: boolean }) {
   );
 }
 
-function InviteToggle({ familyId }: { familyId: string }) {
+function InviteToggle({ family }: { family: Family }) {
   const { babble } = Route.useRouteContext();
   const [open, setOpen] = useState(false);
-  const onCreate = useCreateInvite(babble.client, familyId);
-  return open ? (
-    <InvitePanel publicUrl={babble.config.publicUrl} onCreate={onCreate} />
-  ) : (
-    <Button variant="secondary" className="self-start" onClick={() => setOpen(true)}>
-      <UserPlus className="size-5" strokeWidth={2.75} />
-      Invite a caregiver
-    </Button>
+  const [pitching, setPitching] = useState(false);
+  const pending = useQuery(pendingInvitesQuery(babble.client, family.id)).data ?? [];
+  const onCreate = useCreateInvite(babble.client, family.id);
+  const locked = !canInviteCarer(babble.config.billingEnabled, family.plan, family.members.length, pending.length);
+  if (open) return <InvitePanel publicUrl={babble.config.publicUrl} onCreate={onCreate} />;
+  return (
+    <>
+      <Button
+        variant="secondary"
+        className={locked ? 'self-start text-ink-2' : 'self-start'}
+        onClick={() => (locked ? setPitching(true) : setOpen(true))}
+      >
+        {locked ? <Lock className="size-5" strokeWidth={2.75} /> : <UserPlus className="size-5" strokeWidth={2.75} />}
+        Invite a caregiver
+        {locked && <PlusBadge />}
+      </Button>
+      {pitching && <PlusDialog feature="extra_carers" onClose={() => setPitching(false)} />}
+    </>
   );
 }
 

@@ -38,6 +38,7 @@ Details for each are in [ui.md](ui.md) unless noted.
 - **Caregivers**: owners rename and remove members; everyone renames themselves.
 - **New release banner** on web and in chair mode (`/api/version`, no service worker).
 - **Timeline 24h** view: the rolling last 24 hours with totals for that window.
+- **Predictions** (Plus): `predictDay` in `domain/predict` replays the feed → sleep → feed cycle from the last 7 days (medians weighted by recency and time of day) to show the likely next sleeps and feeds. Home shows "Likely asleep / awake around …"; today's Timeline shows dashed blocks for the next 4 hours, fading further out. Backtested on 15 days of a 2-week-old: next sleep start typically within 11–15 min, wake-up within ~24 min; beyond ~3h it's no better than a guess, hence the short horizon. First feature gated by `entitlements` (`predictions`, Plus only when `BILLING_ENABLED=true`); the seeded Smiths family is on Plus.
 
 Each stage ends with something usable on both apps. A stage's plan is fleshed out in detail (edge cases, test tables, screen states) when the stage begins.
 
@@ -82,7 +83,7 @@ Each stage ends with something usable on both apps. A stage's plan is fleshed ou
 - Home-screen widgets
 - Real offline sync (PowerSync)
 - Data export: JSON done (Settings → Data). CSV still to come.
-- Billing + entitlements (hosted product only)
+- Billing (hosted product only). Entitlements are wired for `predictions` (hidden on free) and `multiple_babies` ("Add a baby" shows a lock and a Plus badge and opens the Plus popup; `/onboarding/baby?mode=add` redirects home), and `extra_carers` (a free family has at most two carers, counting pending invites; "Invite a caregiver" locks the same way). Stats stay free; more advanced stats may become Plus later. The database enforces the baby and carer limits too when `private.instance_settings.billing_enabled` is on (it must match `BILLING_ENABLED`). No upgrade flow yet.
 - Marketing site (can live in the TanStack Start app)
 
 ### Expo app, to pick up later

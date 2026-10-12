@@ -29,6 +29,7 @@ export function DevSignIn({
       className="mt-10 gap-3 rounded-card border border-dashed border-line-strong p-4"
     >
       <Text className="font-semibold text-meta text-ink-2">Development only</Text>
+      <Text className="font-sans text-meta text-ink-2">John and Jane share a Plus family. Sam has a free family.</Text>
       {DEV_ACCOUNTS.map((account) => (
         <Button
           key={account.email}

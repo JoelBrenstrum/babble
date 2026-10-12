@@ -88,5 +88,6 @@ What this means for the design from day one:
 
 - No hard-coded URLs. All endpoints come from runtime config.
 - Every feature check goes through `entitlements(family)`, which returns everything when billing is off.
+- Limits that matter for billing are also enforced in the database: with `private.instance_settings.billing_enabled` on, a family that isn't on Plus can't insert a second baby (error `PL001`), or create an invite or accept one past two carers, counting pending invites (error `PL002`). That flag must match `BILLING_ENABLED` (and `EXPO_PUBLIC_BILLING_ENABLED` in the Expo build). Plans are set server-side only; families can't change `families.plan`.
 - Baby data is health-adjacent and sensitive: RLS on every table with automated tests, account deletion, full data export (also required for App Store / Play review), and a privacy policy before any public release.
 - Anything scheduled server-side (e.g. push reminders) must run in both modes: a TanStack Start route triggered by `pg_cron` + `pg_net`, or a small worker in the compose file. Never a hosted-only scheduler.

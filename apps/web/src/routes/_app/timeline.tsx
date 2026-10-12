@@ -16,6 +16,7 @@ import {
   summariseDay,
   summariseWeek,
   lastDays,
+  predictedLayout,
   weekSummaryStrip,
   weekTableRows,
   windowTicks,
@@ -32,6 +33,7 @@ import { WeekTimeline } from '#/features/timeline/week-timeline';
 import { cn } from '#/lib/cn';
 import { useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
+import { usePrediction } from '#/lib/use-prediction';
 
 type View = 'day' | '24h' | '7d';
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -45,7 +47,7 @@ export const Route = createFileRoute('/_app/timeline')({
 });
 
 function TimelinePage() {
-  const { babble, baby } = Route.useRouteContext();
+  const { babble, baby, family } = Route.useRouteContext();
   const { view = 'day', date } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const now = useNow(60_000);
@@ -108,6 +110,10 @@ function TimelinePage() {
   const counted = new Set(countedDays(keys, todayKey));
   const week = summariseWeek(days.flatMap((day) => (counted.has(day.dayKey) && day.summary ? [day.summary] : [])));
   const today = days[0]!;
+  const prediction = usePrediction(babble, baby, family, now);
+  const predicted =
+    view === 'day' && dayKey === todayKey ? predictedLayout(prediction, today.window, now, baby.timezone) : null;
+  const showsPrediction = Boolean(predicted && (predicted.sleep.length || predicted.feeds.length));
 
   return (
     <div className="flex flex-col gap-4">
@@ -187,7 +193,13 @@ function TimelinePage() {
               timeZone={baby.timezone}
               units={units}
               nowFrac={dayKey === todayKey ? fractionOf(today.window, now.getTime()) : null}
+              predicted={predicted}
             />
+            {showsPrediction && (
+              <p className="text-caption text-ink-3">
+                Dashed blocks show likely sleeps and feeds for the next few hours.
+              </p>
+            )}
           </div>
           <DayTotals cards={dayTotalCards(today.summary!, units, baby.timezone)} />
         </div>

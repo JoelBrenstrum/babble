@@ -5,15 +5,19 @@ import {
   signOut,
   toBabbleError,
   updateBaby,
+  pendingInvitesQuery,
   type BabyRow,
   type Family,
 } from '@babble/api';
-import { useQueryClient } from '@tanstack/react-query';
+import { canInviteCarer, planSummary } from '@babble/config';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
+import { Lock } from 'lucide-react-native';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { Card, SectionLabel } from '@/components/card';
+import { PlusBadge, PlusDialog } from '@/components/plus';
 import { Screen } from '@/components/screen';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
@@ -21,15 +25,16 @@ import { DateField } from '@/features/date-field';
 import { DayStartPicker } from '@/features/day-start-picker';
 import { FamilyMembers } from '@/features/family-members';
 import { InvitePanel } from '@/features/invite-panel';
-import { CaregiversLabel, PendingInvites, useCreateInvite } from '@/features/pending-invites';
+import { FamilyLabel, PendingInvites, useCreateInvite } from '@/features/pending-invites';
 import { TrackingSettings } from '@/features/tracking-settings';
 import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
 import { ExportData } from '@/features/export-data';
+import { PlusPlan } from '@/features/plus-plan';
 import { AppearanceSettings } from '@/features/appearance-settings';
 import { AboutSection } from '@/features/legal-links';
 import { useBabble } from '@/lib/babble';
-import { useThemePreference } from '@/lib/theme';
+import { useThemePreference, useTokenColor } from '@/lib/theme';
 import { useReadyState } from '@/lib/use-onboarding';
 
 export default function SettingsTab() {
@@ -37,6 +42,7 @@ export default function SettingsTab() {
   const { session, client, config } = useBabble();
   if (!ready || !session) return null;
   const editable = canEdit(ready.family, session.user.id);
+  const plan = planSummary(config.billingEnabled, ready.family.plan);
 
   return (
     <Screen edges={['top']}>
@@ -44,6 +50,7 @@ export default function SettingsTab() {
       <View className="gap-8">
         <BabySection baby={ready.baby} disabled={!editable} />
         <CaregiversSection family={ready.family} userId={session.user.id} editable={editable} />
+        {plan && <PlusPlan summary={plan} />}
         <TrackingSettings client={client} babyId={ready.baby.id} disabled={!editable} />
         <View className="gap-3">
           <SectionLabel>Data</SectionLabel>
@@ -111,10 +118,19 @@ function CaregiversSection({ family, userId, editable }: { family: Family; userI
   const { client, config } = useBabble();
   const queryClient = useQueryClient();
   const [inviting, setInviting] = useState(false);
+  const [pitching, setPitching] = useState(false);
   const onCreate = useCreateInvite(client, family.id);
+  const pending = useQuery({ ...pendingInvitesQuery(client, family.id), enabled: editable }).data ?? [];
+  const locked = !canInviteCarer(config.billingEnabled, family.plan, family.members.length, pending.length);
+  const muted = useTokenColor('--ink-2');
   return (
     <View className="gap-3">
-      <CaregiversLabel client={client} familyId={family.id} editable={editable} />
+      <FamilyLabel
+        client={client}
+        familyId={family.id}
+        editable={editable}
+        plus={planSummary(config.billingEnabled, family.plan)?.plus ?? false}
+      />
       <FamilyMembers
         client={client}
         family={family}
@@ -126,10 +142,22 @@ function CaregiversSection({ family, userId, editable }: { family: Family; userI
         (inviting ? (
           <InvitePanel publicUrl={config.publicUrl} onCreate={onCreate} />
         ) : (
-          <Button variant="secondary" onPress={() => setInviting(true)}>
+          <Button
+            variant="secondary"
+            icon={locked ? <Lock size={18} color={muted} strokeWidth={2.75} /> : undefined}
+            accessibilityLabel={locked ? 'Invite a caregiver, Babble Plus' : undefined}
+            onPress={() => (locked ? setPitching(true) : setInviting(true))}
+          >
             Invite a caregiver
           </Button>
         ))}
+      {editable && locked && !inviting && (
+        <View className="flex-row items-center justify-center gap-2">
+          <PlusBadge />
+          <Text className="font-sans text-meta text-ink-2">Two carers on the free plan</Text>
+        </View>
+      )}
+      <PlusDialog feature={pitching ? 'extra_carers' : null} onClose={() => setPitching(false)} />
     </View>
   );
 }

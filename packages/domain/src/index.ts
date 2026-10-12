@@ -124,7 +124,7 @@ export {
 } from './events/session-actions';
 export { runningIndicator, type RunningIndicator } from './events/running-indicator';
 export { entryAuthorText, entryEndedText } from './format/entry-author';
-export { caregiversHeading, inviteExpiryText, pendingInviteMeta } from './format/invites';
+export { familyHeading, inviteExpiryText, pendingInviteMeta } from './format/invites';
 export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input';
 export {
   editableRowsToSegments,
@@ -171,6 +171,23 @@ export {
   type NightReminderSettings,
 } from './events/feed-due';
 export { importedNote, summariseImport, type ImportSummary } from './huckleberry/summary';
+export {
+  learnRhythm,
+  predictDay,
+  weightedMedian,
+  type PredictedBlock,
+  type PredictedKind,
+  type PredictOptions,
+  type Rhythm,
+} from './predict/predict-day';
+export {
+  PREDICTION_HORIZON_MS,
+  predictAhead,
+  predictedLayout,
+  predictionSince,
+  predictionText,
+  type PredictedItem,
+} from './predict/predicted-view';
 export {
   barAnchor,
   barReadout,

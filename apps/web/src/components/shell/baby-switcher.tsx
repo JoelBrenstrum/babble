@@ -1,8 +1,9 @@
 import type { BabyChoice } from '@babble/api';
 import { babyAgeLabel, todayInTimeZone } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
-import { Check, ChevronsUpDown, Plus } from 'lucide-react';
+import { Check, ChevronsUpDown, Lock, Plus } from 'lucide-react';
 import { useEffect, useId, useRef, useState } from 'react';
+import { PlusBadge, PlusDialog } from '#/features/plus-dialog';
 import { cn } from '#/lib/cn';
 
 const AVATAR_TONES = [
@@ -41,13 +42,16 @@ export function BabySwitcher({
   activeId,
   onSelect,
   layout,
+  addBabyLocked = false,
 }: {
   choices: readonly BabyChoice[];
   activeId: string;
   onSelect: (choice: BabyChoice) => void;
   layout: 'sidebar' | 'rail' | 'header';
+  addBabyLocked?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [pitching, setPitching] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const listId = useId();
   const active = choices.find((choice) => choice.baby.id === activeId) ?? choices[0];
@@ -138,20 +142,38 @@ export function BabySwitcher({
             })}
           </ul>
           <div className="mt-1 border-t border-line pt-1">
-            <Link
-              to="/onboarding/baby"
-              search={{ mode: 'add' }}
-              onClick={() => setOpen(false)}
-              className="flex min-h-tap items-center gap-3 rounded-button px-3 py-2 text-body font-semibold text-primary hover:bg-surface"
-            >
-              <span className="grid size-8 place-items-center rounded-full border-2 border-dashed border-primary/60">
-                <Plus className="size-4" strokeWidth={3} />
-              </span>
-              Add a baby
-            </Link>
+            {addBabyLocked ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  setPitching(true);
+                }}
+                className="flex min-h-tap w-full items-center gap-3 rounded-button px-3 py-2 text-left text-body font-semibold text-ink-2 hover:bg-surface"
+              >
+                <span className="grid size-8 place-items-center rounded-full border-2 border-dashed border-line-strong">
+                  <Lock className="size-4" strokeWidth={2.75} />
+                </span>
+                <span className="flex-1">Add a baby</span>
+                <PlusBadge />
+              </button>
+            ) : (
+              <Link
+                to="/onboarding/baby"
+                search={{ mode: 'add' }}
+                onClick={() => setOpen(false)}
+                className="flex min-h-tap items-center gap-3 rounded-button px-3 py-2 text-body font-semibold text-primary hover:bg-surface"
+              >
+                <span className="grid size-8 place-items-center rounded-full border-2 border-dashed border-primary/60">
+                  <Plus className="size-4" strokeWidth={3} />
+                </span>
+                Add a baby
+              </Link>
+            )}
           </div>
         </div>
       )}
+      {pitching && <PlusDialog feature="multiple_babies" onClose={() => setPitching(false)} />}
     </div>
   );
 }

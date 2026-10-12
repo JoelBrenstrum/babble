@@ -32,7 +32,8 @@ export function DevSignIn({
         <Wrench className="size-4" strokeWidth={2.75} />
         Development only
       </p>
-      <div className="grid grid-cols-2 gap-3">
+      <p className="text-meta text-ink-2">John and Jane share a Plus family. Sam has a free family.</p>
+      <div className="grid gap-3 sm:grid-cols-3">
         {DEV_ACCOUNTS.map((account) => (
           <Button
             key={account.email}

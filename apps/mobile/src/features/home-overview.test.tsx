@@ -4,7 +4,7 @@ import { HomeOverview } from './home-overview';
 
 jest.mock('expo-router', () => ({ Link: ({ children }: { children: React.ReactNode }) => children }));
 
-function renderHome(feedDue: { text: string; overdue: boolean } | null) {
+function renderHome(feedDue: { text: string; overdue: boolean } | null, prediction: string | null = null) {
   return render(
     <HomeOverview
       family={sampleFamily}
@@ -16,6 +16,7 @@ function renderHome(feedDue: { text: string; overdue: boolean } | null) {
       summary={null}
       renderRunning={() => null}
       feedDue={feedDue}
+      prediction={prediction}
     />,
   );
 }
@@ -29,5 +30,17 @@ describe('HomeOverview feed due line', () => {
   it('is absent when reminders are off', async () => {
     await renderHome(null);
     expect(screen.queryByText(/feed due|Overdue/)).toBeNull();
+  });
+});
+
+describe('HomeOverview prediction line', () => {
+  it('shows the likely next wake-up', async () => {
+    await renderHome(null, 'Likely awake around 3:20 pm');
+    expect(screen.getByText('Likely awake around 3:20 pm')).toBeTruthy();
+  });
+
+  it('is absent without a prediction', async () => {
+    await renderHome(null);
+    expect(screen.queryByText(/^Likely/)).toBeNull();
   });
 });

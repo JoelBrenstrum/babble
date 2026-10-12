@@ -5,7 +5,7 @@ import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fixtureClient } from '#/fixtures/client';
-import { CaregiversLabel, PendingInvites } from './pending-invites';
+import { FamilyLabel, PendingInvites } from './pending-invites';
 
 const inDays = (days: number) => new Date(Date.now() + days * 86_400_000 + 60_000).toISOString();
 
@@ -26,7 +26,7 @@ vi.mock('@babble/api', async (importOriginal) => {
 function renderInvites() {
   return render(
     <QueryClientProvider client={new QueryClient()}>
-      <CaregiversLabel client={fixtureClient} familyId={sampleFamily.id} editable />
+      <FamilyLabel client={fixtureClient} familyId={sampleFamily.id} editable />
       <PendingInvites client={fixtureClient} family={sampleFamily} />
     </QueryClientProvider>,
   );
@@ -52,7 +52,7 @@ describe('PendingInvites', () => {
     const list = await screen.findByRole('list', { name: 'Pending invites' });
     expect(within(list).getByText('K7Q4M-D2XPA')).toBeInTheDocument();
     expect(within(list).getByText('Caregiver · by John · Expires in 6 days')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Caregivers · 1 pending' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Family · 1 pending' })).toBeInTheDocument();
   });
 
   it('confirms before revoking, then removes the invite', async () => {
@@ -66,7 +66,7 @@ describe('PendingInvites', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Revoke' }));
     expect(revokeInvite).toHaveBeenCalledWith(fixtureClient, 'invite-1');
     await waitFor(() => expect(screen.queryByRole('list', { name: 'Pending invites' })).not.toBeInTheDocument());
-    expect(screen.getByRole('heading', { name: 'Caregivers' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Family' })).toBeInTheDocument();
   });
 
   it('keeps the invite when cancelled', async () => {

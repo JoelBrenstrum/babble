@@ -290,8 +290,50 @@ Paste everything below this line into Claude Design.
 
 ---
 
+## 2026-10-13 · Predicted sleeps and feeds (Plus)
+
+Paste everything below this line into Claude Design.
+
+> Add predictions, a Babble Plus feature. (1) Home (`Phone.dc.html`, `Web.dc.html` home): under the feed-due line, a second full-width soft card in the sleep tone (`sleep-soft` background, `on-sleep` text, Lucide `moon` icon) reading "Likely asleep around 10:20 am", or "Likely awake around 3:20 pm" while a nap is running. (2) Timeline day view for today (`Screen.dc.html` day, `Web.dc.html` timeline): after the now line, the Sleep and Feeds lanes show the next ~4 hours of likely blocks as 2px dashed outlines (`sleep` border on `sleep-soft` in Sleep, `feed-left` border on `feed-left-soft` in Feeds), rounded, not tappable, fading from full opacity at the now line to about 35% four hours out. Under the timeline, a caption in `ink-3`: "Dashed blocks show likely sleeps and feeds for the next few hours." Show it at 390px and 1280px, light and dark, with one running nap continuing as a dashed block past the now line.
+
+
+---
+
 ## 2026-10-13 · Chair mode: one tap wakes and acts
 
 Paste everything below this line into Claude Design.
 
 > In `Chair Mode.dc.html`, change the Night dim note and the "Night dim · Feeding" frame caption: a tap while dimmed now wakes the screen and also presses whatever was tapped, so it no longer needs a second tap. Keep the "Dimmed · tap to wake" hint.
+
+---
+
+## 2026-10-13 · Settings: Babble Plus section
+
+Paste everything below this line into Claude Design.
+
+> In Settings (`Phone Account.dc.html`, `Web.dc.html` settings), add a "Babble Plus" section between Caregivers and Tracking, shown only when billing is on. One card: a Lucide `sparkles` icon in `primary` with the plan name ("Plus" or "Free") as the row title, and on Plus an "Active" chip (`primary-soft` background, `on-primary-soft` text) on the right. Below it a body line in `ink-2`: "Your family has Plus. Everyone in the family gets it." or "You're on the free plan. Upgrading is coming soon." Then a small `ink-2` label ("Included" on Plus, "Plus adds" on Free) and a checklist with `primary` check icons: "Predicted sleeps and feeds on Home and the Timeline". No upgrade button yet. Show both states at 390px and 1280px, light and dark.
+
+---
+
+## 2026-10-13 · Plus badge, Plus popup, locked "Add a baby"
+
+Paste everything below this line into Claude Design.
+
+> (1) A reusable **Plus badge**: a small chip (`primary-soft` background, `on-primary-soft` text, caption weight bold) with a 12px Lucide `sparkles` icon and the word "Plus". (2) A reusable **Plus popup** (bottom sheet on phone, centred dialog on desktop, same frame as the nap prompt): `sparkles` in a 44px `primary-soft` circle next to the heading "Babble Plus", a body line in `ink-2` that names the locked feature (e.g. "Adding more than one baby to a family is part of Babble Plus."), a checklist with `primary` checks ("Predicted sleeps and feeds on Home and the Timeline", "More than one baby in a family"), a small `ink-2` note "Upgrading is coming soon.", and a full-width secondary "Got it" button. (3) In the baby switcher (`Phone.dc.html` switch-baby sheet, `Web.dc.html` sidebar switcher), for a free family that already has a baby, the "Add a baby" row turns muted: `ink-2` text, a Lucide `lock` in the dashed circle (`line-strong` border instead of `primary`), and the Plus badge on the right. Tapping it opens the Plus popup. Also add "More than one baby in a family" to the Settings → Babble Plus checklist. Show light and dark, 390px and 1280px.
+
+---
+
+## 2026-10-13 · Free plan: two carers
+
+Paste everything below this line into Claude Design.
+
+> In Settings → Caregivers (`Phone Account.dc.html`, `Web.dc.html` settings), when a free family already has two carers, or one carer plus a pending invite, the secondary "Invite a caregiver" button turns muted: `ink-2` label, Lucide `lock` instead of `user-plus`, and the Plus badge after the label (on the phone app the badge sits on a line under the button with "Two carers on the free plan"). Tapping it opens the Plus popup with "A free family can have two carers, counting invites waiting to be accepted. Babble Plus allows more." Add "More than two carers in a family" to the Plus checklist in the popup and in Settings → Babble Plus.
+
+
+---
+
+## 2026-10-13 · Chair mode: switch baby · Settings: "Family"
+
+Paste everything below this line into Claude Design.
+
+> (1) `Chair Screen.dc.html` / `Chair Mode.dc.html`: when the signed-in person has more than one baby, the baby's name in the top strip becomes a pill (same `surface` pill as "Full screen" and "Dim now", but the name stays bold `ink`) with a small Lucide `chevrons-up-down` after it. Tapping it opens a chair sheet titled "Switch baby" (Lucide `baby` in a `primary-soft` circle, same frame as the bottle and nappy sheets): one big row per baby with the name large and the age small underneath (plus the family name when they belong to more than one family); the current baby's row is `primary-soft` with a check on the right, the others are outlined `raised` rows; at the bottom a full-width `surface` button "Leave chair mode" with a Lucide `log-out` icon. With one baby the name stays a plain bold link to Home, as now. (2) Settings (`Phone Account.dc.html`, `Web.dc.html`): rename the "Caregivers" section heading to "Family" ("Family · 1 pending" with pending invites), and for a Plus family show the Plus badge right after the heading.

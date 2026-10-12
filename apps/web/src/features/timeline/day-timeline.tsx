@@ -5,6 +5,7 @@ import {
   markerShiftPercent,
   nappyKind,
   type DayLayout,
+  type PredictedItem,
   type TimelineItem,
   type Units,
   summariseSleep,
@@ -52,12 +53,14 @@ export function DayTimeline({
   timeZone,
   units,
   nowFrac,
+  predicted = null,
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
   timeZone: string;
   units: Units;
   nowFrac: number | null;
+  predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
 }) {
   const lanes: { key: keyof DayLayout; label: string; icon: LucideIcon; tone: string }[] = [
     { key: 'sleep', label: 'Sleep', icon: Moon, tone: 'text-sleep' },
@@ -105,10 +108,29 @@ export function DayTimeline({
             {layout[lane.key].map((item) => (
               <Item key={item.event.id} item={item} label={itemLabel(item, timeZone, units)} units={units} />
             ))}
+            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
+              <Predicted key={item.startFrac} item={item} />
+            ))}
           </div>
         ))}
       </div>
     </div>
+  );
+}
+
+function Predicted({ item }: { item: PredictedItem }) {
+  return (
+    <div
+      role="img"
+      aria-label={item.label}
+      title={item.label}
+      data-testid="predicted-block"
+      className={cn(
+        'absolute inset-x-0 min-h-1 rounded-md border-2 border-dashed',
+        item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft',
+      )}
+      style={{ top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac), opacity: item.opacity }}
+    />
   );
 }
 

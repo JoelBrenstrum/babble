@@ -11,7 +11,7 @@ import {
   type Units,
 } from '@babble/domain';
 import { Link } from 'expo-router';
-import { AlarmClock, Plus } from 'lucide-react-native';
+import { AlarmClock, Moon, Plus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { BabyHeader } from '@/components/baby-header';
@@ -42,6 +42,8 @@ export function HomeOverview({
   choices,
   onSelectBaby,
   feedDue = null,
+  prediction = null,
+  addBabyLocked = false,
 }: {
   choices?: readonly BabyChoice[];
   onSelectBaby?: (choice: BabyChoice) => void;
@@ -54,12 +56,15 @@ export function HomeOverview({
   now: Date;
   renderRunning: (event: BabyEvent) => ReactNode;
   feedDue?: { text: string; overdue: boolean } | null;
+  prediction?: string | null;
+  addBabyLocked?: boolean;
 }) {
   const iconColor = useTokenColor('--ink');
   const dueColor = useTokenColor(feedDue?.overdue ? '--on-caution' : '--on-feed-right');
+  const sleepColor = useTokenColor('--on-sleep');
   return (
     <View className="gap-4">
-      <BabyHeader family={family} baby={baby} choices={choices} onSelect={onSelectBaby} />
+      <BabyHeader family={family} baby={baby} choices={choices} onSelect={onSelectBaby} addBabyLocked={addBabyLocked} />
       {running.map((event) => (
         <View key={event.id}>{renderRunning(event)}</View>
       ))}
@@ -74,6 +79,12 @@ export function HomeOverview({
           >
             {feedDue.text}
           </Text>
+        </View>
+      )}
+      {prediction && (
+        <View className="flex-row items-center gap-3 rounded-card bg-sleep-soft px-4 py-3">
+          <Moon color={sleepColor} size={20} strokeWidth={2.75} />
+          <Text className="flex-1 font-semibold text-body text-on-sleep">{prediction}</Text>
         </View>
       )}
       <Card className="flex-row">

@@ -47,6 +47,13 @@ insert into private.signup_allowlist (email, note) values (lower('jane@example.c
 
 `used_at` shows when they signed up. Delete the row to withdraw it before then.
 
+Billing is off by default and every feature is unlocked. If you turn it on with `BILLING_ENABLED=true`, also turn it on in the database so the limits are enforced there, and put families on Plus by hand until there's a payment flow:
+
+```sql
+update private.instance_settings set billing_enabled = true;
+update public.families set plan = 'plus' where name = 'The Smiths';
+```
+
 ## 3. Run the web app
 
 ```sh

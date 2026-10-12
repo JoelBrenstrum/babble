@@ -1,0 +1,220 @@
+import { minutesOfDay } from '../time/local-time';
+import type { BabyEvent } from '../events/types';
+
+export type PredictedKind = 'sleep' | 'feed';
+
+export interface PredictedBlock {
+  kind: PredictedKind;
+  startedAt: string;
+  endedAt: string;
+  continuesRunning: boolean;
+}
+
+interface Episode {
+  kind: PredictedKind;
+  start: number;
+  end: number | null;
+}
+
+interface Sample {
+  at: number;
+  minuteOfDay: number;
+  value: number;
+}
+
+export interface Rhythm {
+  feedLength: Sample[];
+  feedToSleep: Sample[];
+  sleepLength: Sample[];
+  wakeToFeed: Sample[];
+}
+
+export interface PredictOptions {
+  timeZone: string;
+  lookbackDays?: number;
+  halfLifeDays?: number;
+  hourSpreadMinutes?: number;
+  mergeGapMinutes?: number;
+  minSamples?: number;
+}
+
+const MINUTE = 60_000;
+const DAY = 24 * 60 * MINUTE;
+const OVERRUN_MS = 10 * MINUTE;
+const MIN_BLOCK_MS = 5 * MINUTE;
+
+const DEFAULTS = {
+  lookbackDays: 7,
+  halfLifeDays: 3,
+  hourSpreadMinutes: 180,
+  mergeGapMinutes: 15,
+  minSamples: 6,
+};
+
+function lastOfKind(list: readonly Episode[], kind: PredictedKind): Episode | undefined {
+  for (let index = list.length - 1; index >= 0; index -= 1) if (list[index]!.kind === kind) return list[index];
+  return undefined;
+}
+
+function episodes(events: readonly BabyEvent[], now: number, mergeGapMs: number): Episode[] {
+  const raw: Episode[] = events
+    .filter((event) => !event.deletedAt && Date.parse(event.startedAt) <= now)
+    .flatMap((event): Episode[] => {
+      const start = Date.parse(event.startedAt);
+      const end = event.endedAt ? Date.parse(event.endedAt) : null;
+      if (event.type === 'sleep') return [{ kind: 'sleep', start, end }];
+      if (event.type === 'breast_feed' || event.type === 'bottle') return [{ kind: 'feed', start, end }];
+      return [];
+    })
+    .sort((a, b) => a.start - b.start);
+
+  const merged: Episode[] = [];
+  for (const episode of raw) {
+    const previous = lastOfKind(merged, episode.kind);
+    const interrupted = merged.at(-1) !== previous;
+    if (previous && previous.end !== null && !interrupted && episode.start - previous.end <= mergeGapMs) {
+      previous.end = episode.end === null ? null : Math.max(previous.end, episode.end);
+    } else {
+      merged.push({ ...episode });
+    }
+  }
+  return merged;
+}
+
+export function learnRhythm(events: readonly BabyEvent[], now: Date, options: PredictOptions): Rhythm {
+  const settings = { ...DEFAULTS, ...options };
+  const nowMs = now.getTime();
+  const from = nowMs - settings.lookbackDays * DAY;
+  const all = episodes(events, nowMs, settings.mergeGapMinutes * MINUTE).filter((e) => e.end !== null);
+  const sample = (at: number, value: number): Sample => ({
+    at,
+    minuteOfDay: minutesOfDay(new Date(at), settings.timeZone),
+    value,
+  });
+  const rhythm: Rhythm = { feedLength: [], feedToSleep: [], sleepLength: [], wakeToFeed: [] };
+
+  all.forEach((episode, index) => {
+    if (episode.start < from) return;
+    const later = all.slice(index + 1);
+    if (episode.kind === 'feed') {
+      rhythm.feedLength.push(sample(episode.start, episode.end! - episode.start));
+      const nextFeed = later.find((e) => e.kind === 'feed');
+      const sleep = later.find((e) => e.kind === 'sleep');
+      if (sleep && (!nextFeed || sleep.start < nextFeed.start)) {
+        rhythm.feedToSleep.push(sample(episode.start, sleep.start - episode.start));
+      }
+    } else {
+      rhythm.sleepLength.push(sample(episode.start, episode.end! - episode.start));
+      const next = later[0];
+      if (next?.kind === 'feed') rhythm.wakeToFeed.push(sample(episode.end!, Math.max(0, next.start - episode.end!)));
+    }
+  });
+  return rhythm;
+}
+
+function circularMinutes(a: number, b: number): number {
+  const diff = Math.abs(a - b) % 1440;
+  return Math.min(diff, 1440 - diff);
+}
+
+export function weightedMedian(values: readonly { value: number; weight: number }[]): number | null {
+  const sorted = values.filter((v) => v.weight > 0).sort((a, b) => a.value - b.value);
+  const total = sorted.reduce((sum, v) => sum + v.weight, 0);
+  if (total === 0) return null;
+  let running = 0;
+  for (const v of sorted) {
+    running += v.weight;
+    if (running >= total / 2) return v.value;
+  }
+  return sorted.at(-1)!.value;
+}
+
+function estimate(
+  samples: readonly Sample[],
+  at: number,
+  now: number,
+  settings: typeof DEFAULTS & PredictOptions,
+  atLeast = 0,
+): number | null {
+  const minute = minutesOfDay(new Date(at), settings.timeZone);
+  const weighted = samples
+    .filter((s) => s.value > atLeast)
+    .map((s) => {
+      const hours = circularMinutes(s.minuteOfDay, minute);
+      const age = Math.max(0, now - s.at) / DAY;
+      return {
+        value: s.value,
+        weight:
+          Math.exp(-(hours * hours) / (2 * settings.hourSpreadMinutes ** 2)) * 0.5 ** (age / settings.halfLifeDays),
+      };
+    });
+  return weightedMedian(weighted);
+}
+
+export function predictDay(
+  events: readonly BabyEvent[],
+  now: Date,
+  until: Date,
+  options: PredictOptions,
+): PredictedBlock[] | null {
+  const settings = { ...DEFAULTS, ...options };
+  const nowMs = now.getTime();
+  const rhythm = learnRhythm(events, now, options);
+  if (Object.values(rhythm).some((samples: Sample[]) => samples.length < settings.minSamples)) return null;
+
+  const blocks: PredictedBlock[] = [];
+  const push = (kind: PredictedKind, start: number, end: number, continuesRunning = false) =>
+    blocks.push({
+      kind,
+      startedAt: new Date(start).toISOString(),
+      endedAt: new Date(Math.max(end, start + MIN_BLOCK_MS)).toISOString(),
+      continuesRunning,
+    });
+  const remaining = (samples: Sample[], start: number) => {
+    const elapsed = nowMs - start;
+    const value = estimate(samples, start, nowMs, settings, elapsed);
+    return start + (value ?? elapsed + OVERRUN_MS);
+  };
+  const length = (samples: Sample[], at: number) => estimate(samples, at, nowMs, settings) ?? 0;
+  const notBeforeNow = (time: number) => Math.max(time, nowMs);
+
+  const history = episodes(events, nowMs, settings.mergeGapMinutes * MINUTE);
+  const running = history.filter((e) => e.end === null);
+  const lastSleep = lastOfKind(history, 'sleep');
+  const lastFeed = lastOfKind(history, 'feed');
+  const runningSleep = running.find((e) => e.kind === 'sleep');
+  const runningFeed = running.find((e) => e.kind === 'feed');
+
+  let next: { kind: PredictedKind; at: number };
+  if (runningSleep) {
+    const wake = remaining(rhythm.sleepLength, runningSleep.start);
+    push('sleep', nowMs, wake, true);
+    next = { kind: 'feed', at: wake + length(rhythm.wakeToFeed, wake) };
+  } else if (runningFeed) {
+    const end = remaining(rhythm.feedLength, runningFeed.start);
+    push('feed', nowMs, end, true);
+    const sleepAt = remaining(rhythm.feedToSleep, runningFeed.start);
+    next = { kind: 'sleep', at: Math.max(sleepAt, nowMs) };
+  } else if (lastFeed && (!lastSleep || lastFeed.start > lastSleep.start)) {
+    next = { kind: 'sleep', at: notBeforeNow(remaining(rhythm.feedToSleep, lastFeed.start)) };
+  } else if (lastSleep) {
+    next = { kind: 'feed', at: notBeforeNow(lastSleep.end! + length(rhythm.wakeToFeed, lastSleep.end!)) };
+  } else {
+    return null;
+  }
+
+  const limit = until.getTime();
+  while (next.at < limit) {
+    if (next.kind === 'feed') {
+      const feedStart = next.at;
+      push('feed', feedStart, feedStart + length(rhythm.feedLength, feedStart));
+      next = { kind: 'sleep', at: feedStart + Math.max(MIN_BLOCK_MS, length(rhythm.feedToSleep, feedStart)) };
+    } else {
+      const sleepStart = next.at;
+      const wake = sleepStart + Math.max(MIN_BLOCK_MS, length(rhythm.sleepLength, sleepStart));
+      push('sleep', sleepStart, wake);
+      next = { kind: 'feed', at: wake + length(rhythm.wakeToFeed, wake) };
+    }
+  }
+  return blocks.filter((block) => Date.parse(block.startedAt) < limit);
+}

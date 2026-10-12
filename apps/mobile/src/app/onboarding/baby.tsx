@@ -1,3 +1,4 @@
+import { canAddBaby } from '@babble/config';
 import type { BabySex } from '@babble/domain';
 import { addBaby, queryKeys, toBabbleError } from '@babble/api';
 import { useQueryClient } from '@tanstack/react-query';
@@ -17,7 +18,7 @@ import { useBabble } from '@/lib/babble';
 import { useOnboarding } from '@/lib/use-onboarding';
 
 export default function BabyStep() {
-  const { client } = useBabble();
+  const { client, config } = useBabble();
   const queryClient = useQueryClient();
   const { state, loading } = useOnboarding();
   const { mode } = useLocalSearchParams<{ mode?: string }>();
@@ -34,6 +35,7 @@ export default function BabyStep() {
   if (state?.step === 'family') return <Redirect href="/onboarding/family" />;
   if (state?.step !== 'baby' && state?.step !== 'ready') return <Redirect href="/" />;
   const family = state.family;
+  if (adding && !canAddBaby(config.billingEnabled, family.plan, family.babies.length)) return <Redirect href="/" />;
 
   async function submit() {
     setError(null);

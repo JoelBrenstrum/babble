@@ -26,4 +26,13 @@ describe('BabyHeader', () => {
     await fireEvent.press(screen.getByRole('radio', { name: 'Olivia' }));
     expect(onSelect).not.toHaveBeenCalled();
   });
+
+  it('shows the plus pitch instead of adding a baby when locked', async () => {
+    const { router } = jest.requireMock('expo-router');
+    await render(<BabyHeader family={sampleFamily} baby={sampleBaby} choices={choices} addBabyLocked />);
+    await fireEvent.press(screen.getByRole('button', { name: /switch baby/i }));
+    await fireEvent.press(screen.getByRole('button', { name: 'Add a baby, Babble Plus' }));
+    expect(screen.getByText('Adding more than one baby to a family is part of Babble Plus.')).toBeTruthy();
+    expect(router.push).not.toHaveBeenCalled();
+  });
 });

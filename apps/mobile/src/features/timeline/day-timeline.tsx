@@ -5,6 +5,7 @@ import {
   markerShiftPercent,
   nappyKind,
   type DayLayout,
+  type PredictedItem,
   type TimelineItem,
   type Units,
   summariseSleep,
@@ -52,6 +53,7 @@ export function DayTimeline({
   units,
   nowFrac,
   now,
+  predicted = null,
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -59,6 +61,7 @@ export function DayTimeline({
   units: Units;
   nowFrac: number | null;
   now: Date;
+  predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
 }) {
   const lanes: { key: keyof DayLayout; label: string }[] = [
     { key: 'sleep', label: 'Sleep' },
@@ -101,10 +104,30 @@ export function DayTimeline({
             {layout[lane.key].map((item) => (
               <Item key={item.event.id} item={item} label={itemLabel(item, timeZone, units)} units={units} now={now} />
             ))}
+            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
+              <Predicted key={item.startFrac} item={item} />
+            ))}
           </View>
         ))}
       </View>
     </View>
+  );
+}
+
+function Predicted({ item }: { item: PredictedItem }) {
+  return (
+    <View
+      accessible
+      accessibilityLabel={item.label}
+      testID="predicted-block"
+      className={`absolute inset-x-0 rounded-md border-2 border-dashed ${item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft'}`}
+      style={{
+        top: pct(item.startFrac),
+        height: pct(item.endFrac - item.startFrac),
+        minHeight: 4,
+        opacity: item.opacity,
+      }}
+    />
   );
 }
 
