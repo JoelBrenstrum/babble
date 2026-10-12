@@ -60,7 +60,16 @@ pnpm typecheck
 pnpm format:check
 ```
 
+Browser tests (Playwright, phone and desktop) run against a dev server on port 3210, reusing one that's already running:
+
+```sh
+cd apps/web && PUBLIC_URL=http://localhost:3210 pnpm exec playwright test e2e/chair.spec.ts
+```
+
+Specs open sign-ups with `setSignupMode('open')` from `e2e/db.ts` and create accounts with `signUpWithPassword`, so they work alongside your own dev session. The few that test magic links (onboarding, password recovery) need Mailpit and a dev server they start themselves.
+
 ## Deploying
 
-- **Fly.io:** live at https://babble.brenstrum.com (Fly app `babble-app`, also reachable at https://babble-app.fly.dev). `fly deploy --remote-only` from the repo root (see `fly.toml` for the secrets). Apply new migrations with `pnpm --filter @babble/db exec supabase db push --db-url "$SUPABASE_DB_URL"` using the URL in `packages/db/.env.cloud`.
+- **Fly.io:** live at https://babble.brenstrum.com (Fly app `babble-app`, also reachable at https://babble-app.fly.dev). `fly deploy --remote-only` from the repo root (see `fly.toml` for the secrets). Apply new migrations first with `pnpm --filter @babble/db exec supabase db push --db-url "$SUPABASE_DB_URL"` using the URL in `packages/db/.env.cloud` (run it with `--dry-run` first). Each build stamps a release id (the build time, or `BABBLE_RELEASE`), served at `/api/version`; open tabs show a refresh banner when it changes.
+- **Raspberry Pi chair screen:** see [docs/raspberry-pi.md](docs/raspberry-pi.md).
 - **Self-hosted / Unraid:** see [infra/self-host/README.md](infra/self-host/README.md).
