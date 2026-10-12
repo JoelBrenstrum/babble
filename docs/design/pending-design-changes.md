@@ -287,3 +287,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > Correction to "Breastfeed breakdown merges same-side stretches": a pause at or over the merge threshold now starts a new row with a Downtime row before it, even on the same side (Right 10m, Left 5m, Downtime 5m, Left running). Only pauses shorter than the threshold merge into one row. A finished side shorter than the threshold (e.g. "Right 3s") is still left out.
+
+---
+
+## 2026-10-13 · Chair mode: one tap wakes and acts
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Mode.dc.html`, change the Night dim note and the "Night dim · Feeding" frame caption: a tap while dimmed now wakes the screen and also presses whatever was tapped, so it no longer needs a second tap. Keep the "Dimmed · tap to wake" hint.

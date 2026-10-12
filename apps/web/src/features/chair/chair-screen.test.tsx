@@ -279,7 +279,7 @@ describe('ChairScreen feeding', () => {
 });
 
 describe('ChairScreen night and offline', () => {
-  it('swallows the first tap while dimmed', () => {
+  it('wakes and acts on the first tap while dimmed', () => {
     const actions = makeActions();
     render(<ChairScreen data={makeData({ dimmed: true, night: true })} actions={actions} />);
     expect(screen.getByText('Dimmed · tap to wake')).toBeInTheDocument();
@@ -289,7 +289,7 @@ describe('ChairScreen night and offline', () => {
     fireEvent.pointerDown(left);
     fireEvent.click(left);
     expect(actions.wake).toHaveBeenCalled();
-    expect(actions.startFeed).not.toHaveBeenCalled();
+    expect(actions.startFeed).toHaveBeenCalledWith('left');
   });
 
   it('dims on request, and hides the button while dimmed', () => {

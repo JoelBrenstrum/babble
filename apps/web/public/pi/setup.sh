@@ -4,6 +4,7 @@ set -euo pipefail
 
 URL="${BABBLE_CHAIR_URL:-https://babble.brenstrum.com/chair}"
 AUTOSTART="${BABBLE_CHAIR_AUTOSTART:-yes}"
+SCREEN_OFF_MINUTES="${BABBLE_CHAIR_SCREEN_OFF_MINUTES:-30}"
 BIN="$HOME/.local/bin"
 LABWC="$HOME/.config/labwc"
 
@@ -62,21 +63,31 @@ else
   printf '[config]\nquick_exec=1\n' > "$HOME/.config/libfm/libfm.conf"
 fi
 
+if command -v raspi-config >/dev/null; then
+  say "Setting the Pi to boot to the desktop"
+  sudo raspi-config nonint do_boot_behaviour B4
+  # The built-in blanking is fixed at 10 minutes; swayidle below replaces it.
+  sudo raspi-config nonint do_blanking 1
+fi
+
+if [ "$SCREEN_OFF_MINUTES" != "0" ] && ! { command -v swayidle && command -v wlopm; } >/dev/null; then
+  say "Installing the screen-off tools"
+  sudo apt-get install -y swayidle wlopm
+fi
+
 mkdir -p "$LABWC"
 if [ ! -f "$LABWC/autostart" ] && [ -f /etc/xdg/labwc/autostart ]; then
   cp /etc/xdg/labwc/autostart "$LABWC/autostart"
 fi
 touch "$LABWC/autostart"
-sed -i '/babble-chair\|chromium/d' "$LABWC/autostart"
+sed -i '/babble-chair\|chromium\|swayidle/d' "$LABWC/autostart"
+if [ "$SCREEN_OFF_MINUTES" != "0" ]; then
+  say "Switching the screen off after $SCREEN_OFF_MINUTES minutes without a tap"
+  echo "swayidle -w timeout $((SCREEN_OFF_MINUTES * 60)) 'wlopm --off \*' resume 'wlopm --on \*' &" >> "$LABWC/autostart"
+fi
 if [ "$AUTOSTART" = "yes" ]; then
   say "Starting chair mode when the Pi boots"
   echo "sleep 10 && $BIN/babble-chair &" >> "$LABWC/autostart"
-fi
-
-if command -v raspi-config >/dev/null; then
-  say "Setting the Pi to boot to the desktop and switch the screen off when idle"
-  sudo raspi-config nonint do_boot_behaviour B4
-  sudo raspi-config nonint do_blanking 0
 fi
 
 say "Cutting down SD card writes"

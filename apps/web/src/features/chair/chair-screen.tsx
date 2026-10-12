@@ -126,7 +126,6 @@ export function ChairScreen({
   const [toast, setToast] = useState<Toast | null>(null);
   const [ended, setEnded] = useState<Ended | null>(null);
   const [endedNow, setEndedNow] = useState(0);
-  const swallowClick = useRef(false);
   const toastKey = useRef(0);
 
   useEffect(() => {
@@ -200,17 +199,10 @@ export function ChairScreen({
         data.dimmed && 'chair-dim',
         feed ? (feed.view.paused ? 'bg-session-paused-soft' : SIDE_SOFT[feed.view.side]) : 'bg-bg',
       )}
-      onPointerDownCapture={() => {
-        if (data.dimmed) swallowClick.current = true;
-        actions.wake();
-      }}
-      onClickCapture={(event) => {
+      onPointerDownCapture={actions.wake}
+      onClickCapture={() => {
         const { supported, active, wanted } = data.fullscreen;
         if (supported && wanted && !active) actions.enterFullscreen();
-        if (!swallowClick.current) return;
-        swallowClick.current = false;
-        event.stopPropagation();
-        event.preventDefault();
       }}
     >
       <div className="absolute inset-0 box-border flex flex-col gap-[3cqmin] p-[4cqmin]">
