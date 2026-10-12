@@ -244,10 +244,10 @@ describe('ChairScreen feeding', () => {
     expect(actions.endFeed).toHaveBeenCalled();
     expect(screen.getByText('Fed 13m')).toBeInTheDocument();
     expect(screen.getByText('Left 8m · Right 4m')).toBeInTheDocument();
-    expect(screen.getByText('Back to the start screen in 30s')).toBeInTheDocument();
+    expect(screen.getByText('Back to the start screen in 10s')).toBeInTheDocument();
     await act(async () => vi.advanceTimersByTime(5_000));
-    expect(screen.getByText('Back to the start screen in 25s')).toBeInTheDocument();
-    await act(async () => vi.advanceTimersByTime(25_000));
+    expect(screen.getByText('Back to the start screen in 5s')).toBeInTheDocument();
+    await act(async () => vi.advanceTimersByTime(5_000));
     expect(screen.queryByText('Fed 13m')).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start left' })).toBeInTheDocument();
   });

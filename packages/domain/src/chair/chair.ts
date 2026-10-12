@@ -15,7 +15,7 @@ const ML_PER_OUNCE = 29.5735;
 
 export const CHAIR_WAKE_MS = 30_000;
 export const CHAIR_UNDO_MS = 5_000;
-export const CHAIR_ENDED_MS = 30_000;
+export const CHAIR_ENDED_MS = 10_000;
 export const CHAIR_IDLE_DIM_MS = 5 * 60_000;
 
 type BreastFeed = EventOfType<'breast_feed'>;

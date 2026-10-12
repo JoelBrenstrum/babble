@@ -263,3 +263,11 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > (1) `Stats Cards.dc.html`: the range picker becomes 24h / Today / 7d / 30d / All. On 24h and Today the figure tiles are totals ("Last 24h" or "Today so far" as the first tile label, no "per day"), and each chart has one bar per clock hour (24–25 bars), with the axis reading e.g. "6 pm" on the left and "Now" on the right and tooltips like "2 pm: Breast 0, Bottle 1 · Total 1". The caption reads "Totals for the last 24 hours, charted hour by hour." / "Totals for today so far, charted hour by hour." (2) Settings → Tracking (`Phone Account.dc.html`, `Web.dc.html`): add "Ask about a nappy" single-choice chips — When a feed starts / After the first side / When the feed ends / Don't ask — with the hint "When to ask about a nappy change during a breastfeed. Bottles ask after saving." The "Ignore gaps shorter than" hint becomes "Short pauses, like switching sides, won't show as downtime, and a side shorter than this is left out." (3) `Chair Screen.dc.html`: add a "Full screen" / "Exit full screen" pill (Lucide `maximize` / `minimize`, same style as "Dim now") to the top strip, left of Dim now.
+
+---
+
+## 2026-10-12 · Chair mode: 10-second feed summary
+
+Paste everything below this line into Claude Design.
+
+> In `Chair Screen.dc.html`, the Feed ended state now stays up for 10 seconds (not 30); its footer counts down "Back to the start screen in 10s", 9s, 8s…
