@@ -23,7 +23,7 @@ The script source is [`apps/web/public/pi/setup.sh`](../apps/web/public/pi/setup
 - Adds `babble-chair-stop` and a **babble chair** desktop icon, and lets the desktop run it on a double tap without asking.
 - Starts chair mode 10 seconds after the desktop loads (labwc autostart), replacing any older chromium line. Set `BABBLE_CHAIR_AUTOSTART=no` before running to skip this.
 - Boots to the desktop with auto-login.
-- Switches the display off after 30 minutes without a tap (a tap wakes it; chair mode keeps it on during a feed). It uses `swayidle` and `wlopm` in the labwc autostart instead of the Pi's built-in blanking, which is fixed at 10 minutes. Set `BABBLE_CHAIR_SCREEN_OFF_MINUTES` before running to change it, or `0` to never switch it off.
+- Switches the display off after 30 minutes without a tap (a tap wakes it without pressing anything; chair mode keeps it on during a feed). The launcher adds `?screenOff=30` to the chair URL so chair mode knows to ignore that waking tap. It uses `swayidle` and `wlopm` in the labwc autostart instead of the Pi's built-in blanking, which is fixed at 10 minutes. Set `BABBLE_CHAIR_SCREEN_OFF_MINUTES` before running to change it, or `0` to never switch it off.
 - Cuts SD card writes: system logs go to memory and swap is turned off.
 
 ## Day to day

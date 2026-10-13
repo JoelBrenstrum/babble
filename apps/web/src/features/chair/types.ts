@@ -21,7 +21,7 @@ export interface ChairActions {
   endNap: () => Promise<unknown>;
   undoEntry: (eventId: string) => Promise<unknown>;
   restoreEntry: (eventId: string) => Promise<unknown>;
-  wake: () => void;
+  wake: () => { screenWasOff: boolean };
   dimNow: () => void;
   refresh: () => void;
   enterFullscreen: () => void;

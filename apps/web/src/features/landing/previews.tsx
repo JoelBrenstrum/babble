@@ -145,7 +145,7 @@ const PREVIEW_ACTIONS: ChairActions = {
   endNap: noop,
   undoEntry: noop,
   restoreEntry: noop,
-  wake: () => undefined,
+  wake: () => ({ screenWasOff: false }),
   dimNow: () => undefined,
   refresh: () => undefined,
   enterFullscreen: () => undefined,

@@ -17,6 +17,8 @@ export const CHAIR_WAKE_MS = 30_000;
 export const CHAIR_UNDO_MS = 5_000;
 export const CHAIR_ENDED_MS = 10_000;
 export const CHAIR_IDLE_DIM_MS = 5 * MINUTE_MS;
+// The device's idle timer and ours start from the same tap, but ticks and clock syncs can drift a few seconds.
+const SCREEN_OFF_SLACK_MS = 5_000;
 
 type BreastFeed = EventOfType<'breast_feed'>;
 
@@ -165,4 +167,13 @@ export function chairIsNight(night: NightWindow | null, now: Date): boolean {
 export function chairDimmed(night: NightWindow | null, now: Date, lastTouchAt: number): boolean {
   const idleMs = now.getTime() - lastTouchAt;
   return idleMs >= CHAIR_IDLE_DIM_MS || (idleMs >= CHAIR_WAKE_MS && chairIsNight(night, now));
+}
+
+export function screenOffMinutes(value: unknown): number | undefined {
+  const minutes = typeof value === 'number' ? value : typeof value === 'string' ? Number(value) : NaN;
+  return Number.isInteger(minutes) && minutes > 0 ? minutes : undefined;
+}
+
+export function tapWakesScreen(screenOffMinutes: number | undefined, now: number, lastTouchAt: number): boolean {
+  return screenOffMinutes !== undefined && now - lastTouchAt >= screenOffMinutes * MINUTE_MS - SCREEN_OFF_SLACK_MS;
 }

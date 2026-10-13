@@ -77,24 +77,24 @@ describe('describeEvent branches', () => {
 });
 
 describe('summariseLatest branches', () => {
-  it('uses the description for a custom entry and the measurements for growth', () => {
+  it('uses the title and length for a custom entry and the measurements for growth', () => {
     const custom = makeEvent('custom', {
       startedAt: '2026-10-06T10:00:00Z',
       endedAt: '2026-10-06T10:30:00Z',
       details: { title: 'Bath', description: 'Warm' },
     });
-    expect(summariseLatest(custom, NOW, 'metric')).toBe('Warm');
+    expect(summariseLatest(custom, NOW, 'metric')).toBe('Bath · 30m');
     const growth = makeEvent('growth', { details: { weightG: 3950, lengthMm: 510, headCircumferenceMm: null } });
     expect(summariseLatest(growth, NOW, 'metric')).toBe('3.95 kg · 51 cm');
   });
 
-  it('is empty when there is nothing to say', () => {
+  it('uses only the title for a short custom entry', () => {
     const vitamin = makeEvent('custom', {
       startedAt: '2026-10-06T10:00:00Z',
       endedAt: '2026-10-06T10:00:30Z',
       details: { title: 'Vitamin D', description: '' },
     });
-    expect(summariseLatest(vitamin, NOW, 'metric')).toBe('');
+    expect(summariseLatest(vitamin, NOW, 'metric')).toBe('Vitamin D');
   });
 
   it('shows the amount of a pump and the length of a sleep', () => {

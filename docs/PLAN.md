@@ -25,6 +25,8 @@ babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding an
 | 5     | [Huckleberry import](stages/05-huckleberry-import.md) | CSV import, including solids. Built.                                                              |
 | 6     | [Food intake](stages/06-food-intake.md)               | Parked. (The baby's own solids are a normal tracker, built separately.)                           |
 | 7     | [Stats](stages/07-stats.md)                           | Today / 7d / 30d / All averages and charts, WHO growth percentiles with point readouts. Built.    |
+| 8     | [Plus billing](stages/08-plus-billing.md)             | Stripe subscriptions on the web at NZ$10/month or NZ$80/year, then App Store and Play. Planned.   |
+| 9     | [Offline mode](stages/09-offline.md)                  | Persisted cache, a device outbox for taps and logs, sync with tap-time accuracy. Planned.         |
 
 ### Built beyond the stages
 
@@ -81,9 +83,8 @@ Each stage ends with something usable on both apps. A stage's plan is fleshed ou
 - Demo baby: a Settings button that adds a "Demo baby" with a realistic, seeded last 7 days (feeds with sides, naps with a wake-up, nappies, a pump, growth) through `import_events` with a `demo` source, and a matching "Remove demo data". Useful for showing babble, screenshots and testing stats.
 - iOS Live Activity / Android ongoing notification for running sessions (Expo only)
 - Home-screen widgets
-- Real offline sync (PowerSync)
 - Data export: JSON done (Settings → Data). CSV still to come.
-- Billing (hosted product only). Entitlements are wired for `predictions` (hidden on free) and `multiple_babies` ("Add a baby" shows a lock and a Plus badge and opens the Plus popup; `/onboarding/baby?mode=add` redirects home), and `extra_carers` (a free family has at most two carers, counting pending invites; "Invite a caregiver" locks the same way). Stats stay free; more advanced stats may become Plus later. The database enforces the baby and carer limits too when `private.instance_settings.billing_enabled` is on (it must match `BILLING_ENABLED`). No upgrade flow yet.
+- Billing (hosted product only). Entitlements are wired for `predictions` (hidden on free) and `multiple_babies` ("Add a baby" shows a lock and a Plus badge and opens the Plus popup; `/onboarding/baby?mode=add` redirects home), and `extra_carers` (a free family has at most two carers, counting pending invites; "Invite a caregiver" locks the same way). Stats stay free; more advanced stats may become Plus later. The database enforces the baby and carer limits too when `private.instance_settings.billing_enabled` is on (it must match `BILLING_ENABLED`). No upgrade flow yet; see [Plus billing](stages/08-plus-billing.md).
 - Marketing site (can live in the TanStack Start app)
 
 ### Expo app, to pick up later

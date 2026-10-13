@@ -264,6 +264,7 @@ export function summariseLatest(event: BabyEvent, now: Date, units: Units): stri
   if (description.running) return description.duration ? `In progress · ${description.duration}` : 'In progress';
   if (event.type === 'pump') return description.trailing ?? '';
   if (event.type === 'sleep') return description.duration ?? '';
+  if (event.type === 'custom') return [description.title, description.duration].filter(Boolean).join(' · ');
   const parts = description.parts.filter((part) => !SUMMARY_TONES.includes(part.tone)).map((part) => part.text);
   if (event.type === 'nappy' && description.trailing) parts.push(description.trailing);
   return parts.join(' · ') || description.duration || '';

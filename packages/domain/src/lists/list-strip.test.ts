@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import { formatWeightChange } from '../format/units';
-import { listStrip, sinceItem, sinceReference, stripKind, stripWindow, type StripContext } from './list-strip';
+import {
+  hasStrip,
+  listStrip,
+  sinceItem,
+  sinceReference,
+  stripKind,
+  stripWindow,
+  type StripContext,
+} from './list-strip';
 
 const context: StripContext = {
   now: new Date('2026-10-08T12:00:00Z'),
@@ -221,16 +229,10 @@ describe('listStrip', () => {
     ]);
   });
 
-  it('counts custom events today and over 7 days', () => {
-    const events = [
-      makeEvent('custom', { id: id(), startedAt: '2026-10-01T09:00:00Z', endedAt: null }),
-      makeEvent('custom', { id: id(), startedAt: '2026-10-03T09:00:00Z', endedAt: null }),
-      makeEvent('custom', { id: id(), startedAt: '2026-10-08T09:00:00Z', endedAt: null }),
-    ];
-    expect(listStrip('custom', events, context).slice(1)).toEqual([
-      { label: 'Today', value: '1' },
-      { label: '7 days', value: '2' },
-    ]);
+  it('has no strip for custom events', () => {
+    expect(hasStrip('custom')).toBe(false);
+    expect(hasStrip('sleep')).toBe(true);
+    expect(listStrip('custom', [makeEvent('custom')], context)).toEqual([]);
   });
 });
 

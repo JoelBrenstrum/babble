@@ -188,6 +188,8 @@ function daysBetweenNote(from: string, to: string, context: StripContext): strin
   return days === 0 ? 'same day' : `in ${days} ${days === 1 ? 'day' : 'days'}`;
 }
 
+export const hasStrip = (kind: StripKind): boolean => kind !== 'custom';
+
 export function listStrip(kind: StripKind, events: readonly BabyEvent[], context: StripContext): StripItem[] {
   const types = KIND_TYPES[kind];
   const unique = [...new Map(events.map((event) => [event.id, event])).values()];
@@ -292,18 +294,8 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
         },
       ];
     }
-    case 'custom': {
-      const todayKey = dayKeyFor(context.now.toISOString(), context.timeZone, context.dayStartMinutes);
-      const weekStart = dayWindow(lastDays(todayKey, 7)[0]!, context.timeZone, context.dayStartMinutes).start;
-      const todayStart = dayWindow(todayKey, context.timeZone, context.dayStartMinutes).start;
-      const countFrom = (start: Date) =>
-        relevant.filter((event) => Date.parse(event.startedAt) >= start.getTime()).length;
-      return [
-        since,
-        { label: 'Today', value: String(countFrom(todayStart)) },
-        { label: '7 days', value: String(countFrom(weekStart)) },
-      ];
-    }
+    case 'custom':
+      return [];
   }
 }
 

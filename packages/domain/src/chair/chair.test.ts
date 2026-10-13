@@ -3,6 +3,8 @@ import { makeEvent } from '../events/test-events';
 import {
   chairBottleDraft,
   chairDimmed,
+  screenOffMinutes,
+  tapWakesScreen,
   chairIsNight,
   chairFeedSummary,
   chairFeedView,
@@ -250,5 +252,24 @@ describe('chairDimmed', () => {
   it('uses the 5 minute rule when there is no night window', () => {
     expect(chairDimmed(null, late, late.getTime() - 60_000)).toBe(false);
     expect(chairDimmed(null, late, late.getTime() - 5 * 60_000)).toBe(true);
+  });
+});
+
+describe('screen off', () => {
+  it('reads whole minutes from the URL and ignores anything else', () => {
+    expect(screenOffMinutes('30')).toBe(30);
+    expect(screenOffMinutes(45)).toBe(45);
+    expect(screenOffMinutes('0')).toBeUndefined();
+    expect(screenOffMinutes('abc')).toBeUndefined();
+    expect(screenOffMinutes('2.5')).toBeUndefined();
+    expect(screenOffMinutes(undefined)).toBeUndefined();
+  });
+
+  it('treats a tap as waking the screen once the screen-off time has passed', () => {
+    const now = NOW.getTime();
+    expect(tapWakesScreen(30, now, now - 30 * 60_000)).toBe(true);
+    expect(tapWakesScreen(30, now, now - 30 * 60_000 + 4_000)).toBe(true);
+    expect(tapWakesScreen(30, now, now - 29 * 60_000)).toBe(false);
+    expect(tapWakesScreen(undefined, now, now - 120 * 60_000)).toBe(false);
   });
 });

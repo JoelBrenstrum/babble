@@ -44,6 +44,17 @@ describe('timelineItemLabel', () => {
     expect(label(nappy)).toBe('Nappy 9:05 am, wet');
   });
 
+  it('labels custom entries with their title, time and length if they have one', () => {
+    const bath = makeEvent('custom', {
+      startedAt: '2026-10-06T18:00:00Z',
+      endedAt: '2026-10-06T18:20:00Z',
+      details: { title: 'Bath', description: '' },
+    });
+    expect(label(bath)).toBe('Bath 6:00 pm, 20m');
+    expect(label({ ...bath, endedAt: bath.startedAt })).toBe('Bath 6:00 pm');
+    expect(label({ ...bath, endedAt: null })).toBe('Bath 6:00 pm, running');
+  });
+
   it('falls back to the time for other types', () => {
     expect(label(makeEvent('growth', { startedAt: '2026-10-06T09:05:00Z' }))).toBe('9:05 am');
   });

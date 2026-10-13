@@ -56,7 +56,7 @@ function makeActions(): ChairActions {
     endNap: vi.fn(async () => undefined),
     undoEntry: vi.fn(async () => undefined),
     restoreEntry: vi.fn(async () => undefined),
-    wake: vi.fn(),
+    wake: vi.fn(() => ({ screenWasOff: false })),
     dimNow: vi.fn(),
     refresh: vi.fn(),
     enterFullscreen: vi.fn(),
@@ -290,6 +290,19 @@ describe('ChairScreen night and offline', () => {
     fireEvent.pointerDown(left);
     fireEvent.click(left);
     expect(actions.wake).toHaveBeenCalled();
+    expect(actions.startFeed).toHaveBeenCalledWith('left');
+  });
+
+  it('ignores the tap that wakes a switched-off screen, then acts on the next', () => {
+    const actions = makeActions();
+    vi.mocked(actions.wake).mockReturnValueOnce({ screenWasOff: true });
+    render(<ChairScreen data={makeData({ dimmed: true })} actions={actions} />);
+    const left = screen.getByRole('button', { name: 'Start left' });
+    fireEvent.pointerDown(left);
+    fireEvent.click(left);
+    expect(actions.startFeed).not.toHaveBeenCalled();
+    fireEvent.pointerDown(left);
+    fireEvent.click(left);
     expect(actions.startFeed).toHaveBeenCalledWith('left');
   });
 

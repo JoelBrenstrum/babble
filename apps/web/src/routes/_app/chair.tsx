@@ -16,6 +16,8 @@ import {
   chairNappyDraft,
   memberTones,
   promptsForSessionEvent,
+  screenOffMinutes,
+  tapWakesScreen,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { familyHasFeature } from '@babble/config';
@@ -35,6 +37,9 @@ import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { useScreenWakeLock } from '#/lib/wake-lock';
 
 export const Route = createFileRoute('/_app/chair')({
+  validateSearch: (search: Record<string, unknown>): { screenOff?: number } => ({
+    screenOff: screenOffMinutes(search.screenOff),
+  }),
   beforeLoad: ({ context }) => {
     if (!context.canLog) throw redirect({ to: '/' });
   },
@@ -89,6 +94,7 @@ function ChairLive() {
   const tones = useMemo(() => memberTones(family.members), [family.members]);
   const selectBaby = useSelectBaby();
   const choices = babyChoices(families);
+  const { screenOff } = Route.useSearch();
 
   const {
     data: view,
@@ -146,7 +152,11 @@ function ChairLive() {
     },
     undoEntry: (eventId) => remove.mutateAsync(eventId),
     restoreEntry: (eventId) => restore.mutateAsync(eventId),
-    wake: () => setLastTouchAt(clock.now().getTime()),
+    wake: () => {
+      const touchedAt = clock.now().getTime();
+      setLastTouchAt(touchedAt);
+      return { screenWasOff: tapWakesScreen(screenOff, touchedAt, lastTouchAt) };
+    },
     refresh: reloadForRelease,
     enterFullscreen: fullscreen.enter,
     exitFullscreen: fullscreen.exit,

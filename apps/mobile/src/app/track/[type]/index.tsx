@@ -1,6 +1,7 @@
 import { useUnits } from '@babble/api/react';
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
 import {
+  hasStrip,
   isEventType,
   listDayGroups,
   listStrip,
@@ -67,9 +68,13 @@ function TrackerListContent({
   });
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
-  const recent = useQuery(eventsBetweenQuery(client, baby.id, stripRange.from, stripRange.to));
+  const showStrip = hasStrip(kind);
+  const recent = useQuery({
+    ...eventsBetweenQuery(client, baby.id, stripRange.from, stripRange.to),
+    enabled: showStrip,
+  });
   const strip =
-    events.data?.length && recent.data && settings
+    showStrip && events.data?.length && recent.data && settings
       ? listStrip(kind, [...recent.data, ...events.data], {
           now,
           timeZone: baby.timezone,
@@ -166,7 +171,7 @@ function TrackerListContent({
                   timeZone={baby.timezone}
                   units={units}
                   now={now}
-                  showTitle={isFeed && filter === 'all'}
+                  showTitle={(isFeed && filter === 'all') || eventType === 'custom'}
                   showNotes={!group.notesInSubtitle}
                   divider={index > 0}
                 />

@@ -1,5 +1,5 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
-import { listDayGroups, listStrip, stripKind, stripWindow } from '@babble/domain';
+import { hasStrip, listDayGroups, listStrip, stripKind, stripWindow } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
 import { Plus } from 'lucide-react';
@@ -49,9 +49,13 @@ function TrackerList() {
   });
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
   const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
-  const recent = useQuery(eventsBetweenQuery(babble.client, baby.id, stripRange.from, stripRange.to));
+  const showStrip = hasStrip(kind);
+  const recent = useQuery({
+    ...eventsBetweenQuery(babble.client, baby.id, stripRange.from, stripRange.to),
+    enabled: showStrip,
+  });
   const strip =
-    events.data?.length && recent.data && settings
+    showStrip && events.data?.length && recent.data && settings
       ? listStrip(kind, [...recent.data, ...events.data], {
           now,
           timeZone: baby.timezone,
@@ -140,7 +144,7 @@ function TrackerList() {
                 timeZone={baby.timezone}
                 units={units}
                 now={now}
-                showTitle={isFeed && filter === 'all'}
+                showTitle={(isFeed && filter === 'all') || eventType === 'custom'}
                 showNotes={!group.notesInSubtitle}
               />
             ))}

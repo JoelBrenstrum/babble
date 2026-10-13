@@ -42,12 +42,12 @@ describe('latestMeta', () => {
     expect(meta(growth)).toBe('3.95 kg · 1 Oct');
   });
 
-  it('drops the detail when there is none', () => {
+  it('leads a custom entry with its title', () => {
     const custom = makeEvent('custom', {
       startedAt: '2026-10-06T11:00:00Z',
       endedAt: '2026-10-06T11:00:00Z',
       details: { title: 'Vitamin D', description: '' },
     });
-    expect(meta(custom)).toBe('Last 1h 00m ago');
+    expect(meta(custom)).toBe('Last 1h 00m ago · Vitamin D');
   });
 });

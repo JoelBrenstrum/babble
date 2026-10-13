@@ -1,6 +1,7 @@
 import { formatDuration } from '../format/duration';
 import { formatVolume } from '../format/units';
 import type { Units } from '../events/types';
+import { MINUTE_MS } from '../time/constants';
 import { ms } from '../time/instants';
 import { formatTimeOfDay } from '../time/local-time';
 import type { TimelineItem } from './day-layout';
@@ -31,6 +32,11 @@ export function timelineItemLabel(item: TimelineItem, timeZone: string, units: U
       return `Solids ${at}, ${event.details.foods.join(', ')}`;
     case 'nappy':
       return `Nappy ${at}, ${nappyKind(event.details).toLowerCase()}`;
+    case 'custom': {
+      const spanMs = event.endedAt ? ms(event.endedAt) - ms(event.startedAt) : null;
+      const custom = spanMs === null ? 'running' : spanMs >= MINUTE_MS ? length : null;
+      return `${event.details.title} ${at}${custom ? `, ${custom}` : ''}`;
+    }
     default:
       return at;
   }

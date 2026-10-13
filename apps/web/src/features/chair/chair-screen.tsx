@@ -1,4 +1,5 @@
 import { Check, RefreshCw, Undo2 } from 'lucide-react';
+import { useRef } from 'react';
 import { cn } from '#/lib/cn';
 import { BabySheet } from './baby-sheet';
 import { BigButton } from './big-button';
@@ -26,6 +27,7 @@ export function ChairScreen({
   embedded?: boolean;
 }) {
   const flow = useChairFlow(data, actions);
+  const swallowClick = useRef(false);
   const { sheet, toast, ended } = flow;
   const feed = ended ? null : data.feed;
   const canSwitchBaby = data.babies.length > 1 && actions.selectBaby !== undefined;
@@ -40,10 +42,16 @@ export function ChairScreen({
         data.dimmed && 'chair-dim',
         feed ? (feed.view.paused ? 'bg-session-paused-soft' : SIDE_SOFT[feed.view.side]) : 'bg-bg',
       )}
-      onPointerDownCapture={actions.wake}
-      onClickCapture={() => {
+      onPointerDownCapture={() => {
+        swallowClick.current = actions.wake().screenWasOff;
+      }}
+      onClickCapture={(event) => {
         const { supported, active, wanted } = data.fullscreen;
         if (supported && wanted && !active) actions.enterFullscreen();
+        if (!swallowClick.current) return;
+        swallowClick.current = false;
+        event.stopPropagation();
+        event.preventDefault();
       }}
     >
       <div className="absolute inset-0 box-border flex flex-col gap-[3cqmin] p-[4cqmin]">

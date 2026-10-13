@@ -7,6 +7,10 @@ AUTOSTART="${BABBLE_CHAIR_AUTOSTART:-yes}"
 SCREEN_OFF_MINUTES="${BABBLE_CHAIR_SCREEN_OFF_MINUTES:-30}"
 BIN="$HOME/.local/bin"
 LABWC="$HOME/.config/labwc"
+if [ "$SCREEN_OFF_MINUTES" != "0" ]; then
+  # Tells chair mode to ignore the tap that only wakes the screen.
+  case "$URL" in *\?*) URL="$URL&screenOff=$SCREEN_OFF_MINUTES" ;; *) URL="$URL?screenOff=$SCREEN_OFF_MINUTES" ;; esac
+fi
 
 say() { printf '\n\033[1m%s\033[0m\n' "$1"; }
 

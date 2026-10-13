@@ -301,6 +301,7 @@ export {
   type GrowthReport,
 } from './growth/growth';
 export {
+  hasStrip,
   listStrip,
   sinceItem,
   sinceReference,
@@ -385,6 +386,8 @@ export {
   bottleStep,
   chairBottleDraft,
   chairDimmed,
+  screenOffMinutes,
+  tapWakesScreen,
   chairFeedSummary,
   chairIsNight,
   chairFeedView,
