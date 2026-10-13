@@ -14,7 +14,7 @@ import {
   type SessionType,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Link, notFound, useNavigate, useRouter } from '@tanstack/react-router';
+import { createFileRoute, Link, notFound, redirect, useNavigate, useRouter } from '@tanstack/react-router';
 import { ArrowRight, Clock, Moon, Play, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { PageHeader } from '#/components/shell/page-header';
@@ -32,8 +32,9 @@ export const Route = createFileRoute('/_app/track/$type/new')({
   validateSearch: (search: Record<string, unknown>): { then?: 'back' } => ({
     then: search.then === 'back' ? 'back' : undefined,
   }),
-  beforeLoad: ({ params }) => {
+  beforeLoad: ({ params, context }) => {
     if (!isEventType(params.type)) throw notFound();
+    if (!context.canLog) throw redirect({ to: '/track/$type', params: { type: params.type } });
     return { eventType: params.type };
   },
   component: NewEntry,

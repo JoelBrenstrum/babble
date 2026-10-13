@@ -47,7 +47,7 @@ describe('PendingInvites', () => {
   it('lists pending invites and counts them in the heading', async () => {
     await renderInvites();
     expect(await screen.findByText('K7Q4M-D2XPA')).toBeTruthy();
-    expect(screen.getByText('Viewer · by Jane · Expires in 3h')).toBeTruthy();
+    expect(screen.getByText('Read only · by Jane · Expires in 3h')).toBeTruthy();
     expect(screen.getByText('Members · 1 pending')).toBeTruthy();
   });
 

@@ -49,10 +49,23 @@ interface RunningCardProps {
   onDiscarded?: () => void;
 }
 
-export function RunningCard({ event, ...props }: RunningCardProps & { event: BabyEvent }) {
-  if (event.type === 'sleep') return <SleepRunningCard event={event} {...props} />;
-  if (event.type === 'breast_feed' || event.type === 'pump') return <FeedRunningCard event={event} {...props} />;
-  return null;
+export function RunningCard({
+  event,
+  readOnly = false,
+  ...props
+}: RunningCardProps & { event: BabyEvent; readOnly?: boolean }) {
+  const card =
+    event.type === 'sleep' ? (
+      <SleepRunningCard event={event} {...props} />
+    ) : event.type === 'breast_feed' || event.type === 'pump' ? (
+      <FeedRunningCard event={event} {...props} />
+    ) : null;
+  if (!card || !readOnly) return card;
+  return (
+    <fieldset disabled className="contents">
+      {card}
+    </fieldset>
+  );
 }
 
 function useSessionEditors({

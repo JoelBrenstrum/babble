@@ -192,7 +192,7 @@ select is(
    where p.pronamespace = 'private'::regnamespace and has_function_privilege('authenticated', p.oid, 'execute')
      and p.proname not in (
        'has_family_role', 'is_family_member', 'can_edit_family', 'my_family_ids', 'my_editor_family_ids',
-       'my_owner_family_ids', 'my_baby_ids', 'my_editor_baby_ids', 'text_array', 'valid_foods',
+       'my_owner_family_ids', 'my_owner_baby_ids', 'my_baby_ids', 'my_editor_baby_ids', 'text_array', 'valid_foods',
        'lock_running_session', 'save_sleep_details', 'save_bottle_details', 'save_nappy_details',
        'save_pump_details', 'save_growth_details', 'save_solids_details', 'save_custom_details', 'save_segments'
      )),

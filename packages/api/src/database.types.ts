@@ -630,6 +630,14 @@ export type Database = {
       save_event: { Args: { event: Json }; Returns: string };
       save_sleep_details: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       server_time: { Args: Record<PropertyKey, never>; Returns: string };
+      set_member_role: {
+        Args: {
+          member_user_id: string;
+          new_role: Database['public']['Enums']['family_role'];
+          target_family_id: string;
+        };
+        Returns: undefined;
+      };
       set_session_start: { Args: { start_at: string; target_event_id: string }; Returns: undefined };
       set_switch_time: { Args: { switch_at: string; target_event_id: string }; Returns: undefined };
       start_session: {

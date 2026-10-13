@@ -26,6 +26,7 @@ import { EventRow } from '@/features/events/event-row';
 import { SummaryStrip } from '@/features/timeline/totals';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
+import { useCanLog } from '@/lib/use-can-log';
 import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
@@ -47,6 +48,7 @@ function TrackerListContent({
   eventType: TrackerKey;
 } & Pick<ReadyState, 'baby' | 'family'>) {
   const { client } = useBabble();
+  const logging = useCanLog();
   const now = useNow(30_000);
   const units = useUnits(client, baby.id);
   const isFeed = eventType === 'breast_feed' || eventType === 'bottle';
@@ -88,18 +90,20 @@ function TrackerListContent({
         title={isFeed ? 'Feeds' : tracker.pluralLabel}
         icon={<TrackerIcon tracker={tracker} />}
         right={
-          <Link
-            href={`/track/${eventType === 'breast_feed' && filter === 'bottle' ? 'bottle' : eventType}/new`}
-            asChild
-          >
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Add ${tracker.label.toLowerCase()}`}
-              className="size-tap items-center justify-center rounded-full bg-primary"
+          logging && (
+            <Link
+              href={`/track/${eventType === 'breast_feed' && filter === 'bottle' ? 'bottle' : eventType}/new`}
+              asChild
             >
-              <Plus size={20} color={plusColor} strokeWidth={2.75} />
-            </Pressable>
-          </Link>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Add ${tracker.label.toLowerCase()}`}
+                className="size-tap items-center justify-center rounded-full bg-primary"
+              >
+                <Plus size={20} color={plusColor} strokeWidth={2.75} />
+              </Pressable>
+            </Link>
+          )
         }
       />
       <View className="gap-5">
@@ -124,11 +128,17 @@ function TrackerListContent({
           <EmptyState
             illustration={<TrackerIcon tracker={tracker} size="lg" />}
             title={`No ${tracker.pluralLabel.toLowerCase()} yet`}
-            body="Entries you log will show up here, grouped by day."
+            body={
+              logging
+                ? 'Entries you log will show up here, grouped by day.'
+                : 'Entries will show up here, grouped by day.'
+            }
             action={
-              <Button onPress={() => router.push(`/track/${filter === 'bottle' ? 'bottle' : eventType}/new`)}>
-                {`Log ${(filter === 'bottle' ? trackerFor('bottle') : tracker).label.toLowerCase()}`}
-              </Button>
+              logging && (
+                <Button onPress={() => router.push(`/track/${filter === 'bottle' ? 'bottle' : eventType}/new`)}>
+                  {`Log ${(filter === 'bottle' ? trackerFor('bottle') : tracker).label.toLowerCase()}`}
+                </Button>
+              )
             }
           />
         )}

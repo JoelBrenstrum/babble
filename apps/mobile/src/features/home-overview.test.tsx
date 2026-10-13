@@ -44,3 +44,28 @@ describe('HomeOverview prediction line', () => {
     expect(screen.queryByText(/^Likely/)).toBeNull();
   });
 });
+
+describe('HomeOverview for read-only members', () => {
+  it('hides the log buttons', async () => {
+    await render(
+      <HomeOverview
+        family={sampleFamily}
+        baby={sampleBaby}
+        now={new Date()}
+        units="metric"
+        running={[]}
+        latest={[]}
+        summary={null}
+        renderRunning={() => null}
+        canLog={false}
+      />,
+    );
+    expect(screen.getByText('Nappy')).toBeTruthy();
+    expect(screen.queryByLabelText(/^Log /)).toBeNull();
+  });
+
+  it('shows them to everyone who can log', async () => {
+    await renderHome(null);
+    expect(screen.getByLabelText('Log nappy')).toBeTruthy();
+  });
+});

@@ -170,6 +170,14 @@ export {
 export { runningIndicator, type RunningIndicator } from './events/running-indicator';
 export { entryAuthorText, entryEndedText } from './format/entry-author';
 export { formatExpiry, inviteExpiryText, inviteLink, membersHeading, pendingInviteMeta } from './format/invites';
+export {
+  MEMBER_ROLES,
+  READ_ONLY_NOTE,
+  roleDescription,
+  roleLabel,
+  settingsLockedNote,
+  type MemberRole,
+} from './format/roles';
 export { possessive, settingsGroups, type SettingsGroup, type SettingsGroupId } from './format/settings-groups';
 export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input';
 export {

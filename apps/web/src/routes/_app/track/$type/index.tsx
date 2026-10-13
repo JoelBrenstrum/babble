@@ -29,7 +29,7 @@ export const Route = createFileRoute('/_app/track/$type/')({
 });
 
 function TrackerList() {
-  const { babble, baby, family, eventType } = Route.useRouteContext();
+  const { babble, baby, family, eventType, canLog } = Route.useRouteContext();
   const { filter = eventType === 'bottle' ? 'bottle' : eventType === 'breast_feed' ? 'breast' : 'all' } =
     Route.useSearch();
   const navigate = useNavigate();
@@ -69,14 +69,16 @@ function TrackerList() {
       <div className="flex items-center gap-3">
         <TrackerIcon tracker={tracker} />
         <h1 className="flex-1 text-title font-bold">{isFeed ? 'Feeds' : tracker.pluralLabel}</h1>
-        <Link
-          to="/track/$type/new"
-          params={{ type: eventType === 'breast_feed' && filter === 'bottle' ? 'bottle' : eventType }}
-          aria-label={`Add ${tracker.label.toLowerCase()}`}
-          className="grid size-tap place-items-center rounded-full bg-primary text-on-primary"
-        >
-          <Plus className="size-5" strokeWidth={2.75} />
-        </Link>
+        {canLog && (
+          <Link
+            to="/track/$type/new"
+            params={{ type: eventType === 'breast_feed' && filter === 'bottle' ? 'bottle' : eventType }}
+            aria-label={`Add ${tracker.label.toLowerCase()}`}
+            className="grid size-tap place-items-center rounded-full bg-primary text-on-primary"
+          >
+            <Plus className="size-5" strokeWidth={2.75} />
+          </Link>
+        )}
       </div>
 
       {isFeed && (
@@ -105,14 +107,16 @@ function TrackerList() {
           illustration={<TrackerIcon tracker={tracker} size="lg" />}
           title={`No ${tracker.pluralLabel.toLowerCase()} yet`}
           action={
-            <Link
-              to="/track/$type/new"
-              params={{ type: filter === 'bottle' ? 'bottle' : eventType }}
-              className="inline-flex h-tap items-center gap-2 rounded-button bg-primary px-5 font-semibold text-on-primary hover:bg-on-primary-soft"
-            >
-              <Plus className="size-5" strokeWidth={2.75} />
-              Log {(filter === 'bottle' ? trackerFor('bottle') : tracker).label.toLowerCase()}
-            </Link>
+            canLog && (
+              <Link
+                to="/track/$type/new"
+                params={{ type: filter === 'bottle' ? 'bottle' : eventType }}
+                className="inline-flex h-tap items-center gap-2 rounded-button bg-primary px-5 font-semibold text-on-primary hover:bg-on-primary-soft"
+              >
+                <Plus className="size-5" strokeWidth={2.75} />
+                Log {(filter === 'bottle' ? trackerFor('bottle') : tracker).label.toLowerCase()}
+              </Link>
+            )
           }
         >
           Entries you log will show up here, grouped by day.

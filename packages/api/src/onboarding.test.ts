@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   babyChoices,
-  canEdit,
+  adminCount,
+  canChangeRole,
+  canLog,
   canRemoveMember,
   canRenameMember,
   memberNameError,
+  isAdmin,
   memberRole,
   resolveOnboarding,
 } from './onboarding';
@@ -31,6 +34,7 @@ const family = (id: string, babies: BabyRow[] = []): Family => ({
   members: [
     { family_id: id, user_id: 'john', role: 'owner', display_name: 'John', created_at: '' },
     { family_id: id, user_id: 'gran', role: 'viewer', display_name: 'Gran', created_at: '' },
+    { family_id: id, user_id: 'jane', role: 'caregiver', display_name: 'Jane', created_at: '' },
   ],
 });
 
@@ -90,9 +94,25 @@ describe('roles', () => {
     expect(memberRole(family('f'), 'nobody')).toBeNull();
   });
 
-  it('lets owners and caregivers edit', () => {
-    expect(canEdit(family('f'), 'john')).toBe(true);
-    expect(canEdit(family('f'), 'gran')).toBe(false);
+  it('lets admins and caregivers log entries but not read-only members', () => {
+    expect(canLog(family('f'), 'john')).toBe(true);
+    expect(canLog(family('f'), 'jane')).toBe(true);
+    expect(canLog(family('f'), 'gran')).toBe(false);
+    expect(canLog(family('f'), 'nobody')).toBe(false);
+  });
+
+  it('treats only the owner role as admin', () => {
+    expect(isAdmin(family('f'), 'john')).toBe(true);
+    expect(isAdmin(family('f'), 'jane')).toBe(false);
+    expect(isAdmin(family('f'), 'gran')).toBe(false);
+    expect(adminCount(family('f'))).toBe(1);
+  });
+
+  it('lets admins change the role of anyone in the family', () => {
+    expect(canChangeRole(family('f'), 'john', 'jane')).toBe(true);
+    expect(canChangeRole(family('f'), 'john', 'john')).toBe(true);
+    expect(canChangeRole(family('f'), 'jane', 'gran')).toBe(false);
+    expect(canChangeRole(family('f'), 'john', 'nobody')).toBe(false);
   });
 
   it('lets owners rename anyone and members rename themselves', () => {

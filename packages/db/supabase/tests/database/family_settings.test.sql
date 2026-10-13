@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(10);
+select plan(11);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -31,9 +31,12 @@ insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, c
   ('f2000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
    'viewer@settings.test', '{}', now(), now()),
   ('f2000000-0000-0000-0000-00000000000c', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'stranger@settings.test', '{}', now(), now());
+   'stranger@settings.test', '{}', now(), now()),
+  ('f2000000-0000-0000-0000-00000000000d', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'admin@settings.test', '{}', now(), now());
 insert into public.families (id, name) values ('f3000000-0000-0000-0000-00000000000a', 'Settings family');
 insert into public.family_members (family_id, user_id, role, display_name) values
+  ('f3000000-0000-0000-0000-00000000000a', 'f2000000-0000-0000-0000-00000000000d', 'owner', 'Admin'),
   ('f3000000-0000-0000-0000-00000000000a', 'f2000000-0000-0000-0000-00000000000a', 'caregiver', 'Carer'),
   ('f3000000-0000-0000-0000-00000000000a', 'f2000000-0000-0000-0000-00000000000b', 'viewer', 'Viewer');
 
@@ -58,10 +61,19 @@ select hasnt_column('public', 'baby_settings', 'downtime_merge_threshold_sec', '
 select hasnt_column('public', 'baby_settings', 'auto_end_paused_session_min', 'auto-end lives only on the family');
 
 select pg_temp.sign_in_as('f2000000-0000-0000-0000-00000000000a');
+update public.family_settings set units = 'imperial' where family_id = 'f3000000-0000-0000-0000-00000000000a';
+select pg_temp.sign_out();
+select is(
+  (select units::text from public.family_settings where family_id = 'f3000000-0000-0000-0000-00000000000a'),
+  'metric',
+  'a caregiver cannot change family settings'
+);
+
+select pg_temp.sign_in_as('f2000000-0000-0000-0000-00000000000d');
 select lives_ok(
   $$ update public.family_settings set units = 'imperial', auto_end_paused_session_min = 45
      where family_id = 'f3000000-0000-0000-0000-00000000000a' $$,
-  'a carer can change family settings'
+  'an admin can change family settings'
 );
 select pg_temp.sign_out();
 select is(

@@ -6,7 +6,7 @@ Every baby event is a row in a base `events` table, plus an optional 1:1 detail 
 
 ```
 families        id, name, created_at
-family_members  family_id, user_id, role (owner|caregiver|viewer), display_name  (owners rename or remove members; members rename themselves; only display_name is updatable)
+family_members  family_id, user_id, role (owner|caregiver|viewer, shown as Admin, Caregiver, Read only), display_name  (owners rename or remove members and change roles via set_member_role, which keeps at least one owner; members rename themselves; only display_name is updatable directly)
 babies          id, family_id, name, birth_date, sex?, timezone,
                 day_start_minutes (0 = midnight), created_at
 baby_settings   baby_id, feed_reminder_interval_min?, feed_reminder_enabled, feed_reminder_at_night,

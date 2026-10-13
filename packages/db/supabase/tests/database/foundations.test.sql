@@ -96,11 +96,9 @@ create temp table viewer_invite on commit drop as
   select * from public.create_invite((select id from family), 'viewer');
 grant select on viewer_invite to anon, authenticated;
 
-select throws_ok(
+select lives_ok(
   $$ select public.create_invite((select id from family), 'owner') $$,
-  '23514',
-  null,
-  'invites cannot grant the owner role'
+  'admins can invite another admin'
 );
 
 select pg_temp.sign_out();
@@ -147,12 +145,15 @@ select is(
   'caregiver',
   'the invite grants the caregiver role'
 );
-select lives_ok(
-  $$ update public.baby_settings set night_start_minutes = 1200 $$,
-  'caregivers can change baby settings'
+update public.baby_settings set night_start_minutes = 1200;
+select is((select night_start_minutes from public.baby_settings), 1140, 'caregivers cannot change baby settings');
+select is((select count(*)::int from public.family_invites), 0, 'caregivers cannot see the family''s invites');
+select throws_ok(
+  $$ select public.create_invite((select id from family)) $$,
+  '42501',
+  'Only admins can invite',
+  'caregivers cannot create invites'
 );
-select is((select night_start_minutes from public.baby_settings), 1200, 'the settings change was saved');
-select is((select count(*)::int from public.family_invites), 2, 'caregivers can see the family''s invites');
 
 select pg_temp.sign_in_as('00000000-0000-0000-0000-00000000000c');
 select throws_ok(
@@ -170,7 +171,7 @@ select is((select name from public.babies), 'Olivia', 'viewers cannot update bab
 select throws_ok(
   $$ select public.create_invite((select id from family)) $$,
   '42501',
-  'Only owners and caregivers can invite',
+  'Only admins can invite',
   'viewers cannot create invites'
 );
 select is((select count(*)::int from public.family_invites), 0, 'viewers cannot see invites');
@@ -199,7 +200,7 @@ delete from public.family_members where user_id = '00000000-0000-0000-0000-00000
 select pg_temp.sign_out();
 select is(
   (select night_start_minutes from public.baby_settings),
-  1200,
+  1140,
   'users cannot change other families'' settings'
 );
 select is(

@@ -8,6 +8,7 @@ function renderHome(
   feedDue: { text: string; overdue: boolean } | null,
   prediction: string | null = null,
   predictionPlus = false,
+  canLog = true,
 ) {
   render(
     <FixtureRouter>
@@ -22,6 +23,7 @@ function renderHome(
         feedDue={feedDue}
         prediction={prediction}
         predictionPlus={predictionPlus}
+        canLog={canLog}
       />
     </FixtureRouter>,
   );
@@ -62,5 +64,18 @@ describe('HomeOverview prediction line', () => {
     renderHome(null);
     await screen.findByText('Breastfeed');
     expect(screen.queryByText(/^Likely/)).toBeNull();
+  });
+});
+
+describe('HomeOverview log buttons', () => {
+  it('offers a log button for each tracker', async () => {
+    renderHome(null);
+    expect(await screen.findByRole('link', { name: 'Log nappy' })).toBeInTheDocument();
+  });
+
+  it('leaves log buttons out for read-only members', async () => {
+    renderHome(null, null, false, false);
+    await screen.findByText('Breastfeed');
+    expect(screen.queryByRole('link', { name: /^Log / })).toBeNull();
   });
 });

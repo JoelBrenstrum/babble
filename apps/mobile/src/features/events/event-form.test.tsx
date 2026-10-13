@@ -11,7 +11,7 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 
-async function renderForm(initial: EventDraft, focusAmounts = false) {
+async function renderForm(initial: EventDraft, focusAmounts = false, readOnly = false) {
   const onDone = jest.fn();
   await render(
     <QueryClientProvider client={new QueryClient()}>
@@ -23,6 +23,7 @@ async function renderForm(initial: EventDraft, focusAmounts = false) {
           units="metric"
           initial={initial}
           focusAmounts={focusAmounts}
+          readOnly={readOnly}
           onDone={onDone}
         />
       </ToastProvider>
@@ -35,6 +36,14 @@ const now = new Date(Date.now() - 60 * 60_000);
 
 describe('EventForm', () => {
   beforeEach(() => fake.rpc.mockReset());
+
+  it('shows the entry without save or delete for read-only members', async () => {
+    await renderForm({ ...emptyDraft('custom', now), details: { title: 'Bath', description: '' } }, false, true);
+    expect(screen.getByText(/read-only access/)).toBeTruthy();
+    expect(screen.getByDisplayValue('Bath')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
+    expect(screen.queryByText('Delete')).toBeNull();
+  });
 
   it('keeps the entry and retries after a failed save', async () => {
     fake.rpc

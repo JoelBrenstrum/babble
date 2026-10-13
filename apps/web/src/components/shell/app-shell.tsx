@@ -29,6 +29,7 @@ export function AppShell({
   onSelectBaby,
   running = null,
   addBabyLocked = false,
+  canAddBaby = true,
   children,
 }: {
   family: Family;
@@ -37,6 +38,7 @@ export function AppShell({
   onSelectBaby: (choice: BabyChoice) => void;
   running?: RunningIndicator | null;
   addBabyLocked?: boolean;
+  canAddBaby?: boolean;
   children: ReactNode;
 }) {
   const pathname = useLocation({ select: (location) => location.pathname });
@@ -56,6 +58,7 @@ export function AppShell({
               activeId={baby.id}
               onSelect={onSelectBaby}
               addBabyLocked={addBabyLocked}
+              canAddBaby={canAddBaby}
               layout="sidebar"
             />
           </div>
@@ -65,6 +68,7 @@ export function AppShell({
               activeId={baby.id}
               onSelect={onSelectBaby}
               addBabyLocked={addBabyLocked}
+              canAddBaby={canAddBaby}
               layout="rail"
             />
           </div>
@@ -106,6 +110,7 @@ export function AppShell({
             activeId={baby.id}
             onSelect={onSelectBaby}
             addBabyLocked={addBabyLocked}
+            canAddBaby={canAddBaby}
             layout="header"
           />
           <div className="flex -space-x-2">

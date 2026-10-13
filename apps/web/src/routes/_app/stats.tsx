@@ -34,7 +34,7 @@ export const Route = createFileRoute('/_app/stats')({
 });
 
 function StatsPage() {
-  const { babble, baby, family } = Route.useRouteContext();
+  const { babble, baby, family, canLog } = Route.useRouteContext();
   const { range = '7d' } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const now = useNow(60_000);
@@ -97,6 +97,7 @@ function StatsPage() {
           )}
           babyName={baby.name}
           timeZone={baby.timezone}
+          canLog={canLog}
         />
       )}
     </div>

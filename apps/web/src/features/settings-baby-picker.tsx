@@ -12,11 +12,13 @@ export function SettingsBabyPicker({
   activeId,
   onSelect,
   addBabyLocked,
+  canAddBaby = true,
 }: {
   choices: readonly BabyChoice[];
   activeId: string;
   onSelect: (choice: BabyChoice) => void;
   addBabyLocked: boolean;
+  canAddBaby?: boolean;
 }) {
   const [pitching, setPitching] = useState(false);
   const multipleFamilies = new Set(choices.map((choice) => choice.familyId)).size > 1;
@@ -57,9 +59,11 @@ export function SettingsBabyPicker({
           );
         })}
       </div>
-      <div className="border-t border-line pt-1">
-        <AddBabyRow locked={addBabyLocked} onPitch={() => setPitching(true)} />
-      </div>
+      {canAddBaby && (
+        <div className="border-t border-line pt-1">
+          <AddBabyRow locked={addBabyLocked} onPitch={() => setPitching(true)} />
+        </div>
+      )}
       {pitching && <PlusDialog feature="multiple_babies" onClose={() => setPitching(false)} />}
     </Card>
   );

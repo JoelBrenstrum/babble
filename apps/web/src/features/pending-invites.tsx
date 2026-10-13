@@ -9,7 +9,7 @@ import {
   type PendingInvite,
 } from '@babble/api';
 import { useAsyncAction } from '@babble/api/react';
-import { membersHeading, pendingInviteMeta } from '@babble/domain';
+import { membersHeading, pendingInviteMeta, type MemberRole } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ticket } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
@@ -34,13 +34,13 @@ export function MembersLabel({
   );
 }
 
-export function useCreateInvite(client: BabbleClient, familyId: string) {
+export function useCreateInvite(client: BabbleClient, familyId: string, role: MemberRole = 'caregiver') {
   const queryClient = useQueryClient();
   return useCallback(async () => {
-    const invite = await createInvite(client, familyId);
+    const invite = await createInvite(client, familyId, role);
     void queryClient.invalidateQueries({ queryKey: queryKeys.pendingInvites(familyId) });
     return invite;
-  }, [client, familyId, queryClient]);
+  }, [client, familyId, role, queryClient]);
 }
 
 export function PendingInvites({ client, family }: { client: BabbleClient; family: Family }) {

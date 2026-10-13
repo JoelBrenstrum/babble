@@ -5,6 +5,7 @@ import {
   growthPlaceholders,
   hasErrors,
   needsChoice,
+  READ_ONLY_NOTE,
   validateDraft,
   withoutPumpAmounts,
   type BabyEvent,
@@ -36,6 +37,7 @@ export function EventForm({
   initial,
   event,
   focusAmounts = false,
+  readOnly = false,
   onSaved,
   onDone,
 }: {
@@ -47,6 +49,7 @@ export function EventForm({
   initial: EventDraft;
   event?: BabyEvent;
   focusAmounts?: boolean;
+  readOnly?: boolean;
   onDone: () => void;
 }) {
   const [draft, setDraft] = useState<EventDraft>(initial);
@@ -83,8 +86,8 @@ export function EventForm({
 
   const common = { errors, timeZone, units, isNew };
 
-  return (
-    <View className="gap-6">
+  const fields = (
+    <>
       {draft.type === 'sleep' && <SleepForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'breast_feed' && <BreastFeedForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'bottle' && <BottleForm {...common} draft={draft} onChange={setDraft} />}
@@ -108,6 +111,23 @@ export function EventForm({
         value={draft.notes ?? ''}
         onChangeText={(notes) => setDraft({ ...draft, notes: notes || null })}
       />
+    </>
+  );
+
+  if (readOnly) {
+    return (
+      <View className="gap-6">
+        <StatusMessage tone="info">{READ_ONLY_NOTE}</StatusMessage>
+        <View pointerEvents="none" className="gap-6 opacity-60">
+          {fields}
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View className="gap-6">
+      {fields}
       {failure && (
         <View
           accessibilityRole="alert"

@@ -7,6 +7,7 @@ import {
   isSessionType,
   latestFeed,
   pumpFinishSummary,
+  READ_ONLY_NOTE,
   trackerFor,
   type BabyEvent,
   type Units,
@@ -35,7 +36,7 @@ export const Route = createFileRoute('/_app/events/$eventId')({
 });
 
 function EditEvent() {
-  const { babble, baby, family } = Route.useRouteContext();
+  const { babble, baby, family, canLog } = Route.useRouteContext();
   const { eventId } = Route.useParams();
   const { finish } = Route.useSearch();
   const navigate = useNavigate();
@@ -87,7 +88,7 @@ function EditEvent() {
         />
       )}
       {event.data.type === 'sleep' && event.data.segments.length > 0 && <NapBreakdown nap={event.data} now={now} />}
-      {canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
+      {canLog && canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
         <div className="flex flex-col gap-2">
           <Button
             size="lg"
@@ -121,6 +122,7 @@ function EditEvent() {
         }}
       />
       {note && <StatusMessage tone="info">{note}</StatusMessage>}
+      {!canLog && <StatusMessage tone="info">{READ_ONLY_NOTE}</StatusMessage>}
       <EventFormPanel
         key={event.data.id}
         client={babble.client}
@@ -129,6 +131,7 @@ function EditEvent() {
         units={units}
         event={event.data}
         focusAmounts={finish}
+        readOnly={!canLog}
         onDone={done}
       />
     </div>
@@ -142,6 +145,7 @@ function EventFormPanel({
   units,
   event,
   focusAmounts,
+  readOnly,
   onDone,
 }: {
   client: BabbleClient;
@@ -150,6 +154,7 @@ function EventFormPanel({
   units: Units;
   event: BabyEvent;
   focusAmounts: boolean | undefined;
+  readOnly: boolean;
   onDone: () => void;
 }) {
   const [loaded, setLoaded] = useState({ updatedAt: event.updatedAt, version: 0 });
@@ -179,6 +184,7 @@ function EventFormPanel({
           event={event}
           initial={eventToDraft(event)}
           focusAmounts={focusAmounts}
+          readOnly={readOnly}
           onDone={onDone}
         />
       </Card>

@@ -25,6 +25,7 @@ import { useTokenColor } from '@/lib/theme';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { Button } from '@/components/button';
+import { useCanLog } from '@/lib/use-can-log';
 import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
@@ -45,6 +46,7 @@ function EditEventContent({
   finish: boolean;
 } & Pick<ReadyState, 'baby' | 'family'>) {
   const { client } = useBabble();
+  const logging = useCanLog();
   const { units, mergeGapMs } = useTrackingSettings(client, baby.id);
   const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
   const running = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
@@ -100,7 +102,7 @@ function EditEventContent({
           <NapBreakdown nap={event.data} now={now} />
         </View>
       )}
-      {canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
+      {logging && canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
         <View className="mb-4 gap-2">
           <Button
             size="lg"
@@ -141,6 +143,7 @@ function EditEventContent({
           event={event.data}
           initial={eventToDraft(event.data)}
           focusAmounts={finish}
+          readOnly={!logging}
           onDone={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         />
       </Card>

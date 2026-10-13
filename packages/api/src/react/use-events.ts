@@ -52,13 +52,18 @@ export function useUnits(client: BabbleClient, babyId: string): Units {
   return useTrackingSettings(client, babyId).units;
 }
 
-export function useAutoEndStaleSessions(client: BabbleClient, babyId: string, options: { recheckKey?: unknown } = {}) {
+export function useAutoEndStaleSessions(
+  client: BabbleClient,
+  babyId: string,
+  options: { recheckKey?: unknown; enabled?: boolean } = {},
+) {
   const queryClient = useQueryClient();
   const { autoEndPausedMinutes } = useTrackingSettings(client, babyId);
   const running = useQuery(runningEventsQuery(client, babyId)).data;
   const inFlight = useRef(new Set<string>());
-  const { recheckKey } = options;
+  const { recheckKey, enabled = true } = options;
   useEffect(() => {
+    if (!enabled) return;
     const check = () =>
       void autoEndStaleSessions({
         client,
@@ -72,7 +77,7 @@ export function useAutoEndStaleSessions(client: BabbleClient, babyId: string, op
     check();
     const id = setInterval(check, AUTO_END_CHECK_MS);
     return () => clearInterval(id);
-  }, [running, autoEndPausedMinutes, client, babyId, queryClient, recheckKey]);
+  }, [running, autoEndPausedMinutes, client, babyId, queryClient, recheckKey, enabled]);
 }
 
 function undoAction(client: BabbleClient, queryClient: QueryClient, babyId: string, eventId: string) {

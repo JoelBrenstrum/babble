@@ -7,6 +7,7 @@ import { FamilyMembers } from './family-members';
 const api = vi.hoisted(() => ({
   renameMember: vi.fn(async () => undefined),
   removeMember: vi.fn(async () => undefined),
+  setMemberRole: vi.fn(async () => undefined),
 }));
 vi.mock('@babble/api', async (original) => ({ ...(await original<typeof import('@babble/api')>()), ...api }));
 
@@ -55,6 +56,51 @@ describe('FamilyMembers', () => {
     expect(screen.getByRole('button', { name: 'Rename Jane' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Rename John' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /^Remove/ })).not.toBeInTheDocument();
+  });
+
+  it('shows each member as Admin, Caregiver or Read only', () => {
+    const withViewer: Family = {
+      ...family,
+      members: [
+        ...family.members,
+        { family_id: 'family-1', user_id: 'gran', role: 'viewer', display_name: 'Gran', created_at: '3' },
+      ],
+    };
+    render(<FamilyMembers client={client} family={withViewer} userId="john" onChanged={vi.fn()} />);
+    expect(screen.getByText('Admin')).toBeInTheDocument();
+    expect(screen.getByText('Caregiver')).toBeInTheDocument();
+    expect(screen.getByText('Read only')).toBeInTheDocument();
+  });
+
+  it('lets an admin change a caregiver to read only', async () => {
+    const onChanged = vi.fn(async () => undefined);
+    render(<FamilyMembers client={client} family={family} userId="john" onChanged={onChanged} />);
+    await userEvent.click(screen.getByRole('button', { name: "Change Jane's role" }));
+    expect(screen.getByRole('button', { name: 'Save' })).toBeDisabled();
+    await userEvent.click(screen.getByRole('radio', { name: 'Read only' }));
+    expect(screen.getByText(/can’t change anything/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(api.setMemberRole).toHaveBeenCalledWith(client, { familyId: 'family-1', userId: 'jane' }, 'viewer');
+    expect(onChanged).toHaveBeenCalled();
+  });
+
+  it('keeps the only admin from stepping down', () => {
+    render(<FamilyMembers client={client} family={family} userId="john" onChanged={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: "Change John's role" })).not.toBeInTheDocument();
+  });
+
+  it('lets an admin step down once there is another admin', () => {
+    const twoAdmins: Family = {
+      ...family,
+      members: family.members.map((member) => ({ ...member, role: 'owner' as const })),
+    };
+    render(<FamilyMembers client={client} family={twoAdmins} userId="john" onChanged={vi.fn()} />);
+    expect(screen.getByRole('button', { name: "Change John's role" })).toBeInTheDocument();
+  });
+
+  it('gives caregivers no role controls', () => {
+    render(<FamilyMembers client={client} family={family} userId="jane" onChanged={vi.fn()} />);
+    expect(screen.queryByRole('button', { name: /role$/ })).not.toBeInTheDocument();
   });
 
   it('shows a failed change', async () => {

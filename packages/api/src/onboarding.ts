@@ -29,9 +29,21 @@ export function memberRole(family: Family, userId: string) {
   return family.members.find((member) => member.user_id === userId)?.role ?? null;
 }
 
-export function canEdit(family: Family, userId: string): boolean {
+export function canLog(family: Family, userId: string): boolean {
   const role = memberRole(family, userId);
   return role === 'owner' || role === 'caregiver';
+}
+
+export function isAdmin(family: Family, userId: string): boolean {
+  return memberRole(family, userId) === 'owner';
+}
+
+export function canChangeRole(family: Family, userId: string, memberId: string): boolean {
+  return isAdmin(family, userId) && memberRole(family, memberId) !== null;
+}
+
+export function adminCount(family: Family): number {
+  return family.members.filter((member) => member.role === 'owner').length;
 }
 
 export function canRenameMember(family: Family, userId: string, memberId: string): boolean {

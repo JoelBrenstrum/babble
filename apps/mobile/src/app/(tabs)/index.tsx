@@ -1,14 +1,16 @@
-import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { babySettingsQuery, eventsSinceQuery, isAdmin, latestEventsQuery, runningEventsQuery } from '@babble/api';
 import { feedDueFor, feedDueText, homeWindow, predictionText, summariseDay } from '@babble/domain';
 import { canAddBaby } from '@babble/config';
 import { useUnits } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import { Screen } from '@/components/screen';
+import { ReadOnlyRunning } from '@/features/events/read-only-running';
 import { RunningCard } from '@/features/events/running-card';
 import { HomeOverview } from '@/features/home-overview';
 import { useBabble } from '@/lib/babble';
 import { useNow } from '@/lib/use-now';
 import { useActiveBaby } from '@/lib/active-baby';
+import { useCanLog } from '@/lib/use-can-log';
 import { useOnboarding, useReadyState, type ReadyState } from '@/lib/use-onboarding';
 import { usePrediction } from '@/lib/use-prediction';
 
@@ -19,7 +21,8 @@ export default function Home() {
 }
 
 function HomeContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) {
-  const { client, config } = useBabble();
+  const { client, config, session } = useBabble();
+  const logging = useCanLog();
   const now = useNow(30_000);
   const units = useUnits(client, baby.id);
   const { window, since } = homeWindow(now, baby);
@@ -45,12 +48,18 @@ function HomeContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) {
         prediction={predictionText(prediction, baby.timezone)}
         predictionPlus={config.billingEnabled}
         addBabyLocked={!canAddBaby(config.billingEnabled, family.plan, family.babies.length)}
+        canAddBaby={session ? isAdmin(family, session.user.id) : false}
+        canLog={logging}
         summary={recent.data ? summariseDay(recent.data, window) : null}
         choices={choices}
         onSelectBaby={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}
-        renderRunning={(event) => (
-          <RunningCard event={event} client={client} timeZone={baby.timezone} members={family.members} compact />
-        )}
+        renderRunning={(event) =>
+          logging ? (
+            <RunningCard event={event} client={client} timeZone={baby.timezone} members={family.members} compact />
+          ) : (
+            <ReadOnlyRunning event={event} now={now} units={units} timeZone={baby.timezone} />
+          )
+        }
       />
     </Screen>
   );

@@ -19,7 +19,7 @@ import {
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { familyHasFeature } from '@babble/config';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { ChevronLeft } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { MemberTonesProvider } from '#/components/ui/avatar';
@@ -34,7 +34,12 @@ import { useFullscreen } from '#/lib/fullscreen';
 import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { useScreenWakeLock } from '#/lib/wake-lock';
 
-export const Route = createFileRoute('/_app/chair')({ component: ChairPage });
+export const Route = createFileRoute('/_app/chair')({
+  beforeLoad: ({ context }) => {
+    if (!context.canLog) throw redirect({ to: '/' });
+  },
+  component: ChairPage,
+});
 
 function ChairPage() {
   const { babble, family } = Route.useRouteContext();

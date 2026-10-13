@@ -1,5 +1,5 @@
 import { clock, eventQuery, runningEventsQuery, toBabbleError } from '@babble/api';
-import { formatTimeOfDay, trackerFor, trimIdleSwitch } from '@babble/domain';
+import { formatTimeOfDay, READ_ONLY_NOTE, trackerFor, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { PageHeader } from '#/components/shell/page-header';
@@ -17,7 +17,7 @@ import { useNow } from '#/lib/use-now';
 export const Route = createFileRoute('/_app/sessions/$eventId')({ component: SessionPage });
 
 function SessionPage() {
-  const { babble, baby, family } = Route.useRouteContext();
+  const { babble, baby, family, canLog } = Route.useRouteContext();
   const { eventId } = Route.useParams();
   const running = useQuery(runningEventsQuery(babble.client, baby.id));
   const fallback = useQuery({ ...eventQuery(babble.client, baby.id, eventId), enabled: running.isSuccess });
@@ -48,7 +48,7 @@ function SessionPage() {
   if (event.endedAt !== null) return <Navigate to="/events/$eventId" params={{ eventId }} replace />;
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
-  const trimTo = trimIdleSwitch(event, clock.now());
+  const trimTo = canLog ? trimIdleSwitch(event, clock.now()) : null;
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
@@ -62,10 +62,12 @@ function SessionPage() {
         client={babble.client}
         timeZone={baby.timezone}
         members={family.members}
+        readOnly={!canLog}
         onDiscarded={() => void navigate({ to: '/' })}
       />
+      {!canLog && <StatusMessage tone="info">{READ_ONLY_NOTE}</StatusMessage>}
       {event.type !== 'sleep' && <KeepAwakeToggle />}
-      {event.type === 'sleep' && (
+      {canLog && event.type === 'sleep' && (
         <section className="flex flex-col gap-2">
           <SectionLabel>Details</SectionLabel>
           <Card className="flex flex-col gap-3 p-5">

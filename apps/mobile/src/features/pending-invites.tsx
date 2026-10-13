@@ -6,6 +6,7 @@ import {
   revokeInvite,
   type BabbleClient,
   type Family,
+  type FamilyRole,
   type PendingInvite,
 } from '@babble/api';
 import { useAsyncAction } from '@babble/api/react';
@@ -35,13 +36,13 @@ export function MembersLabel({
   );
 }
 
-export function useCreateInvite(client: BabbleClient, familyId: string) {
+export function useCreateInvite(client: BabbleClient, familyId: string, role: FamilyRole) {
   const queryClient = useQueryClient();
   return useCallback(async () => {
-    const invite = await createInvite(client, familyId);
+    const invite = await createInvite(client, familyId, role);
     void queryClient.invalidateQueries({ queryKey: queryKeys.pendingInvites(familyId) });
     return invite;
-  }, [client, familyId, queryClient]);
+  }, [client, familyId, role, queryClient]);
 }
 
 export function PendingInvites({ client, family }: { client: BabbleClient; family: Family }) {

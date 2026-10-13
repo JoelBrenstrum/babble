@@ -34,6 +34,7 @@ export function EventForm({
   initial,
   event,
   focusAmounts = false,
+  readOnly = false,
   onSaved,
   onDone,
 }: {
@@ -44,6 +45,7 @@ export function EventForm({
   initial: EventDraft;
   event?: BabyEvent;
   focusAmounts?: boolean;
+  readOnly?: boolean;
   onSaved?: (draft: EventDraft) => void;
   onDone: () => void;
 }) {
@@ -84,29 +86,33 @@ export function EventForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-6" noValidate>
-      {draft.type === 'sleep' && <SleepForm {...common} draft={draft} onChange={setDraft} />}
-      {draft.type === 'breast_feed' && <BreastFeedForm {...common} draft={draft} onChange={setDraft} />}
-      {draft.type === 'bottle' && <BottleForm {...common} draft={draft} onChange={setDraft} />}
-      {draft.type === 'solids' && (
-        <SolidsForm {...common} draft={draft} onChange={setDraft} history={solidsEvents ?? []} eventId={event?.id} />
-      )}
-      {draft.type === 'nappy' && <NappyForm {...common} draft={draft} onChange={setDraft} />}
-      {draft.type === 'pump' && <PumpForm {...common} draft={draft} onChange={setDraft} amountsFirst={focusAmounts} />}
-      {draft.type === 'growth' && (
-        <GrowthForm
-          {...common}
-          draft={draft}
-          onChange={setDraft}
-          previous={growthPlaceholders(growthEvents ?? [], units, timeZone, event?.id)}
-        />
-      )}
-      {draft.type === 'custom' && <CustomForm {...common} draft={draft} onChange={setDraft} />}
+      <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-6">
+        {draft.type === 'sleep' && <SleepForm {...common} draft={draft} onChange={setDraft} />}
+        {draft.type === 'breast_feed' && <BreastFeedForm {...common} draft={draft} onChange={setDraft} />}
+        {draft.type === 'bottle' && <BottleForm {...common} draft={draft} onChange={setDraft} />}
+        {draft.type === 'solids' && (
+          <SolidsForm {...common} draft={draft} onChange={setDraft} history={solidsEvents ?? []} eventId={event?.id} />
+        )}
+        {draft.type === 'nappy' && <NappyForm {...common} draft={draft} onChange={setDraft} />}
+        {draft.type === 'pump' && (
+          <PumpForm {...common} draft={draft} onChange={setDraft} amountsFirst={focusAmounts} />
+        )}
+        {draft.type === 'growth' && (
+          <GrowthForm
+            {...common}
+            draft={draft}
+            onChange={setDraft}
+            previous={growthPlaceholders(growthEvents ?? [], units, timeZone, event?.id)}
+          />
+        )}
+        {draft.type === 'custom' && <CustomForm {...common} draft={draft} onChange={setDraft} />}
 
-      <TextAreaField
-        label="Notes (optional)"
-        value={draft.notes ?? ''}
-        onChange={(changeEvent) => setDraft({ ...draft, notes: changeEvent.target.value || null })}
-      />
+        <TextAreaField
+          label="Notes (optional)"
+          value={draft.notes ?? ''}
+          onChange={(changeEvent) => setDraft({ ...draft, notes: changeEvent.target.value || null })}
+        />
+      </fieldset>
       {saving.error && (
         <StatusMessage
           tone="danger"
@@ -128,34 +134,36 @@ export function EventForm({
       )}
       {hasErrors(errors) && <StatusMessage tone="danger">Check the highlighted fields.</StatusMessage>}
 
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
-        {event ? (
-          <Button
-            variant="ghost"
-            className="text-danger"
-            loading={remove.isPending}
-            onClick={() => {
-              remove.mutate(event);
-              onDone();
-            }}
-          >
-            <Trash2 className="size-5" strokeWidth={2.75} />
-            Delete
-          </Button>
-        ) : (
-          <span />
-        )}
-        <div className="flex flex-col-reverse gap-3 sm:flex-row">
-          {focusAmounts && draft.type === 'pump' && (
-            <Button variant="ghost" size="lg" disabled={saving.busy} onClick={() => void attempt(true)}>
-              Save without amounts
+      {!readOnly && (
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          {event ? (
+            <Button
+              variant="ghost"
+              className="text-danger"
+              loading={remove.isPending}
+              onClick={() => {
+                remove.mutate(event);
+                onDone();
+              }}
+            >
+              <Trash2 className="size-5" strokeWidth={2.75} />
+              Delete
             </Button>
+          ) : (
+            <span />
           )}
-          <Button type="submit" size="lg" loading={saving.busy} disabled={needsChoice(draft)}>
-            {saving.busy ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
-          </Button>
+          <div className="flex flex-col-reverse gap-3 sm:flex-row">
+            {focusAmounts && draft.type === 'pump' && (
+              <Button variant="ghost" size="lg" disabled={saving.busy} onClick={() => void attempt(true)}>
+                Save without amounts
+              </Button>
+            )}
+            <Button type="submit" size="lg" loading={saving.busy} disabled={needsChoice(draft)}>
+              {saving.busy ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
     </form>
   );
 }

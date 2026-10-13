@@ -32,12 +32,14 @@ export function BabyHeader({
   choices = [],
   onSelect,
   addBabyLocked = false,
+  canAdd = true,
 }: {
   family: Family;
   baby: BabyRow;
   choices?: readonly BabyChoice[];
   onSelect?: (choice: BabyChoice) => void;
   addBabyLocked?: boolean;
+  canAdd?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [pitching, setPitching] = useState(false);
@@ -85,6 +87,7 @@ export function BabyHeader({
                 choices={choices}
                 activeId={baby.id}
                 addBabyLocked={addBabyLocked}
+                canAdd={canAdd}
                 onSelect={(choice) => {
                   close();
                   onSelect?.(choice);
@@ -104,6 +107,7 @@ export function BabyChoiceList({
   choices,
   activeId,
   addBabyLocked,
+  canAdd = true,
   onSelect,
   onAdd,
   onPitch,
@@ -111,6 +115,7 @@ export function BabyChoiceList({
   choices: readonly BabyChoice[];
   activeId: string;
   addBabyLocked: boolean;
+  canAdd?: boolean;
   onSelect: (choice: BabyChoice) => void;
   onAdd?: () => void;
   onPitch: () => void;
@@ -146,7 +151,7 @@ export function BabyChoiceList({
           </Pressable>
         );
       })}
-      {addBabyLocked ? (
+      {!canAdd ? null : addBabyLocked ? (
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Add a baby, Babble Plus"

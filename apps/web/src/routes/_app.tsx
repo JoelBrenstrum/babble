@@ -1,4 +1,12 @@
-import { babyChoices, babySettingsQuery, familiesQuery, resolveOnboarding, runningEventsQuery } from '@babble/api';
+import {
+  babyChoices,
+  babySettingsQuery,
+  canLog,
+  familiesQuery,
+  isAdmin,
+  resolveOnboarding,
+  runningEventsQuery,
+} from '@babble/api';
 import { canAddBaby } from '@babble/config';
 import { runningIndicator } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
@@ -35,17 +43,25 @@ export const Route = createFileRoute('/_app')({
     }
     if (state.step === 'family') throw redirect({ to: '/onboarding/family' });
     if (state.step === 'baby') throw redirect({ to: '/onboarding/baby' });
-    return { session: data.session!, family: state.family, baby: state.baby, families };
+    const session = data.session!;
+    return {
+      session,
+      family: state.family,
+      baby: state.baby,
+      families,
+      canLog: canLog(state.family, session.user.id),
+      admin: isAdmin(state.family, session.user.id),
+    };
   },
   component: AppLayout,
 });
 
 function AppLayout() {
-  const { family, baby, babble, families } = Route.useRouteContext();
+  const { family, baby, babble, families, canLog: loggable, admin } = Route.useRouteContext();
   const selectBaby = useSelectBaby();
   const pathname = useLocation({ select: (location) => location.pathname });
   useRealtimeEvents(babble.client, baby.id);
-  useAutoEndStaleSessions(babble.client, baby.id);
+  useAutoEndStaleSessions(babble.client, baby.id, { enabled: loggable });
   const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
   useNightTheme(
@@ -67,6 +83,7 @@ function AppLayout() {
       onSelectBaby={selectBaby}
       running={runningIndicator(running)}
       addBabyLocked={!canAddBaby(babble.config.billingEnabled, family.plan, family.babies.length)}
+      canAddBaby={admin}
     >
       {page}
     </AppShell>

@@ -43,12 +43,14 @@ export function BabySwitcher({
   onSelect,
   layout,
   addBabyLocked = false,
+  canAddBaby = true,
 }: {
   choices: readonly BabyChoice[];
   activeId: string;
   onSelect: (choice: BabyChoice) => void;
   layout: 'sidebar' | 'rail' | 'header';
   addBabyLocked?: boolean;
+  canAddBaby?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [pitching, setPitching] = useState(false);
@@ -141,16 +143,18 @@ export function BabySwitcher({
               );
             })}
           </ul>
-          <div className="mt-1 border-t border-line pt-1">
-            <AddBabyRow
-              locked={addBabyLocked}
-              onAdd={() => setOpen(false)}
-              onPitch={() => {
-                setOpen(false);
-                setPitching(true);
-              }}
-            />
-          </div>
+          {canAddBaby && (
+            <div className="mt-1 border-t border-line pt-1">
+              <AddBabyRow
+                locked={addBabyLocked}
+                onAdd={() => setOpen(false)}
+                onPitch={() => {
+                  setOpen(false);
+                  setPitching(true);
+                }}
+              />
+            </div>
+          )}
         </div>
       )}
       {pitching && <PlusDialog feature="multiple_babies" onClose={() => setPitching(false)} />}

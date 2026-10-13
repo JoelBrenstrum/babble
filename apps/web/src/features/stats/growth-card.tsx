@@ -30,10 +30,12 @@ export function GrowthCard({
   report,
   babyName,
   timeZone,
+  canLog = true,
 }: {
   report: GrowthReport;
   babyName: string;
   timeZone: string;
+  canLog?: boolean;
 }) {
   return (
     <Card className="flex flex-col gap-4 p-5" aria-labelledby="stats-growth">
@@ -44,13 +46,15 @@ export function GrowthCard({
         <h2 id="stats-growth" className="flex-1 text-row-title font-semibold">
           Growth
         </h2>
-        <Link
-          to="/track/$type/new"
-          params={{ type: 'growth' }}
-          className="text-meta font-semibold text-primary underline-offset-4 hover:underline"
-        >
-          Log growth
-        </Link>
+        {canLog && (
+          <Link
+            to="/track/$type/new"
+            params={{ type: 'growth' }}
+            className="text-meta font-semibold text-primary underline-offset-4 hover:underline"
+          >
+            Log growth
+          </Link>
+        )}
       </div>
       {report.needsSex && (
         <StatusMessage tone="info">

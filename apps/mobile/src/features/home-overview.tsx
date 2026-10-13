@@ -25,6 +25,8 @@ export function HomeOverview({
   prediction = null,
   predictionPlus = false,
   addBabyLocked = false,
+  canLog = true,
+  canAddBaby = true,
 }: {
   choices?: readonly BabyChoice[];
   onSelectBaby?: (choice: BabyChoice) => void;
@@ -40,12 +42,21 @@ export function HomeOverview({
   prediction?: string | null;
   predictionPlus?: boolean;
   addBabyLocked?: boolean;
+  canLog?: boolean;
+  canAddBaby?: boolean;
 }) {
   const iconColor = useTokenColor('--ink');
   const dueColor = useTokenColor(feedDue?.overdue ? '--on-caution' : '--on-feed-right');
   return (
     <View className="gap-4">
-      <BabyHeader family={family} baby={baby} choices={choices} onSelect={onSelectBaby} addBabyLocked={addBabyLocked} />
+      <BabyHeader
+        family={family}
+        baby={baby}
+        choices={choices}
+        onSelect={onSelectBaby}
+        addBabyLocked={addBabyLocked}
+        canAdd={canAddBaby}
+      />
       {running.map((event) => (
         <View key={event.id}>{renderRunning(event)}</View>
       ))}
@@ -98,15 +109,17 @@ export function HomeOverview({
                   </View>
                 </Pressable>
               </Link>
-              <Link href={`/track/${tracker.key}/new`} asChild>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={`Log ${tracker.label.toLowerCase()}`}
-                  className="mr-3 size-tap items-center justify-center rounded-full border border-line bg-raised active:bg-surface"
-                >
-                  <Plus size={20} color={iconColor} strokeWidth={2.75} />
-                </Pressable>
-              </Link>
+              {canLog && (
+                <Link href={`/track/${tracker.key}/new`} asChild>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Log ${tracker.label.toLowerCase()}`}
+                    className="mr-3 size-tap items-center justify-center rounded-full border border-line bg-raised active:bg-surface"
+                  >
+                    <Plus size={20} color={iconColor} strokeWidth={2.75} />
+                  </Pressable>
+                </Link>
+              )}
             </View>
           );
         })}

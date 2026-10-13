@@ -1,25 +1,29 @@
 import {
+  adminCount,
+  canChangeRole,
   canRemoveMember,
   canRenameMember,
   MAX_MEMBER_NAME,
   memberNameError,
   removeMember,
   renameMember,
+  setMemberRole,
   type BabbleClient,
   type Family,
 } from '@babble/api';
 import { useAsyncAction } from '@babble/api/react';
+import { roleLabel, type MemberRole } from '@babble/domain';
 import { useState, type FormEvent } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
 import { ConfirmPanel } from '#/components/ui/confirm-panel';
 import { TextField } from '#/components/ui/field';
-
-const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
+import { StatusMessage } from '#/components/ui/status';
+import { RolePicker } from '#/components/settings/role-picker';
 
 type Member = Family['members'][number];
-type Mode = { kind: 'rename'; userId: string } | { kind: 'remove'; userId: string } | null;
+type Mode = { kind: 'rename' | 'remove' | 'role'; userId: string } | null;
 
 export function FamilyMembers({
   client,
@@ -34,11 +38,13 @@ export function FamilyMembers({
 }) {
   const [mode, setMode] = useState<Mode>(null);
   const [name, setName] = useState('');
+  const [role, setRole] = useState<MemberRole>('caregiver');
   const { run, busy, error, setError } = useAsyncAction();
 
   function open(next: Mode, member: Member) {
     setError(null);
     setName(member.display_name);
+    setRole(member.role);
     setMode(next);
   }
 
@@ -65,35 +71,50 @@ export function FamilyMembers({
       {family.members.map((member) => {
         const you = member.user_id === userId;
         const editing = mode?.userId === member.user_id ? mode.kind : null;
+        const roleChangeable =
+          canChangeRole(family, userId, member.user_id) && !(member.role === 'owner' && adminCount(family) === 1);
         return (
           <div key={member.user_id} role="listitem" className="flex flex-col gap-3 px-4 py-3">
-            <div className="flex items-center gap-3">
-              <Avatar name={member.display_name} />
-              <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <Avatar name={member.display_name} className="shrink-0" />
+              <div className="min-w-[7rem] flex-1">
                 <div className="truncate text-row-title font-semibold">
                   {member.display_name}
                   {you && <span className="text-ink-3"> (you)</span>}
                 </div>
-                <div className="text-meta text-ink-2">{ROLE_LABELS[member.role]}</div>
+                <div className="text-meta text-ink-2">{roleLabel(member.role)}</div>
               </div>
-              {!editing && canRenameMember(family, userId, member.user_id) && (
-                <Button
-                  variant="ghost"
-                  aria-label={`Rename ${member.display_name}`}
-                  onClick={() => open({ kind: 'rename', userId: member.user_id }, member)}
-                >
-                  Rename
-                </Button>
-              )}
-              {!editing && canRemoveMember(family, userId, member.user_id) && (
-                <Button
-                  variant="ghost"
-                  className="text-danger"
-                  aria-label={`Remove ${member.display_name}`}
-                  onClick={() => open({ kind: 'remove', userId: member.user_id }, member)}
-                >
-                  Remove
-                </Button>
+              {!editing && (
+                <div className="ml-auto flex">
+                  {roleChangeable && (
+                    <Button
+                      variant="ghost"
+                      aria-label={`Change ${member.display_name}'s role`}
+                      onClick={() => open({ kind: 'role', userId: member.user_id }, member)}
+                    >
+                      Role
+                    </Button>
+                  )}
+                  {canRenameMember(family, userId, member.user_id) && (
+                    <Button
+                      variant="ghost"
+                      aria-label={`Rename ${member.display_name}`}
+                      onClick={() => open({ kind: 'rename', userId: member.user_id }, member)}
+                    >
+                      Rename
+                    </Button>
+                  )}
+                  {canRemoveMember(family, userId, member.user_id) && (
+                    <Button
+                      variant="ghost"
+                      className="text-danger"
+                      aria-label={`Remove ${member.display_name}`}
+                      onClick={() => open({ kind: 'remove', userId: member.user_id }, member)}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
               )}
             </div>
             {editing === 'rename' && (
@@ -108,6 +129,30 @@ export function FamilyMembers({
                 />
                 <div className="flex gap-3">
                   <Button type="submit" loading={busy}>
+                    Save
+                  </Button>
+                  <Button variant="ghost" onClick={() => setMode(null)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            )}
+            {editing === 'role' && (
+              <form
+                className="flex flex-col gap-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  void change(() => setMemberRole(client, { familyId: family.id, userId: member.user_id }, role));
+                }}
+              >
+                <RolePicker
+                  label={you ? 'Your role' : `${member.display_name}'s role`}
+                  value={role}
+                  onChange={setRole}
+                />
+                {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+                <div className="flex gap-3">
+                  <Button type="submit" loading={busy} disabled={role === member.role}>
                     Save
                   </Button>
                   <Button variant="ghost" onClick={() => setMode(null)}>

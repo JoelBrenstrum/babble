@@ -1,7 +1,6 @@
 import { DAY_MS, HOUR_MS, MINUTE_MS } from '../time/constants';
 import { daysUntil } from '../time/instants';
-
-const ROLE_LABELS: Record<string, string> = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' };
+import { roleLabel } from './roles';
 
 export function inviteExpiryText(expiresAt: string, now: Date): string {
   const remaining = Date.parse(expiresAt) - now.getTime();
@@ -20,7 +19,7 @@ export function pendingInviteMeta(
   now: Date,
 ): string {
   const creator = memberNames.get(invite.createdBy) ?? 'a former member';
-  return `${ROLE_LABELS[invite.role] ?? invite.role} · by ${creator} · ${inviteExpiryText(invite.expiresAt, now)}`;
+  return `${roleLabel(invite.role)} · by ${creator} · ${inviteExpiryText(invite.expiresAt, now)}`;
 }
 
 export function membersHeading(pendingCount: number): string {

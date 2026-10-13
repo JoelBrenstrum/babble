@@ -19,6 +19,7 @@ export interface HomeOverviewProps {
   feedDue?: { text: string; overdue: boolean } | null;
   prediction?: string | null;
   predictionPlus?: boolean;
+  canLog?: boolean;
 }
 
 export function HomeOverview({
@@ -32,6 +33,7 @@ export function HomeOverview({
   feedDue = null,
   prediction = null,
   predictionPlus = false,
+  canLog = true,
 }: HomeOverviewProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -97,14 +99,16 @@ export function HomeOverview({
                   </span>
                 </span>
               </Link>
-              <Link
-                to="/track/$type/new"
-                params={{ type: tracker.key }}
-                aria-label={`Log ${tracker.label.toLowerCase()}`}
-                className="mr-3 grid size-tap shrink-0 place-items-center rounded-full border border-line bg-raised text-ink hover:border-line-strong hover:bg-bg"
-              >
-                <Plus className="size-5" strokeWidth={2.75} />
-              </Link>
+              {canLog && (
+                <Link
+                  to="/track/$type/new"
+                  params={{ type: tracker.key }}
+                  aria-label={`Log ${tracker.label.toLowerCase()}`}
+                  className="mr-3 grid size-tap shrink-0 place-items-center rounded-full border border-line bg-raised text-ink hover:border-line-strong hover:bg-bg"
+                >
+                  <Plus className="size-5" strokeWidth={2.75} />
+                </Link>
+              )}
             </div>
           );
         })}

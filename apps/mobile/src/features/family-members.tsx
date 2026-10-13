@@ -1,14 +1,18 @@
 import {
+  adminCount,
+  canChangeRole,
   canRemoveMember,
   canRenameMember,
   MAX_MEMBER_NAME,
   memberNameError,
   removeMember,
   renameMember,
+  setMemberRole,
   type BabbleClient,
   type Family,
 } from '@babble/api';
 import { useAsyncAction } from '@babble/api/react';
+import { roleLabel, type MemberRole } from '@babble/domain';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
@@ -16,10 +20,10 @@ import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
-
-const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
+import { RolePicker } from '@/features/role-picker';
 
 type Member = Family['members'][number];
+type Mode = { kind: 'rename' | 'role'; userId: string } | null;
 
 function RowAction({
   label,
@@ -56,16 +60,18 @@ export function FamilyMembers({
   userId: string;
   onChanged: () => Promise<unknown>;
 }) {
-  const [renaming, setRenaming] = useState<string | null>(null);
+  const [mode, setMode] = useState<Mode>(null);
   const [name, setName] = useState('');
+  const [role, setRole] = useState<MemberRole>('caregiver');
   const { run, busy, error, setError } = useAsyncAction();
+  const soleAdmin = adminCount(family) === 1;
 
   async function change(task: () => Promise<void>) {
     const changed = await run(async () => {
       await task();
       await onChanged();
     });
-    if (changed) setRenaming(null);
+    if (changed) setMode(null);
   }
 
   function save(member: Member) {
@@ -97,7 +103,9 @@ export function FamilyMembers({
       <Card>
         {family.members.map((member, index) => {
           const you = member.user_id === userId;
-          const editing = renaming === member.user_id;
+          const editing = mode?.userId === member.user_id ? mode.kind : null;
+          const roleChangeable =
+            canChangeRole(family, userId, member.user_id) && !(you && soleAdmin && member.role === 'owner');
           return (
             <View key={member.user_id} className={`gap-3 px-4 py-3 ${index > 0 ? 'border-t border-line' : ''}`}>
               <View className="flex-row items-center gap-3">
@@ -107,7 +115,7 @@ export function FamilyMembers({
                     {member.display_name}
                     {you ? ' (you)' : ''}
                   </Text>
-                  <Text className="font-sans text-meta text-ink-2">{ROLE_LABELS[member.role]}</Text>
+                  <Text className="font-sans text-meta text-ink-2">{roleLabel(member.role)}</Text>
                 </View>
                 {!editing && canRenameMember(family, userId, member.user_id) && (
                   <RowAction
@@ -116,7 +124,18 @@ export function FamilyMembers({
                     onPress={() => {
                       setError(null);
                       setName(member.display_name);
-                      setRenaming(member.user_id);
+                      setMode({ kind: 'rename', userId: member.user_id });
+                    }}
+                  />
+                )}
+                {!editing && roleChangeable && (
+                  <RowAction
+                    label={`Change ${member.display_name}'s role`}
+                    text="Role"
+                    onPress={() => {
+                      setError(null);
+                      setRole(member.role);
+                      setMode({ kind: 'role', userId: member.user_id });
                     }}
                   />
                 )}
@@ -132,7 +151,27 @@ export function FamilyMembers({
                   />
                 )}
               </View>
-              {editing && (
+              {editing === 'role' && (
+                <View className="gap-3">
+                  <RolePicker value={role} onChange={setRole} />
+                  {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+                  <View className="flex-row gap-3">
+                    <Button
+                      loading={busy}
+                      disabled={role === member.role}
+                      onPress={() =>
+                        void change(() => setMemberRole(client, { familyId: family.id, userId: member.user_id }, role))
+                      }
+                    >
+                      Save role
+                    </Button>
+                    <Button variant="ghost" onPress={() => setMode(null)}>
+                      Cancel
+                    </Button>
+                  </View>
+                </View>
+              )}
+              {editing === 'rename' && (
                 <View className="gap-3">
                   <TextField
                     label={you ? 'Your name' : `${member.display_name}'s name`}
@@ -147,7 +186,7 @@ export function FamilyMembers({
                     <Button loading={busy} onPress={() => save(member)}>
                       Save
                     </Button>
-                    <Button variant="ghost" onPress={() => setRenaming(null)}>
+                    <Button variant="ghost" onPress={() => setMode(null)}>
                       Cancel
                     </Button>
                   </View>
@@ -157,7 +196,7 @@ export function FamilyMembers({
           );
         })}
       </Card>
-      {error && renaming === null && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {error && mode === null && <StatusMessage tone="danger">{error}</StatusMessage>}
     </View>
   );
 }

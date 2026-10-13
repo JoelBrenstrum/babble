@@ -31,14 +31,17 @@ import { useNapPrompt } from '@/features/nap-prompt';
 import { useSessionPrompts } from '@/features/events/use-session-prompts';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
+import { useCanLog } from '@/lib/use-can-log';
 import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function NewEntry() {
   const { type } = useLocalSearchParams<{ type: string }>();
   const ready = useReadyState();
+  const logging = useCanLog();
   if (!type || !isEventType(type)) return <Redirect href="/" />;
   if (!ready) return null;
+  if (!logging) return <Redirect href={`/track/${type}`} />;
   return <NewEntryContent eventType={type} baby={ready.baby} members={ready.family.members} />;
 }
 

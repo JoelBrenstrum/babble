@@ -1,8 +1,9 @@
-import { babyChoices, canEdit } from '@babble/api';
+import { babyChoices, memberRole } from '@babble/api';
 import { refreshFamilies } from '@babble/api/react';
 import { canAddBaby, familyHasFeature, planSummary } from '@babble/config';
-import { settingsGroups, type SettingsGroup, type SettingsGroupId } from '@babble/domain';
+import { settingsGroups, settingsLockedNote, type SettingsGroup, type SettingsGroupId } from '@babble/domain';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { Lock } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { AccountSection } from '#/components/settings/account-section';
 import { BabySection } from '#/components/settings/baby-section';
@@ -24,10 +25,10 @@ import { useSelectBaby } from '#/lib/use-select-baby';
 export const Route = createFileRoute('/_app/settings')({ component: SettingsPage });
 
 function SettingsPage() {
-  const { family, families, session, babble, baby, queryClient } = Route.useRouteContext();
+  const { family, families, session, babble, baby, queryClient, admin, canLog } = Route.useRouteContext();
   const router = useRouter();
   const selectBaby = useSelectBaby();
-  const editable = canEdit(family, session.user.id);
+  const lockedNote = settingsLockedNote(memberRole(family, session.user.id));
   const plan = planSummary(babble.config.billingEnabled, family.plan);
   const groups = settingsGroups(baby.name, family.name);
 
@@ -48,22 +49,25 @@ function SettingsPage() {
         </nav>
       </div>
 
-      <SettingsGroupSection groups={groups} id="baby">
+      <SettingsGroupSection groups={groups} id="baby" note={lockedNote}>
         <SettingsBabyPicker
           choices={babyChoices(families)}
           activeId={baby.id}
           onSelect={selectBaby}
           addBabyLocked={!canAddBaby(babble.config.billingEnabled, family.plan, family.babies.length)}
+          canAddBaby={admin}
         />
-        <BabySection key={baby.id} client={babble.client} baby={baby} disabled={!editable} />
-        <BabyTrackingSettings client={babble.client} babyId={baby.id} disabled={!editable} />
-        <CardLink to="/import" title="Import data" description="From a babble export or a Huckleberry CSV" />
+        <BabySection key={baby.id} client={babble.client} baby={baby} disabled={!admin} />
+        <BabyTrackingSettings client={babble.client} babyId={baby.id} disabled={!admin} />
+        {canLog && (
+          <CardLink to="/import" title="Import data" description="From a babble export or a Huckleberry CSV" />
+        )}
         <ExportData client={babble.client} family={family} baby={baby} scope="baby" />
       </SettingsGroupSection>
 
-      <SettingsGroupSection groups={groups} id="family" badge={plan?.plus ? <PlusBadge /> : null}>
+      <SettingsGroupSection groups={groups} id="family" badge={plan?.plus ? <PlusBadge /> : null} note={lockedNote}>
         <section className="flex flex-col gap-3">
-          <MembersLabel client={babble.client} familyId={family.id} editable={editable} />
+          <MembersLabel client={babble.client} familyId={family.id} editable={admin} />
           <FamilyMembers
             client={babble.client}
             family={family}
@@ -73,8 +77,8 @@ function SettingsPage() {
               await router.invalidate();
             }}
           />
-          {editable && <PendingInvites client={babble.client} family={family} />}
-          {editable && (
+          {admin && <PendingInvites client={babble.client} family={family} />}
+          {admin && (
             <InviteToggle
               client={babble.client}
               family={family}
@@ -84,7 +88,7 @@ function SettingsPage() {
           )}
         </section>
         {plan && <PlusPlan summary={plan} />}
-        <FamilyTrackingSettings client={babble.client} familyId={family.id} babyId={baby.id} disabled={!editable} />
+        <FamilyTrackingSettings client={babble.client} familyId={family.id} babyId={baby.id} disabled={!admin} />
         {family.babies.length > 1 && <ExportData client={babble.client} family={family} baby={baby} scope="family" />}
       </SettingsGroupSection>
 
@@ -109,11 +113,13 @@ function SettingsGroupSection({
   groups,
   id,
   badge,
+  note,
   children,
 }: {
   groups: SettingsGroup[];
   id: SettingsGroupId;
   badge?: ReactNode;
+  note?: string | null;
   children: ReactNode;
 }) {
   const group = groups.find((candidate) => candidate.id === id);
@@ -132,6 +138,12 @@ function SettingsGroupSection({
           {badge}
         </div>
         <p className="text-meta text-ink-2">{group.description}</p>
+        {note && (
+          <p className="mt-2 flex items-start gap-2 text-meta text-ink-2">
+            <Lock aria-hidden className="mt-0.5 size-4 shrink-0" strokeWidth={2.5} />
+            {note}
+          </p>
+        )}
       </div>
       {children}
     </section>

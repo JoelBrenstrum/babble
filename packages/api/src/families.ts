@@ -152,7 +152,7 @@ export async function updateFamilySettings(
 export async function createInvite(
   client: BabbleClient,
   familyId: string,
-  role: Exclude<FamilyRole, 'owner'> = 'caregiver',
+  role: FamilyRole = 'caregiver',
 ): Promise<Invite> {
   const [row] = unwrap(await client.rpc('create_invite', { target_family_id: familyId, invite_role: role }));
   if (!row) throw new BabbleError('The invite was not created', 'unknown');
@@ -198,6 +198,20 @@ export async function renameMember(
       .update({ display_name: displayName.trim() })
       .eq('family_id', member.familyId)
       .eq('user_id', member.userId),
+  );
+}
+
+export async function setMemberRole(
+  client: BabbleClient,
+  member: { familyId: string; userId: string },
+  role: FamilyRole,
+): Promise<void> {
+  unwrapVoid(
+    await client.rpc('set_member_role', {
+      target_family_id: member.familyId,
+      member_user_id: member.userId,
+      new_role: role,
+    }),
   );
 }
 

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(6);
+select plan(8);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -61,12 +61,20 @@ select is(
 );
 
 select pg_temp.sign_in_as('a0000000-0000-0000-0000-00000000000b');
-select is((select count(*)::int from public.family_invites where code like 'INVTS-%'), 2, 'caregivers see pending invites');
+select is((select count(*)::int from public.family_invites where code like 'INVTS-%'), 0, 'caregivers cannot see invites');
 delete from public.family_invites where id = 'c0000000-0000-0000-0000-00000000000a';
-select pg_temp.sign_in_as('a0000000-0000-0000-0000-00000000000a');
-delete from public.family_invites where id = 'c0000000-0000-0000-0000-00000000000b';
 select pg_temp.sign_out();
-select is((select count(*)::int from public.family_invites where code like 'INVTS-%'), 0, 'caregivers and owners can revoke invites');
+select is(
+  (select count(*)::int from public.family_invites where id = 'c0000000-0000-0000-0000-00000000000a'),
+  1,
+  'caregivers cannot revoke invites'
+);
+
+select pg_temp.sign_in_as('a0000000-0000-0000-0000-00000000000a');
+select is((select count(*)::int from public.family_invites where code like 'INVTS-%'), 2, 'admins see pending invites');
+delete from public.family_invites where code like 'INVTS-%';
+select pg_temp.sign_out();
+select is((select count(*)::int from public.family_invites where code like 'INVTS-%'), 0, 'admins can revoke invites');
 
 select pg_temp.sign_in_as('a0000000-0000-0000-0000-00000000000a');
 select throws_ok(

@@ -37,19 +37,24 @@ export function NapPromptProvider({
   babyId,
   babyName,
   timeZone,
+  enabled = true,
   children,
 }: {
   client: BabbleClient;
   babyId: string;
   babyName: string;
   timeZone: string;
+  enabled?: boolean;
   children: ReactNode;
 }) {
   const [queue, setQueue] = useState<NapPrompt[]>([]);
   const prompt = queue[0] ?? null;
-  const show = useCallback((next: NapPrompt[]) => {
-    if (next.length > 0) setQueue((current) => [...current, ...next]);
-  }, []);
+  const show = useCallback(
+    (next: NapPrompt[]) => {
+      if (enabled && next.length > 0) setQueue((current) => [...current, ...next]);
+    },
+    [enabled],
+  );
   const [pending, setPending] = useState<string | null>(null);
   const napAction = useNapAction(client, babyId);
   const content = prompt ? napPromptContent(prompt, babyName, timeZone, clock.now()) : null;

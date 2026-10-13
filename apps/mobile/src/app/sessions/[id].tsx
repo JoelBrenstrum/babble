@@ -1,12 +1,14 @@
 import { useSessionAction, useTrackingSettings } from '@babble/api/react';
 import { clock, eventQuery, runningEventsQuery } from '@babble/api';
-import { formatTimeOfDay, trimIdleSwitch } from '@babble/domain';
+import { formatTimeOfDay, READ_ONLY_NOTE, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card, SectionLabel } from '@/components/card';
 import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
+import { StatusMessage } from '@/components/status-message';
+import { ReadOnlyRunning } from '@/features/events/read-only-running';
 import { RunningCard } from '@/features/events/running-card';
 import { KeepAwakeToggle } from '@/features/keep-awake-toggle';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
@@ -14,6 +16,7 @@ import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
+import { useCanLog } from '@/lib/use-can-log';
 import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
@@ -26,11 +29,12 @@ export default function SessionScreen() {
 
 function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
   const { client } = useBabble();
+  const logging = useCanLog();
   const { baby, family } = ready;
   const running = useQuery(runningEventsQuery(client, baby.id));
   const fallback = useQuery({ ...eventQuery(client, baby.id, id), enabled: running.isSuccess });
   const now = useNow(1000);
-  const { mergeGapMs } = useTrackingSettings(client, baby.id);
+  const { mergeGapMs, units } = useTrackingSettings(client, baby.id);
   const action = useSessionAction(client, baby.id);
   const spinnerColor = useTokenColor('--primary');
   const event = running.data?.find((item) => item.id === id) ?? fallback.data;
@@ -40,7 +44,7 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
   if (event.endedAt !== null) return <Redirect href={`/events/${id}`} />;
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
-  const trimTo = trimIdleSwitch(event, clock.now());
+  const trimTo = logging ? trimIdleSwitch(event, clock.now()) : null;
   const title = event.type === 'sleep' ? 'Sleep' : event.type === 'pump' ? 'Pump' : 'Breastfeed';
 
   return (
@@ -52,15 +56,22 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
         }
       />
       <View className="gap-6">
-        <RunningCard
-          event={event}
-          client={client}
-          timeZone={baby.timezone}
-          members={family.members}
-          onDiscarded={() => router.replace('/')}
-        />
-        {event.type !== 'sleep' && <KeepAwakeToggle />}
-        {event.type === 'sleep' && (
+        {logging ? (
+          <RunningCard
+            event={event}
+            client={client}
+            timeZone={baby.timezone}
+            members={family.members}
+            onDiscarded={() => router.replace('/')}
+          />
+        ) : (
+          <>
+            <StatusMessage tone="info">{READ_ONLY_NOTE}</StatusMessage>
+            <ReadOnlyRunning event={event} now={now} units={units} timeZone={baby.timezone} />
+          </>
+        )}
+        {logging && event.type !== 'sleep' && <KeepAwakeToggle />}
+        {logging && event.type === 'sleep' && (
           <View className="gap-2">
             <SectionLabel>Details</SectionLabel>
             <Card className="gap-3 p-5">

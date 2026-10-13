@@ -19,7 +19,7 @@ test('a free family sees Plus features with a reason instead of losing them', as
   await expect(sheet.getByRole('button', { name: 'Subscribe to Plus' })).toBeDisabled();
   await sheet.getByRole('button', { name: 'Not now' }).click();
 
-  await page.getByRole('button', { name: /Invite a caregiver/ }).click();
+  await page.getByRole('button', { name: /Invite someone/ }).click();
   await expect(page.getByRole('dialog', { name: 'Babble Plus' })).toContainText('A free family can have two carers');
   await page.getByRole('dialog', { name: 'Babble Plus' }).getByRole('button', { name: 'Not now' }).click();
 

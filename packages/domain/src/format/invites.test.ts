@@ -28,7 +28,7 @@ describe('pendingInviteMeta', () => {
   it('handles invites made by members who have left', () => {
     expect(
       pendingInviteMeta({ role: 'viewer', createdBy: 'user-gone', expiresAt: '2026-10-09T12:30:00Z' }, names, now),
-    ).toBe('Viewer · by a former member · Expires in 3h');
+    ).toBe('Read only · by a former member · Expires in 3h');
   });
 });
 

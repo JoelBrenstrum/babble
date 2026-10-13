@@ -1,20 +1,19 @@
 import {
-  canEdit,
   clock,
   deleteMyAccount,
+  isAdmin,
+  memberRole,
   queryKeys,
   signOut,
   updateBaby,
-  pendingInvitesQuery,
   type BabyRow,
   type Family,
 } from '@babble/api';
 import { useAsyncAction } from '@babble/api/react';
-import { canAddBaby, canInviteCarer, planSummary } from '@babble/config';
-import { settingsGroups, type SettingsGroup } from '@babble/domain';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { canAddBaby, planSummary } from '@babble/config';
+import { settingsGroups, settingsLockedNote, type SettingsGroup } from '@babble/domain';
+import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { Lock } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
@@ -27,8 +26,8 @@ import { TextField } from '@/components/text-field';
 import { DateField } from '@/features/date-field';
 import { DayStartPicker } from '@/features/day-start-picker';
 import { FamilyMembers } from '@/features/family-members';
-import { InvitePanel } from '@/features/invite-panel';
-import { MembersLabel, PendingInvites, useCreateInvite } from '@/features/pending-invites';
+import { InviteFlow } from '@/features/invite-flow';
+import { MembersLabel, PendingInvites } from '@/features/pending-invites';
 import { BabyTrackingSettings, FamilyTrackingSettings } from '@/features/tracking-settings';
 import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
@@ -37,7 +36,7 @@ import { PlusPlan } from '@/features/plus-plan';
 import { AppearanceSettings } from '@/features/appearance-settings';
 import { AboutSection } from '@/features/legal-links';
 import { useBabble } from '@/lib/babble';
-import { useThemePreference, useTokenColor } from '@/lib/theme';
+import { useThemePreference } from '@/lib/theme';
 import { useOnboarding, useReadyState } from '@/lib/use-onboarding';
 import { useActiveBaby } from '@/lib/active-baby';
 
@@ -49,7 +48,8 @@ export default function SettingsTab() {
   const { session, client, config } = useBabble();
   if (!ready || !session) return null;
   const { family, baby } = ready;
-  const editable = canEdit(family, session.user.id);
+  const admin = isAdmin(family, session.user.id);
+  const lockedNote = settingsLockedNote(memberRole(family, session.user.id));
   const plan = planSummary(config.billingEnabled, family.plan);
   const [babyGroup, familyGroup, deviceGroup, accountGroup] = settingsGroups(baby.name, family.name) as [
     SettingsGroup,
@@ -62,24 +62,25 @@ export default function SettingsTab() {
     <Screen edges={['top']}>
       <Text className="mb-6 font-bold text-title text-ink">Settings</Text>
       <View className="gap-10">
-        <SettingsGroupSection group={babyGroup}>
+        <SettingsGroupSection group={babyGroup} note={lockedNote}>
           <Card className="p-2">
             <BabyChoiceList
               choices={choices}
               activeId={baby.id}
               addBabyLocked={!canAddBaby(config.billingEnabled, family.plan, family.babies.length)}
+              canAdd={admin}
               onSelect={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}
               onPitch={() => setPitching(true)}
             />
           </Card>
-          <BabySection key={baby.id} baby={baby} disabled={!editable} />
-          <BabyTrackingSettings client={client} babyId={baby.id} disabled={!editable} />
+          <BabySection key={baby.id} baby={baby} disabled={!admin} />
+          <BabyTrackingSettings client={client} babyId={baby.id} disabled={!admin} />
           <ExportData client={client} family={family} baby={baby} scope="baby" />
         </SettingsGroupSection>
-        <SettingsGroupSection group={familyGroup} plus={plan?.plus ?? false}>
-          <MembersSection family={family} userId={session.user.id} editable={editable} />
+        <SettingsGroupSection group={familyGroup} plus={plan?.plus ?? false} note={lockedNote}>
+          <MembersSection family={family} userId={session.user.id} admin={admin} />
           {plan && <PlusPlan summary={plan} />}
-          <FamilyTrackingSettings client={client} familyId={family.id} babyId={baby.id} disabled={!editable} />
+          <FamilyTrackingSettings client={client} familyId={family.id} babyId={baby.id} disabled={!admin} />
           {family.babies.length > 1 && <ExportData client={client} family={family} baby={baby} scope="family" />}
         </SettingsGroupSection>
         <SettingsGroupSection group={deviceGroup}>
@@ -98,10 +99,12 @@ export default function SettingsTab() {
 function SettingsGroupSection({
   group,
   plus = false,
+  note = null,
   children,
 }: {
   group: SettingsGroup;
   plus?: boolean;
+  note?: string | null;
   children: ReactNode;
 }) {
   return (
@@ -115,6 +118,7 @@ function SettingsGroupSection({
         </View>
         <Text className="font-sans text-meta text-ink-2">{group.description}</Text>
       </View>
+      {note && <StatusMessage tone="info">{note}</StatusMessage>}
       {children}
     </View>
   );
@@ -168,45 +172,27 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
   );
 }
 
-function MembersSection({ family, userId, editable }: { family: Family; userId: string; editable: boolean }) {
+function MembersSection({ family, userId, admin }: { family: Family; userId: string; admin: boolean }) {
   const { client, config } = useBabble();
   const queryClient = useQueryClient();
-  const [inviting, setInviting] = useState(false);
-  const [pitching, setPitching] = useState(false);
-  const onCreate = useCreateInvite(client, family.id);
-  const pending = useQuery({ ...pendingInvitesQuery(client, family.id), enabled: editable }).data ?? [];
-  const locked = !canInviteCarer(config.billingEnabled, family.plan, family.members.length, pending.length);
-  const muted = useTokenColor('--ink-2');
   return (
     <View className="gap-3">
-      <MembersLabel client={client} familyId={family.id} editable={editable} />
+      <MembersLabel client={client} familyId={family.id} editable={admin} />
       <FamilyMembers
         client={client}
         family={family}
         userId={userId}
         onChanged={() => queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' })}
       />
-      {editable && <PendingInvites client={client} family={family} />}
-      {editable &&
-        (inviting ? (
-          <InvitePanel publicUrl={config.publicUrl} onCreate={onCreate} />
-        ) : (
-          <Button
-            variant="secondary"
-            icon={locked ? <Lock size={18} color={muted} strokeWidth={2.75} /> : undefined}
-            accessibilityLabel={locked ? 'Invite a caregiver, Babble Plus' : undefined}
-            onPress={() => (locked ? setPitching(true) : setInviting(true))}
-          >
-            Invite a caregiver
-          </Button>
-        ))}
-      {editable && locked && !inviting && (
-        <View className="flex-row items-center justify-center gap-2">
-          <PlusBadge />
-          <Text className="font-sans text-meta text-ink-2">Two carers on the free plan</Text>
-        </View>
+      {admin && <PendingInvites client={client} family={family} />}
+      {admin && (
+        <InviteFlow
+          client={client}
+          family={family}
+          billingEnabled={config.billingEnabled}
+          publicUrl={config.publicUrl}
+        />
       )}
-      <PlusDialog feature={pitching ? 'extra_carers' : null} onClose={() => setPitching(false)} />
     </View>
   );
 }

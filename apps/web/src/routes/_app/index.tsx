@@ -13,7 +13,7 @@ import { usePrediction } from '#/lib/use-prediction';
 export const Route = createFileRoute('/_app/')({ component: HomePage });
 
 function HomePage() {
-  const { babble, baby, family } = Route.useRouteContext();
+  const { babble, baby, family, canLog } = Route.useRouteContext();
   const now = useNow(30_000);
   const units = useUnits(babble.client, baby.id);
   const { window: dayToNow, since } = homeWindow(now, baby);
@@ -37,8 +37,16 @@ function HomePage() {
         prediction={predictionText(prediction, baby.timezone)}
         predictionPlus={babble.config.billingEnabled}
         summary={recent.data ? summariseDay(recent.data, dayToNow) : null}
+        canLog={canLog}
         renderRunning={(event) => (
-          <RunningCard event={event} client={babble.client} timeZone={baby.timezone} members={family.members} compact />
+          <RunningCard
+            event={event}
+            client={babble.client}
+            timeZone={baby.timezone}
+            members={family.members}
+            compact
+            readOnly={!canLog}
+          />
         )}
       />
       <InstallCard install={install} />

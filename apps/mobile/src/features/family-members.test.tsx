@@ -5,10 +5,12 @@ import { FamilyMembers } from './family-members';
 
 const mockRename = jest.fn(async (..._args: unknown[]) => undefined);
 const mockRemove = jest.fn(async (..._args: unknown[]) => undefined);
+const mockSetRole = jest.fn(async (..._args: unknown[]) => undefined);
 jest.mock('@babble/api', () => ({
   ...jest.requireActual('@babble/api'),
   renameMember: (...args: unknown[]) => mockRename(...args),
   removeMember: (...args: unknown[]) => mockRemove(...args),
+  setMemberRole: (...args: unknown[]) => mockSetRole(...args),
 }));
 
 const family: Family = {
@@ -57,5 +59,43 @@ describe('FamilyMembers', () => {
     expect(screen.getByLabelText('Rename Jane')).toBeTruthy();
     expect(screen.queryByLabelText('Rename John')).toBeNull();
     expect(screen.queryByLabelText(/^Remove/)).toBeNull();
+  });
+
+  it('shows roles as Admin and Caregiver', async () => {
+    await render(<FamilyMembers client={client} family={family} userId="jane" onChanged={jest.fn()} />);
+    expect(screen.getByText('Admin')).toBeTruthy();
+    expect(screen.getByText('Caregiver')).toBeTruthy();
+  });
+
+  it('lets an admin change a caregiver to read only', async () => {
+    const onChanged = jest.fn(async () => undefined);
+    await render(<FamilyMembers client={client} family={family} userId="john" onChanged={onChanged} />);
+    await fireEvent.press(screen.getByLabelText("Change Jane's role"));
+    expect(screen.getByText('Save role')).toBeTruthy();
+    await fireEvent.press(screen.getByText('Read only'));
+    expect(screen.getByText(/can’t change anything/)).toBeTruthy();
+    await fireEvent.press(screen.getByText('Save role'));
+    expect(mockSetRole).toHaveBeenCalledWith(client, { familyId: 'family-1', userId: 'jane' }, 'viewer');
+    expect(onChanged).toHaveBeenCalled();
+  });
+
+  it('shows why a role change failed', async () => {
+    mockSetRole.mockRejectedValueOnce({ code: 'PL004', message: 'A family needs at least one admin' });
+    const twoAdmins: Family = {
+      ...family,
+      members: family.members.map((member) => ({ ...member, role: 'owner' as const })),
+    };
+    await render(<FamilyMembers client={client} family={twoAdmins} userId="john" onChanged={jest.fn()} />);
+    await fireEvent.press(screen.getByLabelText("Change John's role"));
+    await fireEvent.press(screen.getByText('Caregiver'));
+    await fireEvent.press(screen.getByText('Save role'));
+    expect(await screen.findByText(/at least one admin/)).toBeTruthy();
+  });
+
+  it('does not offer the only admin a way to step down, nor caregivers any role changes', async () => {
+    await render(<FamilyMembers client={client} family={family} userId="john" onChanged={jest.fn()} />);
+    expect(screen.queryByLabelText("Change John's role")).toBeNull();
+    await render(<FamilyMembers client={client} family={family} userId="jane" onChanged={jest.fn()} />);
+    expect(screen.queryByLabelText(/role$/)).toBeNull();
   });
 });

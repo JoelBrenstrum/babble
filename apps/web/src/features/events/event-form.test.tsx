@@ -13,7 +13,7 @@ const client = { rpc } as unknown as BabbleClient;
 const saved = { data: 'event-1', error: null };
 const failed = { data: null, error: { message: 'Network down' } };
 
-function renderForm(initial: EventDraft, focusAmounts = false) {
+function renderForm(initial: EventDraft, focusAmounts = false, readOnly = false) {
   const onDone = vi.fn();
   render(
     <QueryClientProvider client={new QueryClient()}>
@@ -25,6 +25,7 @@ function renderForm(initial: EventDraft, focusAmounts = false) {
           units="metric"
           initial={initial}
           focusAmounts={focusAmounts}
+          readOnly={readOnly}
           onDone={onDone}
         />
       </ToastProvider>
@@ -67,5 +68,14 @@ describe('EventForm pump finish', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save without amounts' }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
     expect(rpc.mock.calls[0]![1].event).toMatchObject({ details: { left_ml: null, right_ml: null, total_ml: null } });
+  });
+});
+
+describe('EventForm read only', () => {
+  it('shows the entry with every field disabled and no save', () => {
+    renderForm({ ...emptyDraft('nappy', now), notes: 'Big one' }, false, true);
+    expect(screen.getByLabelText('Notes (optional)')).toBeDisabled();
+    expect(screen.getByDisplayValue('Big one')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /^Save/ })).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 import {
   BabbleExportError,
   babyChoices,
+  canLog,
   importEvents,
   looksLikeJson,
   readBabbleExport,
@@ -10,7 +11,7 @@ import {
 import { refreshEvents, useAsyncAction } from '@babble/api/react';
 import { HuckleberryCsvError, MAX_IMPORT_BYTES, parseHuckleberryCsv, type HuckleberryImport } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
-import { createFileRoute, Link } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect } from '@tanstack/react-router';
 import { FileUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { PageHeader } from '#/components/shell/page-header';
@@ -21,7 +22,12 @@ import { StatusMessage } from '#/components/ui/status';
 import { ImportPreview } from '#/features/import/import-preview';
 import { listTimeZones } from '#/lib/timezones';
 
-export const Route = createFileRoute('/_app/import')({ component: ImportPage });
+export const Route = createFileRoute('/_app/import')({
+  beforeLoad: ({ context }) => {
+    if (!context.canLog) throw redirect({ to: '/settings' });
+  },
+  component: ImportPage,
+});
 
 type Step =
   | { kind: 'choose' }
@@ -29,9 +35,12 @@ type Step =
   | { kind: 'done'; imported: number; skipped: number };
 
 function ImportPage() {
-  const { babble, baby, families } = Route.useRouteContext();
+  const { babble, baby, families, session } = Route.useRouteContext();
   const queryClient = useQueryClient();
-  const choices = useMemo(() => babyChoices(families), [families]);
+  const choices = useMemo(
+    () => babyChoices(families.filter((family) => canLog(family, session.user.id))),
+    [families, session.user.id],
+  );
   const timeZones = useMemo(listTimeZones, []);
   const [file, setFile] = useState<{ name: string; text: string } | null>(null);
   const [babyId, setBabyId] = useState(baby.id);
