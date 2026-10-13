@@ -11,7 +11,7 @@ const SCRIM: Record<ModalSheetVariant, string> = {
 
 const PANEL: Record<ModalSheetVariant, string> = {
   bottom:
-    'flex w-full max-w-md flex-col gap-4 rounded-t-sheet bg-raised p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-sheet outline-none md:rounded-sheet md:pb-6',
+    'flex w-full flex-col gap-4 rounded-t-sheet bg-raised p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-sheet outline-none md:rounded-sheet md:pb-6',
   chair:
     'absolute inset-x-[3cqmin] top-[5cqmin] bottom-[3cqmin] box-border flex flex-col gap-[3cqmin] rounded-[6cqmin] bg-raised p-[4cqmin] shadow-sheet outline-none',
 };
@@ -22,6 +22,7 @@ export function ModalSheet({
   variant = 'bottom',
   portal = variant === 'bottom',
   initialFocus,
+  wide = false,
   className,
   onClose,
   children,
@@ -31,6 +32,7 @@ export function ModalSheet({
   variant?: ModalSheetVariant;
   portal?: boolean;
   initialFocus?: RefObject<HTMLElement | null>;
+  wide?: boolean;
   className?: string;
   onClose: () => void;
   children: ReactNode;
@@ -60,7 +62,7 @@ export function ModalSheet({
         aria-labelledby={labelledBy}
         tabIndex={-1}
         onMouseDown={(event) => event.stopPropagation()}
-        className={cn(PANEL[variant], className)}
+        className={cn(PANEL[variant], variant === 'bottom' && (wide ? 'max-w-5xl' : 'max-w-md'), className)}
       >
         {variant === 'bottom' && <span className="mx-auto h-1.5 w-10 rounded-full bg-line-strong md:hidden" />}
         {children}

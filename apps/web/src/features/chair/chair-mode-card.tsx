@@ -52,7 +52,8 @@ export function ChairPreviewDialog({ onClose }: { onClose: () => void }) {
     <ModalSheet
       labelledBy="chair-preview-title"
       initialFocus={close}
-      className="max-h-[92dvh] max-w-5xl gap-4 overflow-y-auto p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] md:p-6"
+      wide
+      className="max-h-[92dvh] gap-4 overflow-y-auto p-5 pb-[calc(env(safe-area-inset-bottom)+20px)] md:p-6"
       onClose={onClose}
     >
       <div className="flex items-start gap-3">

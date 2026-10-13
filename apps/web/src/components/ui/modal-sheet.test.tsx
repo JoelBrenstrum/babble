@@ -36,6 +36,24 @@ describe('ModalSheet', () => {
     expect(dialog).toHaveFocus();
   });
 
+  it('stays narrow unless asked to be wide', () => {
+    const { unmount } = render(
+      <ModalSheet label="Narrow" onClose={vi.fn()}>
+        <p>Hello</p>
+      </ModalSheet>,
+    );
+    expect(screen.getByRole('dialog', { name: 'Narrow' })).toHaveClass('max-w-md');
+    unmount();
+    render(
+      <ModalSheet label="Wide" wide onClose={vi.fn()}>
+        <p>Hello</p>
+      </ModalSheet>,
+    );
+    const wide = screen.getByRole('dialog', { name: 'Wide' });
+    expect(wide).toHaveClass('max-w-5xl');
+    expect(wide).not.toHaveClass('max-w-md');
+  });
+
   it('focuses the requested element instead of the panel', () => {
     const target = { current: null as HTMLButtonElement | null };
     render(
