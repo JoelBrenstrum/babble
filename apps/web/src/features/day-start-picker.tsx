@@ -1,12 +1,10 @@
-import { clockToMinutes, minutesToClock } from '@babble/domain';
+import { DEFAULT_CUSTOM_DAY_START_MIN, minutesToClock } from '@babble/domain';
 import { Check } from 'lucide-react';
 import { cn } from '#/lib/cn';
-import { showNativePicker } from '#/lib/native-picker';
+import { MinutesTimeInput } from './minutes-time-input';
 
 export function DayStartPicker({ value, onChange }: { value: number; onChange: (minutes: number) => void }) {
   const custom = value !== 0;
-  const hh = String(Math.floor(value / 60)).padStart(2, '0');
-  const mm = String(value % 60).padStart(2, '0');
 
   return (
     <div role="radiogroup" aria-label="Day start" className="flex flex-col gap-3">
@@ -20,22 +18,16 @@ export function DayStartPicker({ value, onChange }: { value: number; onChange: (
         selected={custom}
         title="Custom time"
         description="Keeps each night in one day."
-        onSelect={() => onChange(custom ? value : 420)}
+        onSelect={() => onChange(custom ? value : DEFAULT_CUSTOM_DAY_START_MIN)}
       >
         {custom && (
           <label className="mt-3 flex items-center gap-3 text-meta text-ink-2">
             Day starts at
-            <input
-              type="time"
-              onClick={(event) => showNativePicker(event.currentTarget)}
-              aria-label="Day start time"
-              step={900}
-              className="h-tap rounded-button border border-line-strong bg-raised px-3 text-body text-ink"
-              value={`${hh}:${mm}`}
-              onChange={(event) => {
-                const minutes = clockToMinutes(event.target.value);
-                if (minutes !== null && minutes !== 0) onChange(minutes);
-              }}
+            <MinutesTimeInput
+              label="Day start time"
+              minutes={value}
+              accept={(minutes) => minutes !== 0}
+              onChange={onChange}
             />
             <span className="tabular text-ink">{minutesToClock(value)}</span>
           </label>

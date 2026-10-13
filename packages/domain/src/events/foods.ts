@@ -1,4 +1,5 @@
 import type { BabyEvent } from './types';
+import { byStartedAtDesc } from '../time/instants';
 
 export const MAX_FOODS = 20;
 export const MAX_FOOD_LENGTH = 40;
@@ -29,9 +30,7 @@ export function hasFood(foods: readonly string[], food: string): boolean {
 
 export function recentFoods(events: readonly BabyEvent[], limit = 12): string[] {
   const foods: string[] = [];
-  const latestFirst = [...events]
-    .filter((event) => event.type === 'solids' && !event.deletedAt)
-    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
+  const latestFirst = [...events].filter((event) => event.type === 'solids' && !event.deletedAt).sort(byStartedAtDesc);
   for (const event of latestFirst) {
     if (event.type !== 'solids') continue;
     for (const food of event.details.foods) {

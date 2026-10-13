@@ -1,10 +1,7 @@
-import type { Side, TimedSegment } from './types';
+import { byStartedAtAsc } from '../time/instants';
+import type { BabyEvent, EventOfType, Side, Stretch, TimedSegment } from './types';
 
-export interface SegmentLike {
-  side: Side;
-  startedAt: string;
-  endedAt: string | null;
-}
+export type SegmentLike = TimedSegment;
 
 export interface SegmentTotals {
   leftMs: number;
@@ -13,13 +10,43 @@ export interface SegmentTotals {
   openSide: Side | null;
   lastSide: Side | null;
   openSegmentStartedAt: string | null;
+  open: { side: Side; startedAt: string } | null;
 }
 
-export function segmentTotals(segments: readonly (SegmentLike | TimedSegment)[], now: Date): SegmentTotals {
-  const sorted = [...segments].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+export type SegmentedEvent = EventOfType<'breast_feed' | 'pump' | 'sleep'>;
+
+export function hasSegments(event: BabyEvent): event is SegmentedEvent {
+  return event.type === 'breast_feed' || event.type === 'pump' || event.type === 'sleep';
+}
+
+export function mapSegments(event: BabyEvent, map: <S extends Stretch>(segments: S[]) => S[]): BabyEvent {
+  switch (event.type) {
+    case 'sleep':
+      return { ...event, segments: map(event.segments) };
+    case 'breast_feed':
+      return { ...event, segments: map(event.segments) };
+    case 'pump':
+      return { ...event, segments: map(event.segments) };
+    default:
+      return event;
+  }
+}
+
+export function lastSegmentEnd(event: { segments: readonly Stretch[] }): number | null {
+  let latest: number | null = null;
+  for (const segment of event.segments) {
+    if (segment.endedAt === null) return null;
+    const end = Date.parse(segment.endedAt);
+    if (latest === null || end > latest) latest = end;
+  }
+  return latest;
+}
+
+export function segmentTotals(segments: readonly TimedSegment[], now: Date): SegmentTotals {
+  const sorted = [...segments].sort(byStartedAtAsc);
   let leftMs = 0;
   let rightMs = 0;
-  let open: SegmentLike | null = null;
+  let open: TimedSegment | null = null;
 
   for (const segment of sorted) {
     const end = segment.endedAt ? Date.parse(segment.endedAt) : now.getTime();
@@ -36,6 +63,7 @@ export function segmentTotals(segments: readonly (SegmentLike | TimedSegment)[],
     openSide: open?.side ?? null,
     lastSide: sorted.at(-1)?.side ?? null,
     openSegmentStartedAt: open?.startedAt ?? null,
+    open: open ? { side: open.side, startedAt: open.startedAt } : null,
   };
 }
 

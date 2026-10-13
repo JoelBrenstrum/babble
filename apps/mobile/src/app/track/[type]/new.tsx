@@ -1,19 +1,14 @@
-import { clock, latestEventsQuery, runningEventsQuery, toBabbleError } from '@babble/api';
+import { clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { useAsyncAction, useStartSession, useUnits } from '@babble/api/react';
 import {
-  emptyDraft,
-  feedPromptOnNapStart,
-  napPromptOnFeedEnd,
-  napPromptOnFeedStart,
-  nappyPromptAfterBottle,
-  nappyPromptOnFeedStart,
   nextBreastSide,
+  pastDraft,
   runningSessionLine,
   runningTone,
   startContext,
   isEventType,
   isSessionType,
   trackerFor,
-  type EventDraft,
   type RunningTone,
   type SessionType,
   type Side,
@@ -33,19 +28,11 @@ import { StatusMessage } from '@/components/status-message';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventForm } from '@/features/events/event-form';
 import { useNapPrompt } from '@/features/nap-prompt';
+import { useSessionPrompts } from '@/features/events/use-session-prompts';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
-import { useStartSession, useTrackingSettings, useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
-import { useReadyState } from '@/lib/use-onboarding';
-
-function pastDraft(type: EventDraft['type'], now: Date): EventDraft {
-  const draft = emptyDraft(type, now);
-  const earlier = (minutes: number) => new Date(now.getTime() - minutes * 60_000).toISOString();
-  if (type === 'sleep') return { ...draft, startedAt: earlier(60) };
-  if (type === 'breast_feed' || type === 'pump') return { ...draft, startedAt: earlier(20), endedAt: earlier(20) };
-  return draft;
-}
+import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function NewEntry() {
   const { type } = useLocalSearchParams<{ type: string }>();
@@ -61,17 +48,15 @@ function NewEntryContent({
   members,
 }: {
   eventType: TrackerKey;
-  baby: NonNullable<ReturnType<typeof useReadyState>>['baby'];
+  baby: ReadyState['baby'];
   members: FamilyMemberRow[];
 }) {
   const { client } = useBabble();
   const units = useUnits(client, baby.id);
-  const { nappyPrompt } = useTrackingSettings(client, baby.id);
   const tracker = trackerFor(eventType);
   const [logPast, setLogPast] = useState(!isSessionType(eventType));
-  const showNapPrompt = useNapPrompt();
-  const runningEvents = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
-  const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
+  const showPrompts = useNapPrompt();
+  const promptsFor = useSessionPrompts(client, baby.id);
 
   return (
     <Screen>
@@ -91,12 +76,9 @@ function NewEntryContent({
             units={units}
             initial={pastDraft(eventType, clock.now())}
             onSaved={(draft) => {
-              if (draft.type !== 'bottle') return;
-              showNapPrompt(
-                napPromptOnFeedStart(runningEvents, draft.startedAt) ??
-                  napPromptOnFeedEnd(runningEvents, draft.endedAt ?? draft.startedAt),
-              );
-              showNapPrompt(nappyPromptAfterBottle(nappyPrompt, latest, draft.startedAt));
+              if (draft.type === 'bottle') {
+                showPrompts(promptsFor({ kind: 'start', event: draft, at: draft.startedAt }));
+              }
             }}
             onDone={() => router.back()}
           />
@@ -119,7 +101,6 @@ function StartSession({
 }) {
   const { client } = useBabble();
   const units = useUnits(client, babyId);
-  const { nappyPrompt } = useTrackingSettings(client, babyId);
   const now = useNow(1000);
   const onPrimary = useTokenColor('--on-primary');
   const onSolid = useTokenColor('--ink-on-solid');
@@ -129,27 +110,20 @@ function StartSession({
   const running = runningEvents.find((event) => event.type === type);
   const latest = useQuery(latestEventsQuery(client, babyId)).data ?? [];
   const suggested = type === 'breast_feed' ? nextBreastSide(latest) : null;
-  const showNapPrompt = useNapPrompt();
-  const [error, setError] = useState<string | null>(null);
+  const showPrompts = useNapPrompt();
+  const promptsFor = useSessionPrompts(client, babyId);
+  const { run, error } = useAsyncAction();
   const spinnerColor = useTokenColor('--primary');
   const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
   const context = startContext(type, latest, now, units);
 
-  function begin(side?: Side) {
-    setError(null);
-    const startedAt = clock.now().toISOString();
-    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, startedAt));
-    if (type === 'sleep') showNapPrompt(feedPromptOnNapStart(runningEvents, startedAt));
-    start.mutate(
-      { type, side },
-      {
-        onSuccess: (eventId) => {
-          router.replace(`/sessions/${eventId}`);
-          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(nappyPrompt, latest, startedAt));
-        },
-        onError: (caught) => setError(toBabbleError(caught).message),
-      },
-    );
+  async function begin(side?: Side) {
+    const prompts = promptsFor({ kind: 'start', event: { type } });
+    const started = await run(async () => {
+      const eventId = await start.mutateAsync({ type, side });
+      router.replace(`/sessions/${eventId}`);
+    });
+    if (started) showPrompts(prompts);
   }
 
   if (start.isPending || start.isSuccess) {

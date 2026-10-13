@@ -1,8 +1,16 @@
-import { formatShortDate, growthPointReadout, readoutEdge, type GrowthChart, type GrowthReport } from '@babble/domain';
+import {
+  chartAxis,
+  formatShortDate,
+  growthPointReadout,
+  readoutEdge,
+  type GrowthChart,
+  type GrowthReport,
+} from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { Ruler } from 'lucide-react';
 import { useState } from 'react';
 import { Card } from '#/components/ui/card';
+import { ChartTip } from '#/components/ui/chart-tip';
 import { StatusMessage } from '#/components/ui/status';
 import { cn } from '#/lib/cn';
 
@@ -17,12 +25,6 @@ const CURVE_STYLE: Record<number, string> = {
   85: 'stroke-ink-3/35',
   97: 'stroke-ink-3/50 [stroke-dasharray:3_3]',
 };
-
-function niceStep(range: number): number {
-  const raw = range / 4;
-  const magnitude = 10 ** Math.floor(Math.log10(raw));
-  return [1, 2, 5, 10].map((factor) => factor * magnitude).find((step) => step >= raw) ?? raw;
-}
 
 export function GrowthCard({
   report,
@@ -78,20 +80,15 @@ export function GrowthCard({
 }
 
 function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: string }) {
+  const [active, setActive] = useState<number | null>(null);
   const x = (months: number) => PAD.left + (months / chart.xMax) * (WIDTH - PAD.left - PAD.right);
   const y = (value: number) =>
     PAD.top + (1 - (value - chart.yMin) / (chart.yMax - chart.yMin)) * (HEIGHT - PAD.top - PAD.bottom);
   const path = (points: { months: number; value: number }[]) =>
     points
-      .map((point, index) => `${index ? 'L' : 'M'}${x(point.months).toFixed(1)},${y(point.value).toFixed(1)}`)
+      .map((point, order) => `${order ? 'L' : 'M'}${x(point.months).toFixed(1)},${y(point.value).toFixed(1)}`)
       .join(' ');
-  const yStep = niceStep(chart.yMax - chart.yMin);
-  const yTicks: number[] = [];
-  for (let value = Math.ceil(chart.yMin / yStep) * yStep; value <= chart.yMax; value += yStep) yTicks.push(value);
-  const xStep = chart.xMax <= 6 ? 1 : chart.xMax <= 12 ? 2 : chart.xMax <= 24 ? 3 : 6;
-  const xTicks: number[] = [];
-  for (let months = 0; months <= chart.xMax; months += xStep) xTicks.push(months);
-  const [active, setActive] = useState<number | null>(null);
+  const { yTicks, xTicks } = chartAxis(chart);
   const activePoint = active === null ? null : chart.points[active];
 
   return (
@@ -192,16 +189,15 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
 function PointTip({ text, left, top }: { text: string; left: number; top: number }) {
   const edge = readoutEdge(left);
   return (
-    <div
-      aria-hidden
+    <ChartTip
       className={cn(
-        'pointer-events-none absolute z-10 mb-3 w-max max-w-[16rem] -translate-y-full rounded-[10px] bg-ink px-2.5 py-1.5 text-caption font-semibold text-bg shadow-toast',
+        'mb-3 -translate-y-full',
         edge === 'center' && '-translate-x-1/2',
         edge === 'right' && '-translate-x-full',
       )}
       style={{ left: `${left * 100}%`, top: `calc(${top * 100}% - 10px)` }}
     >
       {text}
-    </div>
+    </ChartTip>
   );
 }

@@ -17,8 +17,8 @@ export const POO_COLOURS: { value: PooColour; label: string; token: keyof typeof
 export const CAUTION_COLOURS: readonly PooColour[] = ['red', 'black', 'white_grey'];
 
 export function pooColor(colour: PooColour): string {
-  const token = POO_COLOURS.find((c) => c.value === colour)!.token;
-  return `rgb(${lightVars[token].replaceAll(' ', ',')})`;
+  const token = POO_COLOURS.find((c) => c.value === colour)?.token;
+  return token ? `rgb(${lightVars[token].replaceAll(' ', ',')})` : 'transparent';
 }
 
 export function PooSwatch({ colours, size = 16 }: { colours: readonly PooColour[]; size?: number }) {

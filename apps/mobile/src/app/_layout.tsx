@@ -1,5 +1,5 @@
 import '../global.css';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -11,9 +11,11 @@ import { BabyScope } from '@/features/baby-scope';
 import { ActiveBabyProvider } from '@/lib/active-baby';
 import { BabbleProvider } from '@/lib/babble';
 import { useAppFonts } from '@/lib/fonts';
+import { focusEventListener } from '@/lib/foreground';
 import { ThemePreferenceProvider, ThemeRoot } from '@/lib/theme';
 
 void SplashScreen.preventAutoHideAsync();
+focusManager.setEventListener(focusEventListener());
 
 export default function RootLayout() {
   const [queryClient] = useState(

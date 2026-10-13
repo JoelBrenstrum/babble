@@ -1,4 +1,5 @@
-import { DEV_ACCOUNTS, DEV_PASSWORD, toBabbleError } from '@babble/api';
+import { DEV_ACCOUNTS, DEV_PASSWORD } from '@babble/api/dev';
+import { useAsyncAction } from '@babble/api/react';
 import { Wrench } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
@@ -10,17 +11,11 @@ export function DevSignIn({
   onSignIn: (credentials: { email: string; password: string }) => Promise<void>;
 }) {
   const [pending, setPending] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { run, busy, error } = useAsyncAction();
 
-  async function signIn(email: string) {
-    setError(null);
+  function signIn(email: string) {
     setPending(email);
-    try {
-      await onSignIn({ email, password: DEV_PASSWORD });
-    } catch (caught) {
-      setError(`${toBabbleError(caught).message} Run \`pnpm --filter @babble/db reset\` to reseed the dev accounts.`);
-      setPending(null);
-    }
+    void run(() => onSignIn({ email, password: DEV_PASSWORD }));
   }
 
   return (
@@ -38,15 +33,19 @@ export function DevSignIn({
           <Button
             key={account.email}
             variant="secondary"
-            loading={pending === account.email}
-            disabled={pending !== null && pending !== account.email}
+            loading={busy && pending === account.email}
+            disabled={busy && pending !== account.email}
             onClick={() => signIn(account.email)}
           >
             Sign in as {account.name}
           </Button>
         ))}
       </div>
-      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {error && (
+        <StatusMessage tone="danger">
+          {error} Run `pnpm --filter @babble/db reset` to reseed the dev accounts.
+        </StatusMessage>
+      )}
     </section>
   );
 }

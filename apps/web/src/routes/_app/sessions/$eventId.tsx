@@ -1,17 +1,17 @@
 import { clock, eventQuery, runningEventsQuery, toBabbleError } from '@babble/api';
-import { formatTimeOfDay, trimIdleSwitch } from '@babble/domain';
+import { formatTimeOfDay, trackerFor, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-router';
-import { ChevronLeft } from 'lucide-react';
+import { PageHeader } from '#/components/shell/page-header';
 import { Card, SectionLabel } from '#/components/ui/card';
-import { Spinner } from '#/components/ui/spinner';
+import { SectionSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { RunningCard } from '#/features/events/running-card';
 import { KeepAwakeToggle } from '#/features/keep-awake-toggle';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { SleepDetailsEditor } from '#/features/events/sleep-details-editor';
-import { useSessionAction, useTrackingSettings } from '#/lib/use-events';
+import { useSessionAction, useTrackingSettings } from '@babble/api/react';
 import { useNow } from '#/lib/use-now';
 
 export const Route = createFileRoute('/_app/sessions/$eventId')({ component: SessionPage });
@@ -28,13 +28,7 @@ function SessionPage() {
   const event = running.data?.find((item) => item.id === eventId) ?? fallback.data;
 
   if (!event) {
-    if (running.isPending || fallback.isPending) {
-      return (
-        <div className="flex justify-center py-16 text-primary">
-          <Spinner className="size-7" />
-        </div>
-      );
-    }
+    if (running.isPending || fallback.isPending) return <SectionSpinner />;
     return (
       <StatusMessage tone="danger">
         {fallback.error ? toBabbleError(fallback.error).message : 'Session not found.'}
@@ -58,15 +52,11 @@ function SessionPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <Link to="/" aria-label="Back" className="grid size-tap place-items-center rounded-full hover:bg-surface">
-          <ChevronLeft className="size-6" strokeWidth={2.75} />
-        </Link>
-        <h1 className="text-title font-bold">
-          {event.type === 'sleep' ? 'Sleep' : event.type === 'pump' ? 'Pump' : 'Breastfeed'}
-        </h1>
-        <span className="ml-auto text-meta text-ink-2">started {formatTimeOfDay(event.startedAt, baby.timezone)}</span>
-      </div>
+      <PageHeader
+        backTo={{ to: '/' }}
+        title={trackerFor(event.type).label}
+        trailing={`started ${formatTimeOfDay(event.startedAt, baby.timezone)}`}
+      />
       <RunningCard
         event={event}
         client={babble.client}

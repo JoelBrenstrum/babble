@@ -2,6 +2,7 @@ import {
   addFood,
   foodSuggestions,
   hasFood,
+  instantDraft,
   MAX_FOOD_LENGTH,
   newFoods,
   recentFoods,
@@ -20,7 +21,7 @@ import { Button } from '@/components/button';
 import { SingleChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
 import { useTokenColor } from '@/lib/theme';
-import { FormSection, instantDraft, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 const AMOUNTS = (Object.keys(SOLIDS_AMOUNT_LABELS) as SolidsAmount[]).map((value) => ({
   value,

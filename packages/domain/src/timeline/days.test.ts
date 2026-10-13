@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { dayWindow } from '../time/local-time';
 import { hourTicks, lastDays, lastDayWindow, localInstant, nightIntervals, windowTicks } from './days';
 
 describe('localInstant', () => {
@@ -66,5 +67,25 @@ describe('the last 24 hours', () => {
   it('handles half-hour time zones', () => {
     const ticks = windowTicks(lastDayWindow(now), 'Asia/Kolkata', 6);
     expect(ticks.map((tick) => tick.label)).toEqual(['00', '06', '12', '18']);
+  });
+});
+
+describe('ticks on a daylight saving changeover day', () => {
+  const zone = 'Pacific/Auckland';
+
+  it('spaces six-hourly ticks over a 25 hour day', () => {
+    const ticks = windowTicks(dayWindow('2026-04-04', zone, 360), zone, 6);
+    expect(ticks.map((tick) => tick.label)).toEqual(['06', '12', '18', '00', '06']);
+    expect(ticks.map((tick) => tick.frac)).toEqual([0, 6 / 25, 12 / 25, 18 / 25, 1]);
+  });
+
+  it('spaces six-hourly ticks over a 23 hour day', () => {
+    const ticks = windowTicks(dayWindow('2026-09-26', zone, 360), zone, 6);
+    expect(ticks.map((tick) => tick.label)).toEqual(['06', '12', '18', '00', '06']);
+    expect(ticks.map((tick) => tick.frac)).toEqual([0, 6 / 23, 12 / 23, 18 / 23, 1]);
+  });
+
+  it('agrees with hourTicks', () => {
+    expect(hourTicks('2026-09-26', zone, 360, 6)).toEqual(windowTicks(dayWindow('2026-09-26', zone, 360), zone, 6));
   });
 });

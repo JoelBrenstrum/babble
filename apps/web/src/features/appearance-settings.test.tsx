@@ -1,4 +1,4 @@
-import type { BabySettingsRow } from '@babble/api';
+import type { BabySettings } from '@babble/api';
 import { sampleBaby } from '@babble/api/fixtures';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen } from '@testing-library/react';
@@ -7,7 +7,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fixtureClient } from '#/fixtures/client';
 import { AppearanceSettings } from './appearance-settings';
 
-const settings = { night_start_minutes: 1140, night_end_minutes: 420 } as BabySettingsRow;
+const settings = { night_start_minutes: 1140, night_end_minutes: 420 } as BabySettings;
 
 vi.mock('@babble/api', async (importOriginal) => {
   const api = await importOriginal<typeof import('@babble/api')>();

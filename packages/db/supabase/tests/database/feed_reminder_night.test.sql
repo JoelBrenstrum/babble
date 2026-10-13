@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 
 select plan(3);
+update private.instance_settings set billing_enabled = false;
 
 select col_not_null('public', 'baby_settings', 'feed_reminder_at_night', 'night reminders is always set');
 select col_default_is('public', 'baby_settings', 'feed_reminder_at_night', 'true', 'night reminders stay on by default');

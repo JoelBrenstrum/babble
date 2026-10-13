@@ -1,5 +1,6 @@
 import { emptyDraft } from '@babble/domain';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { clock } from './clock';
 import {
   deleteEvent,
   draftToPayload,
@@ -14,6 +15,7 @@ import {
   saveSleepDetails,
   setSwitchTime,
   startSession,
+  subscribeToBabyEvents,
   switchSide,
   type EventRow,
 } from './events';
@@ -226,27 +228,38 @@ describe('event requests', () => {
     expect(params.get('baby_id')).toBe('eq.baby-1');
     expect(params.get('deleted_at')).toBe('is.null');
     expect(params.get('type')).toBe('in.(bottle,breast_feed)');
-    expect(params.get('order')).toBe('started_at.desc');
+    expect(params.get('order')).toBe('started_at.desc,id.desc');
     expect(params.get('limit')).toBe('20');
   });
 
-  it('reads a time range, reaching back a day for sessions that started earlier', async () => {
+  it('reads a time range server-side, keeping sessions that overlap its start', async () => {
     const { client, requests } = fakeClient(() => ({ body: [] }));
     await listEventsBetween(client, 'baby-1', '2026-10-06T00:00:00.000Z', '2026-10-07T00:00:00.000Z');
     const params = requests[0]!.url.searchParams;
-    expect(params.getAll('started_at')).toEqual(['lt.2026-10-07T00:00:00.000Z', 'gte.2026-10-05T00:00:00.000Z']);
-    expect(params.get('offset')).toBe('0');
+    expect(params.getAll('started_at')).toEqual(['lt.2026-10-07T00:00:00.000Z']);
+    expect(params.getAll('or')).toEqual([
+      '(started_at.gte.2026-10-06T00:00:00.000Z,ended_at.gte.2026-10-06T00:00:00.000Z,and(ended_at.is.null,type.in.(sleep,breast_feed,pump)))',
+    ]);
     expect(params.get('limit')).toBe('1000');
   });
 
-  it('pages through ranges longer than one request', async () => {
+  it('pages through ranges longer than one request with a keyset cursor', async () => {
     let call = 0;
     const { client, requests } = fakeClient(() => ({
-      body: call++ === 0 ? Array.from({ length: 1000 }, () => row({})) : [row({})],
+      body:
+        call++ === 0
+          ? Array.from({ length: 1000 }, (_, index) =>
+              row({ id: `event-${index}`, started_at: '2026-10-06T08:00:00.123456+00:00' }),
+            )
+          : [row({})],
     }));
     const events = await listEventsBetween(client, 'baby-1', '2026-01-01T00:00:00.000Z', '2026-10-07T00:00:00.000Z');
     expect(events).toHaveLength(1001);
-    expect(requests.map((request) => request.url.searchParams.get('offset'))).toEqual(['0', '1000']);
+    expect(requests.map((request) => request.url.searchParams.get('offset'))).toEqual(['0', '0']);
+    expect(requests[0]!.url.searchParams.getAll('or')).toHaveLength(1);
+    expect(requests[1]!.url.searchParams.getAll('or')[1]).toBe(
+      '(started_at.lt.2026-10-06T08:00:00.123456+00:00,and(started_at.eq.2026-10-06T08:00:00.123456+00:00,id.lt.event-999))',
+    );
   });
 
   it('reads the latest events through the RPC with embedded details', async () => {
@@ -298,6 +311,56 @@ describe('event requests', () => {
     expect(requests[0]!.method).toBe('PATCH');
     expect(requests[0]!.url.searchParams.get('id')).toBe('eq.event-1');
     expect(requests[0]!.body).toHaveProperty('deleted_at');
+  });
+
+  it('stamps deletion with the server-corrected clock', async () => {
+    clock.setOffset(60_000);
+    vi.useFakeTimers({ now: new Date('2026-10-06T10:00:00Z'), toFake: ['Date'] });
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await deleteEvent(client, 'event-1');
+    clock.setOffset(0);
+    vi.useRealTimers();
+    expect(requests[0]!.body).toEqual({ deleted_at: '2026-10-06T10:01:00.000Z' });
+  });
+});
+
+describe('subscribeToBabyEvents', () => {
+  function fakeChannelClient() {
+    let status: ((status: string) => void) | undefined;
+    const names: string[] = [];
+    const channel = {
+      on: () => channel,
+      subscribe: (callback: (status: string) => void) => {
+        status = callback;
+        return channel;
+      },
+    };
+    const client = {
+      channel: (name: string) => (names.push(name), channel),
+      removeChannel: async () => 'ok',
+    } as unknown as Parameters<typeof subscribeToBabyEvents>[0];
+    return { client, names, emit: (value: string) => status?.(value) };
+  }
+
+  it('recovers on channel failure but not after unsubscribing', () => {
+    const { client, emit } = fakeChannelClient();
+    const onChange = vi.fn();
+    const stop = subscribeToBabyEvents(client, 'baby-1', onChange);
+    emit('SUBSCRIBED');
+    expect(onChange).not.toHaveBeenCalled();
+    emit('CHANNEL_ERROR');
+    emit('TIMED_OUT');
+    expect(onChange).toHaveBeenCalledTimes(2);
+    stop();
+    emit('CLOSED');
+    expect(onChange).toHaveBeenCalledTimes(2);
+  });
+
+  it('names each channel uniquely', () => {
+    const { client, names } = fakeChannelClient();
+    subscribeToBabyEvents(client, 'baby-1', vi.fn());
+    subscribeToBabyEvents(client, 'baby-1', vi.fn());
+    expect(new Set(names).size).toBe(2);
   });
 });
 

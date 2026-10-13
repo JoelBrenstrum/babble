@@ -5,10 +5,10 @@ import {
   memberNameError,
   removeMember,
   renameMember,
-  toBabbleError,
   type BabbleClient,
   type Family,
 } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Avatar } from '@/components/avatar';
@@ -58,21 +58,14 @@ export function FamilyMembers({
 }) {
   const [renaming, setRenaming] = useState<string | null>(null);
   const [name, setName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const { run, busy, error, setError } = useAsyncAction();
 
-  async function run(task: () => Promise<void>) {
-    setBusy(true);
-    setError(null);
-    try {
+  async function change(task: () => Promise<void>) {
+    const changed = await run(async () => {
       await task();
       await onChanged();
-      setRenaming(null);
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    } finally {
-      setBusy(false);
-    }
+    });
+    if (changed) setRenaming(null);
   }
 
   function save(member: Member) {
@@ -81,7 +74,7 @@ export function FamilyMembers({
       setError(problem);
       return;
     }
-    void run(() => renameMember(client, { familyId: family.id, userId: member.user_id }, name));
+    void change(() => renameMember(client, { familyId: family.id, userId: member.user_id }, name));
   }
 
   function confirmRemove(member: Member) {
@@ -93,7 +86,7 @@ export function FamilyMembers({
         {
           text: 'Remove',
           style: 'destructive',
-          onPress: () => void run(() => removeMember(client, { familyId: family.id, userId: member.user_id })),
+          onPress: () => void change(() => removeMember(client, { familyId: family.id, userId: member.user_id })),
         },
       ],
     );

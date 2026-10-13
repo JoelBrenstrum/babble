@@ -1,16 +1,12 @@
-export type Feature =
-  | 'core_tracking'
-  | 'history'
-  | 'reminders'
-  | 'huckleberry_import'
-  | 'stats'
-  | 'multiple_babies'
-  | 'extra_carers'
-  | 'predictions';
+export const PLANS = ['free', 'plus'] as const;
 
-export type Plan = 'free' | 'plus';
+export type Plan = (typeof PLANS)[number];
 
-export const ALL_FEATURES: readonly Feature[] = [
+export function toPlan(value: string): Plan {
+  return value === 'plus' ? 'plus' : 'free';
+}
+
+export const ALL_FEATURES = [
   'core_tracking',
   'history',
   'reminders',
@@ -19,7 +15,11 @@ export const ALL_FEATURES: readonly Feature[] = [
   'multiple_babies',
   'extra_carers',
   'predictions',
-];
+  'insights',
+  'chair_mode',
+] as const;
+
+export type Feature = (typeof ALL_FEATURES)[number];
 
 const PLAN_FEATURES: Record<Plan, readonly Feature[]> = {
   free: ['core_tracking', 'history', 'reminders', 'huckleberry_import', 'stats'],
@@ -31,26 +31,49 @@ export function entitlements(options: { billingEnabled: boolean; plan: Plan }): 
 }
 
 export function familyHasFeature(billingEnabled: boolean, familyPlan: string, feature: Feature): boolean {
-  return entitlements({ billingEnabled, plan: familyPlan === 'plus' ? 'plus' : 'free' }).has(feature);
+  return entitlements({ billingEnabled, plan: toPlan(familyPlan) }).has(feature);
 }
 
-const PLUS_HIGHLIGHTS: string[] = [
+export interface Entitlements {
+  readonly plan: Plan;
+  has(feature: Feature): boolean;
+  canAddBaby(babyCount: number): boolean;
+  canInviteCarer(carers: number, pendingInvites: number): boolean;
+}
+
+export function familyEntitlements(billingEnabled: boolean, familyPlan: string): Entitlements {
+  const features = entitlements({ billingEnabled, plan: toPlan(familyPlan) });
+  return {
+    plan: toPlan(familyPlan),
+    has: (feature) => features.has(feature),
+    canAddBaby: (babyCount) => canAddBaby(billingEnabled, familyPlan, babyCount),
+    canInviteCarer: (carers, pendingInvites) => canInviteCarer(billingEnabled, familyPlan, carers, pendingInvites),
+  };
+}
+
+const PLUS_HIGHLIGHTS: readonly string[] = [
   'Predicted sleeps and feeds on Home and the Timeline',
   'More than one baby in a family',
   'More than two carers in a family',
+  'Wake windows, night sleep, a weekly summary and all-time stats',
+  'A 30-day timeline to see patterns form',
+  'Chair mode, a feed station for a tablet by the feeding chair',
 ];
 
-export type PlusFeature = 'predictions' | 'multiple_babies' | 'extra_carers';
+export type PlusFeature = 'predictions' | 'multiple_babies' | 'extra_carers' | 'insights' | 'chair_mode';
 
 const PLUS_REASONS: Record<PlusFeature, string> = {
   predictions: 'Predicted sleeps and feeds are part of Babble Plus.',
   multiple_babies: 'Adding more than one baby to a family is part of Babble Plus.',
   extra_carers: 'A free family can have two carers, counting invites waiting to be accepted. Babble Plus allows more.',
+  insights:
+    'Wake windows, night sleep trends, the weekly summary, all-time stats and the 30-day timeline are part of Babble Plus.',
+  chair_mode: 'Chair mode is part of Babble Plus. You can preview it from Settings.',
 };
 
 export interface PlusPitch {
   reason: string;
-  highlights: string[];
+  readonly highlights: readonly string[];
   note: string;
 }
 
@@ -65,7 +88,7 @@ export function canAddBaby(billingEnabled: boolean, familyPlan: string, babyCoun
 export interface PlanSummary {
   plus: boolean;
   status: string;
-  highlights: string[];
+  readonly highlights: readonly string[];
 }
 
 export function planSummary(billingEnabled: boolean, familyPlan: string): PlanSummary | null {

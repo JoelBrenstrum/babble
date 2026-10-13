@@ -2,24 +2,23 @@ import { formatAgo, formatDuration } from '../format/duration';
 import { formatVolume } from '../format/units';
 import { formatTimeOfDay } from '../time/local-time';
 import { nextBreastSide } from './feed-rules';
-import { segmentTotals } from './segments';
+import { SIDE_LABEL } from './labels';
+import { lastSegmentEnd, segmentTotals } from './segments';
 import { summariseSleep } from './sleep-stretches';
 import type { BabyEvent, EventDraft, EventOfType, Side, TimedSegment, Units } from './types';
-
-const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
+import { byStartedAtAsc, byStartedAtDesc } from '../time/instants';
 
 function latestOfType<T extends 'breast_feed' | 'pump' | 'sleep'>(
   events: readonly BabyEvent[],
   type: T,
 ): EventOfType<T> | undefined {
-  const matching = events
-    .filter((event) => event.type === type && !event.deletedAt)
-    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
-  return matching[0] as EventOfType<T> | undefined;
+  return events
+    .filter((event): event is EventOfType<T> => event.type === type && !event.deletedAt)
+    .sort(byStartedAtDesc)[0];
 }
 
 function lastSide(segments: readonly TimedSegment[]): Side | null {
-  return [...segments].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt)).at(-1)?.side ?? null;
+  return [...segments].sort(byStartedAtAsc).at(-1)?.side ?? null;
 }
 
 function pumpTotalMl(details: EventOfType<'pump'>['details']): number | null {
@@ -64,9 +63,9 @@ export function runningSessionLine(event: BabyEvent, now: Date, startedBy?: stri
   }
   if (event.type !== 'breast_feed' && event.type !== 'pump') return startedBy ? `Started by ${startedBy}` : '';
   const totals = segmentTotals(event.segments, now);
-  if (totals.openSide && totals.openSegmentStartedAt) {
-    const currentMs = now.getTime() - Date.parse(totals.openSegmentStartedAt);
-    return `${SIDE_LABEL[totals.openSide]} · ${formatDuration(currentMs)}${by}`;
+  if (totals.open) {
+    const currentMs = now.getTime() - Date.parse(totals.open.startedAt);
+    return `${SIDE_LABEL[totals.open.side]} · ${formatDuration(currentMs)}${by}`;
   }
   return `Paused · ${formatDuration(totals.activeMs)}${by}`;
 }
@@ -83,9 +82,8 @@ export function runningTone(event: BabyEvent): RunningTone {
 }
 
 export function pausedForMs(segments: readonly TimedSegment[], now: Date): number | null {
-  if (segments.length === 0 || segments.some((segment) => segment.endedAt === null)) return null;
-  const lastEnd = Math.max(...segments.map((segment) => Date.parse(segment.endedAt!)));
-  return Math.max(0, now.getTime() - lastEnd);
+  const lastEnd = lastSegmentEnd({ segments });
+  return lastEnd === null ? null : Math.max(0, now.getTime() - lastEnd);
 }
 
 export function pumpFinishSummary(event: BabyEvent, timeZone: string): string | null {

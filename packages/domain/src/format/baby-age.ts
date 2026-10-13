@@ -1,3 +1,5 @@
+import { DAY_MS } from '../time/constants';
+import { parseDayKey } from '../time/local-time';
 export function babyAgeLabel(birthDate: string, today: string): string {
   const days = daysBetween(birthDate, today);
   if (days < 0) return 'Not born yet';
@@ -16,16 +18,16 @@ export function babyAgeLabel(birthDate: string, today: string): string {
 }
 
 function toUtcDay(isoDate: string): number {
-  const [year, month, day] = isoDate.split('-').map(Number) as [number, number, number];
+  const { year, month, day } = parseDayKey(isoDate);
   return Date.UTC(year, month - 1, day);
 }
 
 function daysBetween(from: string, to: string): number {
-  return Math.round((toUtcDay(to) - toUtcDay(from)) / 86_400_000);
+  return Math.round((toUtcDay(to) - toUtcDay(from)) / DAY_MS);
 }
 
 function monthsBetween(from: string, to: string): number {
-  const [fy, fm, fd] = from.split('-').map(Number) as [number, number, number];
-  const [ty, tm, td] = to.split('-').map(Number) as [number, number, number];
-  return (ty - fy) * 12 + (tm - fm) - (td < fd ? 1 : 0);
+  const a = parseDayKey(from);
+  const b = parseDayKey(to);
+  return (b.year - a.year) * 12 + (b.month - a.month) - (b.day < a.day ? 1 : 0);
 }

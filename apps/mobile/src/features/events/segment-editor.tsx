@@ -1,5 +1,9 @@
+import { clock } from '@babble/api';
 import {
+  clampDurationPart,
   editableRowsToSegments,
+  joinDuration,
+  splitDuration,
   segmentsToEditableRows,
   type EditableRow,
   type Side,
@@ -10,14 +14,8 @@ import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useTokenColor } from '@/lib/theme';
 
-function splitDuration(ms: number) {
-  const totalSeconds = Math.round(ms / 1000);
-  return { minutes: Math.floor(totalSeconds / 60), seconds: totalSeconds % 60 };
-}
-
 function DurationInputs({ label, ms, onChange }: { label: string; ms: number; onChange: (ms: number) => void }) {
   const { minutes, seconds } = splitDuration(ms);
-  const clamp = (value: string, max: number) => Math.min(max, Math.max(0, Number(value.replace(/\D/g, '')) || 0));
   return (
     <View className="flex-row items-center gap-1">
       <TextInput
@@ -25,7 +23,7 @@ function DurationInputs({ label, ms, onChange }: { label: string; ms: number; on
         keyboardType="number-pad"
         className="h-10 w-14 rounded-tile border border-line-strong bg-raised px-2 text-right font-sans text-body text-ink"
         value={String(minutes)}
-        onChangeText={(text) => onChange((clamp(text, 999) * 60 + seconds) * 1000)}
+        onChangeText={(text) => onChange(joinDuration(clampDurationPart(text, 999), seconds))}
       />
       <Text className="font-sans text-meta text-ink-2">m</Text>
       <TextInput
@@ -33,7 +31,7 @@ function DurationInputs({ label, ms, onChange }: { label: string; ms: number; on
         keyboardType="number-pad"
         className="h-10 w-12 rounded-tile border border-line-strong bg-raised px-2 text-right font-sans text-body text-ink"
         value={String(seconds).padStart(2, '0')}
-        onChangeText={(text) => onChange((minutes * 60 + clamp(text, 59)) * 1000)}
+        onChangeText={(text) => onChange(joinDuration(minutes, clampDurationPart(text, 59)))}
       />
       <Text className="font-sans text-meta text-ink-2">s</Text>
     </View>
@@ -49,7 +47,7 @@ export function SegmentEditor({
   segments: readonly TimedSegment[];
   onChange: (next: { segments: TimedSegment[]; endedAt: string }) => void;
 }) {
-  const [rows, setRows] = useState<EditableRow[]>(() => segmentsToEditableRows(segments, new Date()));
+  const [rows, setRows] = useState<EditableRow[]>(() => segmentsToEditableRows(segments, clock.now()));
   const trashColor = useTokenColor('--ink-3');
 
   function update(next: EditableRow[]) {

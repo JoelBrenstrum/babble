@@ -14,7 +14,7 @@ export function SwatchPicker({
   const full = value.length >= 2;
   const caution = value.some((colour) => CAUTION_COLOURS.includes(colour));
   const cautionColor = useTokenColor('--on-caution');
-  const summary = value.map((colour) => POO_COLOURS.find((c) => c.value === colour)!.label).join(' + ');
+  const summary = value.flatMap((colour) => POO_COLOURS.find((c) => c.value === colour)?.label ?? []).join(' + ');
 
   return (
     <View className="gap-3">

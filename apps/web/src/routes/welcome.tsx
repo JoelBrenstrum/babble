@@ -21,5 +21,6 @@ export const Route = createFileRoute('/welcome')({
 
 function WelcomePage() {
   const { signedIn } = Route.useLoaderData();
-  return <LandingPage signedIn={signedIn} />;
+  const { babble } = Route.useRouteContext();
+  return <LandingPage signedIn={signedIn} billingEnabled={babble.config.billingEnabled} />;
 }

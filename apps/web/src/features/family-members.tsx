@@ -5,16 +5,16 @@ import {
   memberNameError,
   removeMember,
   renameMember,
-  toBabbleError,
   type BabbleClient,
   type Family,
 } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { useState, type FormEvent } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
+import { ConfirmPanel } from '#/components/ui/confirm-panel';
 import { TextField } from '#/components/ui/field';
-import { StatusMessage } from '#/components/ui/status';
 
 const ROLE_LABELS = { owner: 'Owner', caregiver: 'Caregiver', viewer: 'Viewer' } as const;
 
@@ -34,8 +34,7 @@ export function FamilyMembers({
 }) {
   const [mode, setMode] = useState<Mode>(null);
   const [name, setName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const { run, busy, error, setError } = useAsyncAction();
 
   function open(next: Mode, member: Member) {
     setError(null);
@@ -43,18 +42,12 @@ export function FamilyMembers({
     setMode(next);
   }
 
-  async function run(task: () => Promise<void>) {
-    setBusy(true);
-    setError(null);
-    try {
+  async function change(task: () => Promise<void>) {
+    const done = await run(async () => {
       await task();
       await onChanged();
-      setMode(null);
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    } finally {
-      setBusy(false);
-    }
+    });
+    if (done) setMode(null);
   }
 
   function rename(event: FormEvent, member: Member) {
@@ -64,7 +57,7 @@ export function FamilyMembers({
       setError(problem);
       return;
     }
-    void run(() => renameMember(client, { familyId: family.id, userId: member.user_id }, name));
+    void change(() => renameMember(client, { familyId: family.id, userId: member.user_id }, name));
   }
 
   return (
@@ -124,27 +117,16 @@ export function FamilyMembers({
               </form>
             )}
             {editing === 'remove' && (
-              <div className="flex flex-col gap-3 rounded-tile bg-danger-soft p-4">
-                <p className="text-meta text-on-danger">
-                  Remove {member.display_name} from {family.name}? They'll lose access straight away. What they logged
-                  stays.
-                </p>
-                <div className="flex gap-3">
-                  <Button
-                    variant="destructive"
-                    loading={busy}
-                    onClick={() =>
-                      void run(() => removeMember(client, { familyId: family.id, userId: member.user_id }))
-                    }
-                  >
-                    Remove
-                  </Button>
-                  <Button variant="ghost" onClick={() => setMode(null)}>
-                    Cancel
-                  </Button>
-                </div>
-                {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-              </div>
+              <ConfirmPanel
+                message={`Remove ${member.display_name} from ${family.name}? They'll lose access straight away. What they logged stays.`}
+                confirmLabel="Remove"
+                loading={busy}
+                error={error}
+                onConfirm={() =>
+                  void change(() => removeMember(client, { familyId: family.id, userId: member.user_id }))
+                }
+                onCancel={() => setMode(null)}
+              />
             )}
           </div>
         );

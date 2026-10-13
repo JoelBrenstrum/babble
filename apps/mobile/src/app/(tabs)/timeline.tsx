@@ -1,44 +1,37 @@
 import { babySettingsQuery, eventsBetweenQuery } from '@babble/api';
 import {
-  bucketByDay,
-  countedDays,
-  dayKeyFor,
-  dayLayout,
   daySummaryStrip,
   dayTotalCards,
-  dayWindow,
-  formatDayLabel,
-  formatDayRange,
-  fractionOf,
-  hourTicks,
-  lastDayWindow,
-  shiftDay,
-  summariseDay,
-  summariseWeek,
-  lastDays,
   predictedLayout,
+  predictionText,
+  timelineModel,
+  timelineRange,
   weekSummaryStrip,
   weekTableRows,
-  windowTicks,
+  type TimelineView,
 } from '@babble/domain';
-import { useQuery } from '@tanstack/react-query';
+import { familyHasFeature } from '@babble/config';
+import { sampleMonthView } from '@babble/api/fixtures';
+import { useUnits } from '@babble/api/react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { PageSpinner } from '@/components/page-spinner';
 import { Screen } from '@/components/screen';
 import { Segmented } from '@/components/segmented';
+import { PlusBadge } from '@/components/plus';
+import { PredictionLine } from '@/features/home-overview';
 import { DayTimeline } from '@/features/timeline/day-timeline';
 import { DayTotals, SummaryStrip, WeekTable } from '@/features/timeline/totals';
 import { WeekTimeline } from '@/features/timeline/week-timeline';
+import { MonthTimeline } from '@/features/timeline/month-timeline';
+import { PlusMask } from '@/features/plus-mask';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
-import { useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
-import { useReadyState } from '@/lib/use-onboarding';
+import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 import { usePrediction } from '@/lib/use-prediction';
-
-type View_ = 'day' | '24h' | '7d';
 
 export default function TimelineTab() {
   const ready = useReadyState();
@@ -46,90 +39,52 @@ export default function TimelineTab() {
   return <TimelineContent family={ready.family} baby={ready.baby} />;
 }
 
-function TimelineContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useReadyState>>, 'family' | 'baby'>) {
-  const { client } = useBabble();
+function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) {
+  const { client, config } = useBabble();
   const now = useNow(60_000);
   const units = useUnits(client, baby.id);
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const ink = useTokenColor('--ink');
-  const [view, setView] = useState<View_>('day');
+  const [view, setView] = useState<TimelineView>('day');
   const [date, setDate] = useState<string | null>(null);
 
-  const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
-  const dayKey = date && date <= todayKey ? date : todayKey;
-  const keys = view === 'day' ? [dayKey] : lastDays(dayKey, 7);
-  const rolling = lastDayWindow(now);
-  const from =
-    view === '24h'
-      ? rolling.start.toISOString()
-      : dayWindow(keys[0]!, baby.timezone, baby.day_start_minutes).start.toISOString();
-  const to =
-    view === '24h'
-      ? rolling.end.toISOString()
-      : dayWindow(keys.at(-1)!, baby.timezone, baby.day_start_minutes).end.toISOString();
-  const events = useQuery(eventsBetweenQuery(client, baby.id, from, to));
-
-  const step = view === 'day' ? 1 : 7;
-  const previousKey = shiftDay(dayKey, -step);
-  const nextKey = shiftDay(dayKey, step) < todayKey ? shiftDay(dayKey, step) : todayKey;
-  const canGoNext = dayKey < todayKey;
-
-  const days = bucketByDay(events.data ?? [], keys, baby.timezone, baby.day_start_minutes, now).map((day) => {
-    const future = day.dayKey > todayKey;
-    return {
-      ...day,
-      layout: future ? null : dayLayout(day.events, day.window, now),
-      summary: future
-        ? null
-        : summariseDay(day.events, day.window, {
-            now,
-            mergeGapMs: settings && settings.downtime_merge_threshold_sec * 1000,
-            night: settings && {
-              dayKey: day.dayKey,
-              timeZone: baby.timezone,
-              startMinutes: settings.night_start_minutes,
-              endMinutes: settings.night_end_minutes,
-            },
-          }),
-    };
+  const range = timelineRange({ view, date, baby, now });
+  const { dayKey, todayKey, keys, step, previousKey, nextKey, canGoNext, rangeLabel } = range;
+  const insightsLocked = !familyHasFeature(config.billingEnabled, family.plan, 'insights');
+  const sampleOnly = view === '30d' && insightsLocked;
+  const events = useQuery({
+    ...eventsBetweenQuery(client, baby.id, range.from, range.to),
+    enabled: !sampleOnly,
+    placeholderData: view === '24h' ? keepPreviousData : undefined,
   });
-  const lastDay =
-    view === '24h'
-      ? {
-          summary: summariseDay(events.data ?? [], rolling, {
-            now,
-            mergeGapMs: settings && settings.downtime_merge_threshold_sec * 1000,
-            night: settings && {
-              dayKey: todayKey,
-              timeZone: baby.timezone,
-              startMinutes: settings.night_start_minutes,
-              endMinutes: settings.night_end_minutes,
-            },
-          }),
-          layout: dayLayout(events.data ?? [], rolling, now),
-        }
-      : null;
-  const counted = new Set(countedDays(keys, todayKey));
-  const week = summariseWeek(days.flatMap((day) => (counted.has(day.dayKey) && day.summary ? [day.summary] : [])));
-  const today = days[0]!;
+  const model = timelineModel({ view, date, events: events.data ?? [], settings, baby, now });
+
   const prediction = usePrediction(baby, family, now);
   const predicted =
-    view === 'day' && dayKey === todayKey ? predictedLayout(prediction, today.window, now, baby.timezone) : null;
+    model.view === 'day' && dayKey === todayKey
+      ? predictedLayout(prediction, model.day.window, now, baby.timezone)
+      : null;
   const showsPrediction = Boolean(predicted && (predicted.sleep.length || predicted.feeds.length));
+  const predictionLine = model.view === 'day' && dayKey === todayKey ? predictionText(prediction, baby.timezone) : null;
+  const openDay = (key: string) => {
+    setDate(key);
+    setView('day');
+  };
 
   return (
     <Screen edges={['top']}>
       <View className="gap-4">
         <View className="flex-row items-center justify-between gap-4">
           <Text className="font-bold text-title text-ink">Timeline</Text>
-          <View className="w-56">
-            <Segmented<View_>
+          <View className="w-64">
+            <Segmented<TimelineView>
               value={view}
               onChange={setView}
               options={[
                 { value: 'day', label: 'Day' },
                 { value: '24h', label: '24h' },
                 { value: '7d', label: '7d' },
+                { value: '30d', label: '30d' },
               ]}
             />
           </View>
@@ -140,18 +95,16 @@ function TimelineContent({ family, baby }: Pick<NonNullable<ReturnType<typeof us
           <View className="flex-row items-center justify-between">
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={view === 'day' ? 'Previous day' : 'Previous 7 days'}
+              accessibilityLabel={view === 'day' ? 'Previous day' : `Previous ${step} days`}
               onPress={() => setDate(previousKey)}
               className="h-11 w-11 items-center justify-center rounded-full bg-surface"
             >
               <ChevronLeft size={20} color={ink} strokeWidth={2.75} />
             </Pressable>
-            <Text className="font-semibold text-row-title text-ink">
-              {view === 'day' ? formatDayLabel(dayKey, todayKey) : formatDayRange(keys)}
-            </Text>
+            <Text className="font-semibold text-row-title text-ink">{rangeLabel}</Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={view === 'day' ? 'Next day' : 'Next 7 days'}
+              accessibilityLabel={view === 'day' ? 'Next day' : `Next ${step} days`}
               accessibilityState={{ disabled: !canGoNext }}
               disabled={!canGoNext}
               onPress={() => setDate(nextKey)}
@@ -162,57 +115,76 @@ function TimelineContent({ family, baby }: Pick<NonNullable<ReturnType<typeof us
           </View>
         )}
 
-        {events.isPending ? (
+        {sampleOnly ? (
+          <PlusMask
+            feature="insights"
+            title="30-day timeline"
+            body={`See a month of ${baby.name}'s sleep and feeds, one row a day, to spot patterns as they form.`}
+          >
+            <SampleMonth now={now} />
+          </PlusMask>
+        ) : events.isPending ? (
           <PageSpinner />
-        ) : lastDay ? (
+        ) : model.view === '24h' ? (
           <>
-            <SummaryStrip items={daySummaryStrip(lastDay.summary)} />
+            <SummaryStrip items={daySummaryStrip(model.summary)} />
             <DayTimeline
-              layout={lastDay.layout}
-              ticks={windowTicks(rolling, baby.timezone, 3)}
+              layout={model.layout}
+              ticks={model.ticks}
               timeZone={baby.timezone}
               units={units}
               now={now}
-              nowFrac={1}
+              nowFrac={model.nowFrac}
             />
-            <DayTotals cards={dayTotalCards(lastDay.summary, units, baby.timezone)} />
+            <DayTotals cards={dayTotalCards(model.summary, units, baby.timezone)} />
           </>
-        ) : view === 'day' ? (
+        ) : model.view === 'day' ? (
           <>
-            <SummaryStrip items={daySummaryStrip(today.summary!)} />
+            <SummaryStrip items={daySummaryStrip(model.day.summary)} />
+            {predictionLine && <PredictionLine text={predictionLine} plus={config.billingEnabled} />}
             <DayTimeline
-              layout={today.layout!}
-              ticks={hourTicks(dayKey, baby.timezone, baby.day_start_minutes, 3)}
+              layout={model.day.layout}
+              ticks={model.ticks}
               timeZone={baby.timezone}
               units={units}
               now={now}
-              nowFrac={dayKey === todayKey ? fractionOf(today.window, now.getTime()) : null}
+              nowFrac={model.nowFrac}
               predicted={predicted}
             />
             {showsPrediction && (
-              <Text className="font-sans text-caption text-ink-3">
-                Dashed blocks show likely sleeps and feeds for the next few hours.
-              </Text>
+              <View className="flex-row items-center gap-2">
+                {config.billingEnabled && <PlusBadge />}
+                <Text className="flex-1 font-sans text-caption text-ink-3">
+                  Dashed blocks show likely sleeps and feeds for the next few hours.
+                </Text>
+              </View>
             )}
-            <DayTotals cards={dayTotalCards(today.summary!, units, baby.timezone)} />
+            <DayTotals cards={dayTotalCards(model.day.summary, units, baby.timezone)} />
+          </>
+        ) : model.view === '30d' ? (
+          <>
+            <SummaryStrip items={weekSummaryStrip(model.week)} />
+            <MonthTimeline
+              days={model.days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
+              ticks={model.ticks}
+              todayKey={todayKey}
+              onOpenDay={openDay}
+            />
           </>
         ) : (
           <>
-            <SummaryStrip items={weekSummaryStrip(week)} />
+            <SummaryStrip items={weekSummaryStrip(model.week)} />
             <WeekTimeline
-              days={days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
-              ticks={hourTicks(keys[0]!, baby.timezone, baby.day_start_minutes, 6)}
+              days={model.days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
+              ticks={model.ticks}
               todayKey={todayKey}
-              onOpenDay={(key) => {
-                setDate(key);
-                setView('day');
-              }}
+              onOpenDay={openDay}
             />
             <WeekTable
               dayKeys={keys}
               rows={weekTableRows(
-                days.map((day) => day.summary),
-                week,
+                model.days.map((day) => day.summary),
+                model.week,
                 units,
               )}
             />
@@ -220,5 +192,15 @@ function TimelineContent({ family, baby }: Pick<NonNullable<ReturnType<typeof us
         )}
       </View>
     </Screen>
+  );
+}
+
+function SampleMonth({ now }: { now: Date }) {
+  const sample = useMemo(() => sampleMonthView(now), [now]);
+  return (
+    <>
+      <SummaryStrip items={weekSummaryStrip(sample.week)} />
+      <MonthTimeline days={sample.days} ticks={sample.ticks} todayKey={sample.todayKey} onOpenDay={() => undefined} />
+    </>
   );
 }

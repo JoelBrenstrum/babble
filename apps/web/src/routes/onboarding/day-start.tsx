@@ -1,4 +1,5 @@
-import { familiesQuery, queryKeys, resolveOnboarding, toBabbleError, updateBaby } from '@babble/api';
+import { familiesQuery, resolveOnboarding, updateBaby } from '@babble/api';
+import { refreshFamilies, useAsyncAction } from '@babble/api/react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
@@ -26,21 +27,14 @@ function DayStartStep() {
   const { babble, queryClient, baby } = Route.useRouteContext();
   const navigate = useNavigate();
   const [minutes, setMinutes] = useState(baby.day_start_minutes);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { run, busy: saving, error } = useAsyncAction();
 
-  async function save() {
-    setError(null);
-    setSaving(true);
-    try {
+  const save = () =>
+    run(async () => {
       await updateBaby(babble.client, baby.id, { day_start_minutes: minutes });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
+      await refreshFamilies(queryClient);
       await navigate({ to: '/onboarding/invite' });
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setSaving(false);
-    }
-  }
+    });
 
   return (
     <CenteredPage step="Step 3 of 4">

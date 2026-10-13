@@ -42,6 +42,11 @@ describe('tokenEmail', () => {
     expect(tokenEmail(jwt({ email: 'jane@example.com' }))).toBe('jane@example.com');
     expect(tokenEmail('not-a-token')).toBeNull();
   });
+
+  it('decodes unpadded base64url with non-ascii characters', () => {
+    const payload = Buffer.from(JSON.stringify({ email: 'zoë?>@example.com' })).toString('base64url');
+    expect(tokenEmail(`e30.${payload}.sig`)).toBe('zoë?>@example.com');
+  });
 });
 
 describe('completeAuthRedirect', () => {

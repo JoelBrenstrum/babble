@@ -1,4 +1,5 @@
-import { queryKeys, toBabbleError, updateBaby } from '@babble/api';
+import { queryKeys, updateBaby } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, router } from 'expo-router';
 import { useState } from 'react';
@@ -20,21 +21,14 @@ function DayStartForm({ babyId, babyName, initial }: { babyId: string; babyName:
   const { client } = useBabble();
   const queryClient = useQueryClient();
   const [minutes, setMinutes] = useState(initial);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
+  const { run, busy: saving, error } = useAsyncAction();
 
-  async function save() {
-    setError(null);
-    setSaving(true);
-    try {
+  const save = () =>
+    run(async () => {
       await updateBaby(client, babyId, { day_start_minutes: minutes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace('/onboarding/invite');
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setSaving(false);
-    }
-  }
+    });
 
   return (
     <Screen step="Step 3 of 4">

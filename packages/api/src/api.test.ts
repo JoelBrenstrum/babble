@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEV_ACCOUNTS, DEV_PASSWORD, requestMagicLink, signInWithPassword, signUpWithPassword } from './auth';
+import { requestMagicLink, signInWithPassword, signUpWithPassword } from './auth';
+import { DEV_ACCOUNTS, DEV_PASSWORD } from './dev';
 import { BabbleError } from './errors';
 import {
   acceptInvite,
@@ -7,6 +8,8 @@ import {
   checkInvite,
   createFamily,
   createInvite,
+  findBabySettings,
+  DEFAULT_FAMILY_SETTINGS,
   getBabySettings,
   getInstanceSettings,
   listFamilies,
@@ -14,7 +17,9 @@ import {
   removeMember,
   renameMember,
   revokeInvite,
+  updateBaby,
   updateFamilySettings,
+  babyNameError,
 } from './families';
 import { fakeClient } from './test-utils';
 
@@ -245,13 +250,7 @@ describe('pending invites', () => {
 });
 
 describe('settings', () => {
-  const babyRow = {
-    baby_id: 'baby-1',
-    units: 'metric',
-    downtime_merge_threshold_sec: 15,
-    auto_end_paused_session_min: 30,
-    night_start_minutes: 1140,
-  };
+  const babyRow = { baby_id: 'baby-1', night_start_minutes: 1140 };
 
   it('reads baby settings with units and feed rules from the family', async () => {
     const family = {
@@ -272,9 +271,9 @@ describe('settings', () => {
     expect(requests[0]!.url.searchParams.get('select')).toBe('*,babies(families(family_settings(*)))');
   });
 
-  it('falls back to the baby row when the family settings are missing', async () => {
+  it('uses the default family settings when they are missing', async () => {
     const { client } = fakeClient(() => ({ body: { ...babyRow, babies: null } }));
-    expect(await getBabySettings(client, 'baby-1')).toEqual(babyRow);
+    expect(await getBabySettings(client, 'baby-1')).toEqual({ ...babyRow, ...DEFAULT_FAMILY_SETTINGS });
   });
 
   it('updates family settings', async () => {
@@ -284,5 +283,46 @@ describe('settings', () => {
     expect(requests[0]!.url.pathname).toBe('/rest/v1/family_settings');
     expect(requests[0]!.url.searchParams.get('family_id')).toBe('eq.family-1');
     expect(requests[0]!.body).toEqual({ units: 'imperial' });
+  });
+});
+
+describe('baby names', () => {
+  it('validates names after trimming', () => {
+    expect(babyNameError('  ')).toBe("Enter your baby's name.");
+    expect(babyNameError('Olivia')).toBeNull();
+    expect(babyNameError('x'.repeat(61))).toContain('60 characters');
+  });
+
+  it('trims the name on update and rejects an empty one before the request', async () => {
+    const { client, requests } = fakeClient(() => ({ body: { id: 'baby-1' } }));
+    await updateBaby(client, 'baby-1', { name: ' Olivia ' });
+    expect(requests[0]!.body).toEqual({ name: 'Olivia' });
+    await expect(updateBaby(client, 'baby-1', { name: ' ' })).rejects.toMatchObject({ code: 'invalid_input' });
+    expect(requests).toHaveLength(1);
+  });
+
+  it('leaves other patches untouched', async () => {
+    const { client, requests } = fakeClient(() => ({ body: { id: 'baby-1' } }));
+    await updateBaby(client, 'baby-1', { timezone: 'Pacific/Auckland' });
+    expect(requests[0]!.body).toEqual({ timezone: 'Pacific/Auckland' });
+  });
+});
+
+describe('signUpWithPassword password length', () => {
+  it('rejects a short password before any request', async () => {
+    const { client, requests } = fakeClient(() => ({ body: {} }));
+    await expect(
+      signUpWithPassword(client, { email: 'x@example.com', password: 'short', redirectTo: 'https://b.test' }),
+    ).rejects.toMatchObject({ code: 'weak_password' });
+    expect(requests).toHaveLength(0);
+  });
+});
+
+describe('findBabySettings', () => {
+  it('returns null when there are no settings and throws on real errors', async () => {
+    const empty = fakeClient(() => ({ body: null, status: 200 }));
+    expect(await findBabySettings(empty.client, 'baby-1')).toBeNull();
+    const broken = fakeClient(() => ({ status: 500, body: { message: 'boom' } }));
+    await expect(findBabySettings(broken.client, 'baby-1')).rejects.toBeInstanceOf(BabbleError);
   });
 });

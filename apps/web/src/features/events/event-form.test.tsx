@@ -1,3 +1,4 @@
+import type { BabbleClient } from '@babble/api';
 import { sampleBaby } from '@babble/api/fixtures';
 import { emptyDraft, type EventDraft } from '@babble/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -5,14 +6,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ToastProvider } from '#/components/ui/toast';
-import { fixtureClient } from '#/fixtures/client';
 import { EventForm } from './event-form';
 
-const saveEvent = vi.fn();
-vi.mock('@babble/api', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@babble/api')>()),
-  saveEvent: (...args: unknown[]) => saveEvent(...args),
-}));
+const rpc = vi.fn();
+const client = { rpc } as unknown as BabbleClient;
+const saved = { data: 'event-1', error: null };
+const failed = { data: null, error: { message: 'Network down' } };
 
 function renderForm(initial: EventDraft, focusAmounts = false) {
   const onDone = vi.fn();
@@ -20,7 +19,7 @@ function renderForm(initial: EventDraft, focusAmounts = false) {
     <QueryClientProvider client={new QueryClient()}>
       <ToastProvider>
         <EventForm
-          client={fixtureClient}
+          client={client}
           babyId={sampleBaby.id}
           timeZone={sampleBaby.timezone}
           units="metric"
@@ -37,10 +36,10 @@ function renderForm(initial: EventDraft, focusAmounts = false) {
 const now = new Date(Date.now() - 60 * 60_000);
 
 describe('EventForm save errors', () => {
-  beforeEach(() => saveEvent.mockReset());
+  beforeEach(() => rpc.mockReset());
 
   it('keeps the entry and retries after a failed save', async () => {
-    saveEvent.mockRejectedValueOnce(new Error('Network down')).mockResolvedValueOnce('event-1');
+    rpc.mockResolvedValueOnce(failed).mockResolvedValueOnce(saved);
     const { onDone } = renderForm({ ...emptyDraft('custom', now), details: { title: 'Bath', description: '' } });
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
@@ -51,15 +50,15 @@ describe('EventForm save errors', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Retry' }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
-    expect(saveEvent).toHaveBeenCalledTimes(2);
+    expect(rpc).toHaveBeenCalledTimes(2);
   });
 });
 
 describe('EventForm pump finish', () => {
-  beforeEach(() => saveEvent.mockReset());
+  beforeEach(() => rpc.mockReset());
 
   it('saves a pump without amounts', async () => {
-    saveEvent.mockResolvedValue('event-1');
+    rpc.mockResolvedValue(saved);
     const pump = emptyDraft('pump', now);
     const { onDone } = renderForm(
       { ...pump, endedAt: now.toISOString(), details: { leftMl: 60, rightMl: 50, totalMl: null } },
@@ -67,6 +66,6 @@ describe('EventForm pump finish', () => {
     );
     await userEvent.click(screen.getByRole('button', { name: 'Save without amounts' }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
-    expect(saveEvent.mock.calls[0]![2]).toMatchObject({ details: { leftMl: null, rightMl: null, totalMl: null } });
+    expect(rpc.mock.calls[0]![1].event).toMatchObject({ details: { left_ml: null, right_ml: null, total_ml: null } });
   });
 });

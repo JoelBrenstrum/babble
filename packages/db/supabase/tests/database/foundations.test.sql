@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 
 select plan(38);
+update private.instance_settings set billing_enabled = false;
 
 -- Start from an empty instance so the first-user rule can be tested; the transaction rolls back.
 delete from auth.users;
@@ -38,7 +39,7 @@ $$;
 select pg_temp.create_user('00000000-0000-0000-0000-00000000000a', 'john@example.com');
 select throws_ok(
   $$ select pg_temp.create_user('00000000-0000-0000-0000-00000000000b', 'jane@example.com') $$,
-  'P0001',
+  'PL003',
   'Sign-up on this Babble server requires a valid invite code',
   'invite-only rejects a sign-up without an invite code'
 );
@@ -62,8 +63,8 @@ insert into public.babies (family_id, name, birth_date, timezone)
 select id, 'Olivia', '2026-09-26', 'Pacific/Auckland' from public.families;
 select is((select count(*)::int from public.babies), 1, 'an owner can add a baby');
 select is(
-  (select downtime_merge_threshold_sec from public.baby_settings),
-  15,
+  (select night_start_minutes from public.baby_settings),
+  1140,
   'baby settings are created with defaults'
 );
 
@@ -147,10 +148,10 @@ select is(
   'the invite grants the caregiver role'
 );
 select lives_ok(
-  $$ update public.baby_settings set downtime_merge_threshold_sec = 20 $$,
+  $$ update public.baby_settings set night_start_minutes = 1200 $$,
   'caregivers can change baby settings'
 );
-select is((select downtime_merge_threshold_sec from public.baby_settings), 20, 'the settings change was saved');
+select is((select night_start_minutes from public.baby_settings), 1200, 'the settings change was saved');
 select is((select count(*)::int from public.family_invites), 2, 'caregivers can see the family''s invites');
 
 select pg_temp.sign_in_as('00000000-0000-0000-0000-00000000000c');
@@ -193,12 +194,12 @@ select throws_ok(
   null,
   'users cannot add babies to other families'
 );
-update public.baby_settings set downtime_merge_threshold_sec = 99;
+update public.baby_settings set night_start_minutes = 60;
 delete from public.family_members where user_id = '00000000-0000-0000-0000-00000000000a';
 select pg_temp.sign_out();
 select is(
-  (select downtime_merge_threshold_sec from public.baby_settings),
-  20,
+  (select night_start_minutes from public.baby_settings),
+  1200,
   'users cannot change other families'' settings'
 );
 select is(

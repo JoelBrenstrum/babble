@@ -6,6 +6,10 @@ module.exports = {
   moduleNameMapper: {
     // Jest resolves the "react-native" export condition to an ESM-only build; the CommonJS build works the same in tests.
     '^@react-native-async-storage/async-storage$': '@react-native-async-storage/async-storage/jest/async-storage-mock',
+    // Workspace packages resolve their own copies of react and react-query, which breaks hooks and context.
+    '^react$': require.resolve('react'),
+    '^react/(.*)$': path.join(path.dirname(require.resolve('react/package.json')), '$1'),
+    '^@tanstack/react-query$': require.resolve('@tanstack/react-query'),
     '^lucide-react-native$': path.join(path.dirname(require.resolve('lucide-react-native')), 'lucide-react-native.js'),
   },
   transformIgnorePatterns: [

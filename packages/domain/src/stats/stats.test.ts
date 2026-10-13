@@ -8,12 +8,13 @@ import {
   chartValue,
   gapsBetween,
   isStatsRange,
+  nextBarIndex,
   rangeDays,
   statsCaption,
-  statsForRange,
   statsReport,
   topSegment,
   weeklyBars,
+  type StatsChart,
   type StatsSettings,
 } from './stats';
 
@@ -122,7 +123,7 @@ describe('statsReport', () => {
   });
 
   it('measures stretches, wake windows, gaps, sides and downtime', () => {
-    expect(figure('sleep', 'Longest stretch')).toBe('8h 00m');
+    expect(figure('sleep', 'Longest stretch')).toBe('4h 00m');
     expect(figure('sleep', 'Wake window')).toBe('3h 30m');
     expect(figure('feeds', 'Average gap')).toBe('3h 00m');
     expect(figure('feeds', 'Left / right')).toBe('50% / 50%');
@@ -240,10 +241,13 @@ describe('barReadout', () => {
     expect(barReadout(chartFor('sleep'), { label: '2026-10-07', values: [5, 4.5] })).toBe(
       '7 Oct: Night 5h, Naps 4.5h · Total 9.5h',
     );
+    expect(barReadout(chartFor('sleep'), { label: '2026-10-07', values: [10.3, 3.4] })).toBe(
+      '7 Oct: Night 10.3h, Naps 3.4h · Total 13.7h',
+    );
   });
 
   it('leaves out the series name when there is only one, and marks weekly bars', () => {
-    const chart = { unit: 'ml', series: ['Pumped'], legend: [0], bars: [], max: 0, weekly: true };
+    const chart: StatsChart = { unit: 'ml', series: ['Pumped'], legend: [0], bars: [], max: 0, weekly: true };
     expect(barReadout(chart, { label: '2026-08-24', values: [210] })).toBe('Week of 24 Aug: 210 ml');
   });
 });
@@ -253,6 +257,12 @@ describe('chartValue', () => {
     expect(chartValue(4.46, 'h')).toBe('4.5h');
     expect(chartValue(12.6, '')).toBe('13');
     expect(chartValue(210, 'ml')).toBe('210 ml');
+    expect(chartValue(42.4, 'min')).toBe('42 min');
+  });
+
+  it('keeps one decimal for hours of any size', () => {
+    expect(chartValue(13.64, 'h')).toBe('13.6h');
+    expect(chartValue(14, 'h')).toBe('14h');
   });
 });
 
@@ -265,38 +275,36 @@ describe('barAnchor', () => {
   });
 });
 
-describe('short ranges', () => {
-  it('covers just today', () => {
-    expect(rangeDays('today', '2026-10-08', '2026-09-26')).toEqual(['2026-10-08']);
-  });
-});
-
-describe('statsForRange', () => {
+describe('statsCaption', () => {
   const now = new Date('2026-10-08T14:30:00Z');
   const events = [
     makeEvent('bottle', { id: 'y', startedAt: '2026-10-07T20:00:00Z', endedAt: '2026-10-07T20:00:00Z' }),
     makeEvent('bottle', { id: 't', startedAt: '2026-10-08T08:00:00Z', endedAt: '2026-10-08T08:00:00Z' }),
   ];
   const keys = ['2026-10-07', '2026-10-08'];
-  const feeds = (range: 'today' | '7d') =>
-    statsForRange(range, events, keys, '2026-10-08', now, settings).cards.find((card) => card.key === 'feeds')!;
-
-  it('counts today from the day start, hour by hour', () => {
-    expect(feeds('today').figures[0]).toEqual({ label: 'Today so far', value: '1' });
-    expect(feeds('today').chart.bars).toHaveLength(15);
-  });
-
-  it('describes each range', () => {
-    const today = statsForRange('today', events, keys, '2026-10-08', now, settings);
-    expect(statsCaption('today', today)).toBe('Totals for today so far, charted hour by hour.');
-    expect(statsCaption('7d', statsForRange('7d', events, keys, '2026-10-08', now, settings))).toBe(
+  it('describes the averages', () => {
+    expect(statsCaption(statsReport(events, keys, '2026-10-08', now, settings))).toBe(
       'Daily averages over 1 finished day; today is charted but not averaged.',
     );
   });
 
   it('recognises range names from the address bar', () => {
     expect(isStatsRange('24h')).toBe(false);
-    expect(isStatsRange('today')).toBe(true);
+    expect(isStatsRange('today')).toBe(false);
+    expect(isStatsRange('30d')).toBe(true);
     expect(isStatsRange('week')).toBe(false);
   });
+});
+
+describe('nextBarIndex', () => {
+  it.each([
+    ['ArrowLeft', 2, 5, 1],
+    ['ArrowRight', 2, 5, 3],
+    ['Home', 3, 5, 0],
+    ['End', 1, 5, 4],
+    ['ArrowLeft', 0, 5, null],
+    ['ArrowRight', 4, 5, null],
+    ['End', 0, 0, null],
+    ['Tab', 2, 5, null],
+  ])('%s from %i of %i → %j', (key, index, count, expected) => expect(nextBarIndex(key, index, count)).toBe(expected));
 });

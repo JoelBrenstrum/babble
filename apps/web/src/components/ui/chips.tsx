@@ -68,19 +68,18 @@ export function MultiChips<T extends string>({
   );
 }
 
-export function SingleChips<T extends string>({
-  label,
-  options,
-  value,
-  onChange,
-  allowNone = true,
-}: {
+type SingleChipsProps<T extends string> = {
   label: string;
   options: readonly ChipOption<T>[];
   value: T | null;
-  onChange: (value: T | null) => void;
-  allowNone?: boolean;
-}) {
+} & ({ allowNone?: true; onChange: (value: T | null) => void } | { allowNone: false; onChange: (value: T) => void });
+
+export function SingleChips<T extends string>(props: SingleChipsProps<T>) {
+  const { label, options, value } = props;
+  const pick = (next: T) => {
+    if (props.allowNone === false) props.onChange(next);
+    else props.onChange(value === next ? null : next);
+  };
   return (
     <fieldset className="flex flex-col gap-2">
       <legend className="mb-2 text-label font-semibold">{label}</legend>
@@ -90,7 +89,7 @@ export function SingleChips<T extends string>({
             key={option.value}
             label={option.label}
             selected={value === option.value}
-            onClick={() => onChange(value === option.value && allowNone ? null : option.value)}
+            onClick={() => pick(option.value)}
           />
         ))}
       </div>

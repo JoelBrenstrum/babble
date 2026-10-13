@@ -1,5 +1,6 @@
 import {
   growthInputUnit,
+  instantDraft,
   lengthToMm,
   parseDecimalInput,
   sanitizeDecimalInput,
@@ -10,7 +11,7 @@ import {
 } from '@babble/domain';
 import { useState } from 'react';
 import { DateTimeField, TextField } from '#/components/ui/field';
-import { FormSection, instantDraft, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 function MeasurementField({
   label,

@@ -1,15 +1,5 @@
 import type { BabyChoice, BabyRow, Family } from '@babble/api';
-import {
-  formatAgo,
-  formatDuration,
-  formatShortDate,
-  sinceReference,
-  summariseLatest,
-  TRACKERS,
-  type BabyEvent,
-  type DaySummary,
-  type Units,
-} from '@babble/domain';
+import { formatDuration, latestMeta, TRACKERS, type BabyEvent, type DaySummary, type Units } from '@babble/domain';
 import { Link } from 'expo-router';
 import { AlarmClock, Moon, Plus } from 'lucide-react-native';
 import type { ReactNode } from 'react';
@@ -17,18 +7,8 @@ import { Pressable, Text, View } from 'react-native';
 import { BabyHeader } from '@/components/baby-header';
 import { Card } from '@/components/card';
 import { TrackerIcon } from '@/components/tracker-icon';
+import { PlusBadge } from '@/components/plus';
 import { useTokenColor } from '@/lib/theme';
-
-export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units, timeZone: string): string {
-  if (!event) return 'Nothing logged yet';
-  if (event.endedAt === null && event.type !== 'bottle') return summariseLatest(event, now, units);
-  if (event.type === 'growth') {
-    const [first] = summariseLatest(event, now, units).split(' · ');
-    return `${first} · ${formatShortDate(event.startedAt, timeZone)}`;
-  }
-  const detail = summariseLatest(event, now, units);
-  return `Last ${formatAgo(now.getTime() - Date.parse(sinceReference(event)))}${detail ? ` · ${detail}` : ''}`;
-}
 
 export function HomeOverview({
   family,
@@ -43,6 +23,7 @@ export function HomeOverview({
   onSelectBaby,
   feedDue = null,
   prediction = null,
+  predictionPlus = false,
   addBabyLocked = false,
 }: {
   choices?: readonly BabyChoice[];
@@ -57,11 +38,11 @@ export function HomeOverview({
   renderRunning: (event: BabyEvent) => ReactNode;
   feedDue?: { text: string; overdue: boolean } | null;
   prediction?: string | null;
+  predictionPlus?: boolean;
   addBabyLocked?: boolean;
 }) {
   const iconColor = useTokenColor('--ink');
   const dueColor = useTokenColor(feedDue?.overdue ? '--on-caution' : '--on-feed-right');
-  const sleepColor = useTokenColor('--on-sleep');
   return (
     <View className="gap-4">
       <BabyHeader family={family} baby={baby} choices={choices} onSelect={onSelectBaby} addBabyLocked={addBabyLocked} />
@@ -81,12 +62,7 @@ export function HomeOverview({
           </Text>
         </View>
       )}
-      {prediction && (
-        <View className="flex-row items-center gap-3 rounded-card bg-sleep-soft px-4 py-3">
-          <Moon color={sleepColor} size={20} strokeWidth={2.75} />
-          <Text className="flex-1 font-semibold text-body text-on-sleep">{prediction}</Text>
-        </View>
-      )}
+      {prediction && <PredictionLine text={prediction} plus={predictionPlus} />}
       <Card className="flex-row">
         {[
           ['Sleep today', summary ? formatDuration(summary.sleepMs, { seconds: false }) : '—'],
@@ -135,6 +111,17 @@ export function HomeOverview({
           );
         })}
       </Card>
+    </View>
+  );
+}
+
+export function PredictionLine({ text, plus = false }: { text: string; plus?: boolean }) {
+  const color = useTokenColor('--on-sleep');
+  return (
+    <View className="flex-row items-center gap-3 rounded-card bg-sleep-soft px-4 py-3">
+      <Moon color={color} size={20} strokeWidth={2.75} />
+      <Text className="flex-1 font-semibold text-body text-on-sleep">{text}</Text>
+      {plus && <PlusBadge />}
     </View>
   );
 }

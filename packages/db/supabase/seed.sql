@@ -28,7 +28,7 @@ values
   (gen_random_uuid(), '66666666-6666-6666-6666-666666666666', '66666666-6666-6666-6666-666666666666', 'email',
    '{"sub":"66666666-6666-6666-6666-666666666666","email":"sam@babble.dev","email_verified":true}', now(), now(), now());
 
-update private.instance_settings set signup_mode = 'invite_only';
+update private.instance_settings set signup_mode = 'invite_only', billing_enabled = true;
 
 insert into public.families (id, name, plan) values ('33333333-3333-3333-3333-333333333333', 'The Smiths', 'plus');
 insert into public.family_members (family_id, user_id, role, display_name) values

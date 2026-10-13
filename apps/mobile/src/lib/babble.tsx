@@ -1,5 +1,5 @@
 import 'react-native-url-polyfill/auto';
-import { accountChanged, createBabbleClient, syncClock, type BabbleClient } from '@babble/api';
+import { accountChanged, createBabbleClient, trySyncClock, type BabbleClient } from '@babble/api';
 import { ConfigError, type PublicConfig } from '@babble/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
@@ -15,6 +15,7 @@ interface BabbleContextValue {
   client: BabbleClient;
   session: Session | null;
   sessionLoaded: boolean;
+  accountEpoch: number;
 }
 
 const BabbleContext = createContext<BabbleContextValue | null>(null);
@@ -70,39 +71,54 @@ function ConfiguredProvider({
   const queryClient = useQueryClient();
   const [session, setSession] = useState<Session | null>(null);
   const [sessionLoaded, setSessionLoaded] = useState(false);
+  const [accountEpoch, setAccountEpoch] = useState(0);
 
   useEffect(() => {
-    void client.auth.getSession().then(({ data }) => {
-      setSession(data.session);
-      setSessionLoaded(true);
-    });
+    let cancelled = false;
+    client.auth
+      .getSession()
+      .then(({ data }) => {
+        if (!cancelled) setSession(data.session);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (!cancelled) setSessionLoaded(true);
+      });
     let userId: string | null | undefined;
     const { data } = client.auth.onAuthStateChange((event, next) => {
       const nextUserId = next?.user.id ?? null;
-      if (accountChanged(userId, nextUserId)) queryClient.clear();
+      if (accountChanged(userId, nextUserId)) {
+        queryClient.clear();
+        setAccountEpoch((epoch) => epoch + 1);
+      }
       userId = nextUserId;
       setSession(next);
       if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') void queryClient.invalidateQueries();
     });
     // Supabase only refreshes tokens while the app is in the foreground on React Native.
-    void syncClock(client);
-    const clockTimer = setInterval(() => void syncClock(client), 10 * 60_000);
+    void trySyncClock(client);
+    const clockTimer = setInterval(() => void trySyncClock(client), 10 * 60_000);
     const appState = AppState.addEventListener('change', (state) => {
       if (state === 'active') {
         void client.auth.startAutoRefresh();
-        void syncClock(client);
+        void trySyncClock(client);
       } else {
         void client.auth.stopAutoRefresh();
       }
     });
     return () => {
+      cancelled = true;
       data.subscription.unsubscribe();
       clearInterval(clockTimer);
       appState.remove();
     };
   }, [client, queryClient]);
 
-  return <BabbleContext.Provider value={{ config, client, session, sessionLoaded }}>{children}</BabbleContext.Provider>;
+  return (
+    <BabbleContext.Provider value={{ config, client, session, sessionLoaded, accountEpoch }}>
+      {children}
+    </BabbleContext.Provider>
+  );
 }
 
 export function useBabble(): BabbleContextValue {

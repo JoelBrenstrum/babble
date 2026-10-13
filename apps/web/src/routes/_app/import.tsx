@@ -1,9 +1,19 @@
-import { babyChoices, importEvents, queryKeys, toBabbleError } from '@babble/api';
+import {
+  BabbleExportError,
+  babyChoices,
+  importEvents,
+  looksLikeJson,
+  readBabbleExport,
+  type ExportedBaby,
+  type ImportSource,
+} from '@babble/api';
+import { refreshEvents, useAsyncAction } from '@babble/api/react';
 import { HuckleberryCsvError, MAX_IMPORT_BYTES, parseHuckleberryCsv, type HuckleberryImport } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ChevronLeft, FileUp } from 'lucide-react';
+import { FileUp } from 'lucide-react';
 import { useMemo, useState } from 'react';
+import { PageHeader } from '#/components/shell/page-header';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
 import { SelectField } from '#/components/ui/field';
@@ -27,46 +37,57 @@ function ImportPage() {
   const [babyId, setBabyId] = useState(baby.id);
   const [timeZone, setTimeZone] = useState(baby.timezone);
   const [step, setStep] = useState<Step>({ kind: 'choose' });
-  const [error, setError] = useState<string | null>(null);
+  const { run, error, setError } = useAsyncAction();
 
-  const parsed = useMemo((): { result: HuckleberryImport } | { error: string } | null => {
+  const [fromIndex, setFromIndex] = useState(0);
+
+  const parsed = useMemo(():
+    | { source: 'huckleberry_csv'; result: HuckleberryImport }
+    | { source: 'babble_export'; babies: ExportedBaby[] }
+    | { error: string }
+    | null => {
     if (!file) return null;
     try {
-      return { result: parseHuckleberryCsv(file.text, { timeZone }) };
+      if (looksLikeJson(file.text)) return { source: 'babble_export', babies: readBabbleExport(file.text) };
+      return { source: 'huckleberry_csv', result: parseHuckleberryCsv(file.text, { timeZone }) };
     } catch (caught) {
-      return { error: caught instanceof HuckleberryCsvError ? caught.message : 'That file could not be read.' };
+      return {
+        error:
+          caught instanceof HuckleberryCsvError || caught instanceof BabbleExportError
+            ? caught.message
+            : 'That file could not be read.',
+      };
     }
   }, [file, timeZone]);
 
+  const ready =
+    parsed && 'source' in parsed
+      ? parsed.source === 'huckleberry_csv'
+        ? { source: parsed.source, result: parsed.result }
+        : { source: parsed.source, result: (parsed.babies[fromIndex] ?? parsed.babies[0]!).result }
+      : null;
+
   const target = choices.find((choice) => choice.baby.id === babyId);
 
-  async function runImport(result: HuckleberryImport) {
-    setError(null);
+  async function runImport(result: HuckleberryImport, source: ImportSource) {
     setStep({ kind: 'importing', done: 0, total: result.events.length });
-    try {
-      const totals = await importEvents(babble.client, babyId, result.events, (progress) =>
-        setStep({ kind: 'importing', ...progress }),
+    const ok = await run(async () => {
+      const totals = await importEvents(
+        babble.client,
+        babyId,
+        result.events,
+        (progress) => setStep({ kind: 'importing', ...progress }),
+        source,
       );
-      await queryClient.invalidateQueries({ queryKey: queryKeys.events(babyId), refetchType: 'all' });
+      await refreshEvents(queryClient, babyId);
       setStep({ kind: 'done', ...totals });
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setStep({ kind: 'choose' });
-    }
+    });
+    if (!ok) setStep({ kind: 'choose' });
   }
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <Link
-          to="/settings"
-          aria-label="Back"
-          className="grid size-tap place-items-center rounded-full hover:bg-surface"
-        >
-          <ChevronLeft className="size-6" strokeWidth={2.75} />
-        </Link>
-        <h1 className="text-title font-bold">Import from Huckleberry</h1>
-      </div>
+      <PageHeader backTo={{ to: '/settings' }} title="Import data" />
 
       {step.kind === 'done' ? (
         <Card className="flex flex-col gap-4 p-6">
@@ -86,36 +107,50 @@ function ImportPage() {
       ) : (
         <>
           <p className="text-body text-ink-2">
-            In Huckleberry, export your data as a CSV file, then choose it here. The file is read on this device; only
-            the entries are sent to your babble server.
+            Choose a babble export (.json, from Settings → Export) or a Huckleberry CSV export. The file is read on this
+            device; only the entries are sent to your babble server.
           </p>
 
-          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-card border-2 border-dashed border-line-strong bg-raised px-6 py-10 text-center hover:border-primary">
+          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-card border-2 border-dashed border-line-strong bg-raised px-6 py-10 text-center has-focus-visible:ring-2 has-focus-visible:ring-primary hover:border-primary">
             <FileUp className="size-8 text-primary" strokeWidth={2.5} />
-            <span className="text-body font-semibold">{file ? file.name : 'Choose a CSV file'}</span>
+            <span className="text-body font-semibold">{file ? file.name : 'Choose a file'}</span>
             <span className="text-meta text-ink-2">
-              {file ? 'Choose a different file' : 'Huckleberry export (.csv)'}
+              {file ? 'Choose a different file' : 'babble export (.json) or Huckleberry export (.csv)'}
             </span>
             <input
               type="file"
-              accept=".csv,text/csv"
+              accept=".csv,text/csv,.json,application/json"
               className="sr-only"
-              aria-label="Huckleberry CSV file"
+              aria-label="File to import"
               onChange={async (event) => {
                 const chosen = event.target.files?.[0];
                 if (!chosen) return;
                 if (chosen.size > MAX_IMPORT_BYTES) {
                   setFile(null);
-                  setError('That file is too big to be a Huckleberry export. Choose the CSV you exported.');
+                  setError('That file is too big to import. Choose a babble or Huckleberry export.');
                   return;
                 }
                 setError(null);
+                setFromIndex(0);
                 setFile({ name: chosen.name, text: await chosen.text() });
               }}
             />
           </label>
 
           <div className="grid gap-5 sm:grid-cols-2">
+            {parsed && 'babies' in parsed && parsed.babies.length > 1 && (
+              <SelectField
+                label="Baby in the file"
+                value={String(fromIndex)}
+                onChange={(event) => setFromIndex(Number(event.target.value))}
+              >
+                {parsed.babies.map((exported, index) => (
+                  <option key={index} value={index}>
+                    {exported.name}
+                  </option>
+                ))}
+              </SelectField>
+            )}
             <SelectField label="Import into" value={babyId} onChange={(event) => setBabyId(event.target.value)}>
               {choices.map((choice) => (
                 <option key={choice.baby.id} value={choice.baby.id}>
@@ -124,26 +159,28 @@ function ImportPage() {
                 </option>
               ))}
             </SelectField>
-            <SelectField
-              label="Timezone of these records"
-              hint="Huckleberry exports local times without a timezone."
-              value={timeZone}
-              onChange={(event) => setTimeZone(event.target.value)}
-            >
-              {timeZones.map((zone) => (
-                <option key={zone} value={zone}>
-                  {zone.replaceAll('_', ' ')}
-                </option>
-              ))}
-            </SelectField>
+            {!(parsed && 'babies' in parsed) && (
+              <SelectField
+                label="Timezone of these records"
+                hint="Huckleberry exports local times without a timezone."
+                value={timeZone}
+                onChange={(event) => setTimeZone(event.target.value)}
+              >
+                {timeZones.map((zone) => (
+                  <option key={zone} value={zone}>
+                    {zone.replaceAll('_', ' ')}
+                  </option>
+                ))}
+              </SelectField>
+            )}
           </div>
 
           {parsed && 'error' in parsed && <StatusMessage tone="danger">{parsed.error}</StatusMessage>}
           {error && <StatusMessage tone="danger">{error}</StatusMessage>}
 
-          {parsed && 'result' in parsed && (
+          {ready && (
             <>
-              <ImportPreview result={parsed.result} timeZone={timeZone} />
+              <ImportPreview result={ready.result} timeZone={timeZone} source={ready.source} />
               {step.kind === 'importing' ? (
                 <div role="status" className="flex flex-col gap-2">
                   <div className="h-2 overflow-hidden rounded-full bg-surface">
@@ -157,8 +194,12 @@ function ImportPage() {
                   </p>
                 </div>
               ) : (
-                <Button size="lg" disabled={parsed.result.events.length === 0} onClick={() => runImport(parsed.result)}>
-                  Import {parsed.result.events.length} {parsed.result.events.length === 1 ? 'entry' : 'entries'} into{' '}
+                <Button
+                  size="lg"
+                  disabled={ready.result.events.length === 0}
+                  onClick={() => runImport(ready.result, ready.source)}
+                >
+                  Import {ready.result.events.length} {ready.result.events.length === 1 ? 'entry' : 'entries'} into{' '}
                   {target?.baby.name}
                 </Button>
               )}

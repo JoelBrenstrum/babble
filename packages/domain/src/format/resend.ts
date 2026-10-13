@@ -1,6 +1,7 @@
 import { formatTimer } from './duration';
+import { MINUTE_MS } from '../time/constants';
 
-export const RESEND_COOLDOWN_MS = 60_000;
+export const RESEND_COOLDOWN_MS = MINUTE_MS;
 
 export interface ResendState {
   ready: boolean;

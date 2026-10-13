@@ -1,24 +1,24 @@
 import { clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { useAsyncAction, useStartSession, useTrackingSettings, useUnits } from '@babble/api/react';
 import {
-  emptyDraft,
-  feedPromptOnNapStart,
-  napPromptOnFeedEnd,
-  napPromptOnFeedStart,
-  nappyPromptAfterBottle,
-  nappyPromptOnFeedStart,
+  isEventType,
+  isSessionType,
   nextBreastSide,
+  pastDraft,
+  promptsForSessionEvent,
+  runningIndicator,
   runningSessionLine,
-  runningTone,
   startContext,
-  type BabyEvent,
-  type RunningTone,
-  type EventDraft,
+  trackerFor,
   type Side,
+  type SessionType,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate, useRouter } from '@tanstack/react-router';
-import { ArrowRight, ChevronLeft, Clock, Moon, Play, Sun } from 'lucide-react';
+import { ArrowRight, Clock, Moon, Play, Sun } from 'lucide-react';
 import { useState } from 'react';
+import { PageHeader } from '#/components/shell/page-header';
+import { RunningDot } from '#/components/shell/running-dot';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
 import { Spinner } from '#/components/ui/spinner';
@@ -26,11 +26,7 @@ import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventForm } from '#/features/events/event-form';
 import { useNapPrompt } from '#/features/nap-prompt';
-import { isEventType, isSessionType, trackerFor, type SessionType } from '@babble/domain';
-import { useStartSession, useTrackingSettings, useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
-import { cn } from '#/lib/cn';
-import { toBabbleError } from '@babble/api';
 
 export const Route = createFileRoute('/_app/track/$type/new')({
   validateSearch: (search: Record<string, unknown>): { then?: 'back' } => ({
@@ -42,19 +38,6 @@ export const Route = createFileRoute('/_app/track/$type/new')({
   },
   component: NewEntry,
 });
-
-function pastDraft(type: EventDraft['type'], now: Date): EventDraft {
-  const draft = emptyDraft(type, now);
-  if (type === 'sleep') return { ...draft, startedAt: new Date(now.getTime() - 60 * 60_000).toISOString() };
-  if (type === 'breast_feed' || type === 'pump') {
-    return {
-      ...draft,
-      startedAt: new Date(now.getTime() - 20 * 60_000).toISOString(),
-      endedAt: new Date(now.getTime() - 20 * 60_000).toISOString(),
-    };
-  }
-  return draft;
-}
 
 function NewEntry() {
   const { babble, baby, eventType } = Route.useRouteContext();
@@ -73,18 +56,11 @@ function NewEntry() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <Link
-          to="/track/$type"
-          params={{ type: eventType }}
-          aria-label="Back"
-          className="grid size-tap place-items-center rounded-full hover:bg-surface"
-        >
-          <ChevronLeft className="size-6" strokeWidth={2.75} />
-        </Link>
-        <TrackerIcon tracker={tracker} />
-        <h1 className="text-title font-bold">{logPast ? `Log ${tracker.label.toLowerCase()}` : tracker.label}</h1>
-      </div>
+      <PageHeader
+        backTo={{ to: '/track/$type', params: { type: eventType } }}
+        icon={<TrackerIcon tracker={tracker} />}
+        title={logPast ? `Log ${tracker.label.toLowerCase()}` : tracker.label}
+      />
 
       {isSessionType(eventType) && !logPast && <StartSession type={eventType} onLogPast={() => setLogPast(true)} />}
 
@@ -98,11 +74,16 @@ function NewEntry() {
             initial={pastDraft(eventType, clock.now())}
             onSaved={(draft) => {
               if (draft.type !== 'bottle') return;
-              showNapPrompt(
-                napPromptOnFeedStart(running, draft.startedAt) ??
-                  napPromptOnFeedEnd(running, draft.endedAt ?? draft.startedAt),
-              );
-              showNapPrompt(nappyPromptAfterBottle(nappyPrompt, latest, draft.startedAt));
+              for (const prompt of promptsForSessionEvent({
+                kind: 'start',
+                event: draft,
+                running,
+                latest,
+                nappyTiming: nappyPrompt,
+                at: draft.startedAt,
+              })) {
+                showNapPrompt(prompt);
+              }
             }}
             onDone={back}
           />
@@ -124,25 +105,26 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   const latest = useQuery(latestEventsQuery(babble.client, baby.id)).data ?? [];
   const suggested = type === 'breast_feed' ? nextBreastSide(latest) : null;
   const showNapPrompt = useNapPrompt();
-  const [error, setError] = useState<string | null>(null);
+  const { run, error } = useAsyncAction();
   const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
   const context = startContext(type, latest, now, units);
 
   function begin(side?: Side) {
-    setError(null);
     const startedAt = clock.now().toISOString();
-    if (type === 'breast_feed') showNapPrompt(napPromptOnFeedStart(runningEvents, startedAt));
-    if (type === 'sleep') showNapPrompt(feedPromptOnNapStart(runningEvents, startedAt));
-    start.mutate(
-      { type, side },
-      {
-        onSuccess: (eventId) => {
-          void navigate({ to: '/sessions/$eventId', params: { eventId } });
-          if (type === 'breast_feed') showNapPrompt(nappyPromptOnFeedStart(nappyPrompt, latest, startedAt));
-        },
-        onError: (caught) => setError(toBabbleError(caught).message),
-      },
-    );
+    void run(async () => {
+      const eventId = await start.mutateAsync({ type, side });
+      await navigate({ to: '/sessions/$eventId', params: { eventId } });
+      for (const prompt of promptsForSessionEvent({
+        kind: 'start',
+        event: { type },
+        running: runningEvents,
+        latest,
+        nappyTiming: nappyPrompt,
+        at: startedAt,
+      })) {
+        showNapPrompt(prompt);
+      }
+    });
   }
 
   if (start.isPending || start.isSuccess) {
@@ -162,7 +144,7 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
     return (
       <Card className="flex flex-col gap-4 p-5">
         <div className="flex items-start gap-3">
-          <RunningDot event={running} />
+          <RunningDot indicator={runningIndicator([running])!} className="mt-2 shrink-0" />
           <div className="flex min-w-0 flex-col">
             <p className="text-row-title font-bold">A {noun} is already running.</p>
             <p className="tabular text-meta text-ink-2">{runningSessionLine(running, now, startedBy)}</p>
@@ -194,10 +176,9 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
         <Button
           size="lg"
           className="h-24 bg-sleep text-row-title text-ink-on-solid hover:bg-on-sleep"
-          loading={start.isPending}
           onClick={() => begin()}
         >
-          {!start.isPending && <Moon className="size-6" strokeWidth={2.75} />}
+          <Moon className="size-6" strokeWidth={2.75} />
           Start sleep now
         </Button>
       ) : (
@@ -206,12 +187,11 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
             <button
               key={side}
               type="button"
-              disabled={start.isPending}
               onClick={() => begin(side)}
               className={
                 side === 'left'
-                  ? 'relative flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-left text-ink-on-solid disabled:opacity-60'
-                  : 'relative flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-right text-ink-on-solid disabled:opacity-60'
+                  ? 'relative flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-left text-ink-on-solid'
+                  : 'relative flex h-36 flex-col items-center justify-center gap-2 rounded-card bg-feed-right text-ink-on-solid'
               }
             >
               {side === suggested && (
@@ -233,25 +213,5 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
         Log a past {noun} instead
       </Button>
     </div>
-  );
-}
-
-const DOT_COLOUR: Record<RunningTone, string> = {
-  downtime: 'bg-session-downtime',
-  sleep: 'bg-sleep',
-  pump: 'bg-pump',
-  'feed-left': 'bg-feed-left',
-  'feed-right': 'bg-feed-right',
-};
-
-function RunningDot({ event }: { event: BabyEvent }) {
-  const tone = runningTone(event);
-  return (
-    <span className="relative mt-2 grid size-2.5 shrink-0 place-items-center">
-      {tone !== 'downtime' && (
-        <span data-pulse className={cn('absolute inset-0 animate-timer-pulse rounded-full', DOT_COLOUR[tone])} />
-      )}
-      <span className={cn('size-2.5 rounded-full', DOT_COLOUR[tone])} />
-    </span>
   );
 }

@@ -1,41 +1,5 @@
 import { babyChoices, babySettingsQuery, clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
 import {
-  babyAgeLabel,
-  chairBottleDraft,
-  CHAIR_IDLE_DIM_MS,
-  chairDimmed,
-  chairIsNight,
-  chairFeedSummary,
-  chairFeedView,
-  chairNappyDraft,
-  defaultBottleAmount,
-  defaultBottleContent,
-  feedDueText,
-  feedRemindersQuiet,
-  formatDuration,
-  formatTimeOfDay,
-  lastFeedLine,
-  lastNappyLine,
-  memberTones,
-  napPromptOnFeedStart,
-  nappyPromptOnFeedFinish,
-  nappyPromptOnFeedStart,
-  nappyPromptOnSideChange,
-  otherSide,
-  nextBreastSide,
-  nextFeedDue,
-  runningBreastFeed,
-  summariseSleep,
-  todayInTimeZone,
-  type NightWindow,
-} from '@babble/domain';
-import { useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
-import { useEffect, useMemo, useState } from 'react';
-import { MemberTonesProvider } from '#/components/ui/avatar';
-import { ChairScreen, type ChairActions, type ChairData } from '#/features/chair/chair-screen';
-import { useNapPrompt } from '#/features/nap-prompt';
-import {
   useRemoveEntry,
   useRestoreEntry,
   useResumeFeed,
@@ -44,7 +8,25 @@ import {
   useStartSession,
   useTrackingSettings,
   useUnits,
-} from '#/lib/use-events';
+} from '@babble/api/react';
+import {
+  buildChairData,
+  CHAIR_IDLE_DIM_MS,
+  chairBottleDraft,
+  chairNappyDraft,
+  memberTones,
+  promptsForSessionEvent,
+} from '@babble/domain';
+import { useQuery } from '@tanstack/react-query';
+import { familyHasFeature } from '@babble/config';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { ChevronLeft } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { MemberTonesProvider } from '#/components/ui/avatar';
+import { ChairScreen, type ChairActions, type ChairData } from '#/features/chair/chair-screen';
+import { useNapPrompt } from '#/features/nap-prompt';
+import { ChairPreview } from '#/features/landing/previews';
+import { PlusTeaser } from '#/features/plus-teaser';
 import { useNow } from '#/lib/use-now';
 import { useSelectBaby } from '#/lib/use-select-baby';
 import { useOnline } from '#/lib/use-online';
@@ -55,6 +37,31 @@ import { useScreenWakeLock } from '#/lib/wake-lock';
 export const Route = createFileRoute('/_app/chair')({ component: ChairPage });
 
 function ChairPage() {
+  const { babble, family } = Route.useRouteContext();
+  if (!familyHasFeature(babble.config.billingEnabled, family.plan, 'chair_mode')) return <ChairLocked />;
+  return <ChairLive />;
+}
+
+function ChairLocked() {
+  return (
+    <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <Link
+        to="/settings"
+        className="flex items-center gap-2 self-start text-body font-semibold text-ink-2 hover:text-ink"
+      >
+        <ChevronLeft className="size-5" strokeWidth={2.75} />
+        Back to Settings
+      </Link>
+      <PlusTeaser feature="chair_mode" title="Chair mode">
+        Chair mode turns a tablet or touchscreen by the feeding chair into a feed station with giant buttons. It's part
+        of Babble Plus. Here's what it looks like.
+      </PlusTeaser>
+      <ChairPreview />
+    </div>
+  );
+}
+
+function ChairLive() {
   const { babble, baby, family, families } = Route.useRouteContext();
   const client = babble.client;
   const now = useNow(1000);
@@ -77,73 +84,47 @@ function ChairPage() {
   const tones = useMemo(() => memberTones(family.members), [family.members]);
   const selectBaby = useSelectBaby();
   const choices = babyChoices(families);
-  const multipleFamilies = new Set(choices.map((choice) => choice.familyId)).size > 1;
 
-  const night: NightWindow | null = settings
-    ? { timeZone: baby.timezone, start: settings.night_start_minutes, end: settings.night_end_minutes }
-    : null;
-  const feed = runningBreastFeed(running);
-  const nap = running.find((event) => event.type === 'sleep') ?? null;
-  const due =
-    settings && !feedRemindersQuiet(settings, now, baby.timezone)
-      ? nextFeedDue([...latest, ...running], settings)
-      : null;
-  const startedBy = feed
-    ? (family.members.find((member) => member.user_id === feed.createdBy)?.display_name ?? null)
-    : null;
-
-  useScreenWakeLock(feed !== null);
-
+  const {
+    data: view,
+    feed,
+    nap,
+  } = buildChairData({
+    baby,
+    choices,
+    members: family.members,
+    running,
+    latest,
+    settings,
+    units,
+    mergeGapMs,
+    nappyPrompt,
+    now,
+    lastTouchAt,
+  });
   const data: ChairData = {
-    babyName: baby.name,
-    age: babyAgeLabel(baby.birth_date, todayInTimeZone(baby.timezone, now)),
-    babies: choices.map((choice) => ({
-      id: choice.baby.id,
-      name: choice.baby.name,
-      detail: `${babyAgeLabel(choice.baby.birth_date, todayInTimeZone(choice.baby.timezone, now))}${
-        multipleFamilies ? ` · ${choice.familyName}` : ''
-      }`,
-      selected: choice.baby.id === baby.id,
-    })),
-    clock: formatTimeOfDay(now.toISOString(), baby.timezone),
-    night: chairIsNight(night, now),
-    dimmed: chairDimmed(night, now, lastTouchAt),
+    ...view,
     updateReady,
     fullscreen: { supported: fullscreen.supported, active: fullscreen.active, wanted: fullscreen.wanted },
     offline: !online,
-    lastFeed: lastFeedLine(latest, now, units, baby.timezone),
-    due: due ? feedDueText(due, now, baby.timezone) : null,
-    suggested: nextBreastSide(latest),
-    feed: feed && {
-      id: feed.id,
-      view: chairFeedView(feed, now, mergeGapMs),
-      summary: chairFeedSummary(feed, now, mergeGapMs),
-      startedLine: `Started ${formatTimeOfDay(feed.startedAt, baby.timezone)}${startedBy ? ` by ${startedBy}` : ''}`,
-      startedBy,
-    },
-    nap: nap?.type === 'sleep' ? formatDuration(summariseSleep(nap, now).asleepMs, { seconds: false }) : null,
-    lastNappy: lastNappyLine(latest, now),
-    nappyAsk: {
-      start: nappyPromptOnFeedStart(nappyPrompt, latest, now.toISOString()) !== null,
-      switch:
-        feed !== null &&
-        nappyPromptOnSideChange(
-          nappyPrompt,
-          feed,
-          otherSide(chairFeedView(feed, now, mergeGapMs).side),
-          latest,
-          now.toISOString(),
-        ) !== null,
-      end: feed !== null && nappyPromptOnFeedFinish(nappyPrompt, feed, latest, now.toISOString()) !== null,
-    },
-    units,
-    bottle: { amount: defaultBottleAmount(latest, units), content: defaultBottleContent(latest) },
   };
 
+  useScreenWakeLock(feed !== null);
+
   const actions: ChairActions = {
-    startFeed: (side) => {
-      showNapPrompt(napPromptOnFeedStart(running, clock.now().toISOString()));
-      return start.mutateAsync({ type: 'breast_feed', side });
+    startFeed: async (side) => {
+      const at = clock.now().toISOString();
+      await start.mutateAsync({ type: 'breast_feed', side });
+      for (const prompt of promptsForSessionEvent({
+        kind: 'start',
+        event: { type: 'breast_feed' },
+        running,
+        latest,
+        nappyTiming: nappyPrompt,
+        at,
+      })) {
+        if (prompt.kind !== 'nappy') showNapPrompt(prompt);
+      }
     },
     switchSide: (side) => feed && session.mutate({ event: feed, action: { kind: 'switch', side } }),
     pause: () => feed && session.mutate({ event: feed, action: { kind: 'pause' } }),

@@ -1,4 +1,4 @@
-import { formatShortDate, growthPointReadout, type GrowthChart, type GrowthReport } from '@babble/domain';
+import { chartAxis, formatShortDate, growthPointReadout, type GrowthChart, type GrowthReport } from '@babble/domain';
 import { router } from 'expo-router';
 import { Ruler } from 'lucide-react-native';
 import { useState } from 'react';
@@ -11,12 +11,6 @@ import { useTokenColor } from '@/lib/theme';
 const WIDTH = 320;
 const HEIGHT = 180;
 const PAD = { left: 34, right: 8, top: 10, bottom: 22 };
-
-function niceStep(range: number): number {
-  const raw = range / 4;
-  const magnitude = 10 ** Math.floor(Math.log10(raw));
-  return [1, 2, 5, 10].map((factor) => factor * magnitude).find((step) => step >= raw) ?? raw;
-}
 
 export function GrowthCard({
   report,
@@ -76,12 +70,7 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
     points
       .map((point, index) => `${index ? 'L' : 'M'}${x(point.months).toFixed(1)},${y(point.value).toFixed(1)}`)
       .join(' ');
-  const yStep = niceStep(chart.yMax - chart.yMin);
-  const yTicks: number[] = [];
-  for (let value = Math.ceil(chart.yMin / yStep) * yStep; value <= chart.yMax; value += yStep) yTicks.push(value);
-  const xStep = chart.xMax <= 6 ? 1 : chart.xMax <= 12 ? 2 : chart.xMax <= 24 ? 3 : 6;
-  const xTicks: number[] = [];
-  for (let months = 0; months <= chart.xMax; months += xStep) xTicks.push(months);
+  const { yTicks, xTicks } = chartAxis(chart);
   const [selected, setSelected] = useState<number | null>(null);
   const selectedPoint = selected === null ? null : chart.points[selected];
 

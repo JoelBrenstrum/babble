@@ -1,3 +1,4 @@
+import { useUnits } from '@babble/api/react';
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
 import {
   isEventType,
@@ -25,9 +26,8 @@ import { EventRow } from '@/features/events/event-row';
 import { SummaryStrip } from '@/features/timeline/totals';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
-import { useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
-import { useReadyState } from '@/lib/use-onboarding';
+import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 type Filter = 'all' | 'breast' | 'bottle';
 
@@ -45,7 +45,7 @@ function TrackerListContent({
   family,
 }: {
   eventType: TrackerKey;
-} & Pick<NonNullable<ReturnType<typeof useReadyState>>, 'baby' | 'family'>) {
+} & Pick<ReadyState, 'baby' | 'family'>) {
   const { client } = useBabble();
   const now = useNow(30_000);
   const units = useUnits(client, baby.id);

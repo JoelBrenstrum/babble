@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { clock, computeClockOffset, syncClock } from './clock';
+import { clock, computeClockOffset, resetClock, syncClock, trySyncClock } from './clock';
 import { fakeClient } from './test-utils';
 
 afterEach(() => {
@@ -30,5 +30,27 @@ describe('syncClock', () => {
     clock.setOffset(5000);
     const { client } = fakeClient(() => ({ status: 500, body: { message: 'down' } }));
     expect(await syncClock(client)).toBe(5000);
+  });
+});
+
+describe('trySyncClock', () => {
+  it('reports success with the new offset', async () => {
+    vi.useFakeTimers({ now: new Date('2026-10-06T10:00:00Z'), toFake: ['Date'] });
+    const { client } = fakeClient(() => ({ body: '2026-10-06T10:02:00Z' }));
+    expect(await trySyncClock(client)).toEqual({ ok: true, offsetMs: 120_000 });
+  });
+
+  it('reports failure and keeps the previous offset', async () => {
+    clock.setOffset(5000);
+    const { client } = fakeClient(() => ({ status: 500, body: { message: 'down' } }));
+    expect(await trySyncClock(client)).toEqual({ ok: false, offsetMs: 5000 });
+  });
+});
+
+describe('resetClock', () => {
+  it('drops the offset', () => {
+    clock.setOffset(9000);
+    resetClock();
+    expect(clock.offsetMs()).toBe(0);
   });
 });

@@ -1,7 +1,10 @@
 import { babyChoices, familiesQuery, resolveOnboarding, type BabyChoice, type OnboardingStep } from '@babble/api';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { useActiveBaby } from './active-baby';
 import { useBabble } from './babble';
+
+export type ReadyState = Extract<OnboardingStep, { step: 'ready' }>;
 
 export function useOnboarding(): {
   loading: boolean;
@@ -12,6 +15,7 @@ export function useOnboarding(): {
   const { client, session, sessionLoaded } = useBabble();
   const active = useActiveBaby();
   const families = useQuery({ ...familiesQuery(client), enabled: Boolean(session) });
+  const choices = useMemo(() => (families.data ? babyChoices(families.data) : []), [families.data]);
 
   if (!sessionLoaded || !active.loaded) return { loading: true, state: null, error: null, choices: [] };
   if (!session) {
@@ -28,11 +32,11 @@ export function useOnboarding(): {
       activeBabyId: active.babyId,
     }),
     error: null,
-    choices: babyChoices(families.data),
+    choices,
   };
 }
 
-export function useReadyState() {
+export function useReadyState(): ReadyState | null {
   const { state } = useOnboarding();
   if (state?.step !== 'ready') return null;
   return state;

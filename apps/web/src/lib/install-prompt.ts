@@ -71,12 +71,33 @@ export interface Install {
   prompt: () => Promise<'accepted' | 'dismissed' | 'unavailable'>;
 }
 
-export function useInstall(): Install {
-  const state = useSyncExternalStore(installPrompt.subscribe, installPrompt.getState, () => SERVER_STATE);
-  const mode = installMode({
+interface DeviceSnapshot {
+  userAgent: string;
+  maxTouchPoints: number;
+  standalone: boolean;
+}
+
+const SERVER_DEVICE: DeviceSnapshot = { userAgent: '', maxTouchPoints: 0, standalone: false };
+let clientDevice: DeviceSnapshot | null = null;
+
+function deviceSnapshot(): DeviceSnapshot {
+  clientDevice ??= {
     userAgent: navigator.userAgent,
     maxTouchPoints: navigator.maxTouchPoints ?? 0,
     standalone: runningStandalone(),
+  };
+  return clientDevice;
+}
+
+const subscribeNever = () => () => undefined;
+
+export function useInstall(): Install {
+  const state = useSyncExternalStore(installPrompt.subscribe, installPrompt.getState, () => SERVER_STATE);
+  const device = useSyncExternalStore(subscribeNever, deviceSnapshot, () => SERVER_DEVICE);
+  const mode = installMode({
+    userAgent: device.userAgent,
+    maxTouchPoints: device.maxTouchPoints,
+    standalone: device.standalone,
     installed: state.installed,
     canPrompt: state.event !== null,
   });

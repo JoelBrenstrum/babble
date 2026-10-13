@@ -1,9 +1,11 @@
 import {
   formatDuration,
-  formatTimeOfDay,
   formatVolume,
   markerShiftPercent,
   nappyKind,
+  partSpan,
+  showsItemLabel,
+  timelineItemLabel,
   type DayLayout,
   type PredictedItem,
   type TimelineItem,
@@ -13,37 +15,12 @@ import {
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { PooSwatch } from '@/components/poo-swatch';
+import { pct } from './percent';
 
-const pct = (frac: number): `${number}%` => `${Math.round(frac * 100_000) / 1000}%`;
-const LABEL_MIN_FRAC = 0.03;
 export const DAY_TIMELINE_HEIGHT = 560;
 
 function open(item: TimelineItem) {
   router.push(item.running ? `/sessions/${item.event.id}` : `/events/${item.event.id}`);
-}
-
-function itemLabel(item: TimelineItem, timeZone: string, units: Units): string {
-  const { event } = item;
-  const at = formatTimeOfDay(event.startedAt, timeZone);
-  const length = event.endedAt
-    ? formatDuration(Date.parse(event.endedAt) - Date.parse(event.startedAt), { seconds: false })
-    : 'running';
-  switch (event.type) {
-    case 'sleep':
-      return `Sleep ${at}, ${length}`;
-    case 'breast_feed':
-      return `Breastfeed ${at}, ${length}`;
-    case 'pump':
-      return `Pump ${at}, ${length}`;
-    case 'bottle':
-      return `Bottle ${at}${event.details.amountMl ? `, ${formatVolume(event.details.amountMl, units)}` : ''}`;
-    case 'solids':
-      return `Solids ${at}, ${event.details.foods.join(', ')}`;
-    case 'nappy':
-      return `Nappy ${at}, ${nappyKind(event.details).toLowerCase()}`;
-    default:
-      return at;
-  }
 }
 
 export function DayTimeline({
@@ -102,7 +79,13 @@ export function DayTimeline({
         {lanes.map((lane) => (
           <View key={lane.key} className="flex-1">
             {layout[lane.key].map((item) => (
-              <Item key={item.event.id} item={item} label={itemLabel(item, timeZone, units)} units={units} now={now} />
+              <Item
+                key={item.event.id}
+                item={item}
+                label={timelineItemLabel(item, timeZone, units)}
+                units={units}
+                now={now}
+              />
             ))}
             {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
               <Predicted key={item.startFrac} item={item} />
@@ -151,18 +134,17 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         className={`absolute inset-x-0 overflow-hidden px-1.5 py-0.5 ${item.parts.length > 0 ? 'border border-dashed border-sleep' : 'bg-sleep'}`}
         style={[span, corners]}
       >
-        {item.parts.map((part, index) => (
-          <View
-            key={index}
-            className="absolute inset-x-0 bg-sleep"
-            style={{
-              top: pct((part.startFrac - item.startFrac) / Math.max(height, 1e-6)),
-              height: pct((part.endFrac - part.startFrac) / Math.max(height, 1e-6)),
-              minHeight: 2,
-            }}
-          />
-        ))}
-        {height > LABEL_MIN_FRAC && (
+        {item.parts.map((part, index) => {
+          const { top, height: partHeight } = partSpan(item, part);
+          return (
+            <View
+              key={index}
+              className="absolute inset-x-0 bg-sleep"
+              style={{ top: pct(top), height: pct(partHeight), minHeight: 2 }}
+            />
+          );
+        })}
+        {showsItemLabel(item) && (
           <Text className="font-bold text-caption text-ink-on-solid">
             {formatDuration(summariseSleep(event, now).asleepMs, { seconds: false })}
           </Text>
@@ -172,7 +154,6 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
   }
 
   if (event.type === 'breast_feed' || event.type === 'pump') {
-    const total = Math.max(height, 1e-6);
     return (
       <Pressable
         accessibilityRole="button"
@@ -181,17 +162,16 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         className={`absolute inset-x-0 overflow-hidden ${event.type === 'pump' ? 'bg-pump/40' : 'border border-dashed border-session-downtime'}`}
         style={[span, corners]}
       >
-        {item.parts.map((part, index) => (
-          <View
-            key={index}
-            className={`absolute inset-x-0 ${event.type === 'pump' ? 'bg-pump' : part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
-            style={{
-              top: pct((part.startFrac - item.startFrac) / total),
-              height: pct((part.endFrac - part.startFrac) / total),
-              minHeight: 3,
-            }}
-          />
-        ))}
+        {item.parts.map((part, index) => {
+          const { top, height: partHeight } = partSpan(item, part);
+          return (
+            <View
+              key={index}
+              className={`absolute inset-x-0 ${event.type === 'pump' ? 'bg-pump' : part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
+              style={{ top: pct(top), height: pct(partHeight), minHeight: 3 }}
+            />
+          );
+        })}
       </Pressable>
     );
   }

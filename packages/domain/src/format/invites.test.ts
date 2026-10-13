@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { membersHeading, inviteExpiryText, pendingInviteMeta } from './invites';
+import { formatExpiry, inviteLink, membersHeading, inviteExpiryText, pendingInviteMeta } from './invites';
 
 const now = new Date('2026-10-09T09:00:00Z');
 
@@ -38,4 +38,19 @@ describe('membersHeading', () => {
     [1, 'Members · 1 pending'],
     [2, 'Members · 2 pending'],
   ])('%i pending → %s', (count, expected) => expect(membersHeading(count)).toBe(expected));
+});
+
+describe('inviteLink', () => {
+  it('joins the public url and code', () => {
+    expect(inviteLink('https://babble.example', 'K7Q4M-D2XPA')).toBe('https://babble.example/join/K7Q4M-D2XPA');
+  });
+});
+
+describe('formatExpiry', () => {
+  it.each([
+    ['2026-10-16T09:00:00Z', 'Expires in 7 days · one use'],
+    ['2026-10-10T09:00:00Z', 'Expires in 1 day · one use'],
+    ['2026-10-09T12:00:00Z', 'Expires in 1 day · one use'],
+    ['2026-10-08T09:00:00Z', 'Expires in 1 day · one use'],
+  ])('%s → %s', (expiresAt, expected) => expect(formatExpiry(expiresAt, now)).toBe(expected));
 });

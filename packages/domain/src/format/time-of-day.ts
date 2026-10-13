@@ -1,3 +1,19 @@
+export const DEFAULT_CUSTOM_DAY_START_MIN = 420;
+
+export function minutesToTimeInputValue(minutes: number): string {
+  return minutesToClock(minutes, 'h23');
+}
+
+export function minutesToDate(minutes: number, base: Date = new Date()): Date {
+  const date = new Date(base);
+  date.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
+  return date;
+}
+
+export function dateToMinutes(date: Date): number {
+  return date.getHours() * 60 + date.getMinutes();
+}
+
 export function minutesToClock(minutes: number, hourCycle: 'h12' | 'h23' = 'h12'): string {
   const normalised = ((minutes % 1440) + 1440) % 1440;
   const hours = Math.floor(normalised / 60);

@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
   process.env.BABBLE_RELEASE ??= new Date().toISOString();
   return {
     define: { __BABBLE_RELEASE__: JSON.stringify(process.env.BABBLE_RELEASE) },
-    resolve: { tsconfigPaths: true },
+    resolve: { tsconfigPaths: true, dedupe: ['react', 'react-dom', '@tanstack/react-query'] },
     // CommonJS dependencies only reached from lazily loaded routes; pre-bundling avoids 504 "Outdated Optimize Dep" reloads in dev.
     optimizeDeps: { include: ['qrcode'] },
     plugins: [

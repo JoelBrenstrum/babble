@@ -1,13 +1,13 @@
-import type { BabySettingsRow } from '@babble/api';
+import type { BabySettings } from '@babble/api';
 import { sampleBaby } from '@babble/api/fixtures';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { fixtureClient } from '#/fixtures/client';
 import { BabyTrackingSettings, FamilyTrackingSettings } from './tracking-settings';
 
-const settings: BabySettingsRow = {
+const settings: BabySettings = {
   baby_id: sampleBaby.id,
   units: 'metric',
   night_start_minutes: 1140,
@@ -84,6 +84,35 @@ describe('BabyTrackingSettings', () => {
   });
 });
 
+describe('BabyTrackingSettings night and errors', () => {
+  it('saves a new night start when the field is left', async () => {
+    current = settings;
+    updateBabySettings.mockResolvedValue({ ...settings, night_start_minutes: 1200 });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <BabyTrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
+      </QueryClientProvider>,
+    );
+    const input = await screen.findByLabelText('Night starts');
+    expect(input).toHaveValue('19:00');
+    fireEvent.change(input, { target: { value: '20:00' } });
+    fireEvent.blur(input);
+    expect(updateBabySettings).toHaveBeenLastCalledWith(fixtureClient, sampleBaby.id, { night_start_minutes: 1200 });
+  });
+
+  it('shows why a change was not saved', async () => {
+    current = settings;
+    updateBabySettings.mockRejectedValue(new Error('Network request failed'));
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <BabyTrackingSettings client={fixtureClient} babyId={sampleBaby.id} disabled={false} />
+      </QueryClientProvider>,
+    );
+    await userEvent.click(await screen.findByRole('checkbox', { name: '2h 30m' }));
+    expect(await screen.findByRole('alert')).toBeInTheDocument();
+  });
+});
+
 describe('FamilyTrackingSettings', () => {
   it('saves units for the whole family', async () => {
     current = settings;
@@ -96,6 +125,20 @@ describe('FamilyTrackingSettings', () => {
     await userEvent.click(await screen.findByRole('radio', { name: 'Imperial (oz, lb, in)' }));
     expect(updateFamilySettings).toHaveBeenCalledWith(fixtureClient, 'family-1', { units: 'imperial' });
     expect(updateBabySettings).not.toHaveBeenCalledWith(fixtureClient, sampleBaby.id, { units: 'imperial' });
+  });
+
+  it('saves a stepped number', async () => {
+    current = settings;
+    updateFamilySettings.mockResolvedValue({ family_id: 'family-1' });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <FamilyTrackingSettings client={fixtureClient} familyId="family-1" babyId={sampleBaby.id} disabled={false} />
+      </QueryClientProvider>,
+    );
+    await userEvent.click(await screen.findByRole('button', { name: 'Increase ignore gaps shorter than by 5' }));
+    expect(updateFamilySettings).toHaveBeenLastCalledWith(fixtureClient, 'family-1', {
+      downtime_merge_threshold_sec: 20,
+    });
   });
 
   it('leaves baby-only settings out', async () => {

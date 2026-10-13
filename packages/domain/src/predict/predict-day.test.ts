@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import type { BabyEvent } from '../events/types';
-import { learnRhythm, predictDay, weightedMedian } from './predict-day';
+import { learnRhythm, predictDay, predictDayStatus, weightedMedian } from './predict-day';
 
 const M = 60_000;
 const OPTIONS = { timeZone: 'Pacific/Auckland' };
@@ -112,5 +112,52 @@ describe('predictDay', () => {
       '01:10',
       false,
     ]);
+  });
+});
+
+describe('predictDayStatus', () => {
+  const now = new Date(BASE + 23 * 60 * M + 55 * M);
+  const until = new Date(BASE + 30 * 60 * M);
+
+  it('reports that it is still learning when there are too few samples', () => {
+    expect(predictDayStatus(regularCycles(3), now, until, OPTIONS)).toEqual({ status: 'learning' });
+    expect(predictDay(regularCycles(3), now, until, OPTIONS)).toBeNull();
+  });
+
+  it('reports that there is nothing to anchor on when nothing has been logged', () => {
+    expect(predictDayStatus([], now, until, { ...OPTIONS, minSamples: 0 })).toEqual({ status: 'no-anchor' });
+    expect(predictDay([], now, until, { ...OPTIONS, minSamples: 0 })).toBeNull();
+  });
+
+  it('returns the blocks when ready, matching predictDay', () => {
+    const events = regularCycles(8);
+    const result = predictDayStatus(events, now, until, OPTIONS);
+    expect(result).toEqual({ status: 'ready', blocks: predictDay(events, now, until, OPTIONS) });
+  });
+
+  it('falls back to the defaults for options set to undefined', () => {
+    const events = regularCycles(8);
+    expect(predictDay(events, now, until, { ...OPTIONS, minSamples: undefined })).toEqual(
+      predictDay(events, now, until, OPTIONS),
+    );
+  });
+
+  it('keeps a zero wake-to-feed gap as a real sample', () => {
+    const events = Array.from({ length: 8 }, (_, index) => {
+      const sleep = BASE + index * 180 * M;
+      return [
+        makeEvent('sleep', { id: `s${index}`, startedAt: iso(sleep), endedAt: iso(sleep + 120 * M), segments: [] }),
+        makeEvent('breast_feed', {
+          id: `f${index}`,
+          startedAt: iso(sleep + 120 * M),
+          endedAt: iso(sleep + 150 * M),
+          segments: [],
+        }),
+      ];
+    }).flat();
+    const rhythm = learnRhythm(events, new Date(BASE + 25 * 60 * M), OPTIONS);
+    expect(rhythm.wakeToFeed.map((sample) => sample.value)).toContain(0);
+    const blocks = predictDay(events, new Date(BASE + 24 * 60 * M + 150 * M), new Date(BASE + 30 * 60 * M), OPTIONS);
+    expect(blocks?.[0]?.kind).toBe('sleep');
   });
 });

@@ -1,4 +1,5 @@
-import { toBabbleError, type Invite } from '@babble/api';
+import { clock, toBabbleError, type Invite } from '@babble/api';
+import { formatExpiry, inviteLink } from '@babble/domain';
 import { Copy, Share2 } from 'lucide-react';
 import QRCode from 'qrcode';
 import { useEffect, useRef, useState } from 'react';
@@ -6,44 +7,53 @@ import { Button } from '#/components/ui/button';
 import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 
-export function inviteLink(publicUrl: string, code: string): string {
-  return `${publicUrl}/join/${code}`;
-}
-
-export function formatExpiry(expiresAt: string, now: Date = new Date()): string {
-  const days = Math.max(1, Math.round((Date.parse(expiresAt) - now.getTime()) / 86_400_000));
-  return `Expires in ${days} ${days === 1 ? 'day' : 'days'} · one use`;
-}
+const COPIED_MS = 2000;
 
 export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCreate: () => Promise<Invite> }) {
-  const [invite, setInvite] = useState<Invite | null>(null);
-  const [qr, setQr] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<{ source: typeof onCreate; invite: Invite | null; error: string | null } | null>(
+    null,
+  );
+  const [qr, setQr] = useState<{ code: string; svg: string } | null>(null);
   const [copied, setCopied] = useState(false);
-  const creating = useRef<Promise<Invite> | null>(null);
+  const [copyFailed, setCopyFailed] = useState(false);
+  const creating = useRef<{ source: typeof onCreate; promise: Promise<Invite> } | null>(null);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
-    creating.current ??= onCreate();
-    creating.current
-      .then(async (created) => {
-        if (cancelled) return;
-        setInvite(created);
-        setQr(
-          await QRCode.toString(inviteLink(publicUrl, created.code), {
-            type: 'svg',
-            margin: 0,
-            color: { dark: '#1f211c', light: '#00000000' },
-          }),
-        );
-      })
-      .catch((caught) => !cancelled && setError(toBabbleError(caught).message));
+    if (creating.current?.source !== onCreate) creating.current = { source: onCreate, promise: onCreate() };
+    creating.current.promise.then(
+      (invite) => !cancelled && setResult({ source: onCreate, invite, error: null }),
+      (caught: unknown) =>
+        !cancelled && setResult({ source: onCreate, invite: null, error: toBabbleError(caught).message }),
+    );
     return () => {
       cancelled = true;
     };
-  }, [onCreate, publicUrl]);
+  }, [onCreate]);
 
-  if (error) return <StatusMessage tone="danger">{error}</StatusMessage>;
+  useEffect(() => () => clearTimeout(copiedTimer.current), []);
+
+  const current = result?.source === onCreate ? result : null;
+  const invite = current?.invite ?? null;
+  const code = invite?.code;
+
+  useEffect(() => {
+    if (!code) return;
+    let cancelled = false;
+    QRCode.toString(inviteLink(publicUrl, code), {
+      type: 'svg',
+      margin: 0,
+      color: { dark: '#1f211c', light: '#00000000' },
+    })
+      .then((svg) => !cancelled && setQr({ code, svg }))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [code, publicUrl]);
+
+  if (current?.error) return <StatusMessage tone="danger">{current.error}</StatusMessage>;
   if (!invite) {
     return (
       <div className="flex h-80 flex-col items-center justify-center gap-3 rounded-card bg-raised text-meta text-ink-2 shadow-raised">
@@ -64,25 +74,32 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
   }
 
   async function copy(text: string) {
-    await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      setCopyFailed(true);
+      return;
+    }
+    setCopyFailed(false);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    clearTimeout(copiedTimer.current);
+    copiedTimer.current = setTimeout(() => setCopied(false), COPIED_MS);
   }
 
   return (
     <div className="flex flex-col items-center gap-5 rounded-card bg-raised p-6 shadow-raised">
-      {qr && (
+      {qr?.code === invite.code && (
         <div
           role="img"
           aria-label="Invite QR code"
           className="size-44 rounded-tile bg-white p-3"
-          dangerouslySetInnerHTML={{ __html: qr }}
+          dangerouslySetInnerHTML={{ __html: qr.svg }}
         />
       )}
       <div className="text-center">
         <div className="text-meta text-ink-2">Invite code</div>
         <div className="tabular text-timer-md font-bold tracking-widest">{invite.code}</div>
-        <div className="mt-1 text-meta text-ink-3">{formatExpiry(invite.expiresAt)}</div>
+        <div className="mt-1 text-meta text-ink-3">{formatExpiry(invite.expiresAt, clock.now())}</div>
       </div>
       <div className="grid w-full grid-cols-2 gap-3">
         <Button onClick={share}>
@@ -94,6 +111,7 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
           {copied ? 'Copied' : 'Copy code'}
         </Button>
       </div>
+      {copyFailed && <StatusMessage tone="danger">Couldn't copy. Select the code and copy it by hand.</StatusMessage>}
     </div>
   );
 }

@@ -1,0 +1,53 @@
+import { formatDuration } from '../format/duration';
+import { formatVolume } from '../format/units';
+import type { Units } from '../events/types';
+import { ms } from '../time/instants';
+import { formatTimeOfDay } from '../time/local-time';
+import type { TimelineItem } from './day-layout';
+import { nappyKind } from './totals';
+
+export const LABEL_MIN_FRAC = 0.03;
+
+const MIN_SPAN_FRAC = 1e-6;
+
+export const formatFraction = (frac: number): string => `${(frac * 100).toFixed(3)}%`;
+
+export function timelineItemLabel(item: TimelineItem, timeZone: string, units: Units): string {
+  const { event } = item;
+  const at = formatTimeOfDay(event.startedAt, timeZone);
+  const length = event.endedAt
+    ? formatDuration(ms(event.endedAt) - ms(event.startedAt), { seconds: false })
+    : 'running';
+  switch (event.type) {
+    case 'sleep':
+      return `Sleep ${at}, ${length}`;
+    case 'breast_feed':
+      return `Breastfeed ${at}, ${length}`;
+    case 'pump':
+      return `Pump ${at}, ${length}`;
+    case 'bottle':
+      return `Bottle ${at}${event.details.amountMl ? `, ${formatVolume(event.details.amountMl, units)}` : ''}`;
+    case 'solids':
+      return `Solids ${at}, ${event.details.foods.join(', ')}`;
+    case 'nappy':
+      return `Nappy ${at}, ${nappyKind(event.details).toLowerCase()}`;
+    default:
+      return at;
+  }
+}
+
+export function itemSpanFrac(item: Pick<TimelineItem, 'startFrac' | 'endFrac'>): number {
+  return item.endFrac - item.startFrac;
+}
+
+export function showsItemLabel(item: Pick<TimelineItem, 'startFrac' | 'endFrac'>): boolean {
+  return itemSpanFrac(item) > LABEL_MIN_FRAC;
+}
+
+export function partSpan(
+  item: Pick<TimelineItem, 'startFrac' | 'endFrac'>,
+  part: Pick<TimelineItem['parts'][number], 'startFrac' | 'endFrac'>,
+): { top: number; height: number } {
+  const span = Math.max(itemSpanFrac(item), MIN_SPAN_FRAC);
+  return { top: (part.startFrac - item.startFrac) / span, height: (part.endFrac - part.startFrac) / span };
+}

@@ -1,30 +1,24 @@
-import { zonedToUtc } from './zoned';
+import { MINUTE_MS } from './constants';
+import { zonedParts, zonedToUtc } from './zoned';
 
-const formatters = new Map<string, Intl.DateTimeFormat>();
+const pad2 = (value: number) => String(value).padStart(2, '0');
 
-function partsIn(instant: Date, timeZone: string) {
-  const key = `parts:${timeZone}`;
-  let formatter = formatters.get(key);
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat('en-CA', {
-      timeZone,
-      hourCycle: 'h23',
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-    formatters.set(key, formatter);
-  }
-  const parts: Record<string, string> = {};
-  for (const part of formatter.formatToParts(instant)) parts[part.type] = part.value;
-  return parts as { year: string; month: string; day: string; hour: string; minute: string };
+export interface DayParts {
+  year: number;
+  month: number;
+  day: number;
 }
 
+export function parseDayKey(key: string): DayParts {
+  const [year, month, day] = key.split('-').map(Number);
+  return { year: year!, month: month!, day: day! };
+}
+
+const partsOf = (parts: DayParts) => `${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}`;
+
 export function minutesOfDay(instant: Date, timeZone: string): number {
-  const p = partsIn(instant, timeZone);
-  return Number(p.hour) * 60 + Number(p.minute);
+  const p = zonedParts(instant, timeZone);
+  return p.hour * 60 + p.minute;
 }
 
 export function isWithinNight(instant: Date, timeZone: string, startMinutes: number, endMinutes: number): boolean {
@@ -36,15 +30,19 @@ export function isWithinNight(instant: Date, timeZone: string, startMinutes: num
 }
 
 export function toLocalInputValue(iso: string, timeZone: string): string {
-  const p = partsIn(new Date(iso), timeZone);
-  return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`;
+  const p = zonedParts(new Date(iso), timeZone);
+  return `${partsOf(p)}T${pad2(p.hour)}:${pad2(p.minute)}`;
 }
 
 export function fromLocalInputValue(value: string, timeZone: string): string | null {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value);
   if (!match) return null;
-  const [year, month, day, hour, minute] = match.slice(1).map(Number) as [number, number, number, number, number];
-  return zonedToUtc({ year, month, day, hour, minute }, timeZone).toISOString();
+  const [year, month, day, hour, minute] = match.slice(1).map(Number);
+  return zonedToUtc({ year: year!, month: month!, day: day!, hour: hour!, minute: minute! }, timeZone).toISOString();
+}
+
+export function localInstant(dayKey: string, minutes: number, timeZone: string): Date {
+  return zonedToUtc({ ...parseDayKey(dayKey), hour: 0, minute: minutes }, timeZone);
 }
 
 export function formatTimeOfDay(iso: string, timeZone: string): string {
@@ -61,7 +59,7 @@ export function formatDayLabel(dayKey: string, todayKey: string): string {
 }
 
 export function formatDayDate(dayKey: string): string {
-  const [year, month, day] = dayKey.split('-').map(Number) as [number, number, number];
+  const { year, month, day } = parseDayKey(dayKey);
   const parts: Record<string, string> = {};
   for (const part of new Intl.DateTimeFormat('en-NZ', {
     timeZone: 'UTC',
@@ -75,21 +73,28 @@ export function formatDayDate(dayKey: string): string {
 }
 
 export function shiftDay(dayKey: string, days: number): string {
-  const [year, month, day] = dayKey.split('-').map(Number) as [number, number, number];
+  const { year, month, day } = parseDayKey(dayKey);
   return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
 }
 
 export function dayKeyFor(iso: string, timeZone: string, dayStartMinutes: number): string {
-  const shifted = new Date(Date.parse(iso) - dayStartMinutes * 60_000);
-  const p = partsIn(shifted, timeZone);
-  return `${p.year}-${p.month}-${p.day}`;
+  const local = zonedParts(new Date(iso), timeZone);
+  const key = partsOf(local);
+  return local.hour * 60 + local.minute < dayStartMinutes ? shiftDay(key, -1) : key;
 }
 
 export function dayWindow(dayKey: string, timeZone: string, dayStartMinutes: number): { start: Date; end: Date } {
-  const midnight = fromLocalInputValue(`${dayKey}T00:00`, timeZone)!;
-  const nextMidnight = fromLocalInputValue(`${shiftDay(dayKey, 1)}T00:00`, timeZone)!;
-  const offset = dayStartMinutes * 60_000;
-  return { start: new Date(Date.parse(midnight) + offset), end: new Date(Date.parse(nextMidnight) + offset) };
+  return {
+    start: localInstant(dayKey, dayStartMinutes, timeZone),
+    end: localInstant(shiftDay(dayKey, 1), dayStartMinutes, timeZone),
+  };
+}
+
+export function shiftLocalDays(iso: string, days: number, timeZone: string): string {
+  const at = Date.parse(iso);
+  const local = zonedParts(at, timeZone);
+  const shifted = localInstant(shiftDay(partsOf(local), days), local.hour * 60 + local.minute, timeZone);
+  return new Date(shifted.getTime() + (at % MINUTE_MS)).toISOString();
 }
 
 export function formatShortDate(iso: string, timeZone: string): string {

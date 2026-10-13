@@ -1,3 +1,4 @@
+import { clock } from '@babble/api';
 import { formatShortDate, formatTimeOfDay, fromLocalInputValue, toLocalInputValue } from '@babble/domain';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
@@ -62,7 +63,7 @@ export function DateTimeField({
           value={toPickerDate(value, timeZone)}
           mode={mode}
           display={Platform.OS === 'ios' ? (mode === 'date' ? 'inline' : 'spinner') : 'default'}
-          maximumDate={new Date(Date.now() + 5 * 60_000)}
+          maximumDate={new Date(clock.now().getTime() + 5 * 60_000)}
           onChange={handle}
         />
       )}

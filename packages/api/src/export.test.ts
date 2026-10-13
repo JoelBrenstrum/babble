@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { buildExport, EXPORT_FORMAT, EXPORT_VERSION, exportFileName, listAllEvents } from './export';
 import { sampleBaby, sampleEvents, sampleFamily } from './fixtures';
 import { fakeClient } from './test-utils';
-import type { BabySettingsRow } from './types';
+import type { BabySettings } from './types';
 
-const settings: BabySettingsRow = {
+const settings: BabySettings = {
   baby_id: sampleBaby.id,
   units: 'metric',
   night_start_minutes: 1140,

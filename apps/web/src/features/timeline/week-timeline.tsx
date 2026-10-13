@@ -1,8 +1,7 @@
-import { weekdayLabel, type DayLayout } from '@babble/domain';
+import { formatFraction, weekdayLabel, type DayLayout } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { cn } from '#/lib/cn';
-
-const pct = (frac: number) => `${(frac * 100).toFixed(3)}%`;
+import { daySummaryText } from './day-summary-text';
 
 export function WeekTimeline({
   days,
@@ -44,7 +43,7 @@ export function WeekTimeline({
             <span
               key={index}
               className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
-              style={{ top: pct(tick.frac) }}
+              style={{ top: formatFraction(tick.frac) }}
             >
               {tick.label}
             </span>
@@ -58,17 +57,21 @@ export function WeekTimeline({
               to="/timeline"
               search={{ view: 'day', date: dayKey }}
               aria-label={`Open ${weekday} ${day}`}
+              aria-describedby={`week-summary-${dayKey}`}
               className={cn(
                 'relative overflow-hidden rounded-tile bg-surface hover:ring-2 hover:ring-line-strong',
                 dayKey === todayKey && 'ring-2 ring-primary hover:ring-primary',
                 !layout && 'opacity-50',
               )}
             >
+              <span id={`week-summary-${dayKey}`} className="sr-only">
+                {daySummaryText(layout)}
+              </span>
               {layout?.sleep.map((item) => (
                 <span
                   key={item.event.id}
                   className="absolute inset-x-[3px] min-h-[2px] rounded-sm bg-sleep"
-                  style={{ top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac) }}
+                  style={{ top: formatFraction(item.startFrac), height: formatFraction(item.endFrac - item.startFrac) }}
                 />
               ))}
               {layout?.feeds.map((item) =>
@@ -80,7 +83,10 @@ export function WeekTimeline({
                         'absolute inset-x-[30%] min-h-[3px] rounded-full',
                         part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right',
                       )}
-                      style={{ top: pct(part.startFrac), height: pct(part.endFrac - part.startFrac) }}
+                      style={{
+                        top: formatFraction(part.startFrac),
+                        height: formatFraction(part.endFrac - part.startFrac),
+                      }}
                     />
                   ))
                 ) : (
@@ -94,7 +100,7 @@ export function WeekTimeline({
                           ? 'bg-solids'
                           : 'bg-feed-right',
                     )}
-                    style={{ top: pct(item.startFrac) }}
+                    style={{ top: formatFraction(item.startFrac) }}
                   />
                 ),
               )}
@@ -102,7 +108,7 @@ export function WeekTimeline({
                 <span
                   key={item.event.id}
                   className="absolute right-[3px] size-1.5 -translate-y-1/2 rounded-full bg-nappy"
-                  style={{ top: pct(item.startFrac) }}
+                  style={{ top: formatFraction(item.startFrac) }}
                 />
               ))}
             </Link>

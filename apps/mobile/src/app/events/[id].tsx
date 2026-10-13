@@ -1,16 +1,17 @@
-import { eventQuery, latestEventsQuery, queryKeys, resumeFeed, runningEventsQuery, toBabbleError } from '@babble/api';
+import { eventQuery, latestEventsQuery, runningEventsQuery, toBabbleError } from '@babble/api';
+import { useAsyncAction, useResumeFeed, useTrackingSettings } from '@babble/api/react';
 import {
   canResumeFeed,
   entryAuthorText,
   entryEndedText,
+  eventToDraft,
   importedNote,
   isSessionType,
   latestFeed,
   pumpFinishSummary,
   trackerFor,
 } from '@babble/domain';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
 import { Card } from '@/components/card';
@@ -18,15 +19,14 @@ import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
 import { StatusMessage } from '@/components/status-message';
 import { TrackerIcon } from '@/components/tracker-icon';
-import { EventForm, toDraft } from '@/features/events/event-form';
+import { EventForm } from '@/features/events/event-form';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { Button } from '@/components/button';
-import { useTrackingSettings } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
-import { useReadyState } from '@/lib/use-onboarding';
+import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function EditEvent() {
   const { id, finish } = useLocalSearchParams<{ id: string; finish?: string }>();
@@ -43,15 +43,14 @@ function EditEventContent({
 }: {
   id: string;
   finish: boolean;
-} & Pick<NonNullable<ReturnType<typeof useReadyState>>, 'baby' | 'family'>) {
+} & Pick<ReadyState, 'baby' | 'family'>) {
   const { client } = useBabble();
   const { units, mergeGapMs } = useTrackingSettings(client, baby.id);
   const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
   const running = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
-  const queryClient = useQueryClient();
   const now = useNow(30_000);
-  const [resuming, setResuming] = useState(false);
-  const [resumeError, setResumeError] = useState<string | null>(null);
+  const resumeFeed = useResumeFeed(client, baby.id);
+  const resume = useAsyncAction();
   const event = useQuery(eventQuery(client, baby.id, id));
   const spinnerColor = useTokenColor('--primary');
 
@@ -105,18 +104,9 @@ function EditEventContent({
         <View className="mb-4 gap-2">
           <Button
             size="lg"
-            loading={resuming}
+            loading={resume.busy}
             onPress={async () => {
-              setResuming(true);
-              setResumeError(null);
-              try {
-                await resumeFeed(client, id);
-                await queryClient.invalidateQueries({ queryKey: queryKeys.events(baby.id), refetchType: 'all' });
-                router.replace(`/sessions/${id}`);
-              } catch (caught) {
-                setResumeError(toBabbleError(caught).message);
-                setResuming(false);
-              }
+              if (await resume.run(() => resumeFeed.mutateAsync(id))) router.replace(`/sessions/${id}`);
             }}
           >
             Resume feed
@@ -124,7 +114,7 @@ function EditEventContent({
           <Text className="text-center font-sans text-meta text-ink-2">
             Resume only appears on the most recent feed.
           </Text>
-          {resumeError && <StatusMessage tone="danger">{resumeError}</StatusMessage>}
+          {resume.error && <StatusMessage tone="danger">{resume.error}</StatusMessage>}
         </View>
       )}
       <View className="mb-3 gap-1">
@@ -149,7 +139,7 @@ function EditEventContent({
           timeZone={baby.timezone}
           units={units}
           event={event.data}
-          initial={toDraft(event.data)}
+          initial={eventToDraft(event.data)}
           focusAmounts={finish}
           onDone={() => (router.canGoBack() ? router.back() : router.replace('/'))}
         />

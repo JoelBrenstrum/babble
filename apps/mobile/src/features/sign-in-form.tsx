@@ -1,4 +1,6 @@
 import { MIN_PASSWORD_LENGTH, type InstanceSettings } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
+import { signInFormState, type SignInMode } from '@babble/domain';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Button } from '@/components/button';
@@ -6,7 +8,7 @@ import { Segmented } from '@/components/segmented';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
 
-type Mode = 'signin' | 'signup' | 'link';
+const NO_SETTINGS = { signupMode: 'open', hasUsers: false };
 
 export interface SignInFormProps {
   settings: InstanceSettings | undefined;
@@ -27,33 +29,21 @@ export function SignInForm({
   onMagicLink,
   onGoogle,
 }: SignInFormProps) {
-  const [mode, setMode] = useState<Mode>(initialInviteCode ? 'signup' : 'signin');
+  const [mode, setMode] = useState<SignInMode>(initialInviteCode ? 'signup' : 'signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState(initialInviteCode ?? '');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-  const inviteOnly = settings?.signupMode === 'invite_only' && settings.hasUsers;
-  const askInvite = inviteOnly && mode !== 'signin';
-  const passwordTooShort = mode === 'signup' && password.length > 0 && password.length < MIN_PASSWORD_LENGTH;
-  const canSubmit =
-    email.includes('@') &&
-    (mode === 'link' || (mode === 'signup' ? password.length >= MIN_PASSWORD_LENGTH : password.length > 0));
-
-  async function run(action: () => Promise<void>) {
-    setError(null);
-    setSubmitting(true);
-    try {
-      await action();
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
-    } finally {
-      setSubmitting(false);
-    }
-  }
+  const { run, busy: submitting, error, setError } = useAsyncAction();
+  const { askInvite, canSubmit, passwordTooShort, invite } = signInFormState({
+    mode,
+    email,
+    password,
+    inviteCode,
+    settings: settings ?? NO_SETTINGS,
+    minPasswordLength: MIN_PASSWORD_LENGTH,
+  });
 
   function submit() {
-    const invite = askInvite ? inviteCode.trim() || undefined : undefined;
     if (mode === 'signin') return run(() => onPasswordSignIn({ email, password }));
     if (mode === 'signup') return run(() => onSignUp({ email, password, inviteCode: invite }));
     return run(() => onMagicLink({ email, inviteCode: invite }));

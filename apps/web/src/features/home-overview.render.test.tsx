@@ -4,7 +4,11 @@ import { describe, expect, it } from 'vitest';
 import { FixtureRouter } from '#/fixtures/router';
 import { HomeOverview } from './home-overview';
 
-function renderHome(feedDue: { text: string; overdue: boolean } | null, prediction: string | null = null) {
+function renderHome(
+  feedDue: { text: string; overdue: boolean } | null,
+  prediction: string | null = null,
+  predictionPlus = false,
+) {
   render(
     <FixtureRouter>
       <HomeOverview
@@ -17,6 +21,7 @@ function renderHome(feedDue: { text: string; overdue: boolean } | null, predicti
         renderRunning={() => null}
         feedDue={feedDue}
         prediction={prediction}
+        predictionPlus={predictionPlus}
       />
     </FixtureRouter>,
   );
@@ -36,6 +41,18 @@ describe('HomeOverview feed due line', () => {
 });
 
 describe('HomeOverview prediction line', () => {
+  it('marks the prediction as a Plus feature when billing is on', async () => {
+    renderHome(null, 'Likely asleep around 2:10 pm', true);
+    const line = (await screen.findByText('Likely asleep around 2:10 pm')).closest('p')!;
+    expect(line).toHaveTextContent('Plus');
+  });
+
+  it('leaves the Plus mark off when billing is off', async () => {
+    renderHome(null, 'Likely asleep around 2:10 pm');
+    const line = (await screen.findByText('Likely asleep around 2:10 pm')).closest('p')!;
+    expect(line).not.toHaveTextContent('Plus');
+  });
+
   it('shows the likely next sleep', async () => {
     renderHome(null, 'Likely asleep around 2:10 pm');
     expect(await screen.findByText('Likely asleep around 2:10 pm')).toBeInTheDocument();

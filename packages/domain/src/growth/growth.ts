@@ -2,6 +2,8 @@ import type { BabyEvent, Units } from '../events/types';
 import { formatLength, formatWeight } from '../format/units';
 import { dayKeyFor, formatShortDate } from '../time/local-time';
 import { WHO_LMS } from './who-lms';
+import { byStartedAtAsc } from '../time/instants';
+import { DAY_MS } from '../time/constants';
 
 export type BabySex = 'female' | 'male';
 export type GrowthMeasure = keyof typeof WHO_LMS;
@@ -14,7 +16,7 @@ export const CURVE_PERCENTILES = [3, 15, 50, 85, 97] as const;
 export function ageInMonths(birthDate: string, iso: string, timeZone: string): number {
   const measured = Date.parse(`${dayKeyFor(iso, timeZone, 0)}T00:00:00Z`);
   const born = Date.parse(`${birthDate}T00:00:00Z`);
-  return (measured - born) / 86_400_000 / DAYS_PER_MONTH;
+  return (measured - born) / DAY_MS / DAYS_PER_MONTH;
 }
 
 export function lmsAt(measure: GrowthMeasure, sex: BabySex, months: number): Lms | null {
@@ -130,7 +132,7 @@ export function growthReport(
 ): GrowthReport {
   const growth = events
     .filter((event): event is Extract<BabyEvent, { type: 'growth' }> => event.type === 'growth' && !event.deletedAt)
-    .sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+    .sort(byStartedAtAsc);
 
   const charts: GrowthChart[] = [];
   for (const measure of ['weight', 'length', 'head'] as const) {

@@ -1,8 +1,16 @@
-import { segmentTotals, type DraftOfType, type Side, type TimedSegment } from '@babble/domain';
+import { clock } from '@babble/api';
+import {
+  MINUTE_MS,
+  segmentTotals,
+  shiftDraftStart,
+  type DraftOfType,
+  type Side,
+  type TimedSegment,
+} from '@babble/domain';
 import { DateTimeField } from '#/components/ui/field';
 import { SegmentEditor } from '../segment-editor';
 import { Stepper } from '#/components/ui/stepper';
-import { FormSection, shiftDraftStart, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 export function buildSegments(startedAt: string, minutes: Record<Side, number | null>): TimedSegment[] {
   const segments: TimedSegment[] = [];
@@ -10,7 +18,7 @@ export function buildSegments(startedAt: string, minutes: Record<Side, number | 
   for (const side of ['left', 'right'] as const) {
     const value = minutes[side];
     if (!value || value <= 0) continue;
-    const end = cursor + value * 60_000;
+    const end = cursor + value * MINUTE_MS;
     segments.push({ side, startedAt: new Date(cursor).toISOString(), endedAt: new Date(end).toISOString() });
     cursor = end;
   }
@@ -18,10 +26,10 @@ export function buildSegments(startedAt: string, minutes: Record<Side, number | 
 }
 
 function minutesBySide(segments: TimedSegment[]): Record<Side, number | null> {
-  const totals = segmentTotals(segments, new Date());
+  const totals = segmentTotals(segments, clock.now());
   return {
-    left: totals.leftMs ? Math.round(totals.leftMs / 60_000) : null,
-    right: totals.rightMs ? Math.round(totals.rightMs / 60_000) : null,
+    left: totals.leftMs ? Math.round(totals.leftMs / MINUTE_MS) : null,
+    right: totals.rightMs ? Math.round(totals.rightMs / MINUTE_MS) : null,
   };
 }
 

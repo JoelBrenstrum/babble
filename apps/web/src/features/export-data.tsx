@@ -1,4 +1,5 @@
 import { clock, exportData, exportFileName, type BabbleClient, type BabyRow, type Family } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { Download } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
@@ -25,21 +26,16 @@ export function ExportData({
   baby: BabyRow;
   scope: 'baby' | 'family';
 }) {
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { run, busy: pending } = useAsyncAction();
+  const [failed, setFailed] = useState(false);
 
-  async function run() {
-    setPending(true);
-    setError(null);
-    try {
-      const ids = scope === 'baby' ? [baby.id] : family.babies.map((item) => item.id);
+  async function exportNow() {
+    const ids = scope === 'baby' ? [baby.id] : family.babies.map((item) => item.id);
+    const done = await run(async () => {
       const data = await exportData(client, family, ids, clock.now());
       downloadJson(exportFileName(scope === 'baby' ? baby.name : family.name, data.exportedAt), data);
-    } catch {
-      setError("Couldn't export. Check your connection and try again.");
-    } finally {
-      setPending(false);
-    }
+    });
+    setFailed(!done);
   }
 
   return (
@@ -52,11 +48,11 @@ export function ExportData({
             : 'Every baby in the family in one JSON file, with family settings and every entry.'}
         </p>
       </div>
-      <Button variant="secondary" className="self-start" loading={pending} onClick={run}>
+      <Button variant="secondary" className="self-start" loading={pending} onClick={exportNow}>
         {!pending && <Download className="size-4" strokeWidth={2.75} />}
         {scope === 'baby' ? `Export ${baby.name}` : 'Export whole family'}
       </Button>
-      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {failed && <StatusMessage tone="danger">Couldn't export. Check your connection and try again.</StatusMessage>}
     </Card>
   );
 }

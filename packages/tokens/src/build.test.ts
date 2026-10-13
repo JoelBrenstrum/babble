@@ -39,6 +39,18 @@ describe('parseTokenCss', () => {
     );
   });
 
+  it('rejects a light theme with missing colours', () => {
+    expect(() => parseTokenCss(SAMPLE.replace('--primary: 86 99 63;', ''))).toThrow('Light theme is missing: primary');
+  });
+
+  it('ignores tokens from unrelated :root-prefixed blocks', () => {
+    const tokens = parseTokenCss(
+      `${SAMPLE}\n:root-extra { --poo-fake: 1 2 3; }\n:rooted [data-theme="light"] { --stray: 4 5 6; }`,
+    );
+    expect(tokens.poo).toEqual({ yellow: '232 197 71' });
+    expect(tokens.light).not.toHaveProperty('stray');
+  });
+
   it('parses the real design tokens', () => {
     const tokens = parseTokenCss(read('css/babble-tokens.css'));
     expect(tokens.light.primary).toBe('86 99 63');

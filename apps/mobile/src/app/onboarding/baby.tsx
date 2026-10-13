@@ -1,6 +1,7 @@
 import { canAddBaby } from '@babble/config';
 import type { BabySex } from '@babble/domain';
-import { addBaby, queryKeys, toBabbleError } from '@babble/api';
+import { addBaby, clock, queryKeys } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -28,8 +29,7 @@ export default function BabyStep() {
   const [birthDate, setBirthDate] = useState('');
   const [timezone, setTimezone] = useState(detectTimeZone);
   const [sex, setSex] = useState<BabySex | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const { run, busy: submitting, error } = useAsyncAction();
 
   if (loading) return <PageSpinner />;
   if (state?.step === 'family') return <Redirect href="/onboarding/family" />;
@@ -37,19 +37,13 @@ export default function BabyStep() {
   const family = state.family;
   if (adding && !canAddBaby(config.billingEnabled, family.plan, family.babies.length)) return <Redirect href="/" />;
 
-  async function submit() {
-    setError(null);
-    setSubmitting(true);
-    try {
+  const submit = () =>
+    run(async () => {
       const baby = await addBaby(client, { familyId: family.id, name, birthDate, timezone, dayStartMinutes: 0, sex });
       active.select({ familyId: family.id, babyId: baby.id });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace(adding ? '/' : '/onboarding/day-start');
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setSubmitting(false);
-    }
-  }
+    });
 
   return (
     <Screen step={adding ? undefined : 'Step 2 of 4'}>
@@ -60,7 +54,7 @@ export default function BabyStep() {
       </Title>
       <View className="gap-5">
         <TextField label="Name" value={name} onChangeText={setName} />
-        <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={new Date()} />
+        <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={clock.now()} />
         <SexField value={sex} onChange={setSex} />
         <TimezoneField value={timezone} onChange={setTimezone} />
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}

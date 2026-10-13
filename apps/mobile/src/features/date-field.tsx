@@ -1,3 +1,4 @@
+import { clock } from '@babble/api';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
@@ -44,7 +45,7 @@ export function DateField({
       </Pressable>
       {open && (
         <DateTimePicker
-          value={value ? fromIsoDate(value) : new Date()}
+          value={value ? fromIsoDate(value) : clock.now()}
           mode="date"
           display={Platform.OS === 'ios' ? 'inline' : 'default'}
           maximumDate={maximumDate}

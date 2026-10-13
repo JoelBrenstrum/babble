@@ -1,8 +1,10 @@
-import { barAnchor, barReadout, chartEnds, chartValue, topSegment, type StatsCard } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
+import { barAnchor, barReadout, chartEnds, chartValue, nextBarIndex, topSegment, type StatsCard } from '@babble/domain';
+import { Droplets, GlassWater, Heart, Moon, MoonStar, Sun, type LucideIcon } from 'lucide-react';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { Card } from '#/components/ui/card';
+import { ChartTip } from '#/components/ui/chart-tip';
 import { PooSwatch } from '#/components/ui/poo-swatch';
+import { PlusBadge } from '#/features/plus-dialog';
 import { cn } from '#/lib/cn';
 
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; series: string[] }> = {
@@ -10,6 +12,8 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; series: s
   feeds: { icon: Heart, tile: 'bg-feed-right-soft text-on-feed-right', series: ['bg-bottle', 'bg-feed-right'] },
   nappies: { icon: Droplets, tile: 'bg-nappy-soft text-on-nappy', series: ['bg-nappy/35', 'bg-nappy/65', 'bg-nappy'] },
   pump: { icon: GlassWater, tile: 'bg-pump-soft text-on-pump', series: ['bg-pump'] },
+  wake: { icon: Sun, tile: 'bg-primary-soft text-on-primary-soft', series: ['bg-primary'] },
+  night: { icon: MoonStar, tile: 'bg-sleep-soft text-on-sleep', series: ['bg-sleep'] },
 };
 
 function tipPosition(index: number, count: number) {
@@ -20,17 +24,25 @@ function tipPosition(index: number, count: number) {
   };
 }
 
-export function StatsCards({ cards }: { cards: StatsCard[] }) {
+export function StatsCards({
+  cards,
+  plusBadges = false,
+  columns = 2,
+}: {
+  cards: StatsCard[];
+  plusBadges?: boolean;
+  columns?: 1 | 2;
+}) {
   return (
-    <div className="grid gap-4 lg:grid-cols-2">
+    <div className={cn('grid gap-4', columns === 2 && 'lg:grid-cols-2')}>
       {cards.map((card) => (
-        <StatsCardView key={card.key} card={card} />
+        <StatsCardView key={card.key} card={card} plusBadge={plusBadges && Boolean(card.plus)} />
       ))}
     </div>
   );
 }
 
-function StatsCardView({ card }: { card: StatsCard }) {
+function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolean }) {
   const look = LOOK[card.key];
   const { chart } = card;
   const [active, setActive] = useState<number | null>(null);
@@ -40,10 +52,8 @@ function StatsCardView({ card }: { card: StatsCard }) {
   const ends = chartEnds(chart);
 
   const onKeyDown = (event: KeyboardEvent, index: number) => {
-    const next =
-      event.key === 'ArrowLeft' ? index - 1 : event.key === 'ArrowRight' ? index + 1 : event.key === 'Home' ? 0 : -2;
-    const target = event.key === 'End' ? chart.bars.length - 1 : next;
-    if (target < 0 || target >= chart.bars.length) return;
+    const target = nextBarIndex(event.key, index, chart.bars.length);
+    if (target === null) return;
     event.preventDefault();
     setFocusIndex(target);
     bars.current[target]?.focus();
@@ -55,9 +65,10 @@ function StatsCardView({ card }: { card: StatsCard }) {
         <span className={cn('grid size-9 place-items-center rounded-full', look.tile)}>
           <look.icon className="size-4" strokeWidth={2.75} />
         </span>
-        <h2 id={`stats-${card.key}`} className="text-row-title font-semibold">
+        <h2 id={`stats-${card.key}`} className="flex-1 text-row-title font-semibold">
           {card.title}
         </h2>
+        {plusBadge && <PlusBadge />}
       </div>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {card.figures.map((figure) => (
@@ -84,7 +95,7 @@ function StatsCardView({ card }: { card: StatsCard }) {
         <div
           className="relative flex h-32 items-end gap-[3px] border-b border-line"
           role="group"
-          aria-label={`${card.title} per day`}
+          aria-label={`${card.title} per ${card.key === 'night' ? 'night' : 'day'}`}
         >
           {chart.bars.map((bar, index) => {
             const total = bar.values.reduce((sum, value) => sum + value, 0);
@@ -111,10 +122,10 @@ function StatsCardView({ card }: { card: StatsCard }) {
                 onBlur={() => setActive(null)}
                 onKeyDown={(event) => onKeyDown(event, index)}
               >
-                {bar.values.map((value, index) => (
+                {bar.values.map((value, seriesIndex) => (
                   <div
-                    key={index}
-                    className={cn(look.series[index], index === top && 'rounded-t-sm')}
+                    key={seriesIndex}
+                    className={cn(look.series[seriesIndex], seriesIndex === top && 'rounded-t-sm')}
                     style={{ height: chart.max ? `${(value / chart.max) * 100}%` : 0 }}
                   />
                 ))}
@@ -123,16 +134,12 @@ function StatsCardView({ card }: { card: StatsCard }) {
             );
           })}
           {active !== null && chart.bars[active] && (
-            <div
-              aria-hidden
-              className={cn(
-                'pointer-events-none absolute bottom-full z-10 mb-2 w-max max-w-full rounded-[10px] bg-ink px-2.5 py-1.5 text-caption font-semibold text-bg shadow-toast',
-                tipPosition(active, chart.bars.length).className,
-              )}
+            <ChartTip
+              className={cn('bottom-full mb-2 max-w-full', tipPosition(active, chart.bars.length).className)}
               style={tipPosition(active, chart.bars.length).style}
             >
               {barReadout(chart, chart.bars[active])}
-            </div>
+            </ChartTip>
           )}
         </div>
         {ends && (

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  feedDueFor,
   feedDueText,
   feedReminderChoice,
   feedReminderOptions,
@@ -122,5 +123,32 @@ describe('feedRemindersQuiet', () => {
     expect(feedRemindersQuiet({ ...night, feed_reminder_at_night: true }, new Date('2026-10-06T13:00:00Z'), tz)).toBe(
       false,
     );
+  });
+});
+
+describe('feedDueFor', () => {
+  const settings = { ...ON, feed_reminder_at_night: false, night_start_minutes: 19 * 60, night_end_minutes: 7 * 60 };
+  const day = new Date('2026-10-06T12:00:00Z');
+  const night = new Date('2026-10-06T10:00:00Z');
+
+  it('combines the latest and running events', () => {
+    expect(feedDueFor([breast], [bottle], settings, day, 'UTC')).toEqual(nextFeedDue([breast, bottle], settings));
+  });
+
+  it('is quiet at night when reminders are off then, and awake in the day', () => {
+    expect(feedDueFor([breast], [], settings, night, 'Pacific/Auckland')).toBeNull();
+    expect(
+      feedDueFor([breast], [], { ...settings, feed_reminder_at_night: true }, night, 'Pacific/Auckland'),
+    ).not.toBeNull();
+    expect(feedDueFor([breast], [], settings, day, 'UTC')).not.toBeNull();
+  });
+
+  it('is null until settings load', () => {
+    expect(feedDueFor([breast], [], undefined, day, 'UTC')).toBeNull();
+    expect(feedDueFor([breast], [], null, day, 'UTC')).toBeNull();
+  });
+
+  it('is null while a breastfeed is running', () => {
+    expect(feedDueFor([breast], [{ ...breast, id: 'live', endedAt: null }], settings, day, 'UTC')).toBeNull();
   });
 });

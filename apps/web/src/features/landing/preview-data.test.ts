@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { summariseSleep } from '@babble/domain';
-import { chairPreview, homePreview, pausePreview, timelinePreview } from './preview-data';
+import { chairPreview, homePreview, monthPreview, pausePreview, timelinePreview } from './preview-data';
 
 const now = new Date('2026-10-09T02:00:00Z');
 
@@ -49,5 +49,24 @@ describe('chairPreview', () => {
     expect(idle.feed).toBeNull();
     expect(feeding.night).toBe(true);
     expect(feeding.feed?.view.title).toBe('Feeding · Right');
+  });
+});
+
+describe('monthPreview', () => {
+  it('fills 30 days whose night stretch grows, with a weekly summary', () => {
+    const preview = monthPreview(now);
+    expect(preview.days).toHaveLength(30);
+    expect(preview.days.slice(0, -1).every((day) => day.layout.sleep.length >= 4)).toBe(true);
+    expect(preview.insights.weekly?.takeaway).toMatch(/up/);
+    expect(preview.insights.night?.figures[0]?.label).toBe('Longest stretch, last night');
+  });
+});
+
+describe('predictions in the previews', () => {
+  it('says when the baby is likely to sleep next and draws it on the timeline', () => {
+    expect(homePreview(now).prediction).toMatch(/^Likely asleep around /);
+    const timeline = timelinePreview(now);
+    expect(timeline.prediction).toMatch(/^Likely awake around /);
+    expect(timeline.predicted.sleep.length).toBeGreaterThan(0);
   });
 });

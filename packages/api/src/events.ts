@@ -2,14 +2,18 @@ import {
   fitStretches,
   type BabyEvent,
   type EventDraft,
+  type EventSource,
   type EventType,
+  type SessionAction,
   type Side,
   type SleepDetails,
   type TimedSegment,
 } from '@babble/domain';
 import type { BabbleClient } from './client';
 import type { Database, Json } from './database.types';
-import { toBabbleError, unwrap } from './errors';
+import { unwrap, unwrapVoid } from './errors';
+import { paginate } from './paginate';
+import { clock } from './clock';
 
 type Tables = Database['public']['Tables'];
 
@@ -160,16 +164,17 @@ export function sleepChangesPayload(changes: SleepChanges): Record<string, unkno
 }
 
 export async function saveSleepDetails(client: BabbleClient, eventId: string, changes: SleepChanges): Promise<void> {
-  const { error } = await client.rpc('save_sleep_details', {
-    target_event_id: eventId,
-    changes: sleepChangesPayload(changes) as Json,
-  });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(
+    await client.rpc('save_sleep_details', {
+      target_event_id: eventId,
+      changes: sleepChangesPayload(changes) as Json,
+    }),
+  );
 }
 
 export function draftToPayload(
   draft: EventDraft,
-  options: { babyId: string; id?: string; source?: 'manual' | 'huckleberry_csv'; sourceRef?: string },
+  options: { babyId: string; id?: string; source?: EventSource; sourceRef?: string },
 ) {
   const base = {
     ...(options.id ? { id: options.id } : {}),
@@ -250,27 +255,72 @@ export function draftToPayload(
   }
 }
 
+export interface EventCursor {
+  startedAt: string;
+  id: string;
+}
+
+export interface ListEventsOptions {
+  types?: EventType[];
+  before?: string;
+  since?: string;
+  cursor?: EventCursor;
+  overlapping?: string;
+  limit?: number;
+  offset?: number;
+  includeDeleted?: boolean;
+}
+
+export function rowsToEvents(rows: readonly EventRow[]): BabyEvent[] {
+  return rows.map(rowToEvent);
+}
+
+const SESSION_TYPES: readonly EventType[] = ['sleep', 'breast_feed', 'pump'];
+
+export function overlapFilter(from: string): string {
+  return `started_at.gte.${from},ended_at.gte.${from},and(ended_at.is.null,type.in.(${SESSION_TYPES.join(',')}))`;
+}
+
+export function cursorFilter(cursor: EventCursor): string {
+  return `started_at.lt.${cursor.startedAt},and(started_at.eq.${cursor.startedAt},id.lt.${cursor.id})`;
+}
+
 export async function listEvents(
   client: BabbleClient,
   babyId: string,
-  options: {
-    types?: EventType[];
-    before?: string;
-    since?: string;
-    limit?: number;
-    offset?: number;
-    includeDeleted?: boolean;
-  } = {},
+  options: ListEventsOptions = {},
 ): Promise<BabyEvent[]> {
   let query = client.from('events').select(EVENT_SELECT).eq('baby_id', babyId);
   if (!options.includeDeleted) query = query.is('deleted_at', null);
   if (options.types?.length) query = query.in('type', options.types);
   if (options.before) query = query.lt('started_at', options.before);
   if (options.since) query = query.gte('started_at', options.since);
+  if (options.overlapping) query = query.or(overlapFilter(options.overlapping));
+  if (options.cursor) query = query.or(cursorFilter(options.cursor));
   const limit = options.limit ?? 50;
   const offset = options.offset ?? 0;
-  const rows = unwrap(await query.order('started_at', { ascending: false }).range(offset, offset + limit - 1));
-  return (rows as unknown as EventRow[]).map(rowToEvent);
+  const rows = unwrap(
+    await query
+      .order('started_at', { ascending: false })
+      .order('id', { ascending: false })
+      .range(offset, offset + limit - 1)
+      .overrideTypes<EventRow[], { merge: false }>(),
+  );
+  return rowsToEvents(rows);
+}
+
+const PAGE_SIZE = 1000;
+
+export function listAllEventPages(
+  client: BabbleClient,
+  babyId: string,
+  options: Omit<ListEventsOptions, 'cursor' | 'limit' | 'offset'> = {},
+): Promise<BabyEvent[]> {
+  return paginate<BabyEvent, EventCursor>(
+    (cursor) => listEvents(client, babyId, { ...options, ...(cursor ? { cursor } : {}), limit: PAGE_SIZE }),
+    (event) => ({ startedAt: event.startedAt, id: event.id }),
+    PAGE_SIZE,
+  );
 }
 
 export const LONGEST_SESSION_MS = 24 * 3_600_000;
@@ -279,29 +329,30 @@ export function eventRangeBounds(from: string, to: string): { since: string; bef
   return { since: new Date(Date.parse(from) - LONGEST_SESSION_MS).toISOString(), before: to };
 }
 
-export async function listEventsBetween(
+export function listEventsBetween(
   client: BabbleClient,
   babyId: string,
   from: string,
   to: string,
 ): Promise<BabyEvent[]> {
-  const pageSize = 1000;
-  const events: BabyEvent[] = [];
-  for (let offset = 0; ; offset += pageSize) {
-    const page = await listEvents(client, babyId, { ...eventRangeBounds(from, to), limit: pageSize, offset });
-    events.push(...page);
-    if (page.length < pageSize) return events;
-  }
+  return listAllEventPages(client, babyId, { before: to, overlapping: from });
 }
 
 export async function getEvent(client: BabbleClient, id: string): Promise<BabyEvent> {
-  const row = unwrap(await client.from('events').select(EVENT_SELECT).eq('id', id).single());
-  return rowToEvent(row as unknown as EventRow);
+  const row = unwrap(
+    await client.from('events').select(EVENT_SELECT).eq('id', id).single().overrideTypes<EventRow, { merge: false }>(),
+  );
+  return rowToEvent(row);
 }
 
 export async function latestEvents(client: BabbleClient, babyId: string): Promise<BabyEvent[]> {
-  const rows = unwrap(await client.rpc('latest_events', { target_baby_id: babyId }).select(EVENT_SELECT));
-  return (rows as unknown as EventRow[]).map(rowToEvent);
+  const rows = unwrap(
+    await client
+      .rpc('latest_events', { target_baby_id: babyId })
+      .select(EVENT_SELECT)
+      .overrideTypes<EventRow[], { merge: false }>(),
+  );
+  return rowsToEvents(rows);
 }
 
 export async function runningEvents(client: BabbleClient, babyId: string): Promise<BabyEvent[]> {
@@ -312,9 +363,10 @@ export async function runningEvents(client: BabbleClient, babyId: string): Promi
       .eq('baby_id', babyId)
       .is('ended_at', null)
       .is('deleted_at', null)
-      .order('started_at'),
+      .order('started_at')
+      .overrideTypes<EventRow[], { merge: false }>(),
   );
-  return (rows as unknown as EventRow[]).map(rowToEvent);
+  return rowsToEvents(rows);
 }
 
 export async function saveEvent(client: BabbleClient, babyId: string, draft: EventDraft, id?: string): Promise<string> {
@@ -339,62 +391,88 @@ export async function startSession(
 }
 
 export async function switchSide(client: BabbleClient, eventId: string, side: Side): Promise<void> {
-  const { error } = await client.rpc('switch_side', { target_event_id: eventId, new_side: side });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.rpc('switch_side', { target_event_id: eventId, new_side: side }));
 }
 
 export async function pauseSession(client: BabbleClient, eventId: string): Promise<void> {
-  const { error } = await client.rpc('pause_session', { target_event_id: eventId });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.rpc('pause_session', { target_event_id: eventId }));
 }
 
 export async function resumeSession(client: BabbleClient, eventId: string, side?: Side): Promise<void> {
-  const { error } = await client.rpc('resume_session', {
-    target_event_id: eventId,
-    ...(side ? { resume_side: side } : {}),
-  });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(
+    await client.rpc('resume_session', {
+      target_event_id: eventId,
+      ...(side ? { resume_side: side } : {}),
+    }),
+  );
 }
 
 export async function endSession(client: BabbleClient, eventId: string, endAt?: string): Promise<void> {
-  const { error } = await client.rpc('end_session', { target_event_id: eventId, ...(endAt ? { end_at: endAt } : {}) });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.rpc('end_session', { target_event_id: eventId, ...(endAt ? { end_at: endAt } : {}) }));
 }
 
 export async function setSwitchTime(client: BabbleClient, eventId: string, switchAt: string): Promise<void> {
-  const { error } = await client.rpc('set_switch_time', { target_event_id: eventId, switch_at: switchAt });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.rpc('set_switch_time', { target_event_id: eventId, switch_at: switchAt }));
 }
 
 export async function setSessionStart(client: BabbleClient, eventId: string, startAt: string): Promise<void> {
-  const { error } = await client.rpc('set_session_start', { target_event_id: eventId, start_at: startAt });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.rpc('set_session_start', { target_event_id: eventId, start_at: startAt }));
+}
+
+export function runSessionAction(client: BabbleClient, eventId: string, action: SessionAction): Promise<void> {
+  switch (action.kind) {
+    case 'switch':
+      return switchSide(client, eventId, action.side);
+    case 'pause':
+      return pauseSession(client, eventId);
+    case 'resume':
+      return resumeSession(client, eventId, action.side);
+    case 'end':
+      return endSession(client, eventId, action.at);
+    case 'set-start':
+      return setSessionStart(client, eventId, action.startedAt);
+    case 'set-switch':
+      return setSwitchTime(client, eventId, action.at);
+  }
 }
 
 export async function resumeFeed(client: BabbleClient, eventId: string, side?: Side): Promise<void> {
-  const { error } = await client.rpc('resume_feed', {
-    target_event_id: eventId,
-    ...(side ? { resume_side: side } : {}),
-  });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(
+    await client.rpc('resume_feed', {
+      target_event_id: eventId,
+      ...(side ? { resume_side: side } : {}),
+    }),
+  );
 }
 
 export async function deleteEvent(client: BabbleClient, eventId: string): Promise<void> {
-  const { error } = await client.from('events').update({ deleted_at: new Date().toISOString() }).eq('id', eventId);
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.from('events').update({ deleted_at: clock.now().toISOString() }).eq('id', eventId));
 }
 
 export async function restoreEvent(client: BabbleClient, eventId: string): Promise<void> {
-  const { error } = await client.from('events').update({ deleted_at: null }).eq('id', eventId);
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.from('events').update({ deleted_at: null }).eq('id', eventId));
 }
 
-export function subscribeToBabyEvents(client: BabbleClient, babyId: string, onChange: () => void): () => void {
+let subscriptionCount = 0;
+
+const CHANNEL_FAILURES: readonly string[] = ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'];
+
+export function subscribeToBabyEvents(
+  client: BabbleClient,
+  babyId: string,
+  onChange: () => void,
+  onFailure: () => void = onChange,
+): () => void {
+  subscriptionCount += 1;
+  let active = true;
   const channel = client
-    .channel(`events:${babyId}`)
+    .channel(`events:${babyId}:${subscriptionCount}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `baby_id=eq.${babyId}` }, onChange)
-    .subscribe();
+    .subscribe((status) => {
+      if (active && CHANNEL_FAILURES.includes(status)) onFailure();
+    });
   return () => {
+    active = false;
     void client.removeChannel(channel);
   };
 }

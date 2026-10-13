@@ -2,9 +2,10 @@ import { formatTimeOfDay } from '../time/local-time';
 import { fractionOf, type TimeWindow } from '../timeline/days';
 import type { BabyEvent } from '../events/types';
 import { predictDay, type PredictedBlock, type PredictedKind } from './predict-day';
+import { DAY_MS, HOUR_MS } from '../time/constants';
 
-export const PREDICTION_HORIZON_MS = 4 * 3_600_000;
-const LOOKBACK_MS = 7 * 24 * 3_600_000;
+export const PREDICTION_HORIZON_MS = 4 * HOUR_MS;
+const LOOKBACK_MS = 7 * DAY_MS;
 const FADED_OPACITY = 0.35;
 
 export interface PredictedItem {

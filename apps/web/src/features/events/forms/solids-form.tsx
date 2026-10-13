@@ -2,16 +2,15 @@ import {
   addFood,
   foodSuggestions,
   hasFood,
+  instantDraft,
   MAX_FOOD_LENGTH,
   newFoods,
   recentFoods,
-  SOLIDS_AMOUNT_LABELS,
-  SOLIDS_REACTION_LABELS,
+  SOLIDS_AMOUNT_OPTIONS,
+  SOLIDS_REACTION_OPTIONS,
   toggleFood,
   type BabyEvent,
   type DraftOfType,
-  type SolidsAmount,
-  type SolidsReaction,
 } from '@babble/domain';
 import { Check, Plus } from 'lucide-react';
 import { useId, useState } from 'react';
@@ -19,17 +18,7 @@ import { Button } from '#/components/ui/button';
 import { SingleChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { cn } from '#/lib/cn';
-import { FormSection, instantDraft, type FormProps } from './shared';
-
-const AMOUNTS = (Object.keys(SOLIDS_AMOUNT_LABELS) as SolidsAmount[]).map((value) => ({
-  value,
-  label: SOLIDS_AMOUNT_LABELS[value],
-}));
-
-const REACTIONS = (Object.keys(SOLIDS_REACTION_LABELS) as SolidsReaction[]).map((value) => ({
-  value,
-  label: SOLIDS_REACTION_LABELS[value],
-}));
+import { FormSection, type FormProps } from './shared';
 
 export function SolidsForm({
   draft,
@@ -107,10 +96,15 @@ export function SolidsForm({
           <p className="text-meta text-on-solids">First try: {firstTries.join(', ')}</p>
         )}
       </fieldset>
-      <SingleChips label="How much" options={AMOUNTS} value={details.amount} onChange={(amount) => set({ amount })} />
+      <SingleChips
+        label="How much"
+        options={SOLIDS_AMOUNT_OPTIONS}
+        value={details.amount}
+        onChange={(amount) => set({ amount })}
+      />
       <SingleChips
         label="Reaction"
-        options={REACTIONS}
+        options={SOLIDS_REACTION_OPTIONS}
         value={details.reaction}
         onChange={(reaction) => set({ reaction })}
       />

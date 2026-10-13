@@ -1,24 +1,31 @@
-import { eventQuery, latestEventsQuery, resumeFeed, runningEventsQuery } from '@babble/api';
+import { eventQuery, latestEventsQuery, runningEventsQuery, toBabbleError, type BabbleClient } from '@babble/api';
+import { useAsyncAction, useResumeFeed, useTrackingSettings } from '@babble/api/react';
+import {
+  canResumeFeed,
+  importedNote,
+  eventToDraft,
+  isSessionType,
+  latestFeed,
+  pumpFinishSummary,
+  trackerFor,
+  type BabyEvent,
+  type Units,
+} from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Link, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
-import { ChevronLeft } from 'lucide-react';
+import { createFileRoute, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
+import { Play } from 'lucide-react';
+import { useState } from 'react';
+import { PageHeader } from '#/components/shell/page-header';
+import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
-import { Spinner } from '#/components/ui/spinner';
+import { SectionSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EntryAuthor } from '#/features/events/entry-author';
-import { EventForm, toDraft } from '#/features/events/event-form';
-import { canResumeFeed, importedNote, isSessionType, latestFeed, pumpFinishSummary, trackerFor } from '@babble/domain';
-import { useTrackingSettings } from '#/lib/use-events';
+import { EventForm } from '#/features/events/event-form';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
-import { Button } from '#/components/ui/button';
 import { useNow } from '#/lib/use-now';
-import { Play } from 'lucide-react';
-import { useState } from 'react';
-import { queryKeys } from '@babble/api';
-import { useQueryClient } from '@tanstack/react-query';
-import { toBabbleError } from '@babble/api';
 
 export const Route = createFileRoute('/_app/events/$eventId')({
   validateSearch: (search: Record<string, unknown>): { finish?: boolean } => ({
@@ -36,19 +43,12 @@ function EditEvent() {
   const { units, mergeGapMs } = useTrackingSettings(babble.client, baby.id);
   const latest = useQuery(latestEventsQuery(babble.client, baby.id)).data ?? [];
   const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
-  const queryClient = useQueryClient();
   const now = useNow(30_000);
-  const [resuming, setResuming] = useState(false);
-  const [resumeError, setResumeError] = useState<string | null>(null);
+  const resume = useResumeFeed(babble.client, baby.id);
+  const resuming = useAsyncAction();
   const event = useQuery(eventQuery(babble.client, baby.id, eventId));
 
-  if (event.isPending) {
-    return (
-      <div className="flex justify-center py-16 text-primary">
-        <Spinner className="size-7" />
-      </div>
-    );
-  }
+  if (event.isPending) return <SectionSpinner />;
   if (event.error || !event.data || event.data.deletedAt) {
     return (
       <StatusMessage tone="danger">
@@ -72,21 +72,12 @@ function EditEvent() {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
-      <div className="flex items-center gap-3">
-        <Link
-          to="/track/$type"
-          params={{ type: tracker.key }}
-          aria-label="Back"
-          className="grid size-tap place-items-center rounded-full hover:bg-surface"
-        >
-          <ChevronLeft className="size-6" strokeWidth={2.75} />
-        </Link>
-        <TrackerIcon tracker={tracker} />
-        <div className="flex flex-col">
-          <h1 className="text-title font-bold">{finish ? 'How much did you pump?' : tracker.label}</h1>
-          {finishSummary && <p className="tabular text-meta text-ink-2">{finishSummary}</p>}
-        </div>
-      </div>
+      <PageHeader
+        backTo={{ to: '/track/$type', params: { type: tracker.key } }}
+        icon={<TrackerIcon tracker={tracker} />}
+        title={finish ? 'How much did you pump?' : tracker.label}
+        subtitle={finishSummary}
+      />
       {(event.data.type === 'breast_feed' || event.data.type === 'pump') && event.data.segments.length > 0 && (
         <SessionBreakdown
           segments={event.data.segments}
@@ -100,25 +91,19 @@ function EditEvent() {
         <div className="flex flex-col gap-2">
           <Button
             size="lg"
-            loading={resuming}
-            onClick={async () => {
-              setResuming(true);
-              setResumeError(null);
-              try {
-                await resumeFeed(babble.client, eventId);
-                await queryClient.invalidateQueries({ queryKey: queryKeys.events(baby.id), refetchType: 'all' });
+            loading={resuming.busy}
+            onClick={() =>
+              resuming.run(async () => {
+                await resume.mutateAsync(eventId);
                 await navigate({ to: '/sessions/$eventId', params: { eventId } });
-              } catch (caught) {
-                setResumeError(toBabbleError(caught).message);
-                setResuming(false);
-              }
-            }}
+              })
+            }
           >
-            {!resuming && <Play className="size-5" strokeWidth={2.75} />}
+            {!resuming.busy && <Play className="size-5" strokeWidth={2.75} />}
             Resume feed
           </Button>
           <p className="text-center text-meta text-ink-2">Resume only appears on the most recent feed.</p>
-          {resumeError && <StatusMessage tone="danger">{resumeError}</StatusMessage>}
+          {resuming.error && <StatusMessage tone="danger">{resuming.error}</StatusMessage>}
         </div>
       )}
       <EntryAuthor
@@ -136,17 +121,65 @@ function EditEvent() {
         }}
       />
       {note && <StatusMessage tone="info">{note}</StatusMessage>}
+      <EventFormPanel
+        key={event.data.id}
+        client={babble.client}
+        babyId={baby.id}
+        timeZone={baby.timezone}
+        units={units}
+        event={event.data}
+        focusAmounts={finish}
+        onDone={done}
+      />
+    </div>
+  );
+}
+
+function EventFormPanel({
+  client,
+  babyId,
+  timeZone,
+  units,
+  event,
+  focusAmounts,
+  onDone,
+}: {
+  client: BabbleClient;
+  babyId: string;
+  timeZone: string;
+  units: Units;
+  event: BabyEvent;
+  focusAmounts: boolean | undefined;
+  onDone: () => void;
+}) {
+  const [loaded, setLoaded] = useState({ updatedAt: event.updatedAt, version: 0 });
+  const changedElsewhere = event.updatedAt !== loaded.updatedAt;
+  return (
+    <div className="flex flex-col gap-3">
+      {changedElsewhere && (
+        <StatusMessage tone="info">
+          <span className="flex flex-wrap items-center justify-between gap-3">
+            This entry was changed on another device.
+            <Button
+              variant="secondary"
+              onClick={() => setLoaded((current) => ({ updatedAt: event.updatedAt, version: current.version + 1 }))}
+            >
+              Reload
+            </Button>
+          </span>
+        </StatusMessage>
+      )}
       <Card className="p-5">
         <EventForm
-          key={event.data.updatedAt}
-          client={babble.client}
-          babyId={baby.id}
-          timeZone={baby.timezone}
+          key={loaded.version}
+          client={client}
+          babyId={babyId}
+          timeZone={timeZone}
           units={units}
-          event={event.data}
-          initial={toDraft(event.data)}
-          focusAmounts={finish}
-          onDone={done}
+          event={event}
+          initial={eventToDraft(event)}
+          focusAmounts={focusAmounts}
+          onDone={onDone}
         />
       </Card>
     </div>

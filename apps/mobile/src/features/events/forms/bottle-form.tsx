@@ -1,9 +1,9 @@
-import { formatVolume, volumeToMl, type BottleContent, type DraftOfType } from '@babble/domain';
+import { formatVolume, instantDraft, volumeToMl, type BottleContent, type DraftOfType } from '@babble/domain';
 import { Text } from 'react-native';
 import { DateTimeField } from '@/components/datetime-field';
 import { Segmented } from '@/components/segmented';
 import { Stepper } from '@/components/stepper';
-import { FormSection, instantDraft, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 const CONTENTS: { value: BottleContent; label: string }[] = [
   { value: 'breast_milk', label: 'Breast milk' },

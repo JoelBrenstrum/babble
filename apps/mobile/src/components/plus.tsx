@@ -38,10 +38,13 @@ export function PlusPitch({ feature, onClose }: { feature: PlusFeature; onClose:
           </View>
         ))}
       </View>
-      <Text className="font-sans text-meta text-ink-2">{pitch.note}</Text>
-      <Button variant="secondary" onPress={onClose}>
-        Got it
-      </Button>
+      <View className="gap-2">
+        <Button disabled>Subscribe to Plus</Button>
+        <Text className="text-center font-sans text-meta text-ink-2">{pitch.note}</Text>
+        <Button variant="secondary" onPress={onClose}>
+          Not now
+        </Button>
+      </View>
     </View>
   );
 }

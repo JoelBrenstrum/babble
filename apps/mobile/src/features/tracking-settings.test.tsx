@@ -1,4 +1,4 @@
-import type { BabySettingsRow } from '@babble/api';
+import type { BabySettings } from '@babble/api';
 import { sampleBaby } from '@babble/api/fixtures';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
@@ -6,7 +6,7 @@ import type { ReactNode } from 'react';
 import { fixtureClient } from '@/fixtures/client';
 import { BabyTrackingSettings, FamilyTrackingSettings } from './tracking-settings';
 
-const mockSettings: BabySettingsRow = {
+const mockSettings: BabySettings = {
   baby_id: sampleBaby.id,
   units: 'metric',
   night_start_minutes: 1140,

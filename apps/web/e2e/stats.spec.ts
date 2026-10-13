@@ -30,15 +30,14 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
   await nappyBar.hover();
   await expect(page.getByText(/· Total 1$/)).toBeVisible();
 
-  await page.getByRole('radio', { name: 'Today' }).click();
-  await expect(page).toHaveURL(/range=today/);
-  await expect(page.getByText('Totals for today so far, charted hour by hour.')).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'Today' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Patterns' })).toBeVisible();
 
   await page.getByRole('radio', { name: '30d' }).click();
   await expect(page).toHaveURL(/range=30d/);
   await page.getByRole('radio', { name: 'All' }).click();
   await expect(page).toHaveURL(/range=all/);
-  await expect(page.getByRole('heading', { name: 'Nappies' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'All-time stats' })).toBeVisible();
 });
 
 test('growth is compared with the WHO charts once the sex is set', async ({ page }, testInfo) => {

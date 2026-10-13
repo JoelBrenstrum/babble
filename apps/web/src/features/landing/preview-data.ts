@@ -1,4 +1,11 @@
-import { sampleBaby, sampleEvents, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
+import {
+  sampleBaby,
+  sampleEvents,
+  sampleMonthEvents,
+  sampleMonthView,
+  sampleRunningFeed,
+  sampleRunningSleep,
+} from '@babble/api/fixtures';
 import {
   babyAgeLabel,
   chairFeedSummary,
@@ -10,6 +17,10 @@ import {
   fractionOf,
   hourTicks,
   feedDueText,
+  insightsReport,
+  predictedLayout,
+  predictionText,
+  type PredictedBlock,
   formatTimeOfDay,
   lastFeedLine,
   lastNappyLine,
@@ -26,11 +37,23 @@ const { timezone, day_start_minutes: dayStart } = sampleBaby;
 const NIGHT = { startMinutes: 19 * 60, endMinutes: 7 * 60 };
 const TIMELINE_ANCHOR_HOURS = 12.5;
 
+const MINUTE = 60_000;
+const at = (base: Date, minutes: number) => new Date(base.getTime() + minutes * MINUTE).toISOString();
+
 export function homePreview(now: Date) {
   const running = sampleRunningFeed(now);
   const events = sampleEvents(now);
   const summary = summariseDay([running, ...events], { start: new Date(now.getTime() - 12 * 3_600_000), end: now });
-  return { running: [running], latest: [running, ...events], summary };
+  const predicted: PredictedBlock[] = [
+    { kind: 'feed', startedAt: at(now, -26), endedAt: at(now, 6), continuesRunning: true },
+    { kind: 'sleep', startedAt: at(now, 18), endedAt: at(now, 95), continuesRunning: false },
+  ];
+  return {
+    running: [running],
+    latest: [running, ...events],
+    summary,
+    prediction: predictionText(predicted, timezone),
+  };
 }
 
 export function timelinePreview(now: Date) {
@@ -46,11 +69,27 @@ export function timelinePreview(now: Date) {
     now: at,
     night: { dayKey, timeZone: timezone, ...NIGHT },
   });
+  const ahead = (minutes: number) => new Date(at.getTime() + minutes * MINUTE).toISOString();
+  const predicted: PredictedBlock[] = [
+    {
+      kind: 'sleep',
+      startedAt:
+        events.find((event) => event.type === 'sleep' && event.endedAt === null)?.startedAt ?? at.toISOString(),
+      endedAt: ahead(35),
+      continuesRunning: true,
+    },
+    { kind: 'feed', startedAt: ahead(40), endedAt: ahead(65), continuesRunning: false },
+    { kind: 'sleep', startedAt: ahead(125), endedAt: ahead(200), continuesRunning: false },
+    { kind: 'feed', startedAt: ahead(205), endedAt: ahead(230), continuesRunning: false },
+  ];
   return {
+    now: at,
     layout: dayLayout(events, window, at),
     ticks: hourTicks(dayKey, timezone, dayStart, 3),
     nowFrac: fractionOf(window, at.getTime()),
     totals: dayTotalCards(summary, 'metric', timezone),
+    predicted: predictedLayout(predicted, window, at, timezone),
+    prediction: predictionText(predicted, timezone),
   };
 }
 
@@ -86,6 +125,7 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
   const idle: ChairData = {
     babyName: sampleBaby.name,
     age: babyAgeLabel(sampleBaby.birth_date, todayInTimeZone(timezone, now)),
+    babies: [],
     clock: formatTimeOfDay(now.toISOString(), timezone),
     night: false,
     dimmed: false,
@@ -117,4 +157,17 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
       },
     },
   };
+}
+
+export function monthPreview(now: Date) {
+  const events = sampleMonthEvents(now);
+  const { days, ticks, todayKey } = sampleMonthView(now);
+  const insights = insightsReport(events, todayKey, now, {
+    timeZone: timezone,
+    dayStartMinutes: dayStart,
+    nightStartMinutes: NIGHT.startMinutes,
+    nightEndMinutes: NIGHT.endMinutes,
+    mergeGapMs: 15_000,
+  });
+  return { days, ticks, todayKey, insights };
 }

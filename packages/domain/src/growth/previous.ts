@@ -1,5 +1,6 @@
 import type { BabyEvent, GrowthDetails, Units } from '../events/types';
 import { formatShortDate } from '../time/local-time';
+import { byStartedAtDesc } from '../time/instants';
 
 type Measure = keyof GrowthDetails;
 
@@ -23,7 +24,7 @@ export function growthPlaceholders(
 ): Record<Measure, string | null> {
   const growth = events
     .filter((event) => event.type === 'growth' && !event.deletedAt && event.id !== excludeId)
-    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
+    .sort(byStartedAtDesc);
   const placeholders = {} as Record<Measure, string | null>;
   for (const measure of MEASURES) {
     const latest = growth.find((event) => event.type === 'growth' && event.details[measure] !== null);

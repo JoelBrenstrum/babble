@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 
 select plan(8);
+update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
 returns void

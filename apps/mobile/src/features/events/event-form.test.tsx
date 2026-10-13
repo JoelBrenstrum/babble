@@ -3,14 +3,10 @@ import { emptyDraft, type EventDraft } from '@babble/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ToastProvider } from '@/components/toast';
-import { fixtureClient } from '@/fixtures/client';
+import { createFakeClient } from '@/fixtures/fake-client';
 import { EventForm } from './event-form';
 
-const mockSaveEvent = jest.fn();
-jest.mock('@babble/api', () => ({
-  ...jest.requireActual('@babble/api'),
-  saveEvent: (...args: unknown[]) => mockSaveEvent(...args),
-}));
+const fake = createFakeClient();
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
@@ -21,7 +17,7 @@ async function renderForm(initial: EventDraft, focusAmounts = false) {
     <QueryClientProvider client={new QueryClient()}>
       <ToastProvider>
         <EventForm
-          client={fixtureClient}
+          client={fake.client}
           babyId={sampleBaby.id}
           timeZone={sampleBaby.timezone}
           units="metric"
@@ -38,10 +34,12 @@ async function renderForm(initial: EventDraft, focusAmounts = false) {
 const now = new Date(Date.now() - 60 * 60_000);
 
 describe('EventForm', () => {
-  beforeEach(() => mockSaveEvent.mockReset());
+  beforeEach(() => fake.rpc.mockReset());
 
   it('keeps the entry and retries after a failed save', async () => {
-    mockSaveEvent.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce('event-1');
+    fake.rpc
+      .mockResolvedValueOnce({ data: null, error: new Error('offline') })
+      .mockResolvedValueOnce({ data: 'event-1', error: null });
     const { onDone } = await renderForm({ ...emptyDraft('custom', now), details: { title: 'Bath', description: '' } });
     await fireEvent.press(screen.getByRole('button', { name: 'Save' }));
 
@@ -51,11 +49,11 @@ describe('EventForm', () => {
 
     await fireEvent.press(screen.getByRole('button', { name: 'Retry' }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
-    expect(mockSaveEvent).toHaveBeenCalledTimes(2);
+    expect(fake.rpc).toHaveBeenCalledTimes(2);
   });
 
   it('saves a finished pump without amounts', async () => {
-    mockSaveEvent.mockResolvedValue('event-1');
+    fake.rpc.mockResolvedValue({ data: 'event-1', error: null });
     const pump = emptyDraft('pump', now);
     const { onDone } = await renderForm(
       { ...pump, endedAt: now.toISOString(), details: { leftMl: 60, rightMl: 50, totalMl: null } },
@@ -63,6 +61,8 @@ describe('EventForm', () => {
     );
     await fireEvent.press(screen.getByRole('button', { name: 'Save without amounts' }));
     await waitFor(() => expect(onDone).toHaveBeenCalled());
-    expect(mockSaveEvent.mock.calls[0]![2]).toMatchObject({ details: { leftMl: null, rightMl: null, totalMl: null } });
+    expect(fake.rpc.mock.calls[0]![1].event).toMatchObject({
+      details: { left_ml: null, right_ml: null, total_ml: null },
+    });
   });
 });

@@ -20,3 +20,11 @@ export function PageSpinner({ label = 'Loading' }: { label?: string }) {
     </div>
   );
 }
+
+export function SectionSpinner({ label = 'Loading' }: { label?: string }) {
+  return (
+    <div className="flex justify-center py-16 text-primary">
+      <Spinner className="size-7" label={label} />
+    </div>
+  );
+}

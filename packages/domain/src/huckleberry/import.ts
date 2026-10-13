@@ -14,6 +14,8 @@ import type {
 } from '../events/types';
 import { addFood } from '../events/foods';
 import { zonedToUtc } from '../time/zoned';
+import { MINUTE_MS } from '../time/constants';
+import { ML_PER_OUNCE } from '../format/units';
 
 export const HUCKLEBERRY_HEADER = [
   'Type',
@@ -475,7 +477,7 @@ export function parseLocalTime(value: string, timeZone: string): Date | null {
 export function parseHoursMinutes(value: string): number | null {
   const match = /^(\d+):(\d{2})$/.exec(value);
   if (!match) return null;
-  return (Number(match[1]) * 60 + Number(match[2])) * 60_000;
+  return (Number(match[1]) * 60 + Number(match[2])) * MINUTE_MS;
 }
 
 export function parseSideDuration(value: string): { side: Side; durationMs: number } | null {
@@ -491,7 +493,7 @@ export function parseVolumeMl(value: string): number | null {
   const match = /^(\d+(?:\.\d+)?)\s*(ml|oz)$/i.exec(value);
   if (!match) return null;
   const amount = Number(match[1]);
-  return match[2]!.toLowerCase() === 'oz' ? Math.round(amount * 29.5735) : amount;
+  return match[2]!.toLowerCase() === 'oz' ? Math.round(amount * ML_PER_OUNCE) : amount;
 }
 
 export function parseWeightG(value: string): number | null {

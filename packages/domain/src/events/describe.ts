@@ -15,6 +15,8 @@ import {
 } from './labels';
 import type { NappyType } from './nappy';
 import type { BabyEvent, Mood, PooColour, Side, TimedSegment, Units } from './types';
+import { byStartedAtAsc } from '../time/instants';
+import { MINUTE_MS } from '../time/constants';
 
 export type PartTone =
   | 'feed-left'
@@ -59,7 +61,7 @@ export interface EventDescription {
 }
 
 function short(ms: number): string {
-  return formatDuration(ms, { seconds: ms < 60_000 });
+  return formatDuration(ms, { seconds: ms < MINUTE_MS });
 }
 
 const BOTTLE_LABELS = { breast_milk: 'breast milk', formula: 'formula', mixed: 'mixed', other: 'other' } as const;
@@ -71,7 +73,7 @@ const NAPPY_PILLS: Record<NappyType, { text: string; icon: PartIcon }> = {
   dry: { text: 'Dry', icon: 'circle' },
 };
 
-const IDLE_MIN_MS = 60_000;
+const IDLE_MIN_MS = MINUTE_MS;
 
 function idlePart(ms: number): DescriptionPart {
   return { text: formatDuration(ms, { seconds: false }), tone: 'downtime', icon: 'pause' };
@@ -82,7 +84,7 @@ function sidesInOrder(
   idleMs: number,
   sidePart: (side: Side) => DescriptionPart | null,
 ): DescriptionPart[] {
-  const sorted = [...segments].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+  const sorted = [...segments].sort(byStartedAtAsc);
   const order: Side[] = [];
   let idleAt: number | null = null;
   sorted.forEach((segment, index) => {
@@ -186,7 +188,7 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
       return describe({
         title: 'Bottle',
         parts: [{ text, tone: 'bottle' }],
-        duration: spanMs >= 60_000 ? formatDuration(spanMs, { seconds: false }) : null,
+        duration: spanMs >= MINUTE_MS ? formatDuration(spanMs, { seconds: false }) : null,
       });
     }
     case 'solids': {
@@ -250,7 +252,7 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
       return describe({
         title: event.details.title,
         parts: event.details.description ? [{ text: event.details.description, tone: 'custom' }] : [],
-        duration: spanMs >= 60_000 ? formatDuration(spanMs, { seconds: false }) : null,
+        duration: spanMs >= MINUTE_MS ? formatDuration(spanMs, { seconds: false }) : null,
       });
   }
 }

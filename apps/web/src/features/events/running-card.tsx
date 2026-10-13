@@ -1,64 +1,79 @@
-import type { BabbleClient, BabySettingsRow, FamilyMemberRow } from '@babble/api';
+import { clock, queryKeys, type BabbleClient, type BabySettings, type FamilyMemberRow } from '@babble/api';
+import { useDiscardSession, useSessionAction } from '@babble/api/react';
 import {
   discardNeedsConfirmation,
+  feedEndTime,
   formatDuration,
   formatTimer,
-  feedEndTime,
-  napPromptOnFeedEnd,
-  nappyPromptOnFeedFinish,
-  nappyPromptOnSideChange,
   pausedForMs,
+  promptsForSessionEvent,
   segmentTotals,
+  SIDE_LABEL,
   sessionNoun,
   summariseSleep,
   type BabyEvent,
+  type EventOfType,
   type Side,
 } from '@babble/domain';
+import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Moon, Pause, Play, Square, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
+import { ConfirmPanel } from '#/components/ui/confirm-panel';
 import { cn } from '#/lib/cn';
 import { useNapPrompt } from '#/features/nap-prompt';
-import { useDiscardSession, useSessionAction } from '#/lib/use-events';
-import { clock, queryKeys } from '@babble/api';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNow } from '#/lib/use-now';
 import { EndTimeButton, EndTimeEditor } from './end-time-editor';
 import { StartTimeButton, StartTimeEditor } from './start-time-editor';
 
-const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
+const SIDE_BUTTON: Record<Side, { active: string; idle: string }> = {
+  left: {
+    active: 'bg-feed-left text-ink-on-solid shadow-[0_0_0_4px_rgb(var(--feed-left)/0.25)]',
+    idle: 'border border-feed-left/40 bg-feed-left-soft text-on-feed-left',
+  },
+  right: {
+    active: 'bg-feed-right text-ink-on-solid shadow-[0_0_0_4px_rgb(var(--feed-right)/0.25)]',
+    idle: 'border border-feed-right/40 bg-feed-right-soft text-on-feed-right',
+  },
+};
 
-export function RunningCard({
-  event,
-  client,
-  timeZone,
-  members,
-  compact = false,
-  onDiscarded,
-}: {
-  event: BabyEvent;
+const SIDES: readonly Side[] = ['left', 'right'];
+
+interface RunningCardProps {
   client: BabbleClient;
   timeZone: string;
   members: FamilyMemberRow[];
   compact?: boolean;
   onDiscarded?: () => void;
+}
+
+export function RunningCard({ event, ...props }: RunningCardProps & { event: BabyEvent }) {
+  if (event.type === 'sleep') return <SleepRunningCard event={event} {...props} />;
+  if (event.type === 'breast_feed' || event.type === 'pump') return <FeedRunningCard event={event} {...props} />;
+  return null;
+}
+
+function useSessionEditors({
+  event,
+  client,
+  timeZone,
+  now,
+  onDiscarded,
+}: {
+  event: BabyEvent;
+  client: BabbleClient;
+  timeZone: string;
+  now: Date;
+  onDiscarded?: () => void;
 }) {
-  const now = useNow(1000);
   const action = useSessionAction(client, event.babyId);
   const discard = useDiscardSession(client, event.babyId);
-  const showNapPrompt = useNapPrompt();
-  const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const [editingStart, setEditingStart] = useState(false);
   const [editingEnd, setEditingEnd] = useState(false);
   const noun = sessionNoun(event.type);
-
-  function requestDiscard() {
-    if (discardNeedsConfirmation(event, clock.now())) setConfirming(true);
-    else confirmDiscard();
-  }
 
   function confirmDiscard() {
     setConfirming(false);
@@ -66,14 +81,28 @@ export function RunningCard({
     onDiscarded?.();
   }
 
+  function requestDiscard() {
+    if (discardNeedsConfirmation(event, clock.now())) setConfirming(true);
+    else confirmDiscard();
+  }
+
   const discardControls = confirming ? (
-    <DiscardConfirm
-      noun={noun}
-      elapsed={formatDuration(now.getTime() - Date.parse(event.startedAt), { seconds: false })}
-      onKeep={() => setConfirming(false)}
-      onDiscard={confirmDiscard}
+    <ConfirmPanel
+      label={`Discard this ${noun}?`}
+      message={
+        <>
+          <strong>Discard this {noun}?</strong> It's been running for{' '}
+          {formatDuration(now.getTime() - Date.parse(event.startedAt), { seconds: false })}. You can undo straight
+          after.
+        </>
+      }
+      confirmLabel="Discard"
+      cancelLabel={`Keep ${noun}`}
+      onConfirm={confirmDiscard}
+      onCancel={() => setConfirming(false)}
     />
   ) : null;
+
   const startControls = editingStart ? (
     <StartTimeEditor
       event={event}
@@ -87,6 +116,7 @@ export function RunningCard({
   ) : (
     <StartTimeButton event={event} timeZone={timeZone} onClick={() => setEditingStart(true)} />
   );
+
   const endControls = (end: (at?: string) => void) =>
     editingEnd ? (
       <EndTimeEditor
@@ -101,106 +131,151 @@ export function RunningCard({
     ) : (
       <EndTimeButton onClick={() => setEditingEnd(true)} />
     );
-  const navigate = useNavigate();
-  const startedBy = members.find((member) => member.user_id === event.createdBy)?.display_name;
 
-  if (event.type === 'sleep') {
-    const sleep = summariseSleep(event, now);
-    const ending = action.isPending && action.variables?.action.kind === 'end';
-    return (
-      <Shell tone="sleep" compact={compact}>
-        <Header
-          title={sleep.paused ? 'Awake · nap paused' : 'Napping'}
-          paused={sleep.paused}
-          startedBy={startedBy}
-          eventId={event.id}
-          compact={compact}
-          noun={noun}
-          onDiscard={requestDiscard}
-        />
-        {discardControls}
-        <div className="flex flex-wrap items-baseline gap-x-3">
-          <span className={cn('tabular text-timer-lg font-medium', sleep.paused ? 'text-ink-2' : 'text-on-sleep')}>
-            {formatTimer(sleep.asleepMs)}
+  return { action, noun, requestDiscard, discardControls, startControls, endControls };
+}
+
+const startedByName = (members: FamilyMemberRow[], event: BabyEvent) =>
+  members.find((member) => member.user_id === event.createdBy)?.display_name;
+
+function SleepRunningCard({
+  event,
+  client,
+  timeZone,
+  members,
+  compact = false,
+  onDiscarded,
+}: RunningCardProps & { event: EventOfType<'sleep'> }) {
+  const now = useNow(1000);
+  const { action, noun, requestDiscard, discardControls, startControls, endControls } = useSessionEditors({
+    event,
+    client,
+    timeZone,
+    now,
+    onDiscarded,
+  });
+  const sleep = summariseSleep(event, now);
+  const ending = action.isPending && action.variables?.action.kind === 'end';
+
+  return (
+    <Shell tone="sleep" compact={compact}>
+      <Header
+        title={sleep.paused ? 'Awake · nap paused' : 'Napping'}
+        paused={sleep.paused}
+        startedBy={startedByName(members, event)}
+        eventId={event.id}
+        compact={compact}
+        noun={noun}
+        onDiscard={requestDiscard}
+      />
+      {discardControls}
+      <div className="flex flex-wrap items-baseline gap-x-3">
+        <span className={cn('tabular text-timer-lg font-medium', sleep.paused ? 'text-ink-2' : 'text-on-sleep')}>
+          {formatTimer(sleep.asleepMs)}
+        </span>
+        {sleep.wakeUps > 0 && (
+          <span className="tabular text-meta text-ink-2">
+            awake {formatDuration(sleep.awakeMs)} · {sleep.wakeUps === 1 ? '1 wake-up' : `${sleep.wakeUps} wake-ups`}
           </span>
-          {sleep.wakeUps > 0 && (
-            <span className="tabular text-meta text-ink-2">
-              awake {formatDuration(sleep.awakeMs)} · {sleep.wakeUps === 1 ? '1 wake-up' : `${sleep.wakeUps} wake-ups`}
-            </span>
+        )}
+      </div>
+      {startControls}
+      <div className="mt-2 grid grid-cols-2 gap-3">
+        <Button
+          variant="secondary"
+          size="lg"
+          onClick={() => action.mutate({ event, action: sleep.paused ? { kind: 'resume' } : { kind: 'pause' } })}
+        >
+          {sleep.paused ? (
+            <Play className="size-5" strokeWidth={2.75} />
+          ) : (
+            <Pause className="size-5" strokeWidth={2.75} />
           )}
-        </div>
-        {startControls}
-        <div className="mt-2 grid grid-cols-2 gap-3">
-          <Button
-            variant="secondary"
-            size="lg"
-            onClick={() => action.mutate({ event, action: sleep.paused ? { kind: 'resume' } : { kind: 'pause' } })}
-          >
-            {sleep.paused ? (
-              <Play className="size-5" strokeWidth={2.75} />
-            ) : (
-              <Pause className="size-5" strokeWidth={2.75} />
-            )}
-            {sleep.paused ? 'Resume nap' : 'Pause nap'}
-          </Button>
-          <Button
-            size="lg"
-            className="bg-sleep text-ink-on-solid hover:bg-on-sleep"
-            loading={ending}
-            onClick={() => action.mutate({ event, action: { kind: 'end' } })}
-          >
-            {!ending && <Moon className="size-5" strokeWidth={2.75} />}
-            End nap
-          </Button>
-        </div>
-        {endControls((at) => action.mutate({ event, action: { kind: 'end', at } }))}
-      </Shell>
-    );
-  }
+          {sleep.paused ? 'Resume nap' : 'Pause nap'}
+        </Button>
+        <Button
+          size="lg"
+          className="bg-sleep text-ink-on-solid hover:bg-on-sleep"
+          loading={ending}
+          onClick={() => action.mutate({ event, action: { kind: 'end' } })}
+        >
+          {!ending && <Moon className="size-5" strokeWidth={2.75} />}
+          End nap
+        </Button>
+      </div>
+      {endControls((at) => action.mutate({ event, action: { kind: 'end', at } }))}
+    </Shell>
+  );
+}
 
-  if (event.type !== 'breast_feed' && event.type !== 'pump') return null;
+function FeedRunningCard({
+  event,
+  client,
+  timeZone,
+  members,
+  compact = false,
+  onDiscarded,
+}: RunningCardProps & { event: EventOfType<'breast_feed'> | EventOfType<'pump'> }) {
+  const now = useNow(1000);
+  const { action, noun, requestDiscard, discardControls, startControls, endControls } = useSessionEditors({
+    event,
+    client,
+    timeZone,
+    now,
+    onDiscarded,
+  });
+  const showNapPrompt = useNapPrompt();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const totals = segmentTotals(event.segments, now);
-  const paused = totals.openSide === null;
-  const currentMs = totals.openSegmentStartedAt ? now.getTime() - Date.parse(totals.openSegmentStartedAt) : 0;
+  const open = totals.open;
+  const paused = open === null;
+  const currentMs = open ? now.getTime() - Date.parse(open.startedAt) : 0;
   const title = event.type === 'pump' ? 'Pumping' : 'Feeding';
-  const tone = event.type === 'pump' ? 'pump' : 'feed';
 
-  const latestEvents = () => queryClient.getQueryData<BabyEvent[]>(queryKeys.latestEvents(event.babyId)) ?? [];
-  const nappyTiming = () =>
-    queryClient.getQueryData<BabySettingsRow>(queryKeys.babySettings(event.babyId))?.nappy_prompt ?? 'feed_start';
+  const cached = () => ({
+    running: queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [],
+    latest: queryClient.getQueryData<BabyEvent[]>(queryKeys.latestEvents(event.babyId)) ?? [],
+    nappyTiming:
+      queryClient.getQueryData<BabySettings>(queryKeys.babySettings(event.babyId))?.nappy_prompt ?? 'feed_start',
+  });
 
-  function pressSide(side: Side, active: boolean) {
-    action.mutate({
-      event,
-      action: active ? { kind: 'pause' } : paused ? { kind: 'resume', side } : { kind: 'switch', side },
-    });
-    if (!active && event.type === 'breast_feed') {
-      showNapPrompt(nappyPromptOnSideChange(nappyTiming(), event, side, latestEvents(), clock.now().toISOString()));
+  async function pressSide(side: Side, active: boolean) {
+    const context = cached();
+    const at = clock.now().toISOString();
+    try {
+      await action.mutateAsync({
+        event,
+        action: active ? { kind: 'pause' } : paused ? { kind: 'resume', side } : { kind: 'switch', side },
+      });
+    } catch {
+      return;
     }
+    if (!active) promptsForSessionEvent({ kind: 'side', event, side, at, ...context }).forEach(showNapPrompt);
   }
 
-  function finish(at?: string) {
-    const running = queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [];
-    const ended = action.mutateAsync({ event, action: { kind: 'end', at } });
-    if (event.type === 'breast_feed') {
-      const endedAt = at ?? feedEndTime(event, clock.now());
-      showNapPrompt(napPromptOnFeedEnd(running, endedAt));
-      showNapPrompt(nappyPromptOnFeedFinish(nappyTiming(), event, latestEvents(), endedAt));
+  async function finish(at?: string) {
+    const context = cached();
+    const endedAt = at ?? feedEndTime(event, clock.now());
+    try {
+      await action.mutateAsync({ event, action: { kind: 'end', at } });
+    } catch {
+      return;
     }
     if (event.type === 'pump') {
-      ended
-        .then(() => navigate({ to: '/events/$eventId', params: { eventId: event.id }, search: { finish: true } }))
-        .catch(() => undefined);
+      void navigate({ to: '/events/$eventId', params: { eventId: event.id }, search: { finish: true } });
+      return;
     }
+    promptsForSessionEvent({ kind: 'end', event, at: endedAt, ...context }).forEach(showNapPrompt);
   }
 
   return (
-    <Shell tone={tone} compact={compact}>
+    <Shell tone={event.type === 'pump' ? 'pump' : 'feed'} compact={compact}>
       <Header
-        title={paused ? `${title} · paused` : `${title} · ${SIDE_LABEL[totals.openSide!]}`}
+        title={open ? `${title} · ${SIDE_LABEL[open.side]}` : `${title} · paused`}
         paused={paused}
-        startedBy={startedBy}
+        startedBy={startedByName(members, event)}
         eventId={event.id}
         compact={compact}
         noun={noun}
@@ -219,28 +294,21 @@ export function RunningCard({
       </div>
       {startControls}
       <div className="grid grid-cols-2 gap-3">
-        {(['left', 'right'] as const).map((side) => {
-          const active = totals.openSide === side;
-          const ms = side === 'left' ? totals.leftMs : totals.rightMs;
+        {SIDES.map((side) => {
+          const active = open?.side === side;
           return (
             <button
               key={side}
               type="button"
               aria-pressed={active}
-              onClick={() => pressSide(side, active)}
+              onClick={() => void pressSide(side, active)}
               className={cn(
                 'flex min-h-tap-lg items-center gap-3 rounded-card px-4 py-3 text-left transition-colors duration-base',
-                side === 'left'
-                  ? active
-                    ? 'bg-feed-left text-ink-on-solid shadow-[0_0_0_4px_rgb(var(--feed-left)/0.25)]'
-                    : 'border border-feed-left/40 bg-feed-left-soft text-on-feed-left'
-                  : active
-                    ? 'bg-feed-right text-ink-on-solid shadow-[0_0_0_4px_rgb(var(--feed-right)/0.25)]'
-                    : 'border border-feed-right/40 bg-feed-right-soft text-on-feed-right',
+                SIDE_BUTTON[side][active ? 'active' : 'idle'],
               )}
             >
               <span className="grid size-9 place-items-center rounded-full bg-black/10 text-row-title font-bold">
-                {side === 'left' ? 'L' : 'R'}
+                {SIDE_LABEL[side][0]}
               </span>
               <span className="flex flex-col">
                 <span className="text-label font-semibold">
@@ -248,7 +316,9 @@ export function RunningCard({
                   {active && ' · on'}
                   {paused && side === totals.lastSide && ' · last'}
                 </span>
-                <span className="tabular text-meta">{formatDuration(ms)}</span>
+                <span className="tabular text-meta">
+                  {formatDuration(side === 'left' ? totals.leftMs : totals.rightMs)}
+                </span>
               </span>
             </button>
           );
@@ -265,14 +335,14 @@ export function RunningCard({
         </Button>
         <Button
           size="lg"
-          onClick={() => finish()}
+          onClick={() => void finish()}
           loading={action.isPending && action.variables?.action.kind === 'end'}
         >
           <Square className="size-4" strokeWidth={3} />
           Finish
         </Button>
       </div>
-      {endControls(finish)}
+      {endControls((at) => void finish(at))}
     </Shell>
   );
 }
@@ -284,7 +354,7 @@ function Shell({
 }: {
   tone: 'sleep' | 'feed' | 'pump';
   compact: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section
@@ -351,38 +421,6 @@ function Header({
       >
         <Trash2 className="size-5" strokeWidth={2.5} />
       </button>
-    </div>
-  );
-}
-
-function DiscardConfirm({
-  noun,
-  elapsed,
-  onKeep,
-  onDiscard,
-}: {
-  noun: string;
-  elapsed: string;
-  onKeep: () => void;
-  onDiscard: () => void;
-}) {
-  return (
-    <div
-      role="alertdialog"
-      aria-label={`Discard this ${noun}?`}
-      className="flex flex-col gap-3 rounded-tile bg-danger-soft p-4"
-    >
-      <p className="text-body text-on-danger">
-        <strong>Discard this {noun}?</strong> It's been running for {elapsed}. You can undo straight after.
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        <Button variant="secondary" onClick={onKeep}>
-          Keep {noun}
-        </Button>
-        <Button variant="destructive" onClick={onDiscard}>
-          Discard
-        </Button>
-      </div>
     </div>
   );
 }

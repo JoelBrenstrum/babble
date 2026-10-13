@@ -1,10 +1,10 @@
-import { nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
+import { instantDraft, nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
 import { MultiChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
 import { SizeSelector } from '#/components/ui/size-selector';
 import { SwatchPicker } from '#/components/ui/swatch-picker';
-import { FormSection, instantDraft, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 const TEXTURES: { value: PooTexture; label: string }[] = [
   { value: 'runny', label: 'Runny' },

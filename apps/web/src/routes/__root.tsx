@@ -1,5 +1,6 @@
 import { QueryClientProvider, type QueryClient } from '@tanstack/react-query';
-import { accountChanged, syncClock, toBabbleError } from '@babble/api';
+import { syncClock, toBabbleError } from '@babble/api';
+import { NotifyProvider, type Notify } from '@babble/api/react';
 import {
   HeadContent,
   Outlet,
@@ -9,13 +10,14 @@ import {
   useRouter,
   type ErrorComponentProps,
 } from '@tanstack/react-router';
-import { useEffect, type ReactNode } from 'react';
+import { useCallback, useEffect, type ReactNode } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { UpdateBanner } from '#/components/shell/update-banner';
 import { Button } from '#/components/ui/button';
 import { PageSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
-import { ToastProvider } from '#/components/ui/toast';
+import { ToastProvider, useToast } from '#/components/ui/toast';
+import { authEffects } from '#/lib/auth-listener';
 import { loadBabble } from '#/lib/babble';
 import { configProblem } from '#/lib/config-problem';
 import { themeBootScript, themeColorMeta } from '#/lib/theme';
@@ -90,12 +92,13 @@ function RootComponent() {
     let userId: string | null | undefined;
     const { data } = babble.client.auth.onAuthStateChange((event, session) => {
       const nextUserId = session?.user.id ?? null;
-      if (accountChanged(userId, nextUserId)) {
+      const effects = authEffects(event, userId, nextUserId);
+      if (effects.accountChanged) {
         clearAccountStorage();
         queryClient.clear();
       }
       userId = nextUserId;
-      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+      if (effects.refresh) {
         void queryClient.invalidateQueries();
         void router.invalidate();
       }
@@ -106,11 +109,22 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <Outlet />
-        <ReleaseBanner />
+        <ToastNotify>
+          <Outlet />
+          <ReleaseBanner />
+        </ToastNotify>
       </ToastProvider>
     </QueryClientProvider>
   );
+}
+
+function ToastNotify({ children }: { children: ReactNode }) {
+  const toast = useToast();
+  const notify = useCallback<Notify>(
+    ({ message, action }) => toast({ message, action: action && { label: action.label, onClick: action.run } }),
+    [toast],
+  );
+  return <NotifyProvider notify={notify}>{children}</NotifyProvider>;
 }
 
 function ReleaseBanner() {

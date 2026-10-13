@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 
 select plan(7);
+update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.create_user(user_id uuid, email text)
 returns void
@@ -19,7 +20,7 @@ insert into private.signup_allowlist (email, note) values ('jane@allowlist.test'
 
 select throws_ok(
   $$select pg_temp.create_user('11000000-0000-0000-0000-00000000000b', 'stranger@allowlist.test')$$,
-  'P0001',
+  'PL003',
   'Sign-up on this Babble server requires a valid invite code',
   'an email that is not allowed still needs an invite'
 );

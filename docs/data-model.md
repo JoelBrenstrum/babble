@@ -9,9 +9,10 @@ families        id, name, created_at
 family_members  family_id, user_id, role (owner|caregiver|viewer), display_name  (owners rename or remove members; members rename themselves; only display_name is updatable)
 babies          id, family_id, name, birth_date, sex?, timezone,
                 day_start_minutes (0 = midnight), created_at
-baby_settings   baby_id, feed_reminder_interval_min?, feed_reminder_enabled,
-                downtime_merge_threshold_sec (default 15),
-                auto_end_paused_session_min (default 30), units (metric|imperial)
+baby_settings   baby_id, feed_reminder_interval_min?, feed_reminder_enabled, feed_reminder_at_night,
+                night_start_minutes, night_end_minutes, nappy_prompt
+family_settings family_id, units (metric|imperial), downtime_merge_threshold_sec (default 15),
+                auto_end_paused_session_min (default 30)
 push_subscriptions  id, user_id, platform (web|expo), token/endpoint, created_at
 reminder_prefs      user_id, baby_id, feed_reminders bool   -- per-person opt-in
 ```

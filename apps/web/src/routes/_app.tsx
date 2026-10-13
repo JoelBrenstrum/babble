@@ -8,7 +8,7 @@ import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
 import { readStorage, storageKeys } from '#/lib/storage';
 import { NapPromptProvider } from '#/features/nap-prompt';
-import { useAutoEndStaleSessions, useRealtimeEvents } from '#/lib/use-events';
+import { useAutoEndStaleSessions, useRealtimeEvents } from '@babble/api/react';
 import { useNightTheme } from '#/lib/use-night-theme';
 import { useSelectBaby } from '#/lib/use-select-baby';
 

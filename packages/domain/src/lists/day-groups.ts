@@ -7,6 +7,7 @@ import { formatDuration } from '../format/duration';
 import { formatVolume, formatWeightChange } from '../format/units';
 import { dayKeyFor, formatDayDate, formatDayLabel, formatShortDate, shiftDay } from '../time/local-time';
 import type { StripKind } from './list-strip';
+import { byStartedAtDesc } from '../time/instants';
 
 export interface DayHeading {
   title: string;
@@ -58,7 +59,7 @@ function growthTotals(items: readonly BabyEvent[], older: readonly BabyEvent[], 
     events
       .filter((event): event is Extract<BabyEvent, { type: 'growth' }> => event.type === 'growth')
       .filter((event) => event.details.weightG !== null)
-      .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
+      .sort(byStartedAtDesc)[0];
   const current = latestWeight(items);
   const previous = latestWeight(older);
   if (current && previous) {

@@ -1,7 +1,8 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(9);
+select plan(10);
+update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
 returns void
@@ -42,44 +43,32 @@ select is(
   'a new family gets default settings'
 );
 
-update public.family_settings set units = 'imperial', downtime_merge_threshold_sec = 40
-where family_id = 'f3000000-0000-0000-0000-00000000000a';
 insert into public.babies (id, family_id, name, birth_date, timezone) values
   ('f4000000-0000-0000-0000-00000000000a', 'f3000000-0000-0000-0000-00000000000a', 'Ada', current_date,
-   'Pacific/Auckland'),
-  ('f4000000-0000-0000-0000-00000000000b', 'f3000000-0000-0000-0000-00000000000a', 'Bo', current_date,
    'Pacific/Auckland');
 
 select is(
-  (select array_agg(downtime_merge_threshold_sec order by baby_id) from public.baby_settings
-   where baby_id in ('f4000000-0000-0000-0000-00000000000a', 'f4000000-0000-0000-0000-00000000000b')),
-  array[40, 40],
-  'a new baby starts with the family settings'
+  (select count(*)::int from public.baby_settings where baby_id = 'f4000000-0000-0000-0000-00000000000a'),
+  1,
+  'a new baby gets its own settings row'
 );
+
+select hasnt_column('public', 'baby_settings', 'units', 'units live only on the family');
+select hasnt_column('public', 'baby_settings', 'downtime_merge_threshold_sec', 'the merge gap lives only on the family');
+select hasnt_column('public', 'baby_settings', 'auto_end_paused_session_min', 'auto-end lives only on the family');
 
 select pg_temp.sign_in_as('f2000000-0000-0000-0000-00000000000a');
 select lives_ok(
-  $$ update public.family_settings set units = 'metric', auto_end_paused_session_min = 45
+  $$ update public.family_settings set units = 'imperial', auto_end_paused_session_min = 45
      where family_id = 'f3000000-0000-0000-0000-00000000000a' $$,
   'a carer can change family settings'
 );
+select pg_temp.sign_out();
 select is(
-  (select array_agg(units::text || auto_end_paused_session_min order by baby_id) from public.baby_settings
-   where baby_id in ('f4000000-0000-0000-0000-00000000000a', 'f4000000-0000-0000-0000-00000000000b')),
-  array['metric45', 'metric45'],
-  'every baby in the family follows the family settings'
-);
-
-update public.baby_settings set units = 'imperial' where baby_id = 'f4000000-0000-0000-0000-00000000000a';
-select is(
-  (select units::text from public.family_settings where family_id = 'f3000000-0000-0000-0000-00000000000a'),
-  'imperial',
-  'a change saved on one baby by an older app reaches the family'
-);
-select is(
-  (select units::text from public.baby_settings where baby_id = 'f4000000-0000-0000-0000-00000000000b'),
-  'imperial',
-  'and reaches the other babies'
+  (select units::text || auto_end_paused_session_min from public.family_settings
+   where family_id = 'f3000000-0000-0000-0000-00000000000a'),
+  'imperial45',
+  'the family settings change was saved'
 );
 
 select pg_temp.sign_in_as('f2000000-0000-0000-0000-00000000000b');

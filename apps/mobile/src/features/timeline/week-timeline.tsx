@@ -1,7 +1,6 @@
 import { weekdayLabel, type DayLayout } from '@babble/domain';
 import { Pressable, Text, View } from 'react-native';
-
-const pct = (frac: number): `${number}%` => `${Math.round(frac * 100_000) / 1000}%`;
+import { pct } from './percent';
 
 export function WeekTimeline({
   days,

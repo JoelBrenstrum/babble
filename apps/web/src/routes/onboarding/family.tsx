@@ -1,4 +1,5 @@
-import { acceptInvite, createFamily, familiesQuery, queryKeys, toBabbleError } from '@babble/api';
+import { acceptInvite, createFamily, familiesQuery } from '@babble/api';
+import { refreshFamilies, useAsyncAction } from '@babble/api/react';
 import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
 import { useState, type FormEvent } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
@@ -28,26 +29,20 @@ function FamilyStep() {
   );
   const [familyName, setFamilyName] = useState('');
   const [inviteCode, setInviteCode] = useState(pendingInvite ?? '');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const { run, busy: submitting, error } = useAsyncAction();
 
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    setSubmitting(true);
-    try {
+    void run(async () => {
       const familyId =
         mode === 'create'
           ? await createFamily(babble.client, { familyName, displayName })
           : await acceptInvite(babble.client, { code: inviteCode, displayName });
       writeStorage(storageKeys.activeFamily, familyId);
       writeStorage(storageKeys.pendingInvite, null);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
+      await refreshFamilies(queryClient);
       await navigate({ to: mode === 'create' ? '/onboarding/baby' : '/' });
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setSubmitting(false);
-    }
+    });
   }
 
   const valid = displayName.trim() && (mode === 'create' ? familyName.trim() : inviteCode.trim());

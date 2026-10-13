@@ -3,14 +3,10 @@ import type { BabyEvent } from '@babble/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { ToastProvider } from '@/components/toast';
-import { fixtureClient } from '@/fixtures/client';
+import { createFakeClient } from '@/fixtures/fake-client';
 import { SleepDetailsEditor } from './sleep-details-editor';
 
-const mockSaveSleepDetails = jest.fn().mockResolvedValue(undefined);
-jest.mock('@babble/api', () => ({
-  ...jest.requireActual('@babble/api'),
-  saveSleepDetails: (...args: unknown[]) => mockSaveSleepDetails(...args),
-}));
+const fake = createFakeClient();
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
@@ -20,7 +16,7 @@ async function renderEditor() {
   await render(
     <QueryClientProvider client={new QueryClient({ defaultOptions: { mutations: { gcTime: Infinity } } })}>
       <ToastProvider>
-        <SleepDetailsEditor event={event} client={fixtureClient} babyId={event.babyId} />
+        <SleepDetailsEditor event={event} client={fake.client} babyId={event.babyId} />
       </ToastProvider>
     </QueryClientProvider>,
   );
@@ -28,14 +24,15 @@ async function renderEditor() {
 }
 
 describe('SleepDetailsEditor', () => {
-  beforeEach(() => mockSaveSleepDetails.mockClear());
+  beforeEach(() => fake.rpc.mockClear());
 
   it('saves a detail straight away', async () => {
     const event = await renderEditor();
     await fireEvent.press(screen.getByRole('checkbox', { name: 'Cot' }));
     await waitFor(() =>
-      expect(mockSaveSleepDetails).toHaveBeenCalledWith(fixtureClient, event.id, {
-        locations: [...event.details.locations, 'cot'],
+      expect(fake.rpc).toHaveBeenCalledWith('save_sleep_details', {
+        target_event_id: event.id,
+        changes: { locations: [...event.details.locations, 'cot'] },
       }),
     );
   });
@@ -45,10 +42,13 @@ describe('SleepDetailsEditor', () => {
     const notes = screen.getByLabelText('Notes (optional)');
     await fireEvent(notes, 'focus');
     await fireEvent.changeText(notes, 'Went down easily');
-    expect(mockSaveSleepDetails).not.toHaveBeenCalled();
+    expect(fake.rpc).not.toHaveBeenCalled();
     await fireEvent(notes, 'blur');
     await waitFor(() =>
-      expect(mockSaveSleepDetails).toHaveBeenCalledWith(fixtureClient, event.id, { notes: 'Went down easily' }),
+      expect(fake.rpc).toHaveBeenCalledWith('save_sleep_details', {
+        target_event_id: event.id,
+        changes: { notes: 'Went down easily' },
+      }),
     );
   });
 });

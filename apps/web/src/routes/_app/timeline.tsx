@@ -1,46 +1,47 @@
-import { babySettingsQuery, eventsBetweenQuery } from '@babble/api';
 import {
-  countedDays,
-  dayKeyFor,
-  dayLayout,
   daySummaryStrip,
   dayTotalCards,
-  dayWindow,
-  bucketByDay,
-  formatDayLabel,
-  formatDayRange,
-  fractionOf,
-  hourTicks,
-  lastDayWindow,
-  shiftDay,
-  summariseDay,
-  summariseWeek,
-  lastDays,
   predictedLayout,
+  predictionText,
   weekSummaryStrip,
   weekTableRows,
-  windowTicks,
+  TIMELINE_SPAN,
+  type DayLayout,
   type DaySummary,
+  type PredictedItem,
+  type TimelineTick,
+  type TimelineView,
+  type Units,
 } from '@babble/domain';
-import { useQuery } from '@tanstack/react-query';
+import { familyHasFeature } from '@babble/config';
+import { sampleMonthView } from '@babble/api/fixtures';
+import { useUnits } from '@babble/api/react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useMemo, type ReactNode } from 'react';
 import { Segmented } from '#/components/ui/segmented';
 import { PageSpinner } from '#/components/ui/spinner';
+import { PredictionLine } from '#/features/home-overview';
+import { PlusBadge } from '#/features/plus-dialog';
 import { DayTimeline } from '#/features/timeline/day-timeline';
 import { DayTotals, SummaryStrip, WeekTable } from '#/features/timeline/totals';
 import { WeekTimeline } from '#/features/timeline/week-timeline';
+import { MonthTimeline } from '#/features/timeline/month-timeline';
+import { PlusMask } from '#/features/plus-mask';
 import { cn } from '#/lib/cn';
-import { useUnits } from '#/lib/use-events';
 import { useNow } from '#/lib/use-now';
 import { usePrediction } from '#/lib/use-prediction';
+import { useTimelineModel } from '#/lib/use-timeline';
 
-type View = 'day' | '24h' | '7d';
+type View = TimelineView;
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 export const Route = createFileRoute('/_app/timeline')({
   validateSearch: (search: Record<string, unknown>): { view?: View; date?: string } => ({
-    view: search.view === '7d' || search.view === 'day' || search.view === '24h' ? search.view : undefined,
+    view:
+      search.view === '7d' || search.view === '30d' || search.view === 'day' || search.view === '24h'
+        ? search.view
+        : undefined,
     date: typeof search.date === 'string' && DAY_KEY.test(search.date) ? search.date : undefined,
   }),
   component: TimelinePage,
@@ -52,74 +53,30 @@ function TimelinePage() {
   const navigate = useNavigate({ from: Route.fullPath });
   const now = useNow(60_000);
   const units = useUnits(babble.client, baby.id);
-  const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
-  const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
-  const dayKey = date && date <= todayKey ? date : todayKey;
-  const keys = view === 'day' ? [dayKey] : lastDays(dayKey, 7);
-  const rolling = lastDayWindow(now);
-  const from =
-    view === '24h'
-      ? rolling.start.toISOString()
-      : dayWindow(keys[0]!, baby.timezone, baby.day_start_minutes).start.toISOString();
-  const to =
-    view === '24h'
-      ? rolling.end.toISOString()
-      : dayWindow(keys.at(-1)!, baby.timezone, baby.day_start_minutes).end.toISOString();
-  const events = useQuery(eventsBetweenQuery(babble.client, baby.id, from, to));
-
-  const step = view === 'day' ? 1 : 7;
-  const previousKey = shiftDay(dayKey, -step);
-  const nextKey = shiftDay(dayKey, step) < todayKey ? shiftDay(dayKey, step) : todayKey;
-  const canGoNext = dayKey < todayKey;
-  const rangeLabel = view === 'day' ? formatDayLabel(dayKey, todayKey) : formatDayRange(keys);
-
-  const days = bucketByDay(events.data ?? [], keys, baby.timezone, baby.day_start_minutes, now).map((day) => {
-    const future = day.dayKey > todayKey;
-    const summary: DaySummary | null = future
-      ? null
-      : summariseDay(day.events, day.window, {
-          now,
-          mergeGapMs: settings && settings.downtime_merge_threshold_sec * 1000,
-          night: settings && {
-            dayKey: day.dayKey,
-            timeZone: baby.timezone,
-            startMinutes: settings.night_start_minutes,
-            endMinutes: settings.night_end_minutes,
-          },
-        });
-    return { ...day, summary, layout: future ? null : dayLayout(day.events, day.window, now) };
+  const insightsLocked = !familyHasFeature(babble.config.billingEnabled, family.plan, 'insights');
+  const sampleOnly = view === '30d' && insightsLocked;
+  const { range, model } = useTimelineModel({
+    client: babble.client,
+    babyId: baby.id,
+    baby,
+    view,
+    date,
+    now,
+    enabled: !sampleOnly,
   });
-
-  const lastDay =
-    view === '24h'
-      ? {
-          summary: summariseDay(events.data ?? [], rolling, {
-            now,
-            mergeGapMs: settings && settings.downtime_merge_threshold_sec * 1000,
-            night: settings && {
-              dayKey: todayKey,
-              timeZone: baby.timezone,
-              startMinutes: settings.night_start_minutes,
-              endMinutes: settings.night_end_minutes,
-            },
-          }),
-          layout: dayLayout(events.data ?? [], rolling, now),
-        }
-      : null;
-
-  const counted = new Set(countedDays(keys, todayKey));
-  const week = summariseWeek(days.flatMap((day) => (counted.has(day.dayKey) && day.summary ? [day.summary] : [])));
-  const today = days[0]!;
   const prediction = usePrediction(babble, baby, family, now);
+  const step = TIMELINE_SPAN[view];
+  const showsToday = view === 'day' && range.dayKey === range.todayKey;
   const predicted =
-    view === 'day' && dayKey === todayKey ? predictedLayout(prediction, today.window, now, baby.timezone) : null;
-  const showsPrediction = Boolean(predicted && (predicted.sleep.length || predicted.feeds.length));
+    showsToday && model?.view === 'day' ? predictedLayout(prediction, model.day.window, now, baby.timezone) : null;
+  const predictionLine = showsToday ? predictionText(prediction, baby.timezone) : null;
+  const plus = babble.config.billingEnabled;
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-title font-bold">Timeline</h1>
-        <div className="w-56">
+        <div className="w-72">
           <Segmented<View>
             label="Timeline view"
             value={view}
@@ -128,6 +85,7 @@ function TimelinePage() {
               { value: 'day', label: 'Day' },
               { value: '24h', label: '24h' },
               { value: '7d', label: '7d' },
+              { value: '30d', label: '30d' },
             ]}
           />
         </div>
@@ -138,24 +96,24 @@ function TimelinePage() {
         <div className="flex items-center justify-between">
           <Link
             to="/timeline"
-            search={{ view, date: previousKey }}
-            aria-label={view === 'day' ? 'Previous day' : 'Previous 7 days'}
+            search={{ view, date: range.previousKey }}
+            aria-label={view === 'day' ? 'Previous day' : `Previous ${step} days`}
             className="grid size-tap place-items-center rounded-full bg-surface hover:bg-line"
           >
             <ChevronLeft className="size-5" strokeWidth={2.75} />
           </Link>
           <span className="text-row-title font-semibold" aria-live="polite">
-            {rangeLabel}
+            {range.rangeLabel}
           </span>
           <Link
             to="/timeline"
-            search={{ view, date: nextKey }}
-            aria-label={view === 'day' ? 'Next day' : 'Next 7 days'}
-            aria-disabled={!canGoNext}
-            tabIndex={canGoNext ? undefined : -1}
+            search={{ view, date: range.nextKey }}
+            aria-label={view === 'day' ? 'Next day' : `Next ${step} days`}
+            aria-disabled={!range.canGoNext}
+            tabIndex={range.canGoNext ? undefined : -1}
             className={cn(
               'grid size-tap place-items-center rounded-full bg-surface hover:bg-line',
-              !canGoNext && 'pointer-events-none opacity-40',
+              !range.canGoNext && 'pointer-events-none opacity-40',
             )}
           >
             <ChevronRight className="size-5" strokeWidth={2.75} />
@@ -163,64 +121,130 @@ function TimelinePage() {
         </div>
       )}
 
-      {events.isPending ? (
+      {sampleOnly ? (
+        <PlusMask
+          feature="insights"
+          title="30-day timeline"
+          body={`See a month of ${baby.name}'s sleep and feeds, one row a day, to spot patterns as they form.`}
+        >
+          <SampleMonth now={now} />
+        </PlusMask>
+      ) : !model ? (
         <PageSpinner />
-      ) : lastDay ? (
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-start">
-          <div className="flex flex-col gap-4">
-            <div className="md:hidden">
-              <SummaryStrip items={daySummaryStrip(lastDay.summary)} />
-            </div>
-            <DayTimeline
-              layout={lastDay.layout}
-              ticks={windowTicks(rolling, baby.timezone, 3)}
-              timeZone={baby.timezone}
-              units={units}
-              nowFrac={1}
-            />
-          </div>
-          <DayTotals cards={dayTotalCards(lastDay.summary, units, baby.timezone)} />
-        </div>
-      ) : view === 'day' ? (
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-start">
-          <div className="flex flex-col gap-4">
-            <div className="md:hidden">
-              <SummaryStrip items={daySummaryStrip(today.summary!)} />
-            </div>
-            <DayTimeline
-              layout={today.layout!}
-              ticks={hourTicks(dayKey, baby.timezone, baby.day_start_minutes, 3)}
-              timeZone={baby.timezone}
-              units={units}
-              nowFrac={dayKey === todayKey ? fractionOf(today.window, now.getTime()) : null}
-              predicted={predicted}
-            />
-            {showsPrediction && (
-              <p className="text-caption text-ink-3">
+      ) : model.view === 'day' ? (
+        <DayPanel
+          summary={model.day.summary}
+          layout={model.day.layout}
+          ticks={model.ticks}
+          nowFrac={model.nowFrac}
+          now={now}
+          units={units}
+          timeZone={baby.timezone}
+          predicted={predicted}
+          before={predictionLine && <PredictionLine text={predictionLine} plus={plus} />}
+          after={
+            predicted &&
+            (predicted.sleep.length > 0 || predicted.feeds.length > 0) && (
+              <p className="flex items-center gap-2 text-caption text-ink-3">
+                {plus && <PlusBadge />}
                 Dashed blocks show likely sleeps and feeds for the next few hours.
               </p>
-            )}
-          </div>
-          <DayTotals cards={dayTotalCards(today.summary!, units, baby.timezone)} />
+            )
+          }
+        />
+      ) : model.view === '24h' ? (
+        <DayPanel
+          summary={model.summary}
+          layout={model.layout}
+          ticks={model.ticks}
+          nowFrac={model.nowFrac}
+          now={now}
+          units={units}
+          timeZone={baby.timezone}
+        />
+      ) : model.view === '30d' ? (
+        <div className="flex flex-col gap-4">
+          <SummaryStrip items={weekSummaryStrip(model.week)} />
+          <MonthTimeline
+            days={model.days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
+            ticks={model.ticks}
+            todayKey={model.todayKey}
+          />
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          <SummaryStrip items={weekSummaryStrip(week)} />
+          <SummaryStrip items={weekSummaryStrip(model.week)} />
           <WeekTimeline
-            days={days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
-            ticks={hourTicks(keys[0]!, baby.timezone, baby.day_start_minutes, 6)}
-            todayKey={todayKey}
+            days={model.days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
+            ticks={model.ticks}
+            todayKey={model.todayKey}
           />
           <WeekTable
-            dayKeys={keys}
+            dayKeys={model.keys}
             rows={weekTableRows(
-              days.map((day) => day.summary),
-              week,
+              model.days.map((day) => day.summary),
+              model.week,
               units,
             )}
           />
         </div>
       )}
+    </div>
+  );
+}
+
+function DayPanel({
+  summary,
+  layout,
+  ticks,
+  nowFrac,
+  now,
+  units,
+  timeZone,
+  predicted,
+  before,
+  after,
+}: {
+  summary: DaySummary;
+  layout: DayLayout;
+  ticks: TimelineTick[];
+  nowFrac: number | null;
+  now: Date;
+  units: Units;
+  timeZone: string;
+  predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
+  before?: ReactNode;
+  after?: ReactNode;
+}) {
+  return (
+    <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-start">
+      <div className="flex flex-col gap-4">
+        <div className="md:hidden">
+          <SummaryStrip items={daySummaryStrip(summary)} />
+        </div>
+        {before}
+        <DayTimeline
+          layout={layout}
+          ticks={ticks}
+          timeZone={timeZone}
+          units={units}
+          nowFrac={nowFrac}
+          now={now}
+          predicted={predicted}
+        />
+        {after}
+      </div>
+      <DayTotals cards={dayTotalCards(summary, units, timeZone)} />
+    </div>
+  );
+}
+
+function SampleMonth({ now }: { now: Date }) {
+  const sample = useMemo(() => sampleMonthView(now), [now]);
+  return (
+    <div className="flex flex-col gap-4">
+      <SummaryStrip items={weekSummaryStrip(sample.week)} />
+      <MonthTimeline days={sample.days} ticks={sample.ticks} todayKey={sample.todayKey} linkDays={false} />
     </div>
   );
 }

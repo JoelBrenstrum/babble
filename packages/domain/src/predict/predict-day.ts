@@ -1,5 +1,6 @@
 import { minutesOfDay } from '../time/local-time';
 import type { BabyEvent } from '../events/types';
+import { DAY_MS, MINUTE_MS } from '../time/constants';
 
 export type PredictedKind = 'sleep' | 'feed';
 
@@ -38,10 +39,8 @@ export interface PredictOptions {
   minSamples?: number;
 }
 
-const MINUTE = 60_000;
-const DAY = 24 * 60 * MINUTE;
-const OVERRUN_MS = 10 * MINUTE;
-const MIN_BLOCK_MS = 5 * MINUTE;
+const OVERRUN_MS = 10 * MINUTE_MS;
+const MIN_BLOCK_MS = 5 * MINUTE_MS;
 
 const DEFAULTS = {
   lookbackDays: 7,
@@ -50,6 +49,19 @@ const DEFAULTS = {
   mergeGapMinutes: 15,
   minSamples: 6,
 };
+
+const ANY_VALUE = -1;
+
+function resolveOptions(options: PredictOptions): Required<PredictOptions> {
+  return {
+    timeZone: options.timeZone,
+    lookbackDays: options.lookbackDays ?? DEFAULTS.lookbackDays,
+    halfLifeDays: options.halfLifeDays ?? DEFAULTS.halfLifeDays,
+    hourSpreadMinutes: options.hourSpreadMinutes ?? DEFAULTS.hourSpreadMinutes,
+    mergeGapMinutes: options.mergeGapMinutes ?? DEFAULTS.mergeGapMinutes,
+    minSamples: options.minSamples ?? DEFAULTS.minSamples,
+  };
+}
 
 function lastOfKind(list: readonly Episode[], kind: PredictedKind): Episode | undefined {
   for (let index = list.length - 1; index >= 0; index -= 1) if (list[index]!.kind === kind) return list[index];
@@ -73,19 +85,25 @@ function episodes(events: readonly BabyEvent[], now: number, mergeGapMs: number)
     const previous = lastOfKind(merged, episode.kind);
     const interrupted = merged.at(-1) !== previous;
     if (previous && previous.end !== null && !interrupted && episode.start - previous.end <= mergeGapMs) {
-      previous.end = episode.end === null ? null : Math.max(previous.end, episode.end);
+      merged[merged.length - 1] = {
+        ...previous,
+        end: episode.end === null ? null : Math.max(previous.end, episode.end),
+      };
     } else {
-      merged.push({ ...episode });
+      merged.push(episode);
     }
   }
   return merged;
 }
 
 export function learnRhythm(events: readonly BabyEvent[], now: Date, options: PredictOptions): Rhythm {
-  const settings = { ...DEFAULTS, ...options };
-  const nowMs = now.getTime();
-  const from = nowMs - settings.lookbackDays * DAY;
-  const all = episodes(events, nowMs, settings.mergeGapMinutes * MINUTE).filter((e) => e.end !== null);
+  const settings = resolveOptions(options);
+  return rhythmFrom(episodes(events, now.getTime(), settings.mergeGapMinutes * MINUTE_MS), now.getTime(), settings);
+}
+
+function rhythmFrom(history: readonly Episode[], nowMs: number, settings: Required<PredictOptions>): Rhythm {
+  const from = nowMs - settings.lookbackDays * DAY_MS;
+  const all = history.filter((e) => e.end !== null);
   const sample = (at: number, value: number): Sample => ({
     at,
     minuteOfDay: minutesOfDay(new Date(at), settings.timeZone),
@@ -133,15 +151,15 @@ function estimate(
   samples: readonly Sample[],
   at: number,
   now: number,
-  settings: typeof DEFAULTS & PredictOptions,
-  atLeast = 0,
+  settings: Required<PredictOptions>,
+  above = 0,
 ): number | null {
   const minute = minutesOfDay(new Date(at), settings.timeZone);
   const weighted = samples
-    .filter((s) => s.value > atLeast)
+    .filter((s) => s.value > above)
     .map((s) => {
       const hours = circularMinutes(s.minuteOfDay, minute);
-      const age = Math.max(0, now - s.at) / DAY;
+      const age = Math.max(0, now - s.at) / DAY_MS;
       return {
         value: s.value,
         weight:
@@ -151,16 +169,32 @@ function estimate(
   return weightedMedian(weighted);
 }
 
+export type PredictionResult =
+  { status: 'ready'; blocks: PredictedBlock[] } | { status: 'learning' } | { status: 'no-anchor' };
+
 export function predictDay(
   events: readonly BabyEvent[],
   now: Date,
   until: Date,
   options: PredictOptions,
 ): PredictedBlock[] | null {
-  const settings = { ...DEFAULTS, ...options };
+  const result = predictDayStatus(events, now, until, options);
+  return result.status === 'ready' ? result.blocks : null;
+}
+
+export function predictDayStatus(
+  events: readonly BabyEvent[],
+  now: Date,
+  until: Date,
+  options: PredictOptions,
+): PredictionResult {
+  const settings = resolveOptions(options);
   const nowMs = now.getTime();
-  const rhythm = learnRhythm(events, now, options);
-  if (Object.values(rhythm).some((samples: Sample[]) => samples.length < settings.minSamples)) return null;
+  const history = episodes(events, nowMs, settings.mergeGapMinutes * MINUTE_MS);
+  const rhythm = rhythmFrom(history, nowMs, settings);
+  if (Object.values(rhythm).some((samples: Sample[]) => samples.length < settings.minSamples)) {
+    return { status: 'learning' };
+  }
 
   const blocks: PredictedBlock[] = [];
   const push = (kind: PredictedKind, start: number, end: number, continuesRunning = false) =>
@@ -175,10 +209,10 @@ export function predictDay(
     const value = estimate(samples, start, nowMs, settings, elapsed);
     return start + (value ?? elapsed + OVERRUN_MS);
   };
-  const length = (samples: Sample[], at: number) => estimate(samples, at, nowMs, settings) ?? 0;
+  const length = (samples: Sample[], at: number, above = 0) => estimate(samples, at, nowMs, settings, above) ?? 0;
+  const wakeToFeed = (wake: number) => length(rhythm.wakeToFeed, wake, ANY_VALUE);
   const notBeforeNow = (time: number) => Math.max(time, nowMs);
 
-  const history = episodes(events, nowMs, settings.mergeGapMinutes * MINUTE);
   const running = history.filter((e) => e.end === null);
   const lastSleep = lastOfKind(history, 'sleep');
   const lastFeed = lastOfKind(history, 'feed');
@@ -189,7 +223,7 @@ export function predictDay(
   if (runningSleep) {
     const wake = remaining(rhythm.sleepLength, runningSleep.start);
     push('sleep', nowMs, wake, true);
-    next = { kind: 'feed', at: wake + length(rhythm.wakeToFeed, wake) };
+    next = { kind: 'feed', at: wake + wakeToFeed(wake) };
   } else if (runningFeed) {
     const end = remaining(rhythm.feedLength, runningFeed.start);
     push('feed', nowMs, end, true);
@@ -198,9 +232,9 @@ export function predictDay(
   } else if (lastFeed && (!lastSleep || lastFeed.start > lastSleep.start)) {
     next = { kind: 'sleep', at: notBeforeNow(remaining(rhythm.feedToSleep, lastFeed.start)) };
   } else if (lastSleep) {
-    next = { kind: 'feed', at: notBeforeNow(lastSleep.end! + length(rhythm.wakeToFeed, lastSleep.end!)) };
+    next = { kind: 'feed', at: notBeforeNow(lastSleep.end! + wakeToFeed(lastSleep.end!)) };
   } else {
-    return null;
+    return { status: 'no-anchor' };
   }
 
   const limit = until.getTime();
@@ -213,8 +247,8 @@ export function predictDay(
       const sleepStart = next.at;
       const wake = sleepStart + Math.max(MIN_BLOCK_MS, length(rhythm.sleepLength, sleepStart));
       push('sleep', sleepStart, wake);
-      next = { kind: 'feed', at: wake + length(rhythm.wakeToFeed, wake) };
+      next = { kind: 'feed', at: wake + wakeToFeed(wake) };
     }
   }
-  return blocks.filter((block) => Date.parse(block.startedAt) < limit);
+  return { status: 'ready', blocks: blocks.filter((block) => Date.parse(block.startedAt) < limit) };
 }

@@ -3,7 +3,7 @@ import type { BabyEvent, SleepDetails } from '@babble/domain';
 import { useEffect, useRef, useState } from 'react';
 import { View } from 'react-native';
 import { TextField } from '@/components/text-field';
-import { useSaveSleepDetails } from '@/lib/use-events';
+import { useSaveSleepDetails } from '@babble/api/react';
 import { SleepDetailFields } from './forms/sleep-form';
 
 type Sleep = Extract<BabyEvent, { type: 'sleep' }>;

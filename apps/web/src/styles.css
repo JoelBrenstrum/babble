@@ -75,14 +75,15 @@ select {
   --caution-soft: 18 16 13;
   --growth-soft: 14 16 17;
   --session-paused-soft: 18 17 14;
-  --on-feed-left: 150 128 104;
-  --on-feed-right: 150 128 104;
-  --on-bottle: 150 128 104;
-  --on-nappy: 150 128 104;
-  --on-sleep: 150 128 104;
-  --on-primary-soft: 150 128 104;
-  --on-info: 150 128 104;
-  --on-caution: 150 128 104;
-  --on-growth: 150 128 104;
-  --on-session-paused: 150 128 104;
+  --chair-on: 150 128 104;
+  --on-feed-left: var(--chair-on);
+  --on-feed-right: var(--chair-on);
+  --on-bottle: var(--chair-on);
+  --on-nappy: var(--chair-on);
+  --on-sleep: var(--chair-on);
+  --on-primary-soft: var(--chair-on);
+  --on-info: var(--chair-on);
+  --on-caution: var(--chair-on);
+  --on-growth: var(--chair-on);
+  --on-session-paused: var(--chair-on);
 }

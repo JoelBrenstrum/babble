@@ -1,14 +1,15 @@
 import {
   canEdit,
+  clock,
   deleteMyAccount,
   queryKeys,
   signOut,
-  toBabbleError,
   updateBaby,
   pendingInvitesQuery,
   type BabyRow,
   type Family,
 } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { canAddBaby, canInviteCarer, planSummary } from '@babble/config';
 import { settingsGroups, type SettingsGroup } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -127,11 +128,12 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
   const [timezone, setTimezone] = useState(baby.timezone);
   const [dayStart, setDayStart] = useState(baby.day_start_minutes);
   const [sex, setSex] = useState(baby.sex);
-  const [status, setStatus] = useState<{ tone: 'success' | 'danger'; text: string } | null>(null);
+  const { run, error } = useAsyncAction();
+  const [saved, setSaved] = useState(false);
 
   async function save() {
-    setStatus(null);
-    try {
+    setSaved(false);
+    const ok = await run(async () => {
       await updateBaby(client, baby.id, {
         name: name.trim(),
         birth_date: birthDate,
@@ -140,24 +142,23 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
         sex,
       });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
-      setStatus({ tone: 'success', text: 'Saved.' });
-    } catch (caught) {
-      setStatus({ tone: 'danger', text: toBabbleError(caught).message });
-    }
+    });
+    setSaved(ok);
   }
 
   return (
     <Card className={`gap-5 p-5 ${disabled ? 'opacity-60' : ''}`} pointerEvents={disabled ? 'none' : 'auto'}>
       <Text className="font-semibold text-row-title text-ink">Profile</Text>
       <TextField label="Name" value={name} onChangeText={setName} />
-      <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={new Date()} />
+      <DateField label="Birth date" value={birthDate} onChange={setBirthDate} maximumDate={clock.now()} />
       <SexField value={sex} onChange={setSex} />
       <TimezoneField value={timezone} onChange={setTimezone} />
       <View className="gap-2">
         <Text className="font-semibold text-label text-ink">Day starts at</Text>
         <DayStartPicker value={dayStart} onChange={setDayStart} />
       </View>
-      {status && <StatusMessage tone={status.tone}>{status.text}</StatusMessage>}
+      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {saved && !error && <StatusMessage tone="success">Saved.</StatusMessage>}
       {!disabled && (
         <Button onPress={save} disabled={!name.trim()}>
           Save changes
@@ -220,17 +221,12 @@ function AccountSection({ email }: { email: string }) {
   const queryClient = useQueryClient();
   const [confirming, setConfirming] = useState(false);
   const [confirmText, setConfirmText] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const { run, error } = useAsyncAction();
 
   async function leave(action: () => Promise<void>) {
-    setError(null);
-    try {
-      await action();
-      queryClient.clear();
-      router.replace('/sign-in');
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    }
+    if (!(await run(action))) return;
+    queryClient.clear();
+    router.replace('/sign-in');
   }
 
   return (

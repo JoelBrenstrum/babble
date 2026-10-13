@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { BabbleError, toBabbleError, unwrap } from './errors';
+import { BabbleError, toBabbleError, unwrap, unwrapMaybe, unwrapVoid } from './errors';
 
 describe('toBabbleError', () => {
   it.each([
+    [{ code: 'PL003', message: 'Invite required' }, 'invite_required'],
     [{ code: 'P0001', message: 'Sign-up on this Babble server requires a valid invite code' }, 'invite_required'],
+    [{ code: 'P0001', message: 'some other plpgsql exception' }, 'unknown'],
     [{ code: 'PL001', message: 'Adding more than one baby to a family needs Babble Plus' }, 'baby_limit'],
     [{ code: 'PL002', message: 'A free family can have two carers' }, 'carer_limit'],
     [{ message: 'Database error saving new user', status: 500 }, 'invite_required'],
@@ -42,4 +44,16 @@ describe('unwrap', () => {
   it('returns data', () => expect(unwrap({ data: 1, error: null })).toBe(1));
   it('throws mapped errors', () => expect(() => unwrap({ data: null, error: { code: 'P0002' } })).toThrow(BabbleError));
   it('throws on missing data', () => expect(() => unwrap({ data: null, error: null })).toThrow(BabbleError));
+});
+
+describe('unwrapVoid', () => {
+  it('passes on success', () => expect(unwrapVoid({ error: null })).toBeUndefined());
+  it('throws mapped errors', () => expect(() => unwrapVoid({ error: { code: '42501' } })).toThrow(BabbleError));
+});
+
+describe('unwrapMaybe', () => {
+  it('returns null for no row', () => expect(unwrapMaybe({ data: null, error: null })).toBeNull());
+  it('returns data', () => expect(unwrapMaybe({ data: 2, error: null })).toBe(2));
+  it('throws mapped errors', () =>
+    expect(() => unwrapMaybe({ data: null, error: { code: 'PL001' } })).toThrow(BabbleError));
 });

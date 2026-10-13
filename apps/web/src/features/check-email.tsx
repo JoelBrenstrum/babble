@@ -1,4 +1,5 @@
-import { toBabbleError } from '@babble/api';
+import { clock } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { resendState } from '@babble/domain';
 import { useEffect, useState } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
@@ -14,31 +15,23 @@ export function CheckEmail({
   onResend: () => Promise<void>;
   onUseDifferentEmail: () => void;
 }) {
-  const [sentAt, setSentAt] = useState(() => Date.now());
+  const [sentAt, setSentAt] = useState(() => clock.now().getTime());
   const [now, setNow] = useState(sentAt);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { run, busy: pending, error } = useAsyncAction();
   const resend = resendState(sentAt, now);
 
   useEffect(() => {
     if (resend.ready) return;
-    const id = setInterval(() => setNow(Date.now()), 1000);
+    const id = setInterval(() => setNow(clock.now().getTime()), 1000);
     return () => clearInterval(id);
   }, [resend.ready]);
 
-  async function run() {
-    setPending(true);
-    setError(null);
-    try {
-      await onResend();
-      const at = Date.now();
-      setSentAt(at);
-      setNow(at);
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    } finally {
-      setPending(false);
-    }
+  async function resendLink() {
+    const done = await run(onResend);
+    if (!done) return;
+    const at = clock.now().getTime();
+    setSentAt(at);
+    setNow(at);
   }
 
   return (
@@ -54,7 +47,7 @@ export function CheckEmail({
         </div>
       )}
       <div className="mt-8 flex flex-col gap-2 sm:flex-row">
-        <Button variant="secondary" className="tabular" disabled={!resend.ready} loading={pending} onClick={run}>
+        <Button variant="secondary" className="tabular" disabled={!resend.ready} loading={pending} onClick={resendLink}>
           {resend.label}
         </Button>
         <Button variant="ghost" onClick={onUseDifferentEmail}>

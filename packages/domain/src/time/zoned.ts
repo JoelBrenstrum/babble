@@ -1,9 +1,15 @@
+import { DAY_MS } from './constants';
+
 export interface LocalDateTime {
   year: number;
   month: number;
   day: number;
   hour: number;
   minute: number;
+}
+
+export interface ZonedParts extends LocalDateTime {
+  second: number;
 }
 
 const formatters = new Map<string, Intl.DateTimeFormat>();
@@ -26,20 +32,32 @@ function formatterFor(timeZone: string): Intl.DateTimeFormat {
   return formatter;
 }
 
-export function timeZoneOffsetMs(instant: number, timeZone: string): number {
+export function zonedParts(instant: number | Date, timeZone: string): ZonedParts {
   const parts: Record<string, number> = {};
   for (const part of formatterFor(timeZone).formatToParts(instant)) {
     if (part.type !== 'literal') parts[part.type] = Number(part.value);
   }
-  const asUtc = Date.UTC(parts.year!, parts.month! - 1, parts.day!, parts.hour!, parts.minute!, parts.second!);
+  return {
+    year: parts.year!,
+    month: parts.month!,
+    day: parts.day!,
+    hour: parts.hour!,
+    minute: parts.minute!,
+    second: parts.second!,
+  };
+}
+
+export function timeZoneOffsetMs(instant: number, timeZone: string): number {
+  const p = zonedParts(instant, timeZone);
+  const asUtc = Date.UTC(p.year, p.month - 1, p.day, p.hour, p.minute, p.second);
   return asUtc - Math.floor(instant / 1000) * 1000;
 }
 
 // Ambiguous fall-back times pick the earlier instant; spring-forward gap times shift forward.
 export function zonedToUtc(local: LocalDateTime, timeZone: string): Date {
   const wallClock = Date.UTC(local.year, local.month - 1, local.day, local.hour, local.minute);
-  const offsetBefore = timeZoneOffsetMs(wallClock - 24 * 3600_000, timeZone);
-  const offsetAfter = timeZoneOffsetMs(wallClock + 24 * 3600_000, timeZone);
+  const offsetBefore = timeZoneOffsetMs(wallClock - DAY_MS, timeZone);
+  const offsetAfter = timeZoneOffsetMs(wallClock + DAY_MS, timeZone);
 
   const candidates = [wallClock - Math.max(offsetBefore, offsetAfter), wallClock - Math.min(offsetBefore, offsetAfter)];
   for (const candidate of candidates) {

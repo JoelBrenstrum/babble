@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { setSignupMode } from './db';
+import { joinPlus, setSignupMode } from './db';
 import { onboard, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
@@ -30,8 +30,10 @@ test('no banner while the release matches', async ({ page }) => {
 });
 
 test('chair mode shows its own refresh banner', async ({ page }, testInfo) => {
-  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
+  const email = uniqueEmail('john', testInfo.project.name);
+  await signUpWithPassword(page, email);
   await onboard(page);
+  joinPlus(email);
   await pretendNewRelease(page);
   await page.goto('/chair');
   await expect(page.getByText('A new version of babble is ready')).toHaveCount(1);

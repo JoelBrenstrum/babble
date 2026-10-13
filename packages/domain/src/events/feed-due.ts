@@ -1,7 +1,9 @@
 import { formatDuration } from '../format/duration';
 import { formatTimeOfDay, isWithinNight } from '../time/local-time';
 import { latestFeed, nextBreastSide } from './feed-rules';
+import { SIDE_LABEL } from './labels';
 import type { BabyEvent, Side } from './types';
+import { MINUTE_MS } from '../time/constants';
 
 export const FEED_REMINDER_INTERVALS_MIN = [120, 150, 180, 210, 240] as const;
 export const DEFAULT_FEED_REMINDER_INTERVAL_MIN = 180;
@@ -23,7 +25,7 @@ export function nextFeedDue(events: readonly BabyEvent[], settings: FeedReminder
   const last = latestFeed(events);
   if (!last) return null;
   return {
-    dueAt: new Date(Date.parse(last.startedAt) + interval * 60_000).toISOString(),
+    dueAt: new Date(Date.parse(last.startedAt) + interval * MINUTE_MS).toISOString(),
     nextSide: nextBreastSide(events),
   };
 }
@@ -31,8 +33,8 @@ export function nextFeedDue(events: readonly BabyEvent[], settings: FeedReminder
 export function feedDueText(due: FeedDue, now: Date, timeZone: string): { text: string; overdue: boolean } {
   const ms = Date.parse(due.dueAt) - now.getTime();
   const at = formatTimeOfDay(due.dueAt, timeZone);
-  const side = due.nextSide ? ` · ${due.nextSide === 'left' ? 'Left' : 'Right'} side next` : '';
-  if (Math.abs(ms) < 60_000) return { text: `Feed due now${side}`, overdue: false };
+  const side = due.nextSide ? ` · ${SIDE_LABEL[due.nextSide]} side next` : '';
+  if (Math.abs(ms) < MINUTE_MS) return { text: `Feed due now${side}`, overdue: false };
   if (ms > 0) {
     return { text: `Next feed due in ${formatDuration(ms, { seconds: false })} · around ${at}${side}`, overdue: false };
   }
@@ -40,7 +42,7 @@ export function feedDueText(due: FeedDue, now: Date, timeZone: string): { text: 
 }
 
 export function formatInterval(minutes: number): string {
-  return formatDuration(minutes * 60_000, { seconds: false }).replace(/ 00m$/, '');
+  return formatDuration(minutes * MINUTE_MS, { seconds: false }).replace(/ 00m$/, '');
 }
 
 export function feedReminderOptions(settings: FeedReminderSettings): { value: string; label: string }[] {
@@ -74,4 +76,15 @@ export interface NightReminderSettings {
 export function feedRemindersQuiet(settings: NightReminderSettings, at: Date, timeZone: string): boolean {
   if (settings.feed_reminder_at_night) return false;
   return isWithinNight(at, timeZone, settings.night_start_minutes, settings.night_end_minutes);
+}
+
+export function feedDueFor(
+  latest: readonly BabyEvent[],
+  running: readonly BabyEvent[],
+  settings: (FeedReminderSettings & NightReminderSettings) | null | undefined,
+  now: Date,
+  timeZone: string,
+): FeedDue | null {
+  if (!settings || feedRemindersQuiet(settings, now, timeZone)) return null;
+  return nextFeedDue([...latest, ...running], settings);
 }

@@ -6,12 +6,12 @@ import { Plus } from 'lucide-react';
 import { Card } from '#/components/ui/card';
 import { EmptyState } from '#/components/ui/empty-state';
 import { Segmented } from '#/components/ui/segmented';
-import { Spinner } from '#/components/ui/spinner';
+import { SectionSpinner } from '#/components/ui/spinner';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventRow } from '#/features/events/event-row';
 import { SummaryStrip } from '#/features/timeline/totals';
 import { isEventType, listTypesFor, trackerFor } from '@babble/domain';
-import { useUnits } from '#/lib/use-events';
+import { useUnits } from '@babble/api/react';
 import { useNow } from '#/lib/use-now';
 
 type Filter = 'all' | 'breast' | 'bottle';
@@ -99,11 +99,7 @@ function TrackerList() {
         </div>
       )}
 
-      {events.isPending && (
-        <div className="flex justify-center py-16 text-primary">
-          <Spinner className="size-7" />
-        </div>
-      )}
+      {events.isPending && <SectionSpinner />}
       {events.data?.length === 0 && (
         <EmptyState
           illustration={<TrackerIcon tracker={tracker} size="lg" />}

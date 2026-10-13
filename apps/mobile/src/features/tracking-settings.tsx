@@ -1,45 +1,30 @@
 import {
   babySettingsQuery,
   queryKeys,
-  toBabbleError,
   updateBabySettings,
   updateFamilySettings,
   type BabbleClient,
-  type BabySettingsRow,
+  type BabySettings,
   type BabySettingsUpdate,
   type FamilySettings,
 } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import {
   feedReminderChoice,
   feedReminderOptions,
   feedReminderPatch,
-  minutesToClock,
   type Units,
   NAPPY_PROMPT_LABELS,
   type NappyPromptTiming,
 } from '@babble/domain';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Card } from '@/components/card';
 import { SingleChips } from '@/components/chips';
 import { Segmented } from '@/components/segmented';
 import { StatusMessage } from '@/components/status-message';
 import { Stepper } from '@/components/stepper';
-
-function useSaveError() {
-  const [error, setError] = useState<string | null>(null);
-  async function attempt(action: () => Promise<void>) {
-    setError(null);
-    try {
-      await action();
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    }
-  }
-  return { error, attempt };
-}
+import { TimeButton } from '@/components/time-button';
 
 export function BabyTrackingSettings({
   client,
@@ -52,10 +37,10 @@ export function BabyTrackingSettings({
 }) {
   const queryClient = useQueryClient();
   const settings = useQuery(babySettingsQuery(client, babyId)).data;
-  const { error, attempt } = useSaveError();
+  const { error, run } = useAsyncAction();
 
   const save = (patch: BabySettingsUpdate) =>
-    attempt(async () => {
+    run(async () => {
       queryClient.setQueryData(queryKeys.babySettings(babyId), await updateBabySettings(client, babyId, patch));
     });
 
@@ -141,12 +126,12 @@ export function FamilyTrackingSettings({
 }) {
   const queryClient = useQueryClient();
   const settings = useQuery(babySettingsQuery(client, babyId)).data;
-  const { error, attempt } = useSaveError();
+  const { error, run } = useAsyncAction();
 
   const save = (patch: Partial<FamilySettings>) =>
-    attempt(async () => {
+    run(async () => {
       await updateFamilySettings(client, familyId, patch);
-      queryClient.setQueryData<BabySettingsRow>(queryKeys.babySettings(babyId), (current) =>
+      queryClient.setQueryData<BabySettings>(queryKeys.babySettings(babyId), (current) =>
         current ? { ...current, ...patch } : current,
       );
       await queryClient.invalidateQueries({ queryKey: queryKeys.allBabySettings });
@@ -198,43 +183,5 @@ export function FamilyTrackingSettings({
       </View>
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
     </Card>
-  );
-}
-
-function TimeButton({
-  label,
-  minutes,
-  onChange,
-}: {
-  label: string;
-  minutes: number;
-  onChange: (minutes: number) => void;
-}) {
-  const [picking, setPicking] = useState(false);
-  const asDate = new Date();
-  asDate.setHours(Math.floor(minutes / 60), minutes % 60, 0, 0);
-  return (
-    <View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        onPress={() => setPicking((current) => !current)}
-        className="min-h-tap justify-center rounded-button border border-line-strong bg-raised px-4"
-      >
-        <Text className="font-semibold text-body text-ink">{minutesToClock(minutes)}</Text>
-      </Pressable>
-      {picking && (
-        <DateTimePicker
-          value={asDate}
-          mode="time"
-          minuteInterval={15}
-          display="spinner"
-          onChange={(event, date) => {
-            if (Platform.OS === 'android' || event.type !== 'set') setPicking(false);
-            if (event.type === 'set' && date) onChange(date.getHours() * 60 + date.getMinutes());
-          }}
-        />
-      )}
-    </View>
   );
 }

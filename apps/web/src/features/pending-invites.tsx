@@ -1,20 +1,21 @@
 import {
+  clock,
   createInvite,
   pendingInvitesQuery,
   queryKeys,
   revokeInvite,
-  toBabbleError,
   type BabbleClient,
   type Family,
   type PendingInvite,
 } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { membersHeading, pendingInviteMeta } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ticket } from 'lucide-react';
 import { useCallback, useMemo, useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { Card, SectionLabel } from '#/components/ui/card';
-import { StatusMessage } from '#/components/ui/status';
+import { ConfirmPanel } from '#/components/ui/confirm-panel';
 
 export function MembersLabel({
   client,
@@ -50,25 +51,18 @@ export function PendingInvites({ client, family }: { client: BabbleClient; famil
     [family.members],
   );
   const [confirming, setConfirming] = useState<string | null>(null);
-  const [revoking, setRevoking] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { run, busy: revoking, error, setError } = useAsyncAction();
 
   async function revoke(invite: PendingInvite) {
-    setError(null);
-    setRevoking(true);
-    try {
+    const done = await run(async () => {
       await revokeInvite(client, invite.id);
-      setConfirming(null);
       await queryClient.invalidateQueries({ queryKey: queryKeys.pendingInvites(family.id) });
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    } finally {
-      setRevoking(false);
-    }
+    });
+    if (done) setConfirming(null);
   }
 
   if (invites.length === 0) return null;
-  const now = new Date();
+  const now = clock.now();
 
   return (
     <Card className="divide-y divide-line" role="list" aria-label="Pending invites">
@@ -97,18 +91,14 @@ export function PendingInvites({ client, family }: { client: BabbleClient; famil
             )}
           </div>
           {confirming === invite.id && (
-            <div className="flex flex-col gap-3 rounded-tile bg-danger-soft p-4">
-              <p className="text-meta text-on-danger">Revoke this invite? The code will stop working.</p>
-              <div className="flex gap-3">
-                <Button variant="destructive" loading={revoking} onClick={() => revoke(invite)}>
-                  Revoke
-                </Button>
-                <Button variant="ghost" onClick={() => setConfirming(null)}>
-                  Cancel
-                </Button>
-              </div>
-              {error && <StatusMessage tone="danger">{error}</StatusMessage>}
-            </div>
+            <ConfirmPanel
+              message="Revoke this invite? The code will stop working."
+              confirmLabel="Revoke"
+              loading={revoking}
+              error={error}
+              onConfirm={() => void revoke(invite)}
+              onCancel={() => setConfirming(null)}
+            />
           )}
         </div>
       ))}

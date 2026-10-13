@@ -1,0 +1,75 @@
+// @vitest-environment jsdom
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { act, renderHook, waitFor } from '@testing-library/react';
+import type { BabyEvent } from '@babble/domain';
+import { createElement, type ReactNode } from 'react';
+import { describe, expect, it, vi } from 'vitest';
+import { sampleBaby, sampleRunningSleep } from '../fixtures';
+import { queryKeys } from '../queries';
+import { fakeClient } from '../test-utils';
+import { NotifyProvider, type Toast } from './notify';
+import { useDiscardSession, useSaveSleepDetails, useSessionAction } from './use-events';
+
+const NOW = new Date();
+const babyId = sampleBaby.id;
+
+function setup(respond: Parameters<typeof fakeClient>[0]) {
+  const { client, requests } = fakeClient(respond);
+  const queryClient = new QueryClient({ defaultOptions: { mutations: { retry: false } } });
+  const sleep = sampleRunningSleep(NOW);
+  queryClient.setQueryData<BabyEvent[]>(queryKeys.runningEvents(babyId), [sleep]);
+  queryClient.setQueryData(queryKeys.event(babyId, sleep.id), sleep);
+  vi.spyOn(queryClient, 'invalidateQueries').mockResolvedValue();
+  const toasts: Toast[] = [];
+  const wrapper = ({ children }: { children: ReactNode }) =>
+    createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      createElement(NotifyProvider, { notify: (toast: Toast) => void toasts.push(toast), children }),
+    );
+  return { client, requests, queryClient, sleep, toasts, wrapper };
+}
+
+describe('optimistic session hooks', () => {
+  it('rolls back both caches and shows the error when a discard fails', async () => {
+    const { client, queryClient, sleep, toasts, wrapper } = setup(() => ({ status: 500, body: { message: 'down' } }));
+    const { result } = renderHook(() => useDiscardSession(client, babyId), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync(sleep).catch(() => undefined);
+    });
+    expect(queryClient.getQueryData(queryKeys.runningEvents(babyId))).toEqual([sleep]);
+    expect(queryClient.getQueryData(queryKeys.event(babyId, sleep.id))).toEqual(sleep);
+    expect(toasts).toHaveLength(1);
+    expect(toasts[0]!.action).toBeUndefined();
+  });
+
+  it('offers undo after a discard succeeds', async () => {
+    const { client, queryClient, sleep, toasts, wrapper } = setup(() => ({ status: 204, body: null }));
+    const { result } = renderHook(() => useDiscardSession(client, babyId), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync(sleep);
+    });
+    expect(queryClient.getQueryData(queryKeys.runningEvents(babyId))).toEqual([]);
+    expect(toasts[0]).toMatchObject({ message: 'Nap discarded', action: { label: 'Undo' } });
+  });
+
+  it('restores the single-event cache when saving sleep details fails', async () => {
+    const { client, queryClient, sleep, wrapper } = setup(() => ({ status: 500, body: { message: 'down' } }));
+    const { result } = renderHook(() => useSaveSleepDetails(client, babyId), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ eventId: sleep.id, changes: { notes: 'x' } }).catch(() => undefined);
+    });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(queryClient.getQueryData<BabyEvent>(queryKeys.event(babyId, sleep.id))!.notes).toBeNull();
+    expect(queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(babyId))![0]!.notes).toBeNull();
+  });
+
+  it('removes a session from the running list when it ends', async () => {
+    const { client, queryClient, sleep, wrapper } = setup(() => ({ status: 204, body: null }));
+    const { result } = renderHook(() => useSessionAction(client, babyId), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync({ event: sleep, action: { kind: 'end' } });
+    });
+    expect(queryClient.getQueryData(queryKeys.runningEvents(babyId))).toEqual([]);
+  });
+});

@@ -1,21 +1,26 @@
 import type { BabbleClient } from './client';
-import { BabbleError, toBabbleError } from './errors';
+import { BabbleError, toBabbleError, unwrapVoid } from './errors';
 import { normalizeInviteCode } from './invite-code';
+
+export function inviteMetadata(inviteCode: string | undefined): { data?: { invite_code: string } } {
+  const code = inviteCode?.trim() ? normalizeInviteCode(inviteCode) : undefined;
+  return code ? { data: { invite_code: code } } : {};
+}
 
 export async function requestMagicLink(
   client: BabbleClient,
   options: { email: string; redirectTo: string; inviteCode?: string },
 ): Promise<void> {
-  const inviteCode = options.inviteCode?.trim() ? normalizeInviteCode(options.inviteCode) : undefined;
-  const { error } = await client.auth.signInWithOtp({
-    email: options.email.trim(),
-    options: {
-      emailRedirectTo: options.redirectTo,
-      shouldCreateUser: true,
-      ...(inviteCode ? { data: { invite_code: inviteCode } } : {}),
-    },
-  });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(
+    await client.auth.signInWithOtp({
+      email: options.email.trim(),
+      options: {
+        emailRedirectTo: options.redirectTo,
+        shouldCreateUser: true,
+        ...inviteMetadata(options.inviteCode),
+      },
+    }),
+  );
 }
 
 export async function signInWithGoogle(
@@ -62,10 +67,17 @@ export function parseAuthRedirect(href: string): AuthRedirect {
   };
 }
 
+export function decodeBase64Url(value: string): string {
+  const base64 = value.replace(/-/g, '+').replace(/_/g, '/');
+  const binary = atob(base64.padEnd(Math.ceil(base64.length / 4) * 4, '='));
+  return decodeURIComponent(
+    Array.from(binary, (char) => `%${char.charCodeAt(0).toString(16).padStart(2, '0')}`).join(''),
+  );
+}
+
 export function tokenEmail(accessToken: string): string | null {
   try {
-    const payload = accessToken.split('.')[1]!.replace(/-/g, '+').replace(/_/g, '/');
-    const claims = JSON.parse(atob(payload)) as { email?: unknown };
+    const claims = JSON.parse(decodeBase64Url(accessToken.split('.')[1]!)) as { email?: unknown };
     return typeof claims.email === 'string' ? claims.email : null;
   } catch {
     return null;
@@ -104,21 +116,20 @@ export async function completeAuthRedirect(client: BabbleClient, href: string): 
 }
 
 export async function acceptLinkSession(client: BabbleClient, session: LinkSession): Promise<void> {
-  const { error } = await client.auth.setSession({
-    access_token: session.accessToken,
-    refresh_token: session.refreshToken,
-  });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(
+    await client.auth.setSession({
+      access_token: session.accessToken,
+      refresh_token: session.refreshToken,
+    }),
+  );
 }
 
 export async function updatePassword(client: BabbleClient, password: string): Promise<void> {
-  const { error } = await client.auth.updateUser({ password });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.auth.updateUser({ password }));
 }
 
 export async function exchangeAuthCode(client: BabbleClient, code: string): Promise<void> {
-  const { error } = await client.auth.exchangeCodeForSession(code);
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.auth.exchangeCodeForSession(code));
 }
 
 export async function signOut(client: BabbleClient): Promise<void> {
@@ -134,8 +145,7 @@ export async function signInWithPassword(
   client: BabbleClient,
   options: { email: string; password: string },
 ): Promise<void> {
-  const { error } = await client.auth.signInWithPassword({ email: options.email.trim(), password: options.password });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.auth.signInWithPassword({ email: options.email.trim(), password: options.password }));
 }
 
 export const MIN_PASSWORD_LENGTH = 8;
@@ -144,21 +154,12 @@ export async function signUpWithPassword(
   client: BabbleClient,
   options: { email: string; password: string; redirectTo: string; inviteCode?: string },
 ): Promise<{ needsConfirmation: boolean }> {
-  const inviteCode = options.inviteCode?.trim() ? normalizeInviteCode(options.inviteCode) : undefined;
+  if (options.password.length < MIN_PASSWORD_LENGTH) throw toBabbleError({ code: 'weak_password' });
   const { data, error } = await client.auth.signUp({
     email: options.email.trim(),
     password: options.password,
-    options: { emailRedirectTo: options.redirectTo, ...(inviteCode ? { data: { invite_code: inviteCode } } : {}) },
+    options: { emailRedirectTo: options.redirectTo, ...inviteMetadata(options.inviteCode) },
   });
-  if (error) throw toBabbleError(error);
+  unwrapVoid({ error });
   return { needsConfirmation: !data.session };
 }
-
-// Seeded by packages/db/supabase/seed.sql into the local database only.
-export const DEV_ACCOUNTS = [
-  { name: 'John', role: 'owner', email: 'john@babble.dev', plan: 'plus' },
-  { name: 'Jane', role: 'caregiver', email: 'jane@babble.dev', plan: 'plus' },
-  { name: 'Sam', role: 'owner', email: 'sam@babble.dev', plan: 'free' },
-] as const;
-
-export const DEV_PASSWORD = 'password';

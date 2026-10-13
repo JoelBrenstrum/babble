@@ -2,7 +2,15 @@ import { formatShortDate, summariseImport, trackerFor, type HuckleberryImport } 
 import { Card } from '#/components/ui/card';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 
-export function ImportPreview({ result, timeZone }: { result: HuckleberryImport; timeZone: string }) {
+export function ImportPreview({
+  result,
+  timeZone,
+  source = 'huckleberry_csv',
+}: {
+  result: HuckleberryImport;
+  timeZone: string;
+  source?: 'huckleberry_csv' | 'babble_export';
+}) {
   const summary = summariseImport(result);
   const types = Object.entries(summary.byType) as [keyof typeof summary.byType, number][];
 
@@ -30,7 +38,7 @@ export function ImportPreview({ result, timeZone }: { result: HuckleberryImport;
         </ul>
       </Card>
 
-      {result.events.some((event) => event.type === 'breast_feed') && (
+      {source === 'huckleberry_csv' && result.events.some((event) => event.type === 'breast_feed') && (
         <p className="rounded-tile bg-info-soft px-4 py-3 text-meta text-on-info">
           <strong>No downtime data for feeds.</strong> Huckleberry only keeps each side's total, so imported feeds show
           side totals without downtime or side order.
@@ -44,12 +52,20 @@ export function ImportPreview({ result, timeZone }: { result: HuckleberryImport;
       {result.skipped.length > 0 && (
         <details className="rounded-card border border-line bg-raised p-4">
           <summary className="cursor-pointer text-body font-semibold">
-            {result.skipped.length} {result.skipped.length === 1 ? 'row' : 'rows'} skipped
+            {result.skipped.length}{' '}
+            {source === 'huckleberry_csv'
+              ? result.skipped.length === 1
+                ? 'row'
+                : 'rows'
+              : result.skipped.length === 1
+                ? 'entry'
+                : 'entries'}{' '}
+            skipped
           </summary>
           <table className="mt-3 w-full text-left text-meta">
             <thead className="text-ink-3">
               <tr>
-                <th className="py-1 pr-3 font-semibold">Row</th>
+                <th className="py-1 pr-3 font-semibold">{source === 'huckleberry_csv' ? 'Row' : 'Entry'}</th>
                 <th className="py-1 pr-3 font-semibold">Type</th>
                 <th className="py-1 font-semibold">Why</th>
               </tr>

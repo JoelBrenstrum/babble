@@ -1,16 +1,11 @@
-import { dayWindow, fromLocalInputValue, shiftDay } from '../time/local-time';
+import { DAY_MS, MINUTE_MS } from '../time/constants';
+import { dayWindow, localInstant, minutesOfDay, shiftDay } from '../time/local-time';
+
+export { localInstant };
 
 export interface TimeWindow {
   start: Date;
   end: Date;
-}
-
-export function localInstant(dayKey: string, minutes: number, timeZone: string): Date {
-  const dayOffset = Math.floor(minutes / 1440);
-  const minuteOfDay = minutes - dayOffset * 1440;
-  const hh = String(Math.floor(minuteOfDay / 60)).padStart(2, '0');
-  const mm = String(minuteOfDay % 60).padStart(2, '0');
-  return new Date(fromLocalInputValue(`${shiftDay(dayKey, dayOffset)}T${hh}:${mm}`, timeZone)!);
 }
 
 export function fractionOf(window: TimeWindow, instant: number): number {
@@ -36,10 +31,10 @@ export function hourTicks(
   return ticks;
 }
 
-const QUARTER_HOUR = 15 * 60_000;
+const QUARTER_HOUR = 15 * MINUTE_MS;
 
 export function lastDayWindow(now: Date): TimeWindow {
-  return { start: new Date(now.getTime() - 24 * 3_600_000), end: now };
+  return { start: new Date(now.getTime() - DAY_MS), end: now };
 }
 
 export function windowTicks(
@@ -47,12 +42,12 @@ export function windowTicks(
   timeZone: string,
   everyHours: number,
 ): { frac: number; label: string }[] {
-  const parts = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone });
   const ticks: { frac: number; label: string }[] = [];
   const first = Math.ceil(window.start.getTime() / QUARTER_HOUR) * QUARTER_HOUR;
   for (let instant = first; instant <= window.end.getTime(); instant += QUARTER_HOUR) {
-    const [hour, minute] = parts.format(new Date(instant)).split(':').map(Number);
-    if (minute === 0 && hour! % everyHours === 0) {
+    const minutes = minutesOfDay(new Date(instant), timeZone);
+    const hour = Math.floor(minutes / 60);
+    if (minutes % 60 === 0 && hour % everyHours === 0) {
       ticks.push({ frac: fractionOf(window, instant), label: String(hour).padStart(2, '0') });
     }
   }

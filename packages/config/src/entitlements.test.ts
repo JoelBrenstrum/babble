@@ -4,6 +4,8 @@ import {
   canAddBaby,
   canInviteCarer,
   entitlements,
+  familyEntitlements,
+  toPlan,
   familyHasFeature,
   planSummary,
   plusPitch,
@@ -58,6 +60,16 @@ describe('canAddBaby', () => {
 });
 
 describe('plusPitch', () => {
+  it('explains the chair mode lock', () => {
+    expect(plusPitch('chair_mode').reason).toBe('Chair mode is part of Babble Plus. You can preview it from Settings.');
+    expect(familyHasFeature(true, 'free', 'chair_mode')).toBe(false);
+    expect(familyHasFeature(true, 'plus', 'chair_mode')).toBe(true);
+  });
+
+  it('explains the insights lock', () => {
+    expect(plusPitch('insights').reason).toContain('30-day timeline');
+  });
+
   it('explains why the feature is locked and what plus includes', () => {
     expect(plusPitch('multiple_babies')).toEqual({
       reason: 'Adding more than one baby to a family is part of Babble Plus.',
@@ -65,6 +77,9 @@ describe('plusPitch', () => {
         'Predicted sleeps and feeds on Home and the Timeline',
         'More than one baby in a family',
         'More than two carers in a family',
+        'Wake windows, night sleep, a weekly summary and all-time stats',
+        'A 30-day timeline to see patterns form',
+        'Chair mode, a feed station for a tablet by the feeding chair',
       ],
       note: 'Upgrading is coming soon.',
     });
@@ -81,5 +96,28 @@ describe('canInviteCarer', () => {
   it('has no limit on plus or with billing off', () => {
     expect(canInviteCarer(true, 'plus', 4, 2)).toBe(true);
     expect(canInviteCarer(false, 'free', 4, 2)).toBe(true);
+  });
+});
+
+describe('toPlan', () => {
+  it('narrows unknown plan names to free', () => {
+    expect(toPlan('plus')).toBe('plus');
+    expect(toPlan('free')).toBe('free');
+    expect(toPlan('enterprise')).toBe('free');
+  });
+});
+
+describe('familyEntitlements', () => {
+  it('answers feature and limit questions for one family', () => {
+    const free = familyEntitlements(true, 'free');
+    expect(free.plan).toBe('free');
+    expect(free.has('predictions')).toBe(false);
+    expect(free.canAddBaby(1)).toBe(false);
+    expect(free.canInviteCarer(1, 1)).toBe(false);
+    const plus = familyEntitlements(true, 'plus');
+    expect(plus.has('predictions')).toBe(true);
+    expect(plus.canAddBaby(3)).toBe(true);
+    expect(plus.canInviteCarer(4, 2)).toBe(true);
+    expect(familyEntitlements(false, 'free').has('chair_mode')).toBe(true);
   });
 });

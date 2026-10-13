@@ -1,23 +1,15 @@
 import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
-import {
-  dayKeyFor,
-  dayWindow,
-  feedDueText,
-  feedRemindersQuiet,
-  nextFeedDue,
-  predictionText,
-  summariseDay,
-} from '@babble/domain';
+import { feedDueFor, feedDueText, homeWindow, predictionText, summariseDay } from '@babble/domain';
 import { canAddBaby } from '@babble/config';
+import { useUnits } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import { Screen } from '@/components/screen';
 import { RunningCard } from '@/features/events/running-card';
 import { HomeOverview } from '@/features/home-overview';
 import { useBabble } from '@/lib/babble';
-import { useUnits } from '@/lib/use-events';
 import { useNow } from '@/lib/use-now';
 import { useActiveBaby } from '@/lib/active-baby';
-import { useOnboarding, useReadyState } from '@/lib/use-onboarding';
+import { useOnboarding, useReadyState, type ReadyState } from '@/lib/use-onboarding';
 import { usePrediction } from '@/lib/use-prediction';
 
 export default function Home() {
@@ -26,24 +18,16 @@ export default function Home() {
   return <HomeContent family={ready.family} baby={ready.baby} />;
 }
 
-function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useReadyState>>, 'family' | 'baby'>) {
+function HomeContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) {
   const { client, config } = useBabble();
   const now = useNow(30_000);
   const units = useUnits(client, baby.id);
-  const window = dayWindow(
-    dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes),
-    baby.timezone,
-    baby.day_start_minutes,
-  );
-  const since = `${new Date(window.start.getTime() - 24 * 3_600_000).toISOString().slice(0, 13)}:00:00Z`;
+  const { window, since } = homeWindow(now, baby);
   const running = useQuery(runningEventsQuery(client, baby.id));
   const latest = useQuery(latestEventsQuery(client, baby.id));
   const recent = useQuery(eventsSinceQuery(client, baby.id, since));
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
-  const due =
-    settings && !feedRemindersQuiet(settings, now, baby.timezone)
-      ? nextFeedDue([...(latest.data ?? []), ...(running.data ?? [])], settings)
-      : null;
+  const due = feedDueFor(latest.data ?? [], running.data ?? [], settings, now, baby.timezone);
   const prediction = usePrediction(baby, family, now);
   const { choices } = useOnboarding();
   const active = useActiveBaby();
@@ -59,8 +43,9 @@ function HomeContent({ family, baby }: Pick<NonNullable<ReturnType<typeof useRea
         latest={latest.data ?? []}
         feedDue={due ? feedDueText(due, now, baby.timezone) : null}
         prediction={predictionText(prediction, baby.timezone)}
+        predictionPlus={config.billingEnabled}
         addBabyLocked={!canAddBaby(config.billingEnabled, family.plan, family.babies.length)}
-        summary={recent.data ? summariseDay(recent.data, { start: window.start, end: now }) : null}
+        summary={recent.data ? summariseDay(recent.data, window) : null}
         choices={choices}
         onSelectBaby={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}
         renderRunning={(event) => (

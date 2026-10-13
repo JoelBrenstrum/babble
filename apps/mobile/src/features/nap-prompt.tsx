@@ -1,16 +1,32 @@
-import { clock, endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
+import { clock, isDataNapAction, type BabbleClient } from '@babble/api';
+import { useNapAction } from '@babble/api/react';
 import { napPromptContent, type NapAction, type NapPrompt } from '@babble/domain';
-import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { Droplets, Heart, Moon } from 'lucide-react-native';
 import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
-import { useToast } from '@/components/toast';
 import { useTokenColor } from '@/lib/theme';
 
-const NapPromptContext = createContext<(prompt: NapPrompt | null) => void>(() => undefined);
+const PROMPT_ICON = {
+  nappy: { Icon: Droplets, background: 'bg-nappy-soft', token: '--on-nappy' },
+  'end-feed': { Icon: Heart, background: 'bg-feed-right-soft', token: '--on-feed-right' },
+  'end-nap': { Icon: Moon, background: 'bg-sleep-soft', token: '--on-sleep' },
+  'start-nap': { Icon: Moon, background: 'bg-sleep-soft', token: '--on-sleep' },
+} as const;
+
+function PromptIcon({ kind }: { kind: NapPrompt['kind'] }) {
+  const { Icon, background, token } = PROMPT_ICON[kind];
+  const color = useTokenColor(token);
+  return (
+    <View className={`size-11 items-center justify-center rounded-full ${background}`}>
+      <Icon size={20} color={color} strokeWidth={2.75} />
+    </View>
+  );
+}
+
+const NapPromptContext = createContext<(prompts: NapPrompt[]) => void>(() => undefined);
 
 export function useNapPrompt() {
   return useContext(NapPromptContext);
@@ -31,15 +47,11 @@ export function NapPromptProvider({
 }) {
   const [queue, setQueue] = useState<NapPrompt[]>([]);
   const prompt = queue[0] ?? null;
-  const show = useCallback((next: NapPrompt | null) => {
-    if (next) setQueue((current) => [...current, next]);
+  const show = useCallback((next: NapPrompt[]) => {
+    if (next.length > 0) setQueue((current) => [...current, ...next]);
   }, []);
   const [pending, setPending] = useState<string | null>(null);
-  const queryClient = useQueryClient();
-  const toast = useToast();
-  const moonColor = useTokenColor('--on-sleep');
-  const feedColor = useTokenColor('--on-feed-right');
-  const nappyColor = useTokenColor('--on-nappy');
+  const napAction = useNapAction(client, babyId);
   const content = prompt ? napPromptContent(prompt, babyName, timeZone, clock.now()) : null;
 
   function close() {
@@ -49,19 +61,15 @@ export function NapPromptProvider({
 
   async function choose(label: string, action: NapAction) {
     if (!action) return close();
-    if (action.kind === 'log-nappy') {
+    if (!isDataNapAction(action)) {
       close();
       return router.push('/track/nappy/new');
     }
     setPending(label);
     try {
-      if (action.kind === 'end-nap') await endSession(client, action.napId, action.at);
-      else if (action.kind === 'end-feed') await endSession(client, action.feedId, action.at);
-      else await startSession(client, babyId, 'sleep', 'left', action.at);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.events(babyId), refetchType: 'all' });
+      await napAction.mutateAsync(action);
       close();
-    } catch (error) {
-      toast({ message: toBabbleError(error).message });
+    } catch {
       setPending(null);
     }
   }
@@ -75,19 +83,7 @@ export function NapPromptProvider({
           <SafeAreaView edges={['bottom']} className="gap-4 rounded-t-sheet bg-raised px-5 pb-4 pt-3">
             <View className="h-1.5 w-10 self-center rounded-full bg-line-strong" />
             <View className="flex-row items-center gap-3">
-              {prompt?.kind === 'nappy' ? (
-                <View className="size-11 items-center justify-center rounded-full bg-nappy-soft">
-                  <Droplets size={20} color={nappyColor} strokeWidth={2.75} />
-                </View>
-              ) : prompt?.kind === 'end-feed' ? (
-                <View className="size-11 items-center justify-center rounded-full bg-feed-right-soft">
-                  <Heart size={20} color={feedColor} strokeWidth={2.75} />
-                </View>
-              ) : (
-                <View className="size-11 items-center justify-center rounded-full bg-sleep-soft">
-                  <Moon size={20} color={moonColor} strokeWidth={2.75} />
-                </View>
-              )}
+              {prompt && <PromptIcon kind={prompt.kind} />}
               <Text accessibilityRole="header" className="flex-1 font-bold text-heading text-ink">
                 {content.title}
               </Text>

@@ -41,16 +41,21 @@ export function useCharging(): boolean | null {
     const getBattery = (navigator as BatteryNavigator).getBattery;
     if (!getBattery) return;
     let battery: BatteryManager | null = null;
+    let cancelled = false;
     const update = () => battery && setCharging(battery.charging);
     getBattery
       .call(navigator)
       .then((result) => {
+        if (cancelled) return;
         battery = result;
         update();
         result.addEventListener('chargingchange', update);
       })
       .catch(() => undefined);
-    return () => battery?.removeEventListener('chargingchange', update);
+    return () => {
+      cancelled = true;
+      battery?.removeEventListener('chargingchange', update);
+    };
   }, []);
   return charging;
 }

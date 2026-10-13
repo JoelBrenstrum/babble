@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 
 select plan(3);
+update private.instance_settings set billing_enabled = false;
 
 select col_type_is('public', 'babies', 'sex', 'baby_sex', 'babies record a sex');
 select col_is_null('public', 'babies', 'sex', 'sex is optional');

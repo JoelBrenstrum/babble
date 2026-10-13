@@ -1,11 +1,19 @@
-import { clock, endSession, queryKeys, startSession, toBabbleError, type BabbleClient } from '@babble/api';
+import { clock, isDataNapAction, type BabbleClient } from '@babble/api';
+import { useNapAction } from '@babble/api/react';
 import { napPromptContent, type NapAction, type NapPrompt } from '@babble/domain';
-import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { Droplets, Heart, Moon } from 'lucide-react';
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Droplets, Heart, Moon, type LucideIcon } from 'lucide-react';
+import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
 import { Button } from '#/components/ui/button';
-import { useToast } from '#/components/ui/toast';
+import { cn } from '#/lib/cn';
+import { ModalSheet } from '#/components/ui/modal-sheet';
+
+const PROMPT_ICON: Record<NapPrompt['kind'], { icon: LucideIcon; className: string }> = {
+  nappy: { icon: Droplets, className: 'bg-nappy-soft text-on-nappy' },
+  'end-feed': { icon: Heart, className: 'bg-feed-right-soft text-on-feed-right' },
+  'end-nap': { icon: Moon, className: 'bg-sleep-soft text-on-sleep' },
+  'start-nap': { icon: Moon, className: 'bg-sleep-soft text-on-sleep' },
+};
 
 const NapPromptContext = createContext<(prompt: NapPrompt | null) => void>(() => undefined);
 
@@ -69,85 +77,55 @@ function NapPromptDialog({
   timeZone: string;
   onClose: () => void;
 }) {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const toast = useToast();
+  const napAction = useNapAction(client, babyId);
   const [pending, setPending] = useState<string | null>(null);
   const firstButton = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
-    firstButton.current?.focus();
-    const escape = (event: KeyboardEvent) => event.key === 'Escape' && onClose();
-    document.addEventListener('keydown', escape);
-    return () => document.removeEventListener('keydown', escape);
-  }, [onClose]);
-
   const { title, body, options } = napPromptContent(prompt, babyName, timeZone, clock.now());
+  const { icon: Icon, className: iconClass } = PROMPT_ICON[prompt.kind];
 
   async function choose(label: string, action: NapAction) {
     if (!action) return onClose();
-    if (action.kind === 'log-nappy') {
+    if (!isDataNapAction(action)) {
       onClose();
       return void navigate({ to: '/track/$type/new', params: { type: 'nappy' }, search: { then: 'back' } });
     }
     setPending(label);
     try {
-      if (action.kind === 'end-nap') await endSession(client, action.napId, action.at);
-      else if (action.kind === 'end-feed') await endSession(client, action.feedId, action.at);
-      else await startSession(client, babyId, 'sleep', 'left', action.at);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.events(babyId), refetchType: 'all' });
+      await napAction.mutateAsync(action);
       onClose();
-    } catch (error) {
-      toast({ message: toBabbleError(error).message });
+    } catch {
       setPending(null);
     }
   }
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-scrim/40 md:items-center" onMouseDown={onClose}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="nap-prompt-title"
-        onMouseDown={(event) => event.stopPropagation()}
-        className="flex w-full max-w-md flex-col gap-4 rounded-t-sheet bg-raised p-6 pb-[calc(env(safe-area-inset-bottom)+24px)] shadow-sheet md:rounded-sheet md:pb-6"
-      >
-        <span className="mx-auto h-1.5 w-10 rounded-full bg-line-strong md:hidden" />
-        <div className="flex items-center gap-3">
-          {prompt.kind === 'nappy' ? (
-            <span className="grid size-11 place-items-center rounded-full bg-nappy-soft text-on-nappy">
-              <Droplets className="size-5" strokeWidth={2.75} />
-            </span>
-          ) : prompt.kind === 'end-feed' ? (
-            <span className="grid size-11 place-items-center rounded-full bg-feed-right-soft text-on-feed-right">
-              <Heart className="size-5" strokeWidth={2.75} />
-            </span>
-          ) : (
-            <span className="grid size-11 place-items-center rounded-full bg-sleep-soft text-on-sleep">
-              <Moon className="size-5" strokeWidth={2.75} />
-            </span>
-          )}
-          <h2 id="nap-prompt-title" className="text-heading font-bold">
-            {title}
-          </h2>
-        </div>
-        <p className="text-body text-ink-2">{body}</p>
-        <div className="flex flex-col gap-2">
-          {options.map((option, index) => (
-            <Button
-              key={option.label}
-              ref={index === 0 ? firstButton : undefined}
-              size="lg"
-              variant={option.primary ? 'primary' : option.action ? 'secondary' : 'ghost'}
-              loading={pending === option.label}
-              disabled={pending !== null && pending !== option.label}
-              onClick={() => choose(option.label, option.action)}
-            >
-              {option.label}
-            </Button>
-          ))}
-        </div>
+    <ModalSheet labelledBy="nap-prompt-title" initialFocus={firstButton} onClose={onClose}>
+      <div className="flex items-center gap-3">
+        <span className={cn('grid size-11 place-items-center rounded-full', iconClass)}>
+          <Icon className="size-5" strokeWidth={2.75} />
+        </span>
+        <h2 id="nap-prompt-title" className="text-heading font-bold">
+          {title}
+        </h2>
       </div>
-    </div>
+      <p className="text-body text-ink-2">{body}</p>
+      <div className="flex flex-col gap-2">
+        {options.map((option, index) => (
+          <Button
+            key={option.label}
+            ref={index === 0 ? firstButton : undefined}
+            size="lg"
+            variant={option.primary ? 'primary' : option.action ? 'secondary' : 'ghost'}
+            loading={pending === option.label}
+            disabled={pending !== null && pending !== option.label}
+            onClick={() => choose(option.label, option.action)}
+          >
+            {option.label}
+          </Button>
+        ))}
+      </div>
+    </ModalSheet>
   );
 }

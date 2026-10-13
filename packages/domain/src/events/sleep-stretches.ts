@@ -1,5 +1,6 @@
 import { overlapMs, type TimeWindow } from '../timeline/days';
 import type { SleepStretch } from './types';
+import { byStartedAtAsc } from '../time/instants';
 
 export interface SleepSummary {
   asleepMs: number;
@@ -14,8 +15,7 @@ export interface NapLike {
   segments: readonly SleepStretch[];
 }
 
-const sorted = (stretches: readonly SleepStretch[]) =>
-  [...stretches].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+const sorted = (stretches: readonly SleepStretch[]) => [...stretches].sort(byStartedAtAsc);
 
 export function asleepIntervals(nap: NapLike, now: Date): TimeWindow[] {
   if (nap.segments.length === 0) {
@@ -29,22 +29,51 @@ export function asleepIntervals(nap: NapLike, now: Date): TimeWindow[] {
   }));
 }
 
-export function summariseSleep(nap: NapLike, now: Date): SleepSummary {
+export type NapRow = { kind: 'asleep' | 'awake'; durationMs: number; running: boolean };
+
+export interface NapTimeline {
+  intervals: TimeWindow[];
+  rows: NapRow[];
+  paused: boolean;
+}
+
+export function napTimeline(nap: NapLike, now: Date): NapTimeline {
   const intervals = asleepIntervals(nap, now);
-  const asleepMs = intervals.reduce((total, interval) => total + interval.end.getTime() - interval.start.getTime(), 0);
   const paused = nap.endedAt === null && nap.segments.length > 0 && nap.segments.every((s) => s.endedAt !== null);
-  let awakeMs = 0;
-  let gaps = 0;
-  for (let index = 1; index < intervals.length; index += 1) {
-    const gap = intervals[index]!.start.getTime() - intervals[index - 1]!.end.getTime();
-    if (gap > 0) {
-      awakeMs += gap;
-      gaps += 1;
+  const openEnded = nap.endedAt === null && !paused;
+  const rows: NapRow[] = [];
+  intervals.forEach((interval, index) => {
+    const durationMs = interval.end.getTime() - interval.start.getTime();
+    const running = openEnded && index === intervals.length - 1;
+    const previousInterval = intervals[index - 1];
+    const gap = previousInterval ? interval.start.getTime() - previousInterval.end.getTime() : 0;
+    const previous = rows.at(-1);
+    if (previousInterval && gap <= 0 && previous) {
+      previous.durationMs += durationMs;
+      previous.running = running;
+      return;
     }
+    if (gap > 0) rows.push({ kind: 'awake', durationMs: gap, running: false });
+    rows.push({ kind: 'asleep', durationMs, running });
+  });
+  const last = intervals.at(-1);
+  if (paused && last) {
+    rows.push({ kind: 'awake', durationMs: Math.max(0, now.getTime() - last.end.getTime()), running: true });
   }
-  const last = intervals.at(-1)!;
-  if (paused) awakeMs += Math.max(0, now.getTime() - last.end.getTime());
-  return { asleepMs, awakeMs, wakeUps: gaps + (paused ? 1 : 0), paused };
+  return { intervals, rows, paused };
+}
+
+const totalMs = (rows: readonly NapRow[], kind: NapRow['kind']) =>
+  rows.filter((row) => row.kind === kind).reduce((total, row) => total + row.durationMs, 0);
+
+export function summariseSleep(nap: NapLike, now: Date): SleepSummary {
+  const { rows, paused } = napTimeline(nap, now);
+  return {
+    asleepMs: totalMs(rows, 'asleep'),
+    awakeMs: totalMs(rows, 'awake'),
+    wakeUps: rows.filter((row) => row.kind === 'awake').length,
+    paused,
+  };
 }
 
 export function asleepWithin(nap: NapLike, window: TimeWindow, now: Date): number {
@@ -70,32 +99,6 @@ export function fitStretches(
   }));
 }
 
-export type NapRow = { kind: 'asleep' | 'awake'; durationMs: number; running: boolean };
-
 export function napRows(nap: NapLike, now: Date): NapRow[] {
-  const intervals = asleepIntervals(nap, now);
-  const summary = summariseSleep(nap, now);
-  const openEnded = nap.endedAt === null && !summary.paused;
-  const rows: NapRow[] = [];
-  intervals.forEach((interval, index) => {
-    const durationMs = interval.end.getTime() - interval.start.getTime();
-    const running = openEnded && index === intervals.length - 1;
-    const gap = index > 0 ? interval.start.getTime() - intervals[index - 1]!.end.getTime() : 0;
-    const previous = rows.at(-1);
-    if (index > 0 && gap <= 0 && previous) {
-      previous.durationMs += durationMs;
-      previous.running = running;
-      return;
-    }
-    if (gap > 0) rows.push({ kind: 'awake', durationMs: gap, running: false });
-    rows.push({ kind: 'asleep', durationMs, running });
-  });
-  if (summary.paused) {
-    rows.push({
-      kind: 'awake',
-      durationMs: Math.max(0, now.getTime() - intervals.at(-1)!.end.getTime()),
-      running: true,
-    });
-  }
-  return rows;
+  return napTimeline(nap, now).rows;
 }

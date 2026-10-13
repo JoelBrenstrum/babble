@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { asleepWithin, fitStretches, napRows, summariseSleep } from './sleep-stretches';
+import { asleepWithin, fitStretches, napRows, napTimeline, summariseSleep } from './sleep-stretches';
 
 const NOW = new Date('2026-10-06T11:00:00Z');
 const nap = {
@@ -133,5 +133,62 @@ describe('napRows', () => {
         now,
       ),
     ).toEqual([{ kind: 'asleep', durationMs: 60 * 60_000, running: true }]);
+  });
+});
+
+describe('napTimeline', () => {
+  const now = new Date('2026-10-06T12:00:00Z');
+  const stretch = (start: string, end: string | null) => ({
+    startedAt: `2026-10-06T${start}:00Z`,
+    endedAt: end && `2026-10-06T${end}:00Z`,
+  });
+
+  it('builds the intervals, rows and paused flag once', () => {
+    const nap = {
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: null,
+      segments: [stretch('10:00', '10:20'), stretch('10:30', '10:50')],
+    };
+    const timeline = napTimeline(nap, now);
+    expect(timeline.paused).toBe(true);
+    expect(timeline.intervals).toHaveLength(2);
+    expect(timeline.rows).toEqual([
+      { kind: 'asleep', durationMs: 20 * 60_000, running: false },
+      { kind: 'awake', durationMs: 10 * 60_000, running: false },
+      { kind: 'asleep', durationMs: 20 * 60_000, running: false },
+      { kind: 'awake', durationMs: 70 * 60_000, running: true },
+    ]);
+  });
+
+  it('derives the summary and rows from the same timeline', () => {
+    const nap = {
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: null,
+      segments: [stretch('10:00', '10:20'), stretch('10:30', null)],
+    };
+    expect(summariseSleep(nap, now)).toEqual({
+      asleepMs: 110 * 60_000,
+      awakeMs: 10 * 60_000,
+      wakeUps: 1,
+      paused: false,
+    });
+    expect(napRows(nap, now)).toEqual(napTimeline(nap, now).rows);
+  });
+
+  it('merges stretches that touch and flags the open one as running', () => {
+    const nap = {
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: null,
+      segments: [stretch('10:00', '10:20'), stretch('10:20', null)],
+    };
+    expect(napTimeline(nap, now).rows).toEqual([{ kind: 'asleep', durationMs: 120 * 60_000, running: true }]);
+  });
+
+  it('treats a nap without stretches as one interval', () => {
+    const nap = { startedAt: '2026-10-06T10:00:00Z', endedAt: '2026-10-06T10:45:00Z', segments: [] };
+    expect(napTimeline(nap, now)).toMatchObject({
+      paused: false,
+      rows: [{ kind: 'asleep', durationMs: 45 * 60_000, running: false }],
+    });
   });
 });

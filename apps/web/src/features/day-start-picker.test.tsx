@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { DayStartPicker } from './day-start-picker';
@@ -23,5 +23,25 @@ describe('DayStartPicker', () => {
     render(<DayStartPicker value={390} onChange={vi.fn()} />);
     expect(screen.getByLabelText('Day start time')).toHaveValue('06:30');
     expect(screen.getByText('6:30 am')).toBeInTheDocument();
+  });
+
+  it('commits an edited time when the field is left', () => {
+    const onChange = vi.fn();
+    render(<DayStartPicker value={390} onChange={onChange} />);
+    const input = screen.getByLabelText('Day start time');
+    fireEvent.change(input, { target: { value: '08:15' } });
+    expect(onChange).not.toHaveBeenCalled();
+    fireEvent.blur(input);
+    expect(onChange).toHaveBeenCalledWith(495);
+  });
+
+  it('keeps midnight as its own option rather than a custom time', () => {
+    const onChange = vi.fn();
+    render(<DayStartPicker value={390} onChange={onChange} />);
+    const input = screen.getByLabelText('Day start time');
+    fireEvent.change(input, { target: { value: '00:00' } });
+    fireEvent.blur(input);
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue('06:30');
   });
 });

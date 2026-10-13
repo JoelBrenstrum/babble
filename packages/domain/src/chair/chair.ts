@@ -1,34 +1,36 @@
 import { emptyDraft } from '../events/drafts';
 import { withNappyType, type NappyType } from '../events/nappy';
 import { pausedForMs } from '../events/session-context';
-import { segmentTotals } from '../events/segments';
+import { lastSegmentEnd, segmentTotals } from '../events/segments';
 import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent, BottleContent, EventDraft, EventOfType, Side, Units } from '../events/types';
+import { SIDE_LABEL } from '../events/labels';
 import { formatAgo, formatDuration, formatTimer } from '../format/duration';
-import { formatVolume, volumeToMl } from '../format/units';
+import { formatVolume, ML_PER_OUNCE, volumeToMl } from '../format/units';
 import { formatTimeOfDay, isWithinNight } from '../time/local-time';
 import { nappyKind } from '../timeline/totals';
 import type { NightWindow } from '../theme/theme-preference';
-
-const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
-const ML_PER_OUNCE = 29.5735;
+import { byStartedAtDesc } from '../time/instants';
+import { MINUTE_MS } from '../time/constants';
 
 export const CHAIR_WAKE_MS = 30_000;
 export const CHAIR_UNDO_MS = 5_000;
 export const CHAIR_ENDED_MS = 10_000;
-export const CHAIR_IDLE_DIM_MS = 5 * 60_000;
+export const CHAIR_IDLE_DIM_MS = 5 * MINUTE_MS;
 
 type BreastFeed = EventOfType<'breast_feed'>;
 
 export function runningBreastFeed(running: readonly BabyEvent[]): BreastFeed | null {
-  return (running.find((event) => event.type === 'breast_feed' && !event.endedAt && !event.deletedAt) ??
-    null) as BreastFeed | null;
+  return (
+    running.find((event): event is BreastFeed => event.type === 'breast_feed' && !event.endedAt && !event.deletedAt) ??
+    null
+  );
 }
 
 export function lastFeedLine(events: readonly BabyEvent[], now: Date, units: Units, timeZone: string): string {
   const last = events
     .filter((event) => !event.deletedAt && (event.type === 'bottle' || (event.type === 'breast_feed' && event.endedAt)))
-    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+    .sort(byStartedAtDesc)[0];
   if (!last) return 'No feeds logged yet';
   const ago = `Last fed ${formatTimeOfDay(last.startedAt, timeZone)} · ${formatAgo(now.getTime() - Date.parse(last.startedAt))}`;
   if (last.type === 'bottle') {
@@ -38,7 +40,7 @@ export function lastFeedLine(events: readonly BabyEvent[], now: Date, units: Uni
   if (last.type !== 'breast_feed') return ago;
   const totals = segmentTotals(last.segments, now);
   const side = totals.lastSide ? ` · ${SIDE_LABEL[totals.lastSide]} side` : '';
-  const length = totals.activeMs >= 60_000 ? ` · ${formatDuration(totals.activeMs, { seconds: false })}` : '';
+  const length = totals.activeMs >= MINUTE_MS ? ` · ${formatDuration(totals.activeMs, { seconds: false })}` : '';
   return `${ago}${side}${length}`;
 }
 
@@ -46,7 +48,7 @@ export function lastNappyLine(events: readonly BabyEvent[], now: Date): string |
   const last = events
     .filter((event): event is EventOfType<'nappy'> => event.type === 'nappy' && !event.deletedAt)
     .filter((event) => !event.details.typePending)
-    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+    .sort(byStartedAtDesc)[0];
   if (!last) return null;
   return `${nappyKind(last.details)} · ${formatAgo(now.getTime() - Date.parse(last.startedAt))}`;
 }
@@ -61,21 +63,16 @@ export interface ChairFeedView {
   idle: string | null;
 }
 
-function lastSegmentEnd(feed: BreastFeed): string | null {
-  const ends = feed.segments.map((segment) => segment.endedAt);
-  if (ends.length === 0 || ends.includes(null)) return null;
-  return ends.reduce((latest, end) => (Date.parse(end!) > Date.parse(latest!) ? end : latest))!;
-}
-
 export function chairFeedView(feed: BreastFeed, now: Date, mergeGapMs: number): ChairFeedView {
   const totals = segmentTotals(feed.segments, now);
   const side = totals.openSide ?? totals.lastSide ?? 'left';
   const paused = totals.openSide === null;
+  const pausedSince = paused ? lastSegmentEnd(feed) : null;
   const pausedMs = paused ? pausedForMs(feed.segments, now) : null;
   const { downtimeMs } = summariseSegments(feed.segments, {
     mergeGapMs,
     now,
-    pausedSince: paused ? lastSegmentEnd(feed) : null,
+    pausedSince: pausedSince === null ? null : new Date(pausedSince).toISOString(),
   });
   return {
     paused,
@@ -86,7 +83,7 @@ export function chairFeedView(feed: BreastFeed, now: Date, mergeGapMs: number): 
     pausedFor:
       pausedMs === null
         ? null
-        : pausedMs < 60_000
+        : pausedMs < MINUTE_MS
           ? 'Just paused'
           : `Paused ${formatDuration(pausedMs, { seconds: false })}`,
     idle: downtimeMs > 0 ? `Idle ${formatTimer(downtimeMs)}` : null,
@@ -102,9 +99,9 @@ export function chairFeedSummary(
   const { downtimeMs } = summariseSegments(feed.segments, { mergeGapMs, now: endedAt });
   const parts = (['left', 'right'] as const)
     .map((side) => ({ side, ms: side === 'left' ? totals.leftMs : totals.rightMs }))
-    .filter(({ ms }) => ms >= 60_000)
+    .filter(({ ms }) => ms >= MINUTE_MS)
     .map(({ side, ms }) => `${SIDE_LABEL[side]} ${formatDuration(ms, { seconds: false })}`);
-  if (downtimeMs >= 60_000) parts.push(`idle ${formatDuration(downtimeMs, { seconds: false })}`);
+  if (downtimeMs >= MINUTE_MS) parts.push(`idle ${formatDuration(downtimeMs, { seconds: false })}`);
   return { title: `Fed ${formatDuration(totals.activeMs, { seconds: false })}`, sides: parts.join(' · ') };
 }
 
@@ -134,7 +131,7 @@ export function defaultBottleAmount(events: readonly BabyEvent[], units: Units):
   const last = events
     .filter((event): event is EventOfType<'bottle'> => event.type === 'bottle' && !event.deletedAt)
     .filter((event) => event.details.amountMl !== null)
-    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+    .sort(byStartedAtDesc)[0];
   if (!last) return units === 'metric' ? 120 : 4;
   const ml = last.details.amountMl!;
   return roundToStep(units === 'metric' ? ml : ml / ML_PER_OUNCE, units);
@@ -143,7 +140,7 @@ export function defaultBottleAmount(events: readonly BabyEvent[], units: Units):
 export function defaultBottleContent(events: readonly BabyEvent[]): BottleContent {
   const last = events
     .filter((event): event is EventOfType<'bottle'> => event.type === 'bottle' && !event.deletedAt)
-    .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt))[0];
+    .sort(byStartedAtDesc)[0];
   return last && last.details.content !== 'other' ? last.details.content : 'breast_milk';
 }
 

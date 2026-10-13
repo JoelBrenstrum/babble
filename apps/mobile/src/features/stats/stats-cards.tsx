@@ -1,12 +1,13 @@
 import { barReadout, chartEnds, chartValue, topSegment, type StatsCard } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react-native';
+import { Droplets, GlassWater, Heart, Moon, MoonStar, Sun, type LucideIcon } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
+import { PlusBadge } from '@/components/plus';
 import { PooSwatch } from '@/components/poo-swatch';
 import { useTokenColor } from '@/lib/theme';
 
-type InkToken = '--on-sleep' | '--on-feed-right' | '--on-nappy' | '--on-pump';
+type InkToken = '--on-sleep' | '--on-feed-right' | '--on-nappy' | '--on-pump' | '--on-primary-soft';
 
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkToken; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
@@ -18,19 +19,21 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkT
     series: ['bg-nappy/35', 'bg-nappy/65', 'bg-nappy'],
   },
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump', series: ['bg-pump'] },
+  wake: { icon: Sun, tile: 'bg-primary-soft', ink: '--on-primary-soft', series: ['bg-primary'] },
+  night: { icon: MoonStar, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep'] },
 };
 
-export function StatsCards({ cards }: { cards: StatsCard[] }) {
+export function StatsCards({ cards, plusBadges = false }: { cards: StatsCard[]; plusBadges?: boolean }) {
   return (
     <View className="gap-4">
       {cards.map((card) => (
-        <StatsCardView key={card.key} card={card} />
+        <StatsCardView key={card.key} card={card} plusBadge={plusBadges && Boolean(card.plus)} />
       ))}
     </View>
   );
 }
 
-function StatsCardView({ card }: { card: StatsCard }) {
+function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolean }) {
   const look = LOOK[card.key];
   const color = useTokenColor(look.ink);
   const { chart } = card;
@@ -42,9 +45,10 @@ function StatsCardView({ card }: { card: StatsCard }) {
         <View className={`h-9 w-9 items-center justify-center rounded-full ${look.tile}`}>
           <look.icon size={16} color={color} strokeWidth={2.75} />
         </View>
-        <Text accessibilityRole="header" className="font-semibold text-row-title text-ink">
+        <Text accessibilityRole="header" className="flex-1 font-semibold text-row-title text-ink">
           {card.title}
         </Text>
+        {plusBadge && <PlusBadge />}
       </View>
       <View className="flex-row flex-wrap gap-2">
         {card.figures.map((figure) => (
@@ -74,7 +78,7 @@ function StatsCardView({ card }: { card: StatsCard }) {
           {selectedBar ? barReadout(chart, selectedBar) : 'Tap a bar to see its day'}
         </Text>
         <View
-          accessibilityLabel={`${card.title} per day`}
+          accessibilityLabel={`${card.title} per ${card.key === 'night' ? 'night' : 'day'}`}
           className="h-32 flex-row items-end gap-[2px] border-b border-line"
         >
           {chart.bars.map((bar) => {

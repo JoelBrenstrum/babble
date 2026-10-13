@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 
 select plan(14);
+update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
 returns void
@@ -66,7 +67,7 @@ select throws_ok(
   'baby settings cannot be moved to another baby'
 );
 select lives_ok(
-  $$ update public.baby_settings set units = 'imperial' where baby_id = '30000000-0000-0000-0000-00000000000a' $$,
+  $$ update public.baby_settings set feed_reminder_enabled = true where baby_id = '30000000-0000-0000-0000-00000000000a' $$,
   'baby settings can still be changed'
 );
 select throws_ok(
@@ -123,7 +124,7 @@ select throws_ok(
     $$ select pg_temp.create_user('10000000-0000-0000-0000-00000000000d', 'second@security.test', %L) $$,
     json_build_object('invite_code', (select code from invite))
   ),
-  'P0001',
+  'PL003',
   'Sign-up on this Babble server requires a valid invite code',
   'the same invite code cannot sign up a second person'
 );

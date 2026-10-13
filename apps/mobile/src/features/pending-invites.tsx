@@ -1,17 +1,18 @@
 import {
+  clock,
   createInvite,
   pendingInvitesQuery,
   queryKeys,
   revokeInvite,
-  toBabbleError,
   type BabbleClient,
   type Family,
   type PendingInvite,
 } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { membersHeading, pendingInviteMeta } from '@babble/domain';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ticket } from 'lucide-react-native';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { Card, SectionLabel } from '@/components/card';
 import { StatusMessage } from '@/components/status-message';
@@ -51,17 +52,13 @@ export function PendingInvites({ client, family }: { client: BabbleClient; famil
     () => new Map(family.members.map((member) => [member.user_id, member.display_name])),
     [family.members],
   );
-  const [error, setError] = useState<string | null>(null);
+  const { run, error } = useAsyncAction();
 
-  async function revoke(invite: PendingInvite) {
-    setError(null);
-    try {
+  const revoke = (invite: PendingInvite) =>
+    run(async () => {
       await revokeInvite(client, invite.id);
       await queryClient.invalidateQueries({ queryKey: queryKeys.pendingInvites(family.id) });
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-    }
-  }
+    });
 
   function confirmRevoke(invite: PendingInvite) {
     Alert.alert('Revoke this invite?', 'The code will stop working.', [
@@ -71,7 +68,7 @@ export function PendingInvites({ client, family }: { client: BabbleClient; famil
   }
 
   if (invites.length === 0) return null;
-  const now = new Date();
+  const now = clock.now();
 
   return (
     <View className="gap-3">

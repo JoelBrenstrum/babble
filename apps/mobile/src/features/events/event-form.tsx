@@ -1,4 +1,5 @@
-import { eventListQuery, toBabbleError, type BabbleClient } from '@babble/api';
+import { clock, eventListQuery, toBabbleError, type BabbleClient } from '@babble/api';
+import { useDeleteEvent, useSaveEvent } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import {
   growthPlaceholders,
@@ -18,7 +19,6 @@ import { Button } from '@/components/button';
 import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
 import { useTokenColor } from '@/lib/theme';
-import { useDeleteEvent, useSaveEvent } from '@/lib/use-events';
 import { BottleForm } from './forms/bottle-form';
 import { CustomForm } from './forms/custom-form';
 import { GrowthForm } from './forms/growth-form';
@@ -27,23 +27,6 @@ import { PumpForm } from './forms/pump-form';
 import { BreastFeedForm } from './forms/segment-form';
 import { SleepForm } from './forms/sleep-form';
 import { SolidsForm } from './forms/solids-form';
-
-export function toDraft(event: BabyEvent): EventDraft {
-  const {
-    id: _id,
-    babyId: _babyId,
-    createdBy: _by,
-    createdAt: _c,
-    updatedAt: _u,
-    deletedAt: _d,
-    source: _s,
-    sessionState: _st,
-    endedBy: _eb,
-    endRecordedAt: _er,
-    ...draft
-  } = event;
-  return draft as EventDraft;
-}
 
 export function EventForm({
   client,
@@ -85,7 +68,7 @@ export function EventForm({
 
   async function attempt(skipAmounts: boolean) {
     const target = skipAmounts ? withoutPumpAmounts(draft) : draft;
-    const found = validateDraft(target, new Date());
+    const found = validateDraft(target, clock.now());
     setErrors(found);
     if (hasErrors(found)) return;
     setFailure(null);

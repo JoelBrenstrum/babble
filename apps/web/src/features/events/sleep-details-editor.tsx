@@ -1,8 +1,8 @@
 import type { BabbleClient } from '@babble/api';
+import { useSaveSleepDetails } from '@babble/api/react';
 import type { BabyEvent, SleepDetails } from '@babble/domain';
 import { useEffect, useRef, useState } from 'react';
 import { TextAreaField } from '#/components/ui/field';
-import { useSaveSleepDetails } from '#/lib/use-events';
 import { SleepDetailFields } from './forms/sleep-form';
 
 type Sleep = Extract<BabyEvent, { type: 'sleep' }>;

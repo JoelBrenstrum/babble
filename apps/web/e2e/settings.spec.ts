@@ -5,7 +5,7 @@ import { onboard, signUpWithPassword, uniqueEmail } from './helpers';
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
-test('settings keep baby, family, device and account apart, and switch babies in place', async ({ page }, testInfo) => {
+test('settings keep baby, family, device and account apart', async ({ page }, testInfo) => {
   await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
   await onboard(page);
 
@@ -16,23 +16,23 @@ test('settings keep baby, family, device and account apart, and switch babies in
   const family = page.locator('#settings-family');
   await family.getByRole('radio', { name: /Imperial/ }).click();
   await expect(family.getByRole('radio', { name: /Imperial/, checked: true })).toBeVisible();
+  await page.reload();
+  await expect(family.getByRole('radio', { name: /Imperial/, checked: true })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('settings.png'), fullPage: true });
+});
 
-  await page.locator('#settings-baby').getByRole('link', { name: 'Add a baby' }).click();
-  await page.getByLabel('Name', { exact: true }).fill('Theo');
-  await page.getByLabel('Birth date').fill('2026-10-01');
-  await page.getByRole('button', { name: 'Add baby' }).click();
-  await expect(page.getByText('Breastfeed')).toBeVisible();
+test('switching babies in Settings changes whose settings are shown', async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'Uses the seeded family; run once.');
+  await page.goto('/sign-in');
+  await page.getByRole('button', { name: 'Sign in as John' }).click();
+  await expect(page.getByText('Olivia').filter({ visible: true }).first()).toBeVisible();
 
   await page.goto('/settings');
-  await expect(page.getByRole('heading', { name: "Theo's settings" })).toBeVisible();
-  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Theo');
-  await expect(family.getByRole('radio', { name: /Imperial/, checked: true })).toBeVisible();
-
-  await page
-    .getByRole('radiogroup', { name: 'Baby' })
-    .getByRole('radio', { name: /Olivia/ })
-    .click();
+  const babies = page.getByRole('radiogroup', { name: 'Baby' });
+  await babies.getByRole('radio', { name: /Jacob/ }).click();
+  await expect(page.getByRole('heading', { name: "Jacob's settings" })).toBeVisible();
+  await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Jacob');
+  await babies.getByRole('radio', { name: /Olivia/ }).click();
   await expect(page.getByRole('heading', { name: "Olivia's settings" })).toBeVisible();
   await expect(page.getByLabel('Name', { exact: true })).toHaveValue('Olivia');
-  await page.screenshot({ path: testInfo.outputPath('settings.png'), fullPage: true });
 });

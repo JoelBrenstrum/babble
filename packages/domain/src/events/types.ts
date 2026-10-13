@@ -31,16 +31,16 @@ export type FallAsleep = 'under_10_min' | '10_to_20_min' | 'long_time';
 
 export type Mood = 'happy' | 'upset';
 
-export interface TimedSegment {
-  side: Side;
+export interface Stretch {
   startedAt: string;
   endedAt: string | null;
 }
 
-export interface SleepStretch {
-  startedAt: string;
-  endedAt: string | null;
+export interface TimedSegment extends Stretch {
+  side: Side;
 }
+
+export type SleepStretch = Stretch;
 
 export interface SleepDetails {
   locations: SleepLocation[];
@@ -110,7 +110,7 @@ export type EventType = EventDraft['type'];
 
 export type SessionState = 'running' | 'paused' | 'ended';
 
-export type EventSource = 'manual' | 'huckleberry_csv';
+export type EventSource = 'manual' | 'huckleberry_csv' | 'babble_export';
 
 export interface EventMeta {
   id: string;

@@ -41,6 +41,7 @@ export default {
           ticks={hourTicks(todayKey, timezone, 0, 3)}
           timeZone={timezone}
           units="metric"
+          now={now}
           nowFrac={fractionOf(window, now.getTime())}
         />
         <DayTotals cards={dayTotalCards(summary, 'metric', timezone)} />

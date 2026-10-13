@@ -1,5 +1,6 @@
 import {
   growthInputUnit,
+  instantDraft,
   lengthToMm,
   parseDecimalInput,
   sanitizeDecimalInput,
@@ -12,7 +13,7 @@ import { useState } from 'react';
 import { Text } from 'react-native';
 import { DateTimeField } from '@/components/datetime-field';
 import { TextField } from '@/components/text-field';
-import { FormSection, instantDraft, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 function MeasurementField({
   label,

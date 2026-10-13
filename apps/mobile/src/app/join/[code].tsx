@@ -1,4 +1,5 @@
-import { acceptInvite, inviteQuery, normalizeInviteCode, queryKeys, toBabbleError } from '@babble/api';
+import { acceptInvite, inviteQuery, normalizeInviteCode, queryKeys } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -17,8 +18,7 @@ export default function Join() {
   const code = normalizeInviteCode(params.code ?? '');
   const invite = useQuery(inviteQuery(client, code));
   const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [joining, setJoining] = useState(false);
+  const { run, busy: joining, error } = useAsyncAction();
 
   if (invite.isPending) return <PageSpinner label="Checking invite" />;
 
@@ -31,18 +31,12 @@ export default function Join() {
     );
   }
 
-  async function join() {
-    setError(null);
-    setJoining(true);
-    try {
+  const join = () =>
+    run(async () => {
       await acceptInvite(client, { code, displayName });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace('/');
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setJoining(false);
-    }
-  }
+    });
 
   return (
     <Screen>

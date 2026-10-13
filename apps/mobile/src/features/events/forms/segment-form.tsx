@@ -1,9 +1,10 @@
-import { segmentTotals, type DraftOfType, type Side, type TimedSegment } from '@babble/domain';
+import { clock } from '@babble/api';
+import { segmentTotals, shiftDraftStart, type DraftOfType, type Side, type TimedSegment } from '@babble/domain';
 import { Text } from 'react-native';
 import { DateTimeField } from '@/components/datetime-field';
 import { SegmentEditor } from '../segment-editor';
 import { Stepper } from '@/components/stepper';
-import { FormSection, shiftDraftStart, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 export function buildSegments(startedAt: string, minutes: Record<Side, number | null>): TimedSegment[] {
   const segments: TimedSegment[] = [];
@@ -19,7 +20,7 @@ export function buildSegments(startedAt: string, minutes: Record<Side, number | 
 }
 
 function minutesBySide(segments: TimedSegment[]): Record<Side, number | null> {
-  const totals = segmentTotals(segments, new Date());
+  const totals = segmentTotals(segments, clock.now());
   return {
     left: totals.leftMs ? Math.round(totals.leftMs / 60_000) : null,
     right: totals.rightMs ? Math.round(totals.rightMs / 60_000) : null,

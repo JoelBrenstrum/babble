@@ -1,12 +1,11 @@
 import { MIN_PASSWORD_LENGTH, type InstanceSettings } from '@babble/api';
+import { signInFormState, type SignInMode } from '@babble/domain';
 import { Mail } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '#/components/ui/button';
 import { TextField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
-
-type Mode = 'signin' | 'signup' | 'link';
 
 export interface SignInFormProps {
   settings: InstanceSettings;
@@ -27,24 +26,25 @@ export function SignInForm({
   onMagicLink,
   onGoogle,
 }: SignInFormProps) {
-  const [mode, setMode] = useState<Mode>(initialInviteCode ? 'signup' : 'signin');
+  const [mode, setMode] = useState<SignInMode>(initialInviteCode ? 'signup' : 'signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [inviteCode, setInviteCode] = useState(initialInviteCode ?? '');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const inviteOnly = settings.signupMode === 'invite_only' && settings.hasUsers;
-  const askInvite = inviteOnly && mode !== 'signin';
-  const passwordTooShort = mode === 'signup' && password.length > 0 && password.length < MIN_PASSWORD_LENGTH;
-  const canSubmit =
-    email.includes('@') &&
-    (mode === 'link' || (mode === 'signup' ? password.length >= MIN_PASSWORD_LENGTH : password.length > 0));
+  const { askInvite, passwordTooShort, canSubmit, invite } = signInFormState({
+    mode,
+    email,
+    password,
+    inviteCode,
+    settings,
+    minPasswordLength: MIN_PASSWORD_LENGTH,
+  });
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
-    const invite = askInvite ? inviteCode.trim() || undefined : undefined;
     try {
       if (mode === 'signin') await onPasswordSignIn({ email, password });
       else if (mode === 'signup') await onSignUp({ email, password, inviteCode: invite });

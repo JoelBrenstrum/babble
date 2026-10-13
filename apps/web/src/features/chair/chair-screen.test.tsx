@@ -22,6 +22,7 @@ function makeData(overrides: Partial<ChairData> = {}): ChairData {
   return {
     babyName: 'Olivia',
     age: '11 days',
+    babies: [],
     clock: '2:20 pm',
     night: false,
     dimmed: false,

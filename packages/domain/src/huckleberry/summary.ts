@@ -1,5 +1,6 @@
 import type { BabyEvent, EventType } from '../events/types';
 import type { HuckleberryImport } from './import';
+import { compareIso } from '../time/instants';
 
 export interface ImportSummary {
   total: number;
@@ -16,8 +17,8 @@ export function summariseImport(result: HuckleberryImport): ImportSummary {
   let lastAt: string | null = null;
   for (const event of result.events) {
     byType[event.type] = (byType[event.type] ?? 0) + 1;
-    if (!firstAt || event.startedAt < firstAt) firstAt = event.startedAt;
-    if (!lastAt || event.startedAt > lastAt) lastAt = event.startedAt;
+    if (!firstAt || compareIso(event.startedAt, firstAt) < 0) firstAt = event.startedAt;
+    if (!lastAt || compareIso(event.startedAt, lastAt) > 0) lastAt = event.startedAt;
   }
   return {
     total: result.events.length,

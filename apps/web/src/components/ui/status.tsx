@@ -2,7 +2,15 @@ import { CircleAlert, CircleCheck } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { cn } from '#/lib/cn';
 
-export function StatusMessage({ tone, children }: { tone: 'danger' | 'success' | 'info'; children: ReactNode }) {
+export function StatusMessage({
+  tone,
+  action,
+  children,
+}: {
+  tone: 'danger' | 'success' | 'info';
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   const Icon = tone === 'success' ? CircleCheck : CircleAlert;
   return (
     <div
@@ -15,7 +23,8 @@ export function StatusMessage({ tone, children }: { tone: 'danger' | 'success' |
       )}
     >
       <Icon className="mt-0.5 size-4 shrink-0" strokeWidth={2.75} />
-      <div>{children}</div>
+      <div className={action ? 'min-w-0 flex-1' : undefined}>{children}</div>
+      {action}
     </div>
   );
 }

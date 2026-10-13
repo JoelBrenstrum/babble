@@ -2,15 +2,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { FixtureRouter } from '#/fixtures/router';
-import { FEATURES, GITHUB_URL, LandingPage } from './landing-page';
+import { FEATURES, GITHUB_URL } from './content';
+import { LandingPage } from './landing-page';
 
 const now = new Date('2026-10-09T02:00:00Z');
 
-async function renderLanding(signedIn = false) {
+async function renderLanding(signedIn = false, billingEnabled = false) {
   render(
     <QueryClientProvider client={new QueryClient()}>
       <FixtureRouter>
-        <LandingPage signedIn={signedIn} now={now} />
+        <LandingPage signedIn={signedIn} now={now} billingEnabled={billingEnabled} />
       </FixtureRouter>
     </QueryClientProvider>,
   );
@@ -34,12 +35,25 @@ describe('LandingPage', () => {
       'Sleep and naps',
       'Nappies',
       'Feed reminders',
-      'Import from Huckleberry',
+      'Bring your history',
       'Chair mode',
     ]) {
       expect(screen.getByRole('heading', { level: 3, name: title })).toBeInTheDocument();
     }
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(FEATURES.length);
+  });
+
+  it('shows predictions and patterns, marked Plus only when billing is on', async () => {
+    await renderLanding();
+    expect(screen.getByRole('heading', { level: 3, name: 'Predicted naps and feeds' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Watch the patterns form' })).toBeInTheDocument();
+    expect(screen.queryByText('Plus')).toBeNull();
+  });
+
+  it('marks Plus features when billing is on', async () => {
+    await renderLanding(false, true);
+    expect(screen.getByRole('heading', { level: 3, name: /Predicted naps and feeds/ })).toHaveTextContent('Plus');
+    expect(screen.getByText(/Patterns and predictions are part of Babble Plus/)).toBeInTheDocument();
   });
 
   it('links to sign in, privacy, terms and the source', async () => {

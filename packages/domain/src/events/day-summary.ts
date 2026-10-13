@@ -1,16 +1,57 @@
-import { nightIntervals, type TimeWindow } from '../timeline/days';
+import { nightIntervals, overlapMs, type TimeWindow } from '../timeline/days';
 import { eventSpan } from '../timeline/day-layout';
 import { hasFood } from './foods';
 import { segmentTotals } from './segments';
 import { summariseSegments } from './session-summary';
 import { asleepIntervals, asleepWithin } from './sleep-stretches';
 import type { BabyEvent } from './types';
+import { SECOND_MS } from '../time/constants';
+import { compareIso } from '../time/instants';
 
 export interface NightSettings {
   dayKey: string;
   timeZone: string;
   startMinutes: number;
   endMinutes: number;
+}
+
+export function nightOf(
+  settings: { timeZone: string; nightStartMinutes: number; nightEndMinutes: number },
+  dayKey: string,
+): NightSettings {
+  return {
+    dayKey,
+    timeZone: settings.timeZone,
+    startMinutes: settings.nightStartMinutes,
+    endMinutes: settings.nightEndMinutes,
+  };
+}
+
+export interface SummarySettings {
+  downtime_merge_threshold_sec: number;
+  night_start_minutes: number;
+  night_end_minutes: number;
+}
+
+export function summaryOptions(
+  settings: SummarySettings | null | undefined,
+  baby: { timezone: string },
+  dayKey: string,
+  now: Date,
+): { now: Date; mergeGapMs?: number; night?: NightSettings } {
+  if (!settings) return { now };
+  return {
+    now,
+    mergeGapMs: settings.downtime_merge_threshold_sec * SECOND_MS,
+    night: nightOf(
+      {
+        timeZone: baby.timezone,
+        nightStartMinutes: settings.night_start_minutes,
+        nightEndMinutes: settings.night_end_minutes,
+      },
+      dayKey,
+    ),
+  };
 }
 
 export interface DaySummary {
@@ -93,7 +134,7 @@ export function summariseDay(
         summary.napMs += inDay - atNight;
         if (startsInDay && !inNight(span.start)) summary.naps += 1;
         for (const stretch of asleepIntervals(event, now)) {
-          summary.longestSleepMs = Math.max(summary.longestSleepMs, stretch.end.getTime() - stretch.start.getTime());
+          summary.longestSleepMs = Math.max(summary.longestSleepMs, overlapMs(stretch, window));
         }
         break;
       }
@@ -120,7 +161,8 @@ export function summariseDay(
         if (event.details.wet) summary.wet += 1;
         if (event.details.dirty) summary.dirty += 1;
         if (event.details.wet && event.details.dirty) summary.both += 1;
-        if (!summary.lastNappyAt || event.startedAt > summary.lastNappyAt) summary.lastNappyAt = event.startedAt;
+        if (!summary.lastNappyAt || compareIso(event.startedAt, summary.lastNappyAt) > 0)
+          summary.lastNappyAt = event.startedAt;
         break;
       case 'solids':
         if (!startsInDay) break;
@@ -128,7 +170,8 @@ export function summariseDay(
         for (const food of event.details.foods) {
           if (!hasFood(summary.solidsFoods, food)) summary.solidsFoods.push(food);
         }
-        if (!summary.lastSolidsAt || event.startedAt > summary.lastSolidsAt) summary.lastSolidsAt = event.startedAt;
+        if (!summary.lastSolidsAt || compareIso(event.startedAt, summary.lastSolidsAt) > 0)
+          summary.lastSolidsAt = event.startedAt;
         break;
       case 'pump': {
         if (!startsInDay) break;

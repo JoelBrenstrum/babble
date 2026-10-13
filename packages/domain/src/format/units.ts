@@ -2,7 +2,7 @@ import type { Units } from '../events/types';
 
 const GRAMS_PER_POUND = 453.59237;
 const MM_PER_INCH = 25.4;
-const ML_PER_OUNCE = 29.5735;
+export const ML_PER_OUNCE = 29.5735;
 
 export function formatWeight(grams: number, units: Units): string {
   if (units === 'metric') return `${(grams / 1000).toFixed(2)} kg`;
@@ -29,9 +29,16 @@ export function formatLength(mm: number, units: Units): string {
   return `${trimZero((mm / MM_PER_INCH).toFixed(1))} in`;
 }
 
+export function formatVolumeValue(ml: number, units: Units): string {
+  return units === 'metric' ? String(Math.round(ml)) : trimZero((ml / ML_PER_OUNCE).toFixed(1));
+}
+
+export function volumeUnit(units: Units): string {
+  return units === 'metric' ? 'ml' : 'oz';
+}
+
 export function formatVolume(ml: number, units: Units): string {
-  if (units === 'metric') return `${Math.round(ml)} ml`;
-  return `${trimZero((ml / ML_PER_OUNCE).toFixed(1))} oz`;
+  return `${formatVolumeValue(ml, units)} ${volumeUnit(units)}`;
 }
 
 export function volumeToMl(value: number, units: Units): number {

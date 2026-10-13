@@ -1,8 +1,8 @@
 import type { BabyEvent } from '@babble/domain';
 import type { BabbleClient } from './client';
-import { listEvents } from './events';
-import { getBabySettings } from './families';
-import type { BabyRow, BabySettingsRow, Family, FamilyRow } from './types';
+import { listAllEventPages } from './events';
+import { findBabySettings } from './families';
+import type { BabyRow, BabySettings, Family, FamilyRow } from './types';
 
 export const EXPORT_FORMAT = 'babble-export';
 export const EXPORT_VERSION = 1;
@@ -18,7 +18,7 @@ export interface BabyExport {
     createdAt: string;
   };
   settings: {
-    units: BabySettingsRow['units'];
+    units: BabySettings['units'];
     nightStartMinutes: number;
     nightEndMinutes: number;
     downtimeMergeThresholdSec: number;
@@ -39,7 +39,7 @@ export interface BabbleExport {
 
 export function buildExport(input: {
   family: Pick<FamilyRow, 'id' | 'name'>;
-  babies: { baby: BabyRow; settings: BabySettingsRow | null; events: readonly BabyEvent[] }[];
+  babies: { baby: BabyRow; settings: BabySettings | null; events: readonly BabyEvent[] }[];
   exportedAt: string;
 }): BabbleExport {
   return {
@@ -80,14 +80,8 @@ export function exportFileName(subject: string, exportedAt: string): string {
   return `babble-${slug || 'export'}-${exportedAt.slice(0, 10)}.json`;
 }
 
-export async function listAllEvents(client: BabbleClient, babyId: string): Promise<BabyEvent[]> {
-  const pageSize = 1000;
-  const events: BabyEvent[] = [];
-  for (let offset = 0; ; offset += pageSize) {
-    const page = await listEvents(client, babyId, { includeDeleted: true, limit: pageSize, offset });
-    events.push(...page);
-    if (page.length < pageSize) return events;
-  }
+export function listAllEvents(client: BabbleClient, babyId: string): Promise<BabyEvent[]> {
+  return listAllEventPages(client, babyId, { includeDeleted: true });
 }
 
 export async function exportData(
@@ -101,7 +95,7 @@ export async function exportData(
       .filter((baby) => babyIds.includes(baby.id))
       .map(async (baby) => ({
         baby,
-        settings: await getBabySettings(client, baby.id).catch(() => null),
+        settings: await findBabySettings(client, baby.id),
         events: await listAllEvents(client, baby.id),
       })),
   );

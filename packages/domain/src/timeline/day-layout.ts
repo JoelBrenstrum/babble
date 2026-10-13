@@ -1,6 +1,7 @@
 import type { BabyEvent, Side } from '../events/types';
 import { dayWindow } from '../time/local-time';
 import { fractionOf, type TimeWindow } from './days';
+import { byStartedAtAsc } from '../time/instants';
 
 export interface TimelineItem {
   event: BabyEvent;
@@ -50,7 +51,7 @@ export function overlapsWindow(event: BabyEvent, window: TimeWindow, now: Date):
 export function dayLayout(events: readonly BabyEvent[], window: TimeWindow, now: Date): DayLayout {
   const layout: DayLayout = { sleep: [], feeds: [], nappies: [], pumps: [] };
   const lastMarker: Record<keyof DayLayout, number[]> = { sleep: [], feeds: [], nappies: [], pumps: [] };
-  const sorted = [...events].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+  const sorted = [...events].sort(byStartedAtAsc);
 
   for (const event of sorted) {
     const lane = LANE[event.type];

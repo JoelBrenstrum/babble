@@ -49,42 +49,33 @@ export type Database = {
       };
       baby_settings: {
         Row: {
-          auto_end_paused_session_min: number;
           baby_id: string;
-          downtime_merge_threshold_sec: number;
           feed_reminder_at_night: boolean;
           feed_reminder_enabled: boolean;
           feed_reminder_interval_min: number | null;
           nappy_prompt: Database['public']['Enums']['nappy_prompt_timing'];
           night_end_minutes: number;
           night_start_minutes: number;
-          units: Database['public']['Enums']['units'];
           updated_at: string;
         };
         Insert: {
-          auto_end_paused_session_min?: number;
           baby_id: string;
-          downtime_merge_threshold_sec?: number;
           feed_reminder_at_night?: boolean;
           feed_reminder_enabled?: boolean;
           feed_reminder_interval_min?: number | null;
           nappy_prompt?: Database['public']['Enums']['nappy_prompt_timing'];
           night_end_minutes?: number;
           night_start_minutes?: number;
-          units?: Database['public']['Enums']['units'];
           updated_at?: string;
         };
         Update: {
-          auto_end_paused_session_min?: number;
           baby_id?: string;
-          downtime_merge_threshold_sec?: number;
           feed_reminder_at_night?: boolean;
           feed_reminder_enabled?: boolean;
           feed_reminder_interval_min?: number | null;
           nappy_prompt?: Database['public']['Enums']['nappy_prompt_timing'];
           night_end_minutes?: number;
           night_start_minutes?: number;
-          units?: Database['public']['Enums']['units'];
           updated_at?: string;
         };
         Relationships: [
@@ -242,6 +233,7 @@ export type Database = {
           id: string;
           role: Database['public']['Enums']['family_role'];
           signed_up_at: string | null;
+          signed_up_user_id: string | null;
           used_at: string | null;
           used_by: string | null;
         };
@@ -254,6 +246,7 @@ export type Database = {
           id?: string;
           role?: Database['public']['Enums']['family_role'];
           signed_up_at?: string | null;
+          signed_up_user_id?: string | null;
           used_at?: string | null;
           used_by?: string | null;
         };
@@ -266,6 +259,7 @@ export type Database = {
           id?: string;
           role?: Database['public']['Enums']['family_role'];
           signed_up_at?: string | null;
+          signed_up_user_id?: string | null;
           used_at?: string | null;
           used_by?: string | null;
         };
@@ -655,7 +649,7 @@ export type Database = {
     Enums: {
       baby_sex: 'female' | 'male';
       bottle_content: 'breast_milk' | 'formula' | 'mixed' | 'other';
-      event_source: 'manual' | 'huckleberry_csv';
+      event_source: 'manual' | 'huckleberry_csv' | 'babble_export';
       event_type: 'sleep' | 'breast_feed' | 'bottle' | 'solids' | 'nappy' | 'pump' | 'growth' | 'custom';
       fall_asleep: 'under_10_min' | '10_to_20_min' | 'long_time';
       family_role: 'owner' | 'caregiver' | 'viewer';
@@ -791,7 +785,7 @@ export const Constants = {
     Enums: {
       baby_sex: ['female', 'male'],
       bottle_content: ['breast_milk', 'formula', 'mixed', 'other'],
-      event_source: ['manual', 'huckleberry_csv'],
+      event_source: ['manual', 'huckleberry_csv', 'babble_export'],
       event_type: ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'],
       fall_asleep: ['under_10_min', '10_to_20_min', 'long_time'],
       family_role: ['owner', 'caregiver', 'viewer'],

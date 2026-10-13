@@ -1,50 +1,48 @@
 import {
   formatDuration,
-  formatTimeOfDay,
+  formatFraction,
   formatVolume,
+  itemSpanFrac,
   markerShiftPercent,
   nappyKind,
+  partSpan,
+  showsItemLabel,
+  summariseSleep,
+  timelineItemLabel,
   type DayLayout,
   type PredictedItem,
   type TimelineItem,
   type Units,
-  summariseSleep,
 } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
 import { TimelineItemLink } from './timeline-item-link';
 
-const pct = (frac: number) => `${(frac * 100).toFixed(3)}%`;
-const LABEL_MIN_FRAC = 0.03;
+const NOW_DOT_OFFSET = '-left-1 -top-[5px]';
+const MARKER_COLUMN_SHIFT_REM = 3.75;
 
 function markerPosition(item: TimelineItem) {
-  const shift = `min(${item.column * 3.75}rem, ${markerShiftPercent(item.column)}%)`;
-  return { top: pct(item.startFrac), left: shift, maxWidth: `calc(100% - ${shift})` };
+  const shift = `min(${item.column * MARKER_COLUMN_SHIFT_REM}rem, ${markerShiftPercent(item.column)}%)`;
+  return { top: formatFraction(item.startFrac), left: shift, maxWidth: `calc(100% - ${shift})` };
 }
 
-function itemLabel(item: TimelineItem, timeZone: string, units: Units): string {
-  const { event } = item;
-  const at = formatTimeOfDay(event.startedAt, timeZone);
-  const length = event.endedAt
-    ? formatDuration(Date.parse(event.endedAt) - Date.parse(event.startedAt), { seconds: false })
-    : 'running';
-  switch (event.type) {
-    case 'sleep':
-      return `Sleep ${at}, ${length}`;
-    case 'breast_feed':
-      return `Breastfeed ${at}, ${length}`;
-    case 'pump':
-      return `Pump ${at}, ${length}`;
-    case 'bottle':
-      return `Bottle ${at}${event.details.amountMl ? `, ${formatVolume(event.details.amountMl, units)}` : ''}`;
-    case 'solids':
-      return `Solids ${at}, ${event.details.foods.join(', ')}`;
-    case 'nappy':
-      return `Nappy ${at}, ${nappyKind(event.details).toLowerCase()}`;
-    default:
-      return at;
-  }
+function PartBar({
+  item,
+  part,
+  className,
+}: {
+  item: TimelineItem;
+  part: TimelineItem['parts'][number];
+  className: string;
+}) {
+  const { top, height } = partSpan(item, part);
+  return (
+    <span
+      className={cn('absolute inset-x-0', className)}
+      style={{ top: formatFraction(top), height: formatFraction(height) }}
+    />
+  );
 }
 
 export function DayTimeline({
@@ -52,6 +50,7 @@ export function DayTimeline({
   ticks,
   timeZone,
   units,
+  now,
   nowFrac,
   predicted = null,
 }: {
@@ -59,6 +58,7 @@ export function DayTimeline({
   ticks: { frac: number; label: string }[];
   timeZone: string;
   units: Units;
+  now: Date;
   nowFrac: number | null;
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
 }) {
@@ -87,7 +87,7 @@ export function DayTimeline({
             <span
               key={index}
               className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
-              style={{ top: pct(tick.frac) }}
+              style={{ top: formatFraction(tick.frac) }}
             >
               {tick.label}
             </span>
@@ -95,18 +95,28 @@ export function DayTimeline({
         </div>
         <div className="pointer-events-none absolute inset-y-0 left-[2.75rem] right-0">
           {ticks.map((tick, index) => (
-            <div key={index} className="absolute inset-x-0 border-t border-line" style={{ top: pct(tick.frac) }} />
+            <div
+              key={index}
+              className="absolute inset-x-0 border-t border-line"
+              style={{ top: formatFraction(tick.frac) }}
+            />
           ))}
           {nowFrac !== null && (
-            <div className="absolute inset-x-0 z-10 border-t-2 border-primary" style={{ top: pct(nowFrac) }}>
-              <span className="absolute -left-1 -top-[5px] size-2 rounded-full bg-primary" />
+            <div className="absolute inset-x-0 z-10 border-t-2 border-primary" style={{ top: formatFraction(nowFrac) }}>
+              <span className={cn('absolute size-2 rounded-full bg-primary', NOW_DOT_OFFSET)} />
             </div>
           )}
         </div>
         {lanes.map((lane) => (
           <div key={lane.key} className="relative overflow-x-clip">
             {layout[lane.key].map((item) => (
-              <Item key={item.event.id} item={item} label={itemLabel(item, timeZone, units)} units={units} />
+              <Item
+                key={item.event.id}
+                item={item}
+                label={timelineItemLabel(item, timeZone, units)}
+                units={units}
+                now={now}
+              />
             ))}
             {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
               <Predicted key={item.startFrac} item={item} />
@@ -129,14 +139,14 @@ function Predicted({ item }: { item: PredictedItem }) {
         'absolute inset-x-0 min-h-1 rounded-md border-2 border-dashed',
         item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft',
       )}
-      style={{ top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac), opacity: item.opacity }}
+      style={{ top: formatFraction(item.startFrac), height: formatFraction(itemSpanFrac(item)), opacity: item.opacity }}
     />
   );
 }
 
-function Item({ item, label, units }: { item: TimelineItem; label: string; units: Units }) {
+function Item({ item, label, units, now }: { item: TimelineItem; label: string; units: Units; now: Date }) {
   const { event } = item;
-  const span = { top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac) };
+  const span = { top: formatFraction(item.startFrac), height: formatFraction(item.endFrac - item.startFrac) };
   const roundEnds = cn(
     item.continuesBefore ? 'rounded-t-none' : 'rounded-t-md',
     item.continuesAfter ? 'rounded-b-none' : 'rounded-b-md',
@@ -157,19 +167,10 @@ function Item({ item, label, units }: { item: TimelineItem; label: string; units
         )}
       >
         {item.parts.map((part, index) => (
-          <span
-            key={index}
-            className="absolute inset-x-0 min-h-[2px] bg-sleep"
-            style={{
-              top: pct((part.startFrac - item.startFrac) / Math.max(item.endFrac - item.startFrac, 1e-6)),
-              height: pct((part.endFrac - part.startFrac) / Math.max(item.endFrac - item.startFrac, 1e-6)),
-            }}
-          />
+          <PartBar key={index} item={item} part={part} className="min-h-[2px] bg-sleep" />
         ))}
-        {item.endFrac - item.startFrac > LABEL_MIN_FRAC && (
-          <span className="relative">
-            {formatDuration(summariseSleep(event, new Date()).asleepMs, { seconds: false })}
-          </span>
+        {showsItemLabel(item) && (
+          <span className="relative">{formatDuration(summariseSleep(event, now).asleepMs, { seconds: false })}</span>
         )}
       </TimelineItemLink>
     );
@@ -190,16 +191,14 @@ function Item({ item, label, units }: { item: TimelineItem; label: string; units
         )}
       >
         {item.parts.map((part, index) => (
-          <span
+          <PartBar
             key={index}
+            item={item}
+            part={part}
             className={cn(
-              'absolute inset-x-0 min-h-[3px]',
+              'min-h-[3px]',
               event.type === 'pump' ? 'bg-pump' : part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right',
             )}
-            style={{
-              top: pct((part.startFrac - item.startFrac) / Math.max(item.endFrac - item.startFrac, 1e-6)),
-              height: pct((part.endFrac - part.startFrac) / Math.max(item.endFrac - item.startFrac, 1e-6)),
-            }}
           />
         ))}
       </TimelineItemLink>

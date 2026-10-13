@@ -1,4 +1,5 @@
-import { toBabbleError, type Invite } from '@babble/api';
+import { clock, toBabbleError, type Invite } from '@babble/api';
+import { formatExpiry, inviteLink } from '@babble/domain';
 import { useEffect, useRef, useState } from 'react';
 import { useTokenColor } from '@/lib/theme';
 import { ActivityIndicator, Share, Text, View } from 'react-native';
@@ -34,8 +35,7 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
     );
   }
 
-  const link = `${publicUrl}/join/${invite.code}`;
-  const days = Math.max(1, Math.round((Date.parse(invite.expiresAt) - Date.now()) / 86_400_000));
+  const link = inviteLink(publicUrl, invite.code);
 
   return (
     <Card className="items-center gap-5 p-6">
@@ -45,7 +45,7 @@ export function InvitePanel({ publicUrl, onCreate }: { publicUrl: string; onCrea
       <View className="items-center">
         <Text className="font-sans text-meta text-ink-2">Invite code</Text>
         <Text className="font-bold text-timer-md tracking-widest text-ink">{invite.code}</Text>
-        <Text className="font-sans text-meta text-ink-3">{`Expires in ${days} ${days === 1 ? 'day' : 'days'} · one use`}</Text>
+        <Text className="font-sans text-meta text-ink-3">{formatExpiry(invite.expiresAt, clock.now())}</Text>
       </View>
       <Button
         className="self-stretch"

@@ -1,8 +1,9 @@
 import type { BabbleClient } from './client';
-import { BabbleError, toBabbleError, unwrap } from './errors';
+import { BabbleError, unwrap, unwrapMaybe, unwrapVoid } from './errors';
 import { normalizeInviteCode } from './invite-code';
 import type {
   BabyRow,
+  BabySettings,
   BabySettingsRow,
   BabySettingsUpdate,
   Family,
@@ -50,13 +51,29 @@ export async function createFamily(
   );
 }
 
+export const MAX_BABY_NAME_LENGTH = 60;
+
+export function babyNameError(name: string): string | null {
+  const trimmed = name.trim();
+  if (!trimmed) return "Enter your baby's name.";
+  if (trimmed.length > MAX_BABY_NAME_LENGTH) return `Use ${MAX_BABY_NAME_LENGTH} characters or fewer for the name.`;
+  return null;
+}
+
+export function validBabyName(name: string): string {
+  const error = babyNameError(name);
+  if (error) throw new BabbleError(error, 'invalid_input');
+  return name.trim();
+}
+
 export async function addBaby(client: BabbleClient, baby: NewBaby): Promise<BabyRow> {
+  const name = validBabyName(baby.name);
   return unwrap(
     await client
       .from('babies')
       .insert({
         family_id: baby.familyId,
-        name: baby.name.trim(),
+        name,
         birth_date: baby.birthDate,
         timezone: baby.timezone,
         day_start_minutes: baby.dayStartMinutes,
@@ -72,7 +89,8 @@ export async function updateBaby(
   babyId: string,
   patch: Partial<Pick<BabyRow, 'name' | 'birth_date' | 'timezone' | 'day_start_minutes' | 'sex'>>,
 ): Promise<BabyRow> {
-  return unwrap(await client.from('babies').update(patch).eq('id', babyId).select().single());
+  const normalized = patch.name === undefined ? patch : { ...patch, name: validBabyName(patch.name) };
+  return unwrap(await client.from('babies').update(normalized).eq('id', babyId).select().single());
 }
 
 const BABY_SETTINGS_WITH_FAMILY = '*, babies(families(family_settings(*)))';
@@ -81,10 +99,15 @@ type BabySettingsWithFamily = BabySettingsRow & {
   babies: { families: { family_settings: FamilySettingsRow | null } | null } | null;
 };
 
-export function withFamilySettings(row: BabySettingsWithFamily): BabySettingsRow {
+export const DEFAULT_FAMILY_SETTINGS: FamilySettings = {
+  units: 'metric',
+  downtime_merge_threshold_sec: 15,
+  auto_end_paused_session_min: 30,
+};
+
+export function withFamilySettings(row: BabySettingsWithFamily): BabySettings {
   const { babies, ...settings } = row;
-  const family = babies?.families?.family_settings;
-  if (!family) return settings;
+  const family = babies?.families?.family_settings ?? DEFAULT_FAMILY_SETTINGS;
   return {
     ...settings,
     units: family.units,
@@ -93,17 +116,24 @@ export function withFamilySettings(row: BabySettingsWithFamily): BabySettingsRow
   };
 }
 
-export async function getBabySettings(client: BabbleClient, babyId: string): Promise<BabySettingsRow> {
+export async function getBabySettings(client: BabbleClient, babyId: string): Promise<BabySettings> {
   return withFamilySettings(
     unwrap(await client.from('baby_settings').select(BABY_SETTINGS_WITH_FAMILY).eq('baby_id', babyId).single()),
   );
+}
+
+export async function findBabySettings(client: BabbleClient, babyId: string): Promise<BabySettings | null> {
+  const row = unwrapMaybe(
+    await client.from('baby_settings').select(BABY_SETTINGS_WITH_FAMILY).eq('baby_id', babyId).maybeSingle(),
+  );
+  return row && withFamilySettings(row);
 }
 
 export async function updateBabySettings(
   client: BabbleClient,
   babyId: string,
   patch: BabySettingsUpdate,
-): Promise<BabySettingsRow> {
+): Promise<BabySettings> {
   return withFamilySettings(
     unwrap(
       await client.from('baby_settings').update(patch).eq('baby_id', babyId).select(BABY_SETTINGS_WITH_FAMILY).single(),
@@ -154,8 +184,7 @@ export async function listPendingInvites(
 }
 
 export async function revokeInvite(client: BabbleClient, inviteId: string): Promise<void> {
-  const { error } = await client.from('family_invites').delete().eq('id', inviteId);
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.from('family_invites').delete().eq('id', inviteId));
 }
 
 export async function renameMember(
@@ -163,21 +192,19 @@ export async function renameMember(
   member: { familyId: string; userId: string },
   displayName: string,
 ): Promise<void> {
-  const { error } = await client
-    .from('family_members')
-    .update({ display_name: displayName.trim() })
-    .eq('family_id', member.familyId)
-    .eq('user_id', member.userId);
-  if (error) throw toBabbleError(error);
+  unwrapVoid(
+    await client
+      .from('family_members')
+      .update({ display_name: displayName.trim() })
+      .eq('family_id', member.familyId)
+      .eq('user_id', member.userId),
+  );
 }
 
 export async function removeMember(client: BabbleClient, member: { familyId: string; userId: string }): Promise<void> {
-  const { error } = await client
-    .from('family_members')
-    .delete()
-    .eq('family_id', member.familyId)
-    .eq('user_id', member.userId);
-  if (error) throw toBabbleError(error);
+  unwrapVoid(
+    await client.from('family_members').delete().eq('family_id', member.familyId).eq('user_id', member.userId),
+  );
 }
 
 export async function acceptInvite(
@@ -193,7 +220,6 @@ export async function acceptInvite(
 }
 
 export async function deleteMyAccount(client: BabbleClient): Promise<void> {
-  const { error } = await client.rpc('delete_my_account');
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.rpc('delete_my_account'));
   await client.auth.signOut({ scope: 'local' });
 }

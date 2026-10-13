@@ -1,4 +1,5 @@
-import { eventListQuery, toBabbleError, type BabbleClient } from '@babble/api';
+import { clock, eventListQuery, type BabbleClient } from '@babble/api';
+import { useAsyncAction, useDeleteEvent, useSaveEvent } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import {
   growthPlaceholders,
@@ -11,12 +12,11 @@ import {
   type EventDraft,
   type Units,
 } from '@babble/domain';
-import { CircleAlert, RotateCw, Trash2 } from 'lucide-react';
+import { RotateCw, Trash2 } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button } from '#/components/ui/button';
 import { TextAreaField } from '#/components/ui/field';
 import { StatusMessage } from '#/components/ui/status';
-import { useDeleteEvent, useSaveEvent } from '#/lib/use-events';
 import { BottleForm } from './forms/bottle-form';
 import { CustomForm } from './forms/custom-form';
 import { GrowthForm } from './forms/growth-form';
@@ -25,23 +25,6 @@ import { PumpForm } from './forms/pump-form';
 import { BreastFeedForm } from './forms/segment-form';
 import { SleepForm } from './forms/sleep-form';
 import { SolidsForm } from './forms/solids-form';
-
-export function toDraft(event: BabyEvent): EventDraft {
-  const {
-    id: _id,
-    babyId: _babyId,
-    createdBy: _by,
-    createdAt: _c,
-    updatedAt: _u,
-    deletedAt: _d,
-    source: _s,
-    sessionState: _st,
-    endedBy: _eb,
-    endRecordedAt: _er,
-    ...draft
-  } = event;
-  return draft as EventDraft;
-}
 
 export function EventForm({
   client,
@@ -54,7 +37,6 @@ export function EventForm({
   onSaved,
   onDone,
 }: {
-  onSaved?: (draft: EventDraft) => void;
   client: BabbleClient;
   babyId: string;
   timeZone: string;
@@ -62,11 +44,13 @@ export function EventForm({
   initial: EventDraft;
   event?: BabyEvent;
   focusAmounts?: boolean;
+  onSaved?: (draft: EventDraft) => void;
   onDone: () => void;
 }) {
   const [draft, setDraft] = useState<EventDraft>(initial);
   const [errors, setErrors] = useState<DraftErrors>({});
-  const [failure, setFailure] = useState<{ message: string; skipAmounts: boolean } | null>(null);
+  const [retryWithoutAmounts, setRetryWithoutAmounts] = useState(false);
+  const saving = useAsyncAction();
   const save = useSaveEvent(client, babyId);
   const remove = useDeleteEvent(client, babyId);
   const isNew = !event;
@@ -81,17 +65,14 @@ export function EventForm({
 
   async function attempt(skipAmounts: boolean) {
     const target = skipAmounts ? withoutPumpAmounts(draft) : draft;
-    const found = validateDraft(target, new Date());
+    const found = validateDraft(target, clock.now());
     setErrors(found);
     if (hasErrors(found)) return;
-    setFailure(null);
-    try {
-      await save.mutateAsync({ draft: target, id: event?.id });
-      onSaved?.(target);
-      onDone();
-    } catch (caught) {
-      setFailure({ message: toBabbleError(caught).message, skipAmounts });
-    }
+    setRetryWithoutAmounts(skipAmounts);
+    const saved = await saving.run(() => save.mutateAsync({ draft: target, id: event?.id }));
+    if (!saved) return;
+    onSaved?.(target);
+    onDone();
   }
 
   function submit(formEvent: FormEvent) {
@@ -126,28 +107,24 @@ export function EventForm({
         value={draft.notes ?? ''}
         onChange={(changeEvent) => setDraft({ ...draft, notes: changeEvent.target.value || null })}
       />
-      {failure && (
-        <div
-          role="alert"
-          className="flex items-center gap-3 rounded-tile border border-danger/35 bg-danger-soft py-1.5 pr-1.5 pl-4 text-on-danger"
+      {saving.error && (
+        <StatusMessage
+          tone="danger"
+          action={
+            <Button
+              variant="secondary"
+              className="shrink-0"
+              loading={saving.busy}
+              onClick={() => void attempt(retryWithoutAmounts)}
+            >
+              {!saving.busy && <RotateCw className="size-4" strokeWidth={2.75} />}
+              Retry
+            </Button>
+          }
         >
-          <CircleAlert className="size-5 shrink-0 text-danger" strokeWidth={2.75} />
-          <div className="flex min-w-0 flex-1 flex-col py-1.5 text-meta">
-            <span>
-              <strong>Couldn't save.</strong> Your entry is kept here.
-            </span>
-            <span className="break-words opacity-80">{failure.message}</span>
-          </div>
-          <Button
-            variant="secondary"
-            className="shrink-0"
-            loading={save.isPending}
-            onClick={() => void attempt(failure.skipAmounts)}
-          >
-            {!save.isPending && <RotateCw className="size-4" strokeWidth={2.75} />}
-            Retry
-          </Button>
-        </div>
+          <strong>Couldn't save.</strong> Your entry is kept here.
+          <span className="block break-words opacity-80">{saving.error}</span>
+        </StatusMessage>
       )}
       {hasErrors(errors) && <StatusMessage tone="danger">Check the highlighted fields.</StatusMessage>}
 
@@ -170,12 +147,12 @@ export function EventForm({
         )}
         <div className="flex flex-col-reverse gap-3 sm:flex-row">
           {focusAmounts && draft.type === 'pump' && (
-            <Button variant="ghost" size="lg" disabled={save.isPending} onClick={() => void attempt(true)}>
+            <Button variant="ghost" size="lg" disabled={saving.busy} onClick={() => void attempt(true)}>
               Save without amounts
             </Button>
           )}
-          <Button type="submit" size="lg" loading={save.isPending} disabled={needsChoice(draft)}>
-            {save.isPending ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
+          <Button type="submit" size="lg" loading={saving.busy} disabled={needsChoice(draft)}>
+            {saving.busy ? 'Saving…' : isNew ? 'Save' : 'Save changes'}
           </Button>
         </div>
       </div>

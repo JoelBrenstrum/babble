@@ -1,8 +1,8 @@
 import { sampleBaby, sampleEvents } from '@babble/api/fixtures';
-import { emptyDraft, type EventType } from '@babble/domain';
+import { emptyDraft, eventToDraft, type EventType } from '@babble/domain';
 import { Card } from '#/components/ui/card';
 import { fixtureClient } from '#/fixtures/client';
-import { EventForm, toDraft } from './event-form';
+import { EventForm } from './event-form';
 
 const now = new Date();
 
@@ -33,7 +33,7 @@ export default {
         timeZone={sampleBaby.timezone}
         units="metric"
         event={nappy}
-        initial={toDraft(nappy)}
+        initial={eventToDraft(nappy)}
         onDone={() => undefined}
       />
     </Card>

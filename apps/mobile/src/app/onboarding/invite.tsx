@@ -13,13 +13,16 @@ let createFamilyInvite: ((familyId: string) => ReturnType<typeof createInvite>) 
 
 export default function InviteStep() {
   const ready = useReadyState();
+  if (!ready) return <Redirect href="/" />;
+  return <InviteStepContent familyId={ready.family.id} />;
+}
+
+function InviteStepContent({ familyId }: { familyId: string }) {
   const { client, config } = useBabble();
-  const familyId = ready?.family.id;
   const onCreate = useCallback(() => {
     createFamilyInvite ??= oncePerKey((id) => createInvite(client, id));
-    return createFamilyInvite(familyId!);
+    return createFamilyInvite(familyId);
   }, [client, familyId]);
-  if (!ready) return <Redirect href="/" />;
   return (
     <Screen step="Step 4 of 4">
       <Title subtitle="They'll see the same timers and history live, and can log entries too.">

@@ -1,4 +1,5 @@
-import { acceptInvite, inviteQuery, normalizeInviteCode, queryKeys, toBabbleError } from '@babble/api';
+import { acceptInvite, inviteQuery, normalizeInviteCode } from '@babble/api';
+import { refreshFamilies, useAsyncAction } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { useEffect, useState, type FormEvent } from 'react';
@@ -23,27 +24,21 @@ function JoinPage() {
   const navigate = useNavigate();
   const invite = useQuery(inviteQuery(babble.client, code));
   const [displayName, setDisplayName] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [joining, setJoining] = useState(false);
+  const { run, busy: joining, error } = useAsyncAction();
 
   useEffect(() => {
     writeStorage(storageKeys.pendingInvite, code);
   }, [code]);
 
-  async function join(event: FormEvent) {
+  function join(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    setJoining(true);
-    try {
+    void run(async () => {
       const familyId = await acceptInvite(babble.client, { code, displayName });
       writeStorage(storageKeys.pendingInvite, null);
       writeStorage(storageKeys.activeFamily, familyId);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
+      await refreshFamilies(queryClient);
       await navigate({ to: '/' });
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setJoining(false);
-    }
+    });
   }
 
   if (invite.isPending) return <PageSpinner label="Checking invite" />;

@@ -1,4 +1,5 @@
-import { DEV_ACCOUNTS, DEV_PASSWORD, toBabbleError } from '@babble/api';
+import { DEV_ACCOUNTS, DEV_PASSWORD } from '@babble/api/dev';
+import { useAsyncAction } from '@babble/api/react';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
 import { Button } from '@/components/button';
@@ -10,17 +11,11 @@ export function DevSignIn({
   onSignIn: (credentials: { email: string; password: string }) => Promise<void>;
 }) {
   const [pending, setPending] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { run, error } = useAsyncAction();
 
   async function signIn(email: string) {
-    setError(null);
     setPending(email);
-    try {
-      await onSignIn({ email, password: DEV_PASSWORD });
-    } catch (caught) {
-      setError(`${toBabbleError(caught).message} Run \`pnpm --filter @babble/db reset\` to reseed the dev accounts.`);
-      setPending(null);
-    }
+    if (!(await run(() => onSignIn({ email, password: DEV_PASSWORD })))) setPending(null);
   }
 
   return (
@@ -41,7 +36,9 @@ export function DevSignIn({
           {`Sign in as ${account.name}`}
         </Button>
       ))}
-      {error && <StatusMessage tone="danger">{error}</StatusMessage>}
+      {error && (
+        <StatusMessage tone="danger">{`${error} Run \`pnpm --filter @babble/db reset\` to reseed the dev accounts.`}</StatusMessage>
+      )}
     </View>
   );
 }

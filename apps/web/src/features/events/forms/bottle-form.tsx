@@ -1,8 +1,8 @@
-import { formatVolume, volumeToMl, type BottleContent, type DraftOfType } from '@babble/domain';
+import { formatVolume, instantDraft, volumeToMl, type BottleContent, type DraftOfType } from '@babble/domain';
 import { DateTimeField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
 import { Stepper } from '#/components/ui/stepper';
-import { FormSection, instantDraft, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 const CONTENTS: { value: BottleContent; label: string }[] = [
   { value: 'breast_milk', label: 'Breast milk' },

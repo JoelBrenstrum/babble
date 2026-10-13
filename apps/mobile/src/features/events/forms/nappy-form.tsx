@@ -1,11 +1,11 @@
-import { nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
+import { instantDraft, nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
 import { Text } from 'react-native';
 import { CheckRow, MultiChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
 import { Segmented } from '@/components/segmented';
 import { SizeSelector } from '@/components/size-selector';
 import { SwatchPicker } from '@/components/swatch-picker';
-import { FormSection, instantDraft, type FormProps } from './shared';
+import { FormSection, type FormProps } from './shared';
 
 const TEXTURES: { value: PooTexture; label: string }[] = [
   { value: 'runny', label: 'Runny' },

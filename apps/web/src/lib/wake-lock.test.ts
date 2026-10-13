@@ -72,4 +72,20 @@ describe('useCharging', () => {
     });
     expect(result.current).toBe(true);
   });
+
+  it('attaches no listener when unmounted before the battery resolves', async () => {
+    const battery = Object.assign(new EventTarget(), { charging: false });
+    const add = vi.spyOn(battery, 'addEventListener');
+    let resolve: (value: typeof battery) => void = () => undefined;
+    Object.defineProperty(navigator, 'getBattery', {
+      value: () => new Promise((done) => (resolve = done)),
+      configurable: true,
+    });
+    const { unmount } = renderHook(() => useCharging());
+    unmount();
+    resolve(battery);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(add).not.toHaveBeenCalled();
+  });
 });

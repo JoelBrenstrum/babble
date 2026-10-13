@@ -12,7 +12,7 @@ import {
   type SleepLocation,
 } from '@babble/domain';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { MultiChips, SingleChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { NapBreakdown } from '../nap-breakdown';
@@ -90,14 +90,16 @@ export function SleepDetailFields({
 export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'sleep'>>) {
   const details = draft.details;
   const endedAt = draft.endedAt ?? draft.startedAt;
-  const [periods, setPeriods] = useState<AwakePeriod[]>(() => awakePeriods(draft.segments, draft.startedAt, endedAt));
+  const periods = useMemo(
+    () => awakePeriods(draft.segments, draft.startedAt, endedAt),
+    [draft.segments, draft.startedAt, endedAt],
+  );
   const duration = napDurationText(draft.startedAt, draft.endedAt, periods);
 
   function update(next: { startedAt?: string; endedAt?: string; periods?: AwakePeriod[] }) {
     const startedAt = next.startedAt ?? draft.startedAt;
     const end = next.endedAt ?? endedAt;
     const nextPeriods = next.periods ?? periods;
-    if (next.periods) setPeriods(next.periods);
     onChange({ ...draft, startedAt, endedAt: end, segments: stretchesWithAwake(startedAt, end, nextPeriods) });
   }
 

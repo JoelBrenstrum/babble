@@ -1,4 +1,5 @@
 import { formatShortDate, formatTimeOfDay } from '../time/local-time';
+import { MINUTE_MS } from '../time/constants';
 
 export function entryAuthorText(options: {
   author?: string;
@@ -12,7 +13,7 @@ export function entryAuthorText(options: {
   const who = options.imported
     ? 'Imported'
     : `${options.timer ? 'Started' : 'Logged'} by ${options.author ?? 'a former member'}`;
-  const edited = Date.parse(options.updatedAt) - Date.parse(options.createdAt) > 60_000 ? ' · edited' : '';
+  const edited = Date.parse(options.updatedAt) - Date.parse(options.createdAt) > MINUTE_MS ? ' · edited' : '';
   return `${who} · ${when}${edited}`;
 }
 

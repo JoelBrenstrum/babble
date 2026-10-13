@@ -1,3 +1,4 @@
+import { useSessionAction, useTrackingSettings } from '@babble/api/react';
 import { clock, eventQuery, runningEventsQuery } from '@babble/api';
 import { formatTimeOfDay, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
@@ -11,11 +12,10 @@ import { KeepAwakeToggle } from '@/features/keep-awake-toggle';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
-import { useSessionAction, useTrackingSettings } from '@/lib/use-events';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useNow } from '@/lib/use-now';
-import { useReadyState } from '@/lib/use-onboarding';
+import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function SessionScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -24,7 +24,7 @@ export default function SessionScreen() {
   return <SessionContent id={id} ready={ready} />;
 }
 
-function SessionContent({ id, ready }: { id: string; ready: NonNullable<ReturnType<typeof useReadyState>> }) {
+function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
   const { client } = useBabble();
   const { baby, family } = ready;
   const running = useQuery(runningEventsQuery(client, baby.id));

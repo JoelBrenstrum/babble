@@ -1,4 +1,20 @@
-import type { BabyEvent } from '@babble/domain';
+import {
+  bucketByDay,
+  dayKeyFor,
+  dayLayout,
+  hourTicks,
+  lastDays,
+  localInstant,
+  shiftDay,
+  statsReport,
+  summariseDay,
+  summariseWeek,
+  type BabyEvent,
+  type DayLayout,
+  type EventOfType,
+  type StatsReport,
+  type WeekSummary,
+} from '@babble/domain';
 import type { BabyRow, Family, FamilyMemberRow, InstanceSettings } from './types';
 
 export const sampleBaby: BabyRow = {
@@ -164,4 +180,115 @@ export function sampleEvents(now: Date): BabyEvent[] {
       details: { title: 'Bath', description: '' },
     },
   ];
+}
+
+const MINUTE = 60_000;
+
+const wobble = (seed: number) => Math.sin(seed * 12.9898) * 0.5 + Math.sin(seed * 78.233) * 0.5;
+
+export function sampleMonthEvents(now: Date): BabyEvent[] {
+  const { timezone, day_start_minutes: dayStart } = sampleBaby;
+  const todayKey = dayKeyFor(now.toISOString(), timezone, dayStart);
+  const sleepTemplate = sampleRunningSleep(now) as EventOfType<'sleep'>;
+  const feedTemplate = sampleEvents(now)[0] as EventOfType<'breast_feed'>;
+  const nappyTemplate = sampleEvents(now).find((event) => event.type === 'nappy')!;
+  const events: BabyEvent[] = [];
+  let count = 0;
+  const sleep = (start: number, end: number) =>
+    events.push({
+      ...sleepTemplate,
+      id: `month-sleep-${(count += 1)}`,
+      sessionState: null,
+      startedAt: new Date(start).toISOString(),
+      endedAt: new Date(end).toISOString(),
+    });
+  const feed = (start: number, leftFirst: boolean) => {
+    const sides = leftFirst ? (['left', 'right'] as const) : (['right', 'left'] as const);
+    const first = start + 11 * MINUTE;
+    events.push({
+      ...feedTemplate,
+      id: `month-feed-${(count += 1)}`,
+      startedAt: new Date(start).toISOString(),
+      endedAt: new Date(first + 13 * MINUTE).toISOString(),
+      segments: [
+        { side: sides[0], startedAt: new Date(start).toISOString(), endedAt: new Date(first - MINUTE).toISOString() },
+        {
+          side: sides[1],
+          startedAt: new Date(first).toISOString(),
+          endedAt: new Date(first + 13 * MINUTE).toISOString(),
+        },
+      ],
+    });
+    events.push({
+      ...nappyTemplate,
+      id: `month-nappy-${(count += 1)}`,
+      startedAt: new Date(start - MINUTE).toISOString(),
+      endedAt: new Date(start - MINUTE).toISOString(),
+    });
+  };
+
+  lastDays(todayKey, 30).forEach((dayKey, index) => {
+    const progress = index / 29;
+    const local = (minutes: number) => localInstant(dayKey, Math.round(minutes), timezone).getTime();
+    let t = local(6 * 60 + 40 + 15 * wobble(index));
+    let leftFirst = index % 2 === 0;
+    feed(t, leftFirst);
+    const bedtime = local(19 * 60 + 20 + 20 * wobble(index + 3));
+    for (let nap = 0; ; nap += 1) {
+      const start = t + (55 + 45 * progress + 12 * wobble(index * 7 + nap)) * MINUTE;
+      if (start + 40 * MINUTE > bedtime) break;
+      const end = start + (55 + 25 * wobble(index * 5 + nap) + 20 * progress) * MINUTE;
+      sleep(start, end);
+      t = end;
+      leftFirst = !leftFirst;
+      feed(t + 4 * MINUTE, leftFirst);
+    }
+    feed(bedtime - 30 * MINUTE, (leftFirst = !leftFirst));
+    const morning = localInstant(shiftDay(dayKey, 1), 6 * 60 + 40, timezone).getTime();
+    let start = bedtime;
+    let stretch = (150 + 190 * progress + 25 * wobble(index + 11)) * MINUTE;
+    while (start < morning - 30 * MINUTE) {
+      const end = Math.min(start + stretch, morning);
+      sleep(start, end);
+      if (end >= morning) break;
+      feed(end + 3 * MINUTE, (leftFirst = !leftFirst));
+      start = end + 35 * MINUTE;
+      stretch = (150 + 40 * progress) * MINUTE;
+    }
+  });
+  return events.filter((event) => Date.parse(event.endedAt ?? event.startedAt) <= now.getTime());
+}
+
+export function sampleMonthView(now: Date): {
+  days: { dayKey: string; layout: DayLayout }[];
+  ticks: { frac: number; label: string }[];
+  todayKey: string;
+  week: WeekSummary;
+} {
+  const { timezone, day_start_minutes: dayStart } = sampleBaby;
+  const events = sampleMonthEvents(now);
+  const todayKey = dayKeyFor(now.toISOString(), timezone, dayStart);
+  const keys = lastDays(todayKey, 30);
+  const buckets = bucketByDay(events, keys, timezone, dayStart, now);
+  return {
+    days: buckets.map((day) => ({ dayKey: day.dayKey, layout: dayLayout(day.events, day.window, now) })),
+    ticks: hourTicks(keys[0]!, timezone, dayStart, 6),
+    todayKey,
+    week: summariseWeek(
+      buckets.filter((day) => day.dayKey !== todayKey).map((day) => summariseDay(day.events, day.window, { now })),
+    ),
+  };
+}
+
+export function sampleStatsReport(now: Date): StatsReport {
+  const { timezone, day_start_minutes: dayStart } = sampleBaby;
+  const todayKey = dayKeyFor(now.toISOString(), timezone, dayStart);
+  return statsReport(sampleMonthEvents(now), lastDays(todayKey, 30), todayKey, now, {
+    timeZone: timezone,
+    dayStartMinutes: dayStart,
+    nightStartMinutes: 19 * 60,
+    nightEndMinutes: 7 * 60,
+    mergeGapMs: 15_000,
+    units: 'metric',
+  });
 }

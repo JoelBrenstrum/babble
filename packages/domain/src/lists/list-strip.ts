@@ -1,14 +1,16 @@
-import { summariseDay, type DaySummary } from '../events/day-summary';
+import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
 import { nextBreastSide } from '../events/feed-rules';
 import type { BabyEvent, PooColour, Units } from '../events/types';
-import { formatDuration } from '../format/duration';
-import { formatVolume, formatWeightChange } from '../format/units';
+import { formatDuration, formatDurationShort, formatPerDay } from '../format/duration';
+import { formatVolume, formatVolumeValue, formatWeightChange } from '../format/units';
 import { growthReport, type BabySex } from '../growth/growth';
 import { formatShortDate, formatTimeOfDay, dayWindow, dayKeyFor, shiftDay } from '../time/local-time';
 import { lastDays } from '../timeline/days';
 import { bucketByDay } from '../timeline/day-layout';
 import { isSessionType, type TrackerKey } from '../trackers';
 import { summariseSleep } from '../events/sleep-stretches';
+import { DAY_MS, MINUTE_MS } from '../time/constants';
+import { byStartedAtDesc, compareIso } from '../time/instants';
 
 export type StripKind = 'feeds' | 'breast' | 'bottle' | 'solids' | 'sleep' | 'nappy' | 'pump' | 'growth' | 'custom';
 
@@ -30,7 +32,6 @@ export interface StripContext {
   sex: BabySex | null;
 }
 
-const DAY_MS = 86_400_000;
 const AVERAGE_DAYS = 7;
 
 export function stripKind(type: TrackerKey, filter: 'all' | 'breast' | 'bottle'): StripKind {
@@ -84,7 +85,7 @@ export function sinceReference(event: BabyEvent): string {
 
 export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context: StripContext): StripItem {
   const latest = events.reduce<BabyEvent | null>(
-    (newest, event) => (!newest || event.startedAt > newest.startedAt ? event : newest),
+    (newest, event) => (!newest || compareIso(event.startedAt, newest.startedAt) > 0 ? event : newest),
     null,
   );
   const running = latest && latest.endedAt === null && isSessionType(latest.type) ? latest : null;
@@ -104,11 +105,11 @@ export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context
   if (!latest) return { label, value: '—' };
   const at = sinceReference(latest);
   const ms = context.now.getTime() - Date.parse(at);
-  if (ms < 60_000) return { label, value: 'Just now' };
+  if (ms < MINUTE_MS) return { label, value: 'Just now' };
   if (ms < DAY_MS) {
     return {
       label,
-      value: formatDuration(ms, { seconds: false }),
+      value: formatDurationShort(ms),
       note: `ago · ${formatTimeOfDay(at, context.timeZone)}`,
     };
   }
@@ -120,8 +121,7 @@ export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context
   };
 }
 
-const perDay = (value: number) => (Number.isInteger(value) ? String(value) : value.toFixed(1));
-const hours = (ms: number) => formatDuration(ms, { seconds: false });
+const hours = formatDurationShort;
 
 function summaries(events: readonly BabyEvent[], context: StripContext) {
   const todayKey = dayKeyFor(context.now.toISOString(), context.timeZone, context.dayStartMinutes);
@@ -134,12 +134,7 @@ function summaries(events: readonly BabyEvent[], context: StripContext) {
     (day) =>
       summariseDay(day.events, day.window, {
         now: context.now,
-        night: {
-          dayKey: day.dayKey,
-          timeZone: context.timeZone,
-          startMinutes: context.nightStartMinutes,
-          endMinutes: context.nightEndMinutes,
-        },
+        night: nightOf(context, day.dayKey),
       }),
   );
   const today = days.at(-1)!;
@@ -153,7 +148,7 @@ function todayItem(
   label: string,
   value: string,
   average: number | null,
-  format: (value: number) => string = perDay,
+  format: (value: number) => string = formatPerDay,
 ): StripItem {
   return average === null ? { label, value } : { label, value, note: `avg ${format(average)}` };
 }
@@ -174,7 +169,7 @@ function growthItems(events: readonly BabyEvent[], context: StripContext): Strip
   const weights = events
     .filter((event): event is Extract<BabyEvent, { type: 'growth' }> => event.type === 'growth')
     .filter((event) => event.details.weightG !== null)
-    .sort((a, b) => b.startedAt.localeCompare(a.startedAt));
+    .sort(byStartedAtDesc);
   const [latest, previous] = weights;
   const change: StripItem =
     latest && previous
@@ -264,7 +259,7 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
       const lastPoo = relevant
         .filter((event): event is Extract<BabyEvent, { type: 'nappy' }> => event.type === 'nappy')
         .filter((event) => event.details.dirty && event.details.pooColours.length > 0)
-        .sort((a, b) => b.startedAt.localeCompare(a.startedAt))[0];
+        .sort(byStartedAtDesc)[0];
       const dirty = todayItem(
         'Dirty today',
         String(today.dirty),
@@ -281,7 +276,7 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
       ];
     }
     case 'pump': {
-      const amount = (ml: number) => volume(ml).split(' ')[0];
+      const amount = (ml: number) => formatVolumeValue(ml, context.units);
       return [
         since,
         todayItem(

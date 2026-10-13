@@ -1,13 +1,15 @@
 import { expect, test } from '@playwright/test';
-import { setSignupMode } from './db';
+import { joinPlus, setSignupMode } from './db';
 import { onboard, signUpWithPassword, uniqueEmail } from './helpers';
 
 test.beforeAll(() => setSignupMode('open'));
 test.afterAll(() => setSignupMode('invite_only'));
 
 test('chair mode asks for a nappy when a feed starts and offers a nap when it ends', async ({ page }, testInfo) => {
-  await signUpWithPassword(page, uniqueEmail('john', testInfo.project.name));
+  const email = uniqueEmail('john', testInfo.project.name);
+  await signUpWithPassword(page, email);
   await onboard(page);
+  joinPlus(email);
 
   await page.goto('/settings');
   await page.getByRole('link', { name: /Open chair mode/ }).click();
@@ -22,9 +24,6 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await page.screenshot({ path: testInfo.outputPath('dimmed.png') });
   await page.getByRole('button', { name: 'Start left' }).click();
   await expect(page.getByText('Dimmed · tap to wake')).toHaveCount(0);
-  await expect(page.getByText('No feeds logged yet')).toBeVisible();
-
-  await page.getByRole('button', { name: 'Start left' }).click();
   await expect(page.getByText('Feeding · Left')).toBeVisible();
   const nappyAsk = page.getByRole('dialog', { name: "Change Olivia's nappy?" });
   await nappyAsk.getByRole('button', { name: 'Yes, log a nappy' }).click();

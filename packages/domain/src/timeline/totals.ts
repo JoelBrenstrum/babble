@@ -1,8 +1,9 @@
 import type { DaySummary, WeekSummary } from '../events/day-summary';
 import type { NappyDetails, Units } from '../events/types';
-import { formatDuration } from '../format/duration';
+import { formatDurationShort, formatPerDay } from '../format/duration';
 import { formatVolume } from '../format/units';
-import { formatTimeOfDay } from '../time/local-time';
+import { MINUTE_MS } from '../time/constants';
+import { formatTimeOfDay, parseDayKey } from '../time/local-time';
 
 export type TotalKey = 'sleep' | 'feeds' | 'solids' | 'nappies' | 'pump';
 
@@ -13,7 +14,7 @@ export interface TotalCard {
   details: { label: string; value: string }[];
 }
 
-const hours = (ms: number) => formatDuration(ms, { seconds: false });
+const hours = formatDurationShort;
 
 export function dayTotalCards(summary: DaySummary, units: Units, timeZone: string): TotalCard[] {
   const cards: TotalCard[] = [
@@ -86,8 +87,6 @@ export function daySummaryStrip(summary: DaySummary): { label: string; value: st
   ];
 }
 
-const perDay = (value: number) => (Number.isInteger(value) ? String(value) : value.toFixed(1));
-
 export function weekSummaryStrip(week: WeekSummary): { label: string; value: string }[] {
   if (week.days === 0) {
     return [
@@ -99,7 +98,7 @@ export function weekSummaryStrip(week: WeekSummary): { label: string; value: str
   return [
     { label: 'Avg sleep', value: hours(week.averageSleepMs) },
     { label: 'Longest', value: hours(week.longestSleepMs) },
-    { label: 'Feeds/day', value: perDay(week.feedsPerDay) },
+    { label: 'Feeds/day', value: formatPerDay(week.feedsPerDay) },
   ];
 }
 
@@ -124,7 +123,7 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
       values: each((day) => (day.longestSleepMs ? hours(day.longestSleepMs) : '—')),
       average: hours(average((day) => day.longestSleepMs)),
     },
-    { key: 'feeds', label: 'Feeds', values: each((day) => String(day.feeds)), average: perDay(week.feedsPerDay) },
+    { key: 'feeds', label: 'Feeds', values: each((day) => String(day.feeds)), average: formatPerDay(week.feedsPerDay) },
     ...(['left', 'right', 'idle'] as const).map((side) => {
       const pick = (day: DaySummary) => day[`${side}Ms`];
       return {
@@ -144,7 +143,7 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
       key: 'nappies',
       label: 'Nappies',
       values: each((day) => String(day.nappies)),
-      average: perDay(week.nappiesPerDay),
+      average: formatPerDay(week.nappiesPerDay),
     },
   ];
 }
@@ -152,7 +151,7 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
 export function feedTimeSplit(time: Pick<DaySummary, 'leftMs' | 'rightMs' | 'idleMs'>): string {
   if (!time.leftMs && !time.rightMs) return '—';
   const parts = [`L ${hours(time.leftMs)}`, `R ${hours(time.rightMs)}`];
-  if (time.idleMs >= 60_000) parts.push(`idle ${hours(time.idleMs)}`);
+  if (time.idleMs >= MINUTE_MS) parts.push(`idle ${hours(time.idleMs)}`);
   return parts.join(' · ');
 }
 
@@ -171,14 +170,14 @@ export function nappyKind(details: Pick<NappyDetails, 'wet' | 'dirty'>): string 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export function formatDayRange(dayKeys: readonly string[]): string {
-  const [, firstMonth, firstDay] = dayKeys[0]!.split('-').map(Number) as [number, number, number];
-  const [, lastMonth, lastDay] = dayKeys.at(-1)!.split('-').map(Number) as [number, number, number];
+  const { month: firstMonth, day: firstDay } = parseDayKey(dayKeys[0]!);
+  const { month: lastMonth, day: lastDay } = parseDayKey(dayKeys.at(-1)!);
   const end = `${lastDay} ${MONTHS[lastMonth - 1]}`;
   return firstMonth === lastMonth ? `${firstDay} – ${end}` : `${firstDay} ${MONTHS[firstMonth - 1]} – ${end}`;
 }
 
 export function weekdayLabel(dayKey: string): { weekday: string; day: string } {
-  const [year, month, day] = dayKey.split('-').map(Number) as [number, number, number];
+  const { year, month, day } = parseDayKey(dayKey);
   const date = new Date(Date.UTC(year, month - 1, day));
   return {
     weekday: new Intl.DateTimeFormat('en-NZ', { timeZone: 'UTC', weekday: 'short' }).format(date),

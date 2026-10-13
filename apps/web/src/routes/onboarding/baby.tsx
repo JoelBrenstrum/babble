@@ -1,6 +1,7 @@
 import { canAddBaby } from '@babble/config';
-import { addBaby, familiesQuery, queryKeys, resolveOnboarding, toBabbleError } from '@babble/api';
+import { addBaby, familiesQuery, resolveOnboarding } from '@babble/api';
 import { todayInTimeZone, type BabySex } from '@babble/domain';
+import { refreshFamilies, useAsyncAction } from '@babble/api/react';
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { useMemo, useState, type FormEvent } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
@@ -46,14 +47,11 @@ function BabyStep() {
   const [birthDate, setBirthDate] = useState('');
   const [timezone, setTimezone] = useState(detected);
   const [sex, setSex] = useState<BabySex | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const { run, busy: submitting, error } = useAsyncAction();
 
-  async function submit(event: FormEvent) {
+  function submit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
-    setSubmitting(true);
-    try {
+    void run(async () => {
       const baby = await addBaby(babble.client, {
         familyId: family.id,
         name,
@@ -64,12 +62,9 @@ function BabyStep() {
       });
       writeStorage(storageKeys.activeFamily, family.id);
       writeStorage(storageKeys.activeBaby, baby.id);
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
+      await refreshFamilies(queryClient);
       await navigate({ to: adding ? '/' : '/onboarding/day-start' });
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setSubmitting(false);
-    }
+    });
   }
 
   return (

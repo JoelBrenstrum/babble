@@ -27,6 +27,9 @@ export default function SignIn() {
   const settings = useQuery(instanceSettingsQuery(client));
   const [sent, setSent] = useState<{ email: string; resend: () => Promise<void> } | null>(null);
 
+  const showSent = (email: string, resend: () => Promise<unknown>) =>
+    setSent({ email: email.trim(), resend: async () => void (await resend()) });
+
   if (session) return <Redirect href="/" />;
 
   if (sent) {
@@ -46,12 +49,12 @@ export default function SignIn() {
           onSignUp={async ({ email, password, inviteCode }) => {
             const signUp = () => signUpWithPassword(client, { email, password, redirectTo: AUTH_REDIRECT, inviteCode });
             const { needsConfirmation } = await signUp();
-            if (needsConfirmation) setSent({ email: email.trim(), resend: async () => void (await signUp()) });
+            if (needsConfirmation) showSent(email, signUp);
           }}
           onMagicLink={async ({ email, inviteCode }) => {
             const request = () => requestMagicLink(client, { email, redirectTo: AUTH_REDIRECT, inviteCode });
             await request();
-            setSent({ email: email.trim(), resend: request });
+            showSent(email, request);
           }}
           onGoogle={async () => {
             const url = await signInWithGoogle(client, { redirectTo: AUTH_REDIRECT, skipBrowserRedirect: true });

@@ -1,4 +1,6 @@
-import type { Mood, PooColour, PooTexture, Size, SleepLocation, SolidsAmount, SolidsReaction } from './types';
+import type { Mood, PooColour, PooTexture, Side, Size, SleepLocation, SolidsAmount, SolidsReaction } from './types';
+
+export const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
 
 export const SIZE_LABELS: Record<Size, string> = {
   tiny: 'Tiny',
@@ -30,6 +32,14 @@ export const SOLIDS_REACTION_LABELS: Record<SolidsReaction, string> = {
   unsure: 'Not sure',
   disliked: 'Disliked it',
 };
+
+export const SOLIDS_AMOUNT_OPTIONS: { value: SolidsAmount; label: string }[] = (['taste', 'some', 'lots'] as const).map(
+  (value) => ({ value, label: SOLIDS_AMOUNT_LABELS[value] }),
+);
+
+export const SOLIDS_REACTION_OPTIONS: { value: SolidsReaction; label: string }[] = (
+  ['loved', 'liked', 'unsure', 'disliked'] as const
+).map((value) => ({ value, label: SOLIDS_REACTION_LABELS[value] }));
 
 export const MOOD_LABELS: Record<Mood, string> = { happy: 'Happy', upset: 'Upset' };
 

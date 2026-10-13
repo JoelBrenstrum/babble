@@ -1,20 +1,11 @@
 import type { BabyRow } from '@babble/api';
-import {
-  formatAgo,
-  formatDuration,
-  formatShortDate,
-  sinceReference,
-  summariseLatest,
-  TRACKERS,
-  type BabyEvent,
-  type DaySummary,
-  type Units,
-} from '@babble/domain';
+import { formatDuration, latestMeta, TRACKERS, type BabyEvent, type DaySummary, type Units } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { AlarmClock, Moon, Plus } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { Card } from '#/components/ui/card';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
+import { PlusBadge } from '#/features/plus-dialog';
 import { cn } from '#/lib/cn';
 
 export interface HomeOverviewProps {
@@ -27,18 +18,7 @@ export interface HomeOverviewProps {
   renderRunning: (event: BabyEvent) => ReactNode;
   feedDue?: { text: string; overdue: boolean } | null;
   prediction?: string | null;
-}
-
-export function latestMeta(event: BabyEvent | undefined, now: Date, units: Units, timeZone: string): string {
-  if (!event) return 'Nothing logged yet';
-  if (event.endedAt === null && event.type !== 'bottle') return summariseLatest(event, now, units);
-  if (event.type === 'growth') {
-    const [first] = summariseLatest(event, now, units).split(' · ');
-    return `${first} · ${formatShortDate(event.startedAt, timeZone)}`;
-  }
-  const reference = sinceReference(event);
-  const detail = summariseLatest(event, now, units);
-  return `Last ${formatAgo(now.getTime() - Date.parse(reference))}${detail ? ` · ${detail}` : ''}`;
+  predictionPlus?: boolean;
 }
 
 export function HomeOverview({
@@ -51,6 +31,7 @@ export function HomeOverview({
   renderRunning,
   feedDue = null,
   prediction = null,
+  predictionPlus = false,
 }: HomeOverviewProps) {
   return (
     <div className="flex flex-col gap-6">
@@ -76,12 +57,7 @@ export function HomeOverview({
         </p>
       )}
 
-      {prediction && (
-        <p className="flex items-center gap-3 rounded-card bg-sleep-soft px-4 py-3 text-body font-semibold text-on-sleep">
-          <Moon aria-hidden className="size-5 shrink-0" strokeWidth={2.75} />
-          {prediction}
-        </p>
-      )}
+      {prediction && <PredictionLine text={prediction} plus={predictionPlus} />}
 
       <Card className="grid grid-cols-3 divide-x divide-line">
         {[
@@ -134,5 +110,15 @@ export function HomeOverview({
         })}
       </Card>
     </div>
+  );
+}
+
+export function PredictionLine({ text, plus = false }: { text: string; plus?: boolean }) {
+  return (
+    <p className="flex items-center gap-3 rounded-card bg-sleep-soft px-4 py-3 text-body font-semibold text-on-sleep">
+      <Moon aria-hidden className="size-5 shrink-0" strokeWidth={2.75} />
+      <span className="flex-1">{text}</span>
+      {plus && <PlusBadge />}
+    </p>
   );
 }

@@ -1,10 +1,37 @@
 import { stretchesError } from './awake-periods';
 import { MAX_FOOD_LENGTH, MAX_FOODS } from './foods';
 import type { EventDraft } from './types';
+import { MINUTE_MS } from '../time/constants';
 
-export type DraftErrors = Partial<Record<string, string>>;
+export type DraftErrorKey =
+  | 'startedAt'
+  | 'endedAt'
+  | 'type'
+  | 'pooColours'
+  | 'dirty'
+  | 'amountMl'
+  | 'amountLeftMl'
+  | 'details'
+  | 'weightG'
+  | 'lengthMm'
+  | 'headCircumferenceMm'
+  | 'foods'
+  | 'title'
+  | 'segments'
+  | 'amounts'
+  | 'awake';
 
-const FUTURE_TOLERANCE_MS = 5 * 60_000;
+export type DraftErrors = Partial<Record<DraftErrorKey, string>>;
+
+export const FUTURE_TOLERANCE_MS = 5 * MINUTE_MS;
+export const MAX_NAPPY_POO_COLOURS = 2;
+export const MAX_VOLUME_ML = 2000;
+export const MIN_WEIGHT_G = 200;
+export const MAX_WEIGHT_G = 50_000;
+export const MIN_LENGTH_MM = 200;
+export const MAX_LENGTH_MM = 2000;
+export const MIN_HEAD_CIRCUMFERENCE_MM = 150;
+export const MAX_HEAD_CIRCUMFERENCE_MM = 700;
 
 export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
   const errors: DraftErrors = {};
@@ -20,7 +47,7 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
     case 'nappy': {
       const { dirty, pooColours, pooSize, pooTextures, typePending } = draft.details;
       if (typePending) errors.type = 'Pick wet, dirty, both or dry.';
-      if (pooColours.length > 2) errors.pooColours = 'Pick up to two colours.';
+      if (pooColours.length > MAX_NAPPY_POO_COLOURS) errors.pooColours = 'Pick up to two colours.';
       if (!dirty && (pooColours.length > 0 || pooSize || pooTextures.length > 0)) {
         errors.dirty = 'Poo details need a dirty nappy.';
       }
@@ -28,7 +55,9 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
     }
     case 'bottle': {
       const { amountMl, amountLeftMl } = draft.details;
-      if (amountMl !== null && (amountMl < 0 || amountMl > 2000)) errors.amountMl = 'Enter an amount up to 2000 ml.';
+      if (amountMl !== null && (amountMl < 0 || amountMl > MAX_VOLUME_ML)) {
+        errors.amountMl = `Enter an amount up to ${MAX_VOLUME_ML} ml.`;
+      }
       if (amountLeftMl !== null && amountMl !== null && amountLeftMl > amountMl) {
         errors.amountLeftMl = "Left over can't be more than the bottle.";
       }
@@ -39,9 +68,14 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
       if (weightG === null && lengthMm === null && headCircumferenceMm === null) {
         errors.details = 'Enter at least one measurement.';
       }
-      if (weightG !== null && (weightG < 200 || weightG > 50_000)) errors.weightG = 'That weight looks wrong.';
-      if (lengthMm !== null && (lengthMm < 200 || lengthMm > 2000)) errors.lengthMm = 'That length looks wrong.';
-      if (headCircumferenceMm !== null && (headCircumferenceMm < 150 || headCircumferenceMm > 700)) {
+      if (weightG !== null && (weightG < MIN_WEIGHT_G || weightG > MAX_WEIGHT_G))
+        errors.weightG = 'That weight looks wrong.';
+      if (lengthMm !== null && (lengthMm < MIN_LENGTH_MM || lengthMm > MAX_LENGTH_MM))
+        errors.lengthMm = 'That length looks wrong.';
+      if (
+        headCircumferenceMm !== null &&
+        (headCircumferenceMm < MIN_HEAD_CIRCUMFERENCE_MM || headCircumferenceMm > MAX_HEAD_CIRCUMFERENCE_MM)
+      ) {
         errors.headCircumferenceMm = 'That head size looks wrong.';
       }
       break;
@@ -67,8 +101,8 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
       }
       if (draft.type === 'pump') {
         const { leftMl, rightMl, totalMl } = draft.details;
-        if ([leftMl, rightMl, totalMl].some((value) => value !== null && (value < 0 || value > 2000))) {
-          errors.amounts = 'Enter amounts up to 2000 ml.';
+        if ([leftMl, rightMl, totalMl].some((value) => value !== null && (value < 0 || value > MAX_VOLUME_ML))) {
+          errors.amounts = `Enter amounts up to ${MAX_VOLUME_ML} ml.`;
         }
       }
       break;

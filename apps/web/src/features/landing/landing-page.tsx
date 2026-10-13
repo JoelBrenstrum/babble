@@ -1,126 +1,12 @@
 import { Link } from '@tanstack/react-router';
-import {
-  AlarmClock,
-  ChartColumn,
-  CalendarDays,
-  Code,
-  Download,
-  Droplets,
-  EyeOff,
-  FileUp,
-  Heart,
-  Milk,
-  Moon,
-  MoonStar,
-  Ruler,
-  ShieldCheck,
-  Smartphone,
-  Tablet,
-  Sparkles,
-  Users,
-  type LucideIcon,
-} from 'lucide-react';
+import { Code, Download, EyeOff, ShieldCheck, type LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { buttonClassName } from '#/components/ui/button';
 import { Wordmark } from '#/components/ui/wordmark';
 import { cn } from '#/lib/cn';
-import { ChairPreview, HomePreview, PausePreview, TimelinePreview } from './previews';
-
-export const GITHUB_URL = 'https://github.com/JoelBrenstrum/babble';
-
-interface Feature {
-  icon: LucideIcon;
-  tone: string;
-  title: string;
-  body: string;
-}
-
-export const FEATURES: Feature[] = [
-  {
-    icon: Heart,
-    tone: 'bg-feed-right-soft text-on-feed-right',
-    title: 'Breastfeed timer',
-    body: 'Time each side, pause for a burp and tap Next side when you swap. babble remembers which side is next.',
-  },
-  {
-    icon: Moon,
-    tone: 'bg-sleep-soft text-on-sleep',
-    title: 'Sleep and naps',
-    body: 'Start a nap with one tap. Pause and resume it, and note wake-ups through the night.',
-  },
-  {
-    icon: Droplets,
-    tone: 'bg-nappy-soft text-on-nappy',
-    title: 'Nappies',
-    body: "Wet, dirty or both, with poo colours. You'll get a heads-up for colours worth checking with your midwife or GP.",
-  },
-  {
-    icon: Milk,
-    tone: 'bg-bottle-soft text-on-bottle',
-    title: 'Bottles and pumping',
-    body: 'Log formula or expressed milk, and how much each side gave when you pump.',
-  },
-  {
-    icon: Ruler,
-    tone: 'bg-growth-soft text-on-growth',
-    title: 'Growth',
-    body: 'Weight, length and head size, plotted against WHO percentiles.',
-  },
-  {
-    icon: Sparkles,
-    tone: 'bg-custom-soft text-on-custom',
-    title: 'Your own events',
-    body: 'Bath, medicine, tummy time. Track whatever matters to you.',
-  },
-  {
-    icon: CalendarDays,
-    tone: 'bg-sleep-soft text-on-sleep',
-    title: 'Timeline',
-    body: 'See the whole day by the hour, or the last 7 days side by side.',
-  },
-  {
-    icon: ChartColumn,
-    tone: 'bg-pump-soft text-on-pump',
-    title: 'Stats',
-    body: 'Trends for sleep, feeds and nappies over a week, a month or all time.',
-  },
-  {
-    icon: AlarmClock,
-    tone: 'bg-feed-right-soft text-on-feed-right',
-    title: 'Feed reminders',
-    body: 'See when the next feed is due and which side is next. It can stay quiet at night.',
-  },
-  {
-    icon: Tablet,
-    tone: 'bg-feed-left-soft text-on-feed-left',
-    title: 'Chair mode',
-    body: 'Turn a tablet or touchscreen by the feeding chair into a feed station, with giant buttons and a screen that stays on.',
-  },
-  {
-    icon: Users,
-    tone: 'bg-primary-soft text-on-primary-soft',
-    title: 'Shared live with your family',
-    body: 'Everyone sees the same timers and history as it happens. Invite a partner, grandparent or nanny with a code.',
-  },
-  {
-    icon: MoonStar,
-    tone: 'bg-secondary-soft text-on-secondary-soft',
-    title: 'Dark at night',
-    body: 'babble can switch to a dim theme overnight, so 3am feeds are easier on tired eyes.',
-  },
-  {
-    icon: FileUp,
-    tone: 'bg-custom-soft text-on-custom',
-    title: 'Import from Huckleberry',
-    body: 'Bring your history across from a Huckleberry export, so nothing is lost.',
-  },
-  {
-    icon: Smartphone,
-    tone: 'bg-primary-soft text-on-primary-soft',
-    title: 'Works on any phone',
-    body: 'Use it in your browser or add it to your home screen like an app. No app store needed.',
-  },
-];
+import { PlusBadge } from '#/features/plus-dialog';
+import { FEATURES, GITHUB_URL } from './content';
+import { ChairPreview, HomePreview, PatternsPreview, PausePreview, TimelinePreview } from './previews';
 
 const PROMISES: { icon: LucideIcon; text: ReactNode }[] = [
   { icon: EyeOff, text: 'No ads, no analytics and no tracking cookies.' },
@@ -162,7 +48,15 @@ function Section({ className, children, ...props }: { className?: string; childr
   );
 }
 
-export function LandingPage({ signedIn, now }: { signedIn: boolean; now?: Date }) {
+export function LandingPage({
+  signedIn,
+  now,
+  billingEnabled = false,
+}: {
+  signedIn: boolean;
+  now?: Date;
+  billingEnabled?: boolean;
+}) {
   return (
     <div className="flex min-h-dvh flex-col overflow-x-clip bg-bg text-ink">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-5 sm:px-6">
@@ -213,7 +107,10 @@ export function LandingPage({ signedIn, now }: { signedIn: boolean; now?: Date }
                   <feature.icon className="size-5" strokeWidth={2.75} />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="text-row-title font-semibold">{feature.title}</h3>
+                  <h3 className="flex flex-wrap items-center gap-2 text-row-title font-semibold">
+                    {feature.title}
+                    {billingEnabled && feature.plus && <PlusBadge />}
+                  </h3>
                   <p className="mt-1 text-meta text-ink-2">{feature.body}</p>
                 </div>
               </li>
@@ -232,7 +129,10 @@ export function LandingPage({ signedIn, now }: { signedIn: boolean; now?: Date }
         </Section>
 
         <Section>
-          <h2 className="text-title font-bold">A feed station by the chair</h2>
+          <h2 className="flex flex-wrap items-center gap-3 text-title font-bold">
+            A feed station by the chair
+            {billingEnabled && <PlusBadge />}
+          </h2>
           <p className="mb-8 mt-2 max-w-2xl text-body text-ink-2">
             Chair mode turns an old tablet or a small touchscreen into a babble screen beside the feeding chair. Start a
             side, switch or pause with one big tap, even holding a baby in the dark. It asks about a nappy when a feed
@@ -244,16 +144,30 @@ export function LandingPage({ signedIn, now }: { signedIn: boolean; now?: Date }
         <Section>
           <h2 className="text-title font-bold">See the day at a glance</h2>
           <p className="mb-8 mt-2 max-w-2xl text-body text-ink-2">
-            Spot patterns in sleep and feeds without adding anything up. Here's an example day.
+            Spot patterns in sleep and feeds without adding anything up, and see what's likely to come next. Here's an
+            example day.
           </p>
           <TimelinePreview now={now} />
+        </Section>
+
+        <Section>
+          <h2 className="flex flex-wrap items-center gap-3 text-title font-bold">
+            Watch the patterns form
+            {billingEnabled && <PlusBadge />}
+          </h2>
+          <p className="mb-8 mt-2 max-w-2xl text-body text-ink-2">
+            Line a month up one day per row and the rhythm shows itself: naps settle into place and the first stretch of
+            the night gets longer. Each week babble sums up what changed, and tracks wake windows and night sleep for
+            you.{billingEnabled && ' Patterns and predictions are part of Babble Plus.'}
+          </p>
+          <PatternsPreview now={now} plusBadges={billingEnabled} />
         </Section>
 
         <Section>
           <div className="rounded-sheet bg-surface p-6 sm:p-10">
             <h2 className="text-title font-bold">Private and open source</h2>
             <p className="mt-2 max-w-2xl text-body text-ink-2">
-              Your baby's day is nobody else's business. Here's the deal, in plain words.
+              Your baby's day stays between you and the people you invite.
             </p>
             <ul className="mt-6 grid gap-4 md:grid-cols-2">
               {PROMISES.map((promise, index) => (

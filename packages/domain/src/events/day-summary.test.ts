@@ -51,8 +51,19 @@ describe('summariseDay', () => {
       nightMs: 11 * 3_600_000,
       napMs: 3.5 * 3_600_000,
       naps: 2,
-      longestSleepMs: 10 * 3_600_000,
+      longestSleepMs: 8 * 3_600_000,
     });
+  });
+
+  it('measures the longest sleep inside the day only', () => {
+    const events = [
+      makeEvent('sleep', { startedAt: '2026-10-05T14:00:00Z', endedAt: '2026-10-06T02:00:00Z' }),
+      makeEvent('sleep', { startedAt: '2026-10-06T08:00:00Z', endedAt: '2026-10-06T11:00:00Z' }),
+    ];
+    const longest = (start: string, end: string) =>
+      summariseDay(events, { start: new Date(start), end: new Date(end) }).longestSleepMs;
+    expect(longest('2026-10-06T00:00:00Z', '2026-10-07T00:00:00Z')).toBe(3 * 3_600_000);
+    expect(longest('2026-10-05T00:00:00Z', '2026-10-06T00:00:00Z')).toBe(10 * 3_600_000);
   });
 
   it('stops a running sleep at now, not at the end of the day', () => {

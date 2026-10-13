@@ -1,4 +1,5 @@
 import type { Side, TimedSegment } from './types';
+import { byStartedAtAsc } from '../time/instants';
 
 export type SessionRow =
   | { kind: 'side'; side: Side; durationMs: number; running: boolean }
@@ -25,14 +26,12 @@ export function summariseSegments(
   options: { mergeGapMs: number; now: Date; pausedSince?: string | null },
 ): SessionSummary {
   const now = options.now.getTime();
-  const all: Interval[] = [...segments]
-    .sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt))
-    .map((segment) => ({
-      side: segment.side,
-      start: Date.parse(segment.startedAt),
-      end: segment.endedAt ? Date.parse(segment.endedAt) : now,
-      open: segment.endedAt === null,
-    }));
+  const all: Interval[] = [...segments].sort(byStartedAtAsc).map((segment) => ({
+    side: segment.side,
+    start: Date.parse(segment.startedAt),
+    end: segment.endedAt ? Date.parse(segment.endedAt) : now,
+    open: segment.endedAt === null,
+  }));
   const meaningful = all.filter((interval) => interval.open || interval.end - interval.start >= options.mergeGapMs);
   const intervals = meaningful.length > 0 ? meaningful : all;
 
@@ -100,7 +99,7 @@ export function summariseSegments(
 export type EditableRow = { kind: 'side'; side: Side; durationMs: number } | { kind: 'downtime'; durationMs: number };
 
 export function segmentsToEditableRows(segments: readonly TimedSegment[], now: Date): EditableRow[] {
-  const sorted = [...segments].sort((a, b) => Date.parse(a.startedAt) - Date.parse(b.startedAt));
+  const sorted = [...segments].sort(byStartedAtAsc);
   const rows: EditableRow[] = [];
   sorted.forEach((segment, index) => {
     const previous = sorted[index - 1];

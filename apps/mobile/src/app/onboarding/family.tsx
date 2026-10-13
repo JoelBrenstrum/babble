@@ -1,4 +1,5 @@
-import { acceptInvite, createFamily, queryKeys, toBabbleError } from '@babble/api';
+import { acceptInvite, createFamily, queryKeys } from '@babble/api';
+import { useAsyncAction } from '@babble/api/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
@@ -22,22 +23,15 @@ export default function FamilyStep() {
   );
   const [familyName, setFamilyName] = useState('');
   const [inviteCode, setInviteCode] = useState(params.invite ?? '');
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const { run, busy: submitting, error } = useAsyncAction();
 
-  async function submit() {
-    setError(null);
-    setSubmitting(true);
-    try {
+  const submit = () =>
+    run(async () => {
       if (mode === 'create') await createFamily(client, { familyName, displayName });
       else await acceptInvite(client, { code: inviteCode, displayName });
       await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
       router.replace(mode === 'create' ? '/onboarding/baby' : '/');
-    } catch (caught) {
-      setError(toBabbleError(caught).message);
-      setSubmitting(false);
-    }
-  }
+    });
 
   const valid = Boolean(displayName.trim() && (mode === 'create' ? familyName.trim() : inviteCode.trim()));
 

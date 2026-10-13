@@ -1,7 +1,8 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(6);
+select plan(9);
+update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
 returns void
@@ -51,6 +52,23 @@ select throws_ok(
   $$ select public.import_events('00000000-0000-0000-0000-0000000000d3',
        jsonb_build_array(jsonb_build_object('type', 'nappy', 'started_at', now(), 'ended_at', now()))) $$,
   '22023', 'Imported events need a source and source_ref', 'imports need a source reference');
+
+select results_eq(
+  $$ select imported, skipped from public.import_events('00000000-0000-0000-0000-0000000000d3', jsonb_build_array(
+       jsonb_build_object('type', 'nappy', 'started_at', '2026-10-02T10:00:00Z', 'ended_at', '2026-10-02T10:00:00Z',
+         'source', 'babble_export', 'source_ref', 'exported-1', 'details', jsonb_build_object('dirty', true)))) $$,
+  $$ values (1, 0) $$, 'imports an entry from a babble export');
+select results_eq(
+  $$ select imported, skipped from public.import_events('00000000-0000-0000-0000-0000000000d3', jsonb_build_array(
+       jsonb_build_object('type', 'nappy', 'started_at', '2026-10-02T10:00:00Z', 'ended_at', '2026-10-02T10:00:00Z',
+         'source', 'babble_export', 'source_ref', 'exported-1', 'details', jsonb_build_object('dirty', true)))) $$,
+  $$ values (0, 1) $$, 'importing the same export again adds nothing');
+select results_eq(
+  format($$ select imported, skipped from public.import_events('00000000-0000-0000-0000-0000000000d3', jsonb_build_array(
+       jsonb_build_object('type', 'nappy', 'started_at', '2026-10-01T10:00:00Z', 'ended_at', '2026-10-01T10:00:00Z',
+         'source', 'babble_export', 'source_ref', %L, 'details', jsonb_build_object('wet', true)))) $$,
+    (select id::text from public.events where source_ref = 'row-1')),
+  $$ values (0, 1) $$, 'restoring an export into the baby it came from skips entries that are still there');
 
 select pg_temp.sign_in_as('00000000-0000-0000-0000-0000000000d5');
 select throws_ok(

@@ -2,6 +2,7 @@ begin;
 create extension if not exists pgtap with schema extensions;
 
 select plan(6);
+update private.instance_settings set billing_enabled = false;
 
 insert into public.families (id, name) values
   ('a1000000-0000-0000-0000-000000000001', 'Free family'),

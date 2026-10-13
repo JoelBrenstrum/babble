@@ -26,6 +26,7 @@ describe('segmentTotals', () => {
       openSide: 'left',
       lastSide: 'left',
       openSegmentStartedAt: '2026-10-06T10:28:00Z',
+      open: { side: 'left', startedAt: '2026-10-06T10:28:00Z' },
     });
   });
 

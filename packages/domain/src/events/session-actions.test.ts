@@ -152,6 +152,12 @@ describe('pickedPastTime', () => {
     expect(pickedPastTime('2026-10-13T09:00:00Z', now)).toBe('2026-10-13T09:00:00Z');
     expect(pickedPastTime('', now)).toBe('');
   });
+
+  it('shifts by a calendar day in the baby timezone across a daylight saving change', () => {
+    const afterChange = new Date('2026-09-27T00:30:00Z');
+    expect(pickedPastTime('2026-09-27T10:45:00Z', afterChange, 'Pacific/Auckland')).toBe('2026-09-26T11:45:00.000Z');
+    expect(pickedPastTime('2026-09-27T10:45:00Z', afterChange)).toBe('2026-09-26T10:45:00.000Z');
+  });
 });
 
 describe('ending a running session earlier', () => {

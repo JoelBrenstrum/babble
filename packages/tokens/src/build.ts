@@ -29,17 +29,18 @@ export function parseTokenCss(css: string): ParsedTokens {
     ),
   }));
 
+  const selectors = (block: { selector: string }) => block.selector.split(',').map((part) => part.trim());
   const colours = (selectorTest: (selector: string) => boolean) =>
     Object.fromEntries(
       blocks
-        .filter((block) => selectorTest(block.selector))
+        .filter((block) => selectors(block).some(selectorTest))
         .flatMap((block) => block.declarations)
         .filter(([, value]) => CHANNELS.test(value)),
     );
 
-  const all = colours((selector) => selector.startsWith(':root'));
-  const light = colours((selector) => selector.includes('[data-theme="light"]'));
-  const dark = colours((selector) => selector.includes('[data-theme="dark"]'));
+  const all = colours((selector) => selector === ':root');
+  const light = colours((selector) => selector === '[data-theme="light"]');
+  const dark = colours((selector) => selector === '[data-theme="dark"]');
   const poo = Object.fromEntries(
     Object.entries(all)
       .filter(([name]) => name.startsWith('poo-'))
@@ -48,6 +49,8 @@ export function parseTokenCss(css: string): ParsedTokens {
 
   const missingInDark = Object.keys(light).filter((name) => !(name in dark));
   if (missingInDark.length > 0) throw new Error(`Dark theme is missing: ${missingInDark.join(', ')}`);
+  const missingInLight = Object.keys(dark).filter((name) => !(name in light));
+  if (missingInLight.length > 0) throw new Error(`Light theme is missing: ${missingInLight.join(', ')}`);
   if (Object.keys(light).length === 0 || Object.keys(poo).length === 0) throw new Error('No colour tokens found');
 
   return { light, dark, poo };

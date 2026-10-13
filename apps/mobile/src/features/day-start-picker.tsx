@@ -1,22 +1,9 @@
-import { minutesToClock } from '@babble/domain';
-import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { useState } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { DEFAULT_CUSTOM_DAY_START_MIN } from '@babble/domain';
+import { Pressable, Text, View } from 'react-native';
+import { TimeButton } from '@/components/time-button';
 
 export function DayStartPicker({ value, onChange }: { value: number; onChange: (minutes: number) => void }) {
   const custom = value !== 0;
-  const [picking, setPicking] = useState(false);
-
-  function handle(event: DateTimePickerEvent, date?: Date) {
-    if (Platform.OS === 'android') setPicking(false);
-    if (event.type !== 'set' || !date) return;
-    const minutes = date.getHours() * 60 + date.getMinutes();
-    if (minutes !== 0) onChange(minutes);
-  }
-
-  const asDate = new Date();
-  asDate.setHours(Math.floor(value / 60), value % 60, 0, 0);
-
   return (
     <View accessibilityRole="radiogroup" className="gap-3">
       <Option
@@ -29,20 +16,15 @@ export function DayStartPicker({ value, onChange }: { value: number; onChange: (
         selected={custom}
         title="Custom time"
         description="Keeps each night in one day."
-        onPress={() => onChange(custom ? value : 420)}
+        onPress={() => onChange(custom ? value : DEFAULT_CUSTOM_DAY_START_MIN)}
       >
         {custom && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Day start time"
-            onPress={() => setPicking((current) => !current)}
-            className="mt-3 min-h-tap justify-center self-start rounded-button border border-line-strong bg-raised px-4"
-          >
-            <Text className="font-semibold text-body text-ink">{minutesToClock(value)}</Text>
-          </Pressable>
-        )}
-        {custom && picking && (
-          <DateTimePicker value={asDate} mode="time" minuteInterval={15} display="spinner" onChange={handle} />
+          <TimeButton
+            label="Day start time"
+            minutes={value}
+            className="mt-3 self-start"
+            onChange={(minutes) => minutes !== 0 && onChange(minutes)}
+          />
         )}
       </Option>
     </View>

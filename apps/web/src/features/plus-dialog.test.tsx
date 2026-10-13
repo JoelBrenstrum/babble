@@ -9,7 +9,9 @@ describe('PlusDialog', () => {
     expect(screen.getByRole('dialog', { name: 'Babble Plus' })).toBeInTheDocument();
     expect(screen.getByText('Adding more than one baby to a family is part of Babble Plus.')).toBeInTheDocument();
     expect(screen.getByText('More than one baby in a family')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: 'Got it' }));
+    expect(screen.getByRole('button', { name: 'Subscribe to Plus' })).toBeDisabled();
+    expect(screen.getByText('Upgrading is coming soon.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
     expect(onClose).toHaveBeenCalled();
   });
 });
