@@ -26,6 +26,7 @@ export interface ChairActions {
   wake: () => { screenWasOff: boolean };
   dimNow: () => void;
   refresh: () => void;
+  signOut: () => Promise<void>;
   enterFullscreen: () => void;
   exitFullscreen: () => void;
   selectBaby?: (babyId: string) => void;

@@ -1,5 +1,6 @@
 import {
   babyChoices,
+  signOut,
   babySettingsQuery,
   clock,
   latestEventsQuery,
@@ -167,6 +168,10 @@ function ChairLive() {
       return { screenWasOff: tapWakesScreen(screenOff, touchedAt, lastTouchAt) };
     },
     refresh: reloadForRelease,
+    signOut: async () => {
+      await signOut(client);
+      window.location.assign('/chair' + window.location.search);
+    },
     enterFullscreen: fullscreen.enter,
     exitFullscreen: fullscreen.exit,
     dimNow: () => setLastTouchAt(clock.now().getTime() - CHAIR_IDLE_DIM_MS),

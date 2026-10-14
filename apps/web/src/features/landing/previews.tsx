@@ -150,6 +150,7 @@ const PREVIEW_ACTIONS: ChairActions = {
   wake: () => ({ screenWasOff: false }),
   dimNow: () => undefined,
   refresh: () => undefined,
+  signOut: async () => undefined,
   enterFullscreen: () => undefined,
   exitFullscreen: () => undefined,
 };

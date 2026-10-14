@@ -30,6 +30,12 @@ test('a signed-in phone signs chair mode in by scanning its code', async ({ page
   await expect(chair).toHaveURL(/\/chair\?screenOff=30$/, { timeout: 15_000 });
   await expect(chair.getByRole('button', { name: 'Start left' })).toBeVisible();
 
+  await chair.getByRole('button', { name: 'Chair mode settings' }).click();
+  await chair.getByRole('button', { name: 'Sign out' }).click();
+  await expect(chair.getByText('Sign out of chair mode?')).toBeVisible();
+  await chair.getByRole('button', { name: 'Sign out' }).last().click();
+  await expect(chair.getByRole('heading', { name: 'Sign in to chair mode' })).toBeVisible();
+
   await page.goto(`/link/${code.replace('-', '')}`);
   await expect(page.getByRole('heading', { name: 'Code not found' })).toBeVisible();
   await chairContext.close();

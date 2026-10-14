@@ -61,6 +61,7 @@ function makeActions(): ChairActions {
     wake: vi.fn(() => ({ screenWasOff: false })),
     dimNow: vi.fn(),
     refresh: vi.fn(),
+    signOut: vi.fn(async () => undefined),
     enterFullscreen: vi.fn(),
     exitFullscreen: vi.fn(),
   };
@@ -403,6 +404,20 @@ describe('ChairScreen night and offline', () => {
     tap('Close');
     expect(screen.queryByLabelText('Device name')).not.toBeInTheDocument();
     localStorage.clear();
+  });
+
+  it('signs out from the settings sheet after confirming', async () => {
+    const actions = makeActions();
+    render(<ChairScreen data={makeData()} actions={actions} />);
+    tap('Chair mode settings');
+    tap('Sign out');
+    expect(actions.signOut).not.toHaveBeenCalled();
+    expect(screen.getByText('Sign out of chair mode?')).toBeInTheDocument();
+    tap('Cancel');
+    expect(screen.queryByText('Sign out of chair mode?')).not.toBeInTheDocument();
+    tap('Sign out');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Sign out' }).at(-1)!);
+    expect(actions.signOut).toHaveBeenCalledTimes(1);
   });
 
   it('shows the offline screen', () => {
