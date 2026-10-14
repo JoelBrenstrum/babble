@@ -1,4 +1,4 @@
-import { clock, queryKeys, type BabbleClient, type BabySettings, type FamilyMemberRow } from '@babble/api';
+import { clock, queryKeys, type BabbleClient, type BabySettings, type Author } from '@babble/api';
 import { useDiscardSession, useSessionAction } from '@babble/api/react';
 import {
   discardNeedsConfirmation,
@@ -44,7 +44,7 @@ const SIDES: readonly Side[] = ['left', 'right'];
 interface RunningCardProps {
   client: BabbleClient;
   timeZone: string;
-  members: FamilyMemberRow[];
+  members: Author[];
   compact?: boolean;
   onDiscarded?: () => void;
 }
@@ -148,7 +148,7 @@ function useSessionEditors({
   return { action, noun, requestDiscard, discardControls, startControls, endControls };
 }
 
-const startedByName = (members: FamilyMemberRow[], event: BabyEvent) =>
+const startedByName = (members: Author[], event: BabyEvent) =>
   members.find((member) => member.user_id === event.createdBy)?.display_name;
 
 function SleepRunningCard({

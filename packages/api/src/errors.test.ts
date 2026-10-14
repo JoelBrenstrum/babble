@@ -9,6 +9,8 @@ describe('toBabbleError', () => {
     [{ code: 'PL001', message: 'Adding more than one baby to a family needs Babble Plus' }, 'baby_limit'],
     [{ code: 'PL002', message: 'A free family can have two carers' }, 'carer_limit'],
     [{ code: 'PL004', message: 'A family needs at least one admin' }, 'last_admin'],
+    [{ code: 'PL005', message: 'This code has expired' }, 'device_link_invalid'],
+    [{ code: 'PL006', message: 'Too many sign-in codes' }, 'too_many_codes'],
     [{ message: 'Database error saving new user', status: 500 }, 'invite_required'],
     [{ code: 'P0002', message: 'This invite code is invalid, used or expired' }, 'invite_invalid'],
     [{ code: 'invalid_credentials', message: 'Invalid login credentials', status: 400 }, 'invalid_credentials'],

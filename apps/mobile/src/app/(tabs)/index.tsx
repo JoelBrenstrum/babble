@@ -1,4 +1,11 @@
-import { babySettingsQuery, eventsSinceQuery, isAdmin, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import {
+  babySettingsQuery,
+  eventsSinceQuery,
+  isAdmin,
+  latestEventsQuery,
+  runningEventsQuery,
+  familyAuthors,
+} from '@babble/api';
 import { feedDueFor, feedDueText, homeWindow, predictionText, summariseDay } from '@babble/domain';
 import { canAddBaby } from '@babble/config';
 import { useUnits } from '@babble/api/react';
@@ -55,7 +62,13 @@ function HomeContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) {
         onSelectBaby={(choice) => active.select({ familyId: choice.familyId, babyId: choice.baby.id })}
         renderRunning={(event) =>
           logging ? (
-            <RunningCard event={event} client={client} timeZone={baby.timezone} members={family.members} compact />
+            <RunningCard
+              event={event}
+              client={client}
+              timeZone={baby.timezone}
+              members={familyAuthors(family)}
+              compact
+            />
           ) : (
             <ReadOnlyRunning event={event} now={now} units={units} timeZone={baby.timezone} />
           )

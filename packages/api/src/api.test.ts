@@ -138,7 +138,7 @@ describe('families API', () => {
     const { client, requests } = fakeClient(() => ({ body: [] }));
     await listFamilies(client);
     expect(requests[0]!.url.pathname).toBe('/rest/v1/families');
-    expect(requests[0]!.url.searchParams.get('select')).toBe('*,members:family_members(*),babies(*)');
+    expect(requests[0]!.url.searchParams.get('select')).toBe('*,members:family_members(*),former_members(*),babies(*)');
   });
 
   it('adds a baby', async () => {

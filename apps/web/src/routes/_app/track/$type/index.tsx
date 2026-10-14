@@ -1,4 +1,4 @@
-import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
+import { babySettingsQuery, eventListQuery, eventsBetweenQuery, familyAuthors } from '@babble/api';
 import { hasStrip, listDayGroups, listStrip, stripKind, stripWindow } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
@@ -140,7 +140,7 @@ function TrackerList() {
               <EventRow
                 key={event.id}
                 event={event}
-                members={family.members}
+                members={familyAuthors(family)}
                 timeZone={baby.timezone}
                 units={units}
                 now={now}

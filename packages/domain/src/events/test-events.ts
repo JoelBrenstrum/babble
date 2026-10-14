@@ -6,6 +6,7 @@ const META: EventMeta = {
   id: 'event-1',
   babyId: 'baby-1',
   createdBy: 'user-1',
+  createdDevice: null,
   createdAt: '2026-10-06T00:00:00Z',
   updatedAt: '2026-10-06T00:00:00Z',
   deletedAt: null,

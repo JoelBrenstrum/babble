@@ -4,6 +4,7 @@ export interface PublicConfig {
   supabaseAnonKey: string;
   billingEnabled: boolean;
   googleAuthEnabled: boolean;
+  deviceSignInEnabled: boolean;
   operatorName: string | null;
   contactEmail: string | null;
 }
@@ -23,6 +24,7 @@ export function parsePublicConfig(env: Env): PublicConfig {
     supabaseAnonKey: requireString(env, 'SUPABASE_ANON_KEY'),
     billingEnabled: parseBoolean(env, 'BILLING_ENABLED', false),
     googleAuthEnabled: parseBoolean(env, 'GOOGLE_AUTH_ENABLED', false),
+    deviceSignInEnabled: Boolean(env.SUPABASE_SERVICE_ROLE_KEY?.trim()),
     operatorName: optionalString(env, 'OPERATOR_NAME'),
     contactEmail: optionalEmail(env, 'CONTACT_EMAIL'),
   };

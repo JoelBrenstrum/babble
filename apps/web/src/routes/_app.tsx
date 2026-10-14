@@ -21,7 +21,7 @@ import { useNightTheme } from '#/lib/use-night-theme';
 import { useSelectBaby } from '#/lib/use-select-baby';
 
 export const Route = createFileRoute('/_app')({
-  beforeLoad: async ({ context }) => {
+  beforeLoad: async ({ context, location }) => {
     const { data } = await context.babble.client.auth.getSession();
     const families = data.session
       ? await context.queryClient.ensureQueryData(familiesQuery(context.babble.client))
@@ -33,6 +33,9 @@ export const Route = createFileRoute('/_app')({
       activeBabyId: readStorage(storageKeys.activeBaby),
     });
     if (state.step === 'sign-in') {
+      if (location.pathname === '/chair' && context.babble.config.deviceSignInEnabled) {
+        throw redirect({ to: '/device-sign-in', search: { to: location.href } });
+      }
       const destination = signedOutRedirect({
         signedIn: false,
         standalone: runningStandalone(),

@@ -70,7 +70,7 @@ The web app ships as a **single Docker image** (`apps/web/Dockerfile`, a multi-s
 PUBLIC_URL=https://babble.fly.dev
 SUPABASE_URL=https://<project>.supabase.co      # or a self-hosted Supabase URL
 SUPABASE_ANON_KEY=...
-SUPABASE_SERVICE_ROLE_KEY=...                    # server-side only (invites, push)
+SUPABASE_SERVICE_ROLE_KEY=...                    # server-side only (signing in another device by QR code, push); without it the QR sign-in is hidden
 SIGNUP_MODE=invite_only
 BILLING_ENABLED=false
 VAPID_PUBLIC_KEY=... / VAPID_PRIVATE_KEY=...     # Web Push

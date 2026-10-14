@@ -1,6 +1,7 @@
-import { createBabbleClient, type BabbleClient } from '@babble/api';
+import { createBabbleClient, fetchWithDeviceName, type BabbleClient } from '@babble/api';
 import type { PublicConfig } from '@babble/config';
 import { getPublicConfig } from './config';
+import { currentDeviceName } from './device-name';
 
 export interface Babble {
   config: PublicConfig;
@@ -13,7 +14,10 @@ export function loadBabble(): Promise<Babble> {
   babble ??= getPublicConfig()
     .then((config) => ({
       config,
-      client: createBabbleClient(config, { auth: { persistSession: true, detectSessionInUrl: false } }),
+      client: createBabbleClient(config, {
+        auth: { persistSession: true, detectSessionInUrl: false },
+        global: { fetch: fetchWithDeviceName(currentDeviceName) },
+      }),
     }))
     .catch((error: unknown) => {
       babble = null;

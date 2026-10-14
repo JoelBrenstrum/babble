@@ -12,7 +12,7 @@ A Raspberry Pi with a touchscreen makes a good always-on chair mode screen. The 
    sudo reboot
    ```
 
-3. Sign in once on the touchscreen. It stays signed in after that.
+3. Chair mode opens on a sign-in screen with a QR code. Scan it with a phone that's signed in to babble and tap **Sign in device**; the Pi signs in as you and stays signed in after that. No camera handy? Go to `/link` on the phone and type the code instead. Then name the Pi in **Settings → This device → Device name** (e.g. "Chair") so entries logged on it say so.
 
 The script source is [`apps/web/public/pi/setup.sh`](../apps/web/public/pi/setup.sh). It's safe to run again.
 

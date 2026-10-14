@@ -1,4 +1,4 @@
-import { clock, type BabbleClient, type FamilyMemberRow } from '@babble/api';
+import { clock, type BabbleClient, type Author } from '@babble/api';
 import { useDiscardSession, useSessionAction } from '@babble/api/react';
 import { discardNeedsConfirmation, formatDuration, sessionNoun, type BabyEvent } from '@babble/domain';
 import { router } from 'expo-router';
@@ -14,7 +14,7 @@ export interface RunningCardProps {
   event: BabyEvent;
   client: BabbleClient;
   timeZone: string;
-  members: FamilyMemberRow[];
+  members: Author[];
   compact?: boolean;
   onDiscarded?: () => void;
 }

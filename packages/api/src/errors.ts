@@ -17,6 +17,8 @@ export type BabbleErrorCode =
   | 'baby_limit'
   | 'carer_limit'
   | 'last_admin'
+  | 'device_link_invalid'
+  | 'too_many_codes'
   | 'invalid_credentials'
   | 'already_registered'
   | 'weak_password'
@@ -38,6 +40,8 @@ const MESSAGES: Record<BabbleErrorCode, string> = {
   baby_limit: 'Adding more than one baby to a family needs Babble Plus.',
   carer_limit: 'A free family can have two carers. Babble Plus allows more.',
   last_admin: 'A family needs at least one admin. Make someone else an admin first.',
+  device_link_invalid: 'This code has expired or was already used. Make a new one on the other screen.',
+  too_many_codes: 'Too many sign-in codes. Try again in a few minutes.',
   invalid_input: 'Check the details and try again.',
   network: "Couldn't reach the server. Check your connection and try again.",
   unknown: 'Something went wrong. Please try again.',
@@ -61,6 +65,8 @@ function classify(code: string | undefined, message: string, status: number | un
   if (code === 'PL001') return 'baby_limit';
   if (code === 'PL002') return 'carer_limit';
   if (code === 'PL004') return 'last_admin';
+  if (code === 'PL005') return 'device_link_invalid';
+  if (code === 'PL006') return 'too_many_codes';
   if (code === 'PL003' || /requires a valid invite code/i.test(message)) return 'invite_required';
   // GoTrue hides trigger exceptions behind a generic message when a sign-up is rejected by the database.
   if (/database error saving new user/i.test(message)) return 'invite_required';

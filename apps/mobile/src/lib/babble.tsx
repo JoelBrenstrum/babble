@@ -1,5 +1,5 @@
 import 'react-native-url-polyfill/auto';
-import { accountChanged, createBabbleClient, trySyncClock, type BabbleClient } from '@babble/api';
+import { accountChanged, createBabbleClient, fetchWithDeviceName, trySyncClock, type BabbleClient } from '@babble/api';
 import { ConfigError, type PublicConfig } from '@babble/config';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Session } from '@supabase/supabase-js';
@@ -8,6 +8,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import { AppState, Text, View } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { readMobileConfig } from './config';
+import { currentDeviceName, loadDeviceName } from './device-name';
 import { chunkedStore } from './secure-session-storage';
 
 interface BabbleContextValue {
@@ -25,12 +26,15 @@ const sessionStorage = chunkedStore(
   AsyncStorage,
 );
 
+void loadDeviceName();
+
 export function BabbleProvider({ children }: { children: ReactNode }) {
   const setup = useMemo(() => {
     try {
       const config = readMobileConfig();
       const client = createBabbleClient(config, {
         auth: { storage: sessionStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+        global: { fetch: fetchWithDeviceName(currentDeviceName) },
       });
       return { ok: true as const, config, client };
     } catch (error) {

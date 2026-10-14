@@ -170,7 +170,7 @@ test('a nap can be ended earlier, and the entry shows who ended it', async ({ pa
   await page.getByRole('button', { name: '5 min ago', exact: true }).click();
 
   await expect(page.getByRole('heading', { name: 'Sleep' })).toBeVisible();
-  await expect(page.getByText(/Started by John · /)).toBeVisible();
+  await expect(page.getByText(/Started by John on .+ · /)).toBeVisible();
   await expect(page.getByText(/^Ended by John at /)).toBeVisible();
 });
 

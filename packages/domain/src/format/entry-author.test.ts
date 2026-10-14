@@ -13,6 +13,11 @@ describe('entryAuthorText', () => {
     expect(entryAuthorText({ ...base, author: 'Jane' })).toBe('Logged by Jane · 6 Oct, 3:12 am');
   });
 
+  it('names the device it was logged on', () => {
+    expect(entryAuthorText({ ...base, author: 'Joel', device: 'Chair' })).toBe('Logged by Joel on Chair · 6 Oct, 3:12 am');
+    expect(entryAuthorText({ ...base, imported: true, device: 'Chair' })).toBe('Imported · 6 Oct, 3:12 am');
+  });
+
   it('marks edits made later', () => {
     expect(entryAuthorText({ ...base, author: 'John', updatedAt: '2026-10-05T15:00:00Z' })).toBe(
       'Logged by John · 6 Oct, 3:12 am · edited',

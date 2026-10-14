@@ -25,6 +25,7 @@ export const storageKeys = {
   installed: 'babble.installed',
   keepAwake: 'babble.keepAwake',
   chairFullscreen: 'babble.chairFullscreen',
+  deviceName: 'babble.deviceName',
 } as const;
 
 export function clearAccountStorage(): void {

@@ -116,6 +116,7 @@ export interface EventMeta {
   id: string;
   babyId: string;
   createdBy: string | null;
+  createdDevice: string | null;
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;

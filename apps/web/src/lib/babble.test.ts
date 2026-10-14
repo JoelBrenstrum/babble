@@ -9,6 +9,7 @@ const config = {
   supabaseAnonKey: 'anon',
   billingEnabled: false,
   googleAuthEnabled: false,
+  deviceSignInEnabled: false,
   operatorName: null,
   contactEmail: null,
 };

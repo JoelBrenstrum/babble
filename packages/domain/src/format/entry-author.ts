@@ -3,6 +3,7 @@ import { MINUTE_MS } from '../time/constants';
 
 export function entryAuthorText(options: {
   author?: string;
+  device?: string | null;
   createdAt: string;
   updatedAt: string;
   timeZone: string;
@@ -12,7 +13,7 @@ export function entryAuthorText(options: {
   const when = `${formatShortDate(options.createdAt, options.timeZone)}, ${formatTimeOfDay(options.createdAt, options.timeZone)}`;
   const who = options.imported
     ? 'Imported'
-    : `${options.timer ? 'Started' : 'Logged'} by ${options.author ?? 'a former member'}`;
+    : `${options.timer ? 'Started' : 'Logged'} by ${options.author ?? 'a former member'}${options.device ? ` on ${options.device}` : ''}`;
   const edited = Date.parse(options.updatedAt) - Date.parse(options.createdAt) > MINUTE_MS ? ' · edited' : '';
   return `${who} · ${when}${edited}`;
 }

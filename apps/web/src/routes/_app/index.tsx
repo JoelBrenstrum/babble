@@ -1,4 +1,4 @@
-import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery, familyAuthors } from '@babble/api';
 import { useUnits } from '@babble/api/react';
 import { feedDueFor, feedDueText, homeWindow, predictionText, summariseDay } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
@@ -43,7 +43,7 @@ function HomePage() {
             event={event}
             client={babble.client}
             timeZone={baby.timezone}
-            members={family.members}
+            members={familyAuthors(family)}
             compact
             readOnly={!canLog}
           />

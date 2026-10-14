@@ -32,6 +32,7 @@ function row(overrides: Partial<EventRow>): EventRow {
     ended_at: '2026-10-06T09:00:00Z',
     notes: null,
     created_by: 'user-1',
+    created_device: null,
     ended_by: null,
     end_recorded_at: null,
     source: 'manual',

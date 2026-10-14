@@ -1,4 +1,4 @@
-import { eventQuery, latestEventsQuery, runningEventsQuery, toBabbleError } from '@babble/api';
+import { eventQuery, latestEventsQuery, runningEventsQuery, toBabbleError, authorName } from '@babble/api';
 import { useAsyncAction, useResumeFeed, useTrackingSettings } from '@babble/api/react';
 import {
   canResumeFeed,
@@ -72,8 +72,7 @@ function EditEventContent({
   const tracker = trackerFor(event.data.type);
   const note = importedNote(event.data);
   const finishSummary = finish ? pumpFinishSummary(event.data, baby.timezone) : null;
-  const memberName = (userId: string | null) =>
-    family.members.find((member) => member.user_id === userId)?.display_name;
+  const memberName = (userId: string | null) => authorName(family, userId);
   const ended = entryEndedText({
     endedBy: memberName(event.data.endedBy),
     endRecordedAt: event.data.endRecordedAt,
@@ -123,6 +122,7 @@ function EditEventContent({
         <Text className="font-sans text-meta text-ink-2">
           {entryAuthorText({
             author: memberName(event.data.createdBy),
+            device: event.data.createdDevice,
             createdAt: event.data.createdAt,
             updatedAt: event.data.updatedAt,
             timeZone: baby.timezone,

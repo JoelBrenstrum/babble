@@ -20,7 +20,7 @@ import {
   Weight,
   type LucideIcon,
 } from 'lucide-react';
-import type { FamilyMemberRow } from '@babble/api';
+import type { Author } from '@babble/api';
 import { Avatar } from '#/components/ui/avatar';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
@@ -63,7 +63,7 @@ export function EventRow({
   showNotes = true,
   members = [],
 }: {
-  members?: FamilyMemberRow[];
+  members?: Author[];
   event: BabyEvent;
   timeZone: string;
   units: Units;

@@ -1,4 +1,11 @@
-import { babyChoices, babySettingsQuery, clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import {
+  babyChoices,
+  babySettingsQuery,
+  clock,
+  latestEventsQuery,
+  runningEventsQuery,
+  familyAuthors,
+} from '@babble/api';
 import {
   useRemoveEntry,
   useRestoreEntry,
@@ -103,7 +110,7 @@ function ChairLive() {
   } = buildChairData({
     baby,
     choices,
-    members: family.members,
+    members: familyAuthors(family),
     running,
     latest,
     settings,

@@ -15,6 +15,7 @@ describe('parsePublicConfig', () => {
       supabaseAnonKey: 'anon',
       billingEnabled: false,
       googleAuthEnabled: false,
+      deviceSignInEnabled: false,
       operatorName: null,
       contactEmail: null,
     });
@@ -23,6 +24,11 @@ describe('parsePublicConfig', () => {
   it('parses explicit values', () => {
     const config = parsePublicConfig({ ...base, BILLING_ENABLED: 'true', GOOGLE_AUTH_ENABLED: '1' });
     expect(config).toMatchObject({ billingEnabled: true, googleAuthEnabled: true });
+  });
+
+  it('turns on device sign-in when the server can create sessions', () => {
+    expect(parsePublicConfig({ ...base, SUPABASE_SERVICE_ROLE_KEY: 'service' }).deviceSignInEnabled).toBe(true);
+    expect(parsePublicConfig({ ...base, SUPABASE_SERVICE_ROLE_KEY: ' ' }).deviceSignInEnabled).toBe(false);
   });
 
   it('reads the operator and contact details', () => {

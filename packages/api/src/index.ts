@@ -1,5 +1,7 @@
 export * from './auth';
 export * from './dev';
+export * from './device-link';
+export * from './device-name';
 export * from './client';
 export * from './errors';
 export * from './families';

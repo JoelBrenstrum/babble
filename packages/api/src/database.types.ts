@@ -143,11 +143,51 @@ export type Database = {
           },
         ];
       };
+      device_links: {
+        Row: {
+          approved_at: string | null;
+          approved_by: string | null;
+          code: string;
+          consumed_at: string | null;
+          created_at: string;
+          device: string;
+          expires_at: string;
+          id: string;
+          requested_from: string | null;
+          secret_hash: string;
+        };
+        Insert: {
+          approved_at?: string | null;
+          approved_by?: string | null;
+          code: string;
+          consumed_at?: string | null;
+          created_at?: string;
+          device?: string;
+          expires_at?: string;
+          id?: string;
+          requested_from?: string | null;
+          secret_hash: string;
+        };
+        Update: {
+          approved_at?: string | null;
+          approved_by?: string | null;
+          code?: string;
+          consumed_at?: string | null;
+          created_at?: string;
+          device?: string;
+          expires_at?: string;
+          id?: string;
+          requested_from?: string | null;
+          secret_hash?: string;
+        };
+        Relationships: [];
+      };
       events: {
         Row: {
           baby_id: string;
           created_at: string;
           created_by: string | null;
+          created_device: string | null;
           deleted_at: string | null;
           end_recorded_at: string | null;
           ended_at: string | null;
@@ -164,6 +204,7 @@ export type Database = {
           baby_id: string;
           created_at?: string;
           created_by?: string | null;
+          created_device?: string | null;
           deleted_at?: string | null;
           end_recorded_at?: string | null;
           ended_at?: string | null;
@@ -180,6 +221,7 @@ export type Database = {
           baby_id?: string;
           created_at?: string;
           created_by?: string | null;
+          created_device?: string | null;
           deleted_at?: string | null;
           end_recorded_at?: string | null;
           ended_at?: string | null;
@@ -332,6 +374,35 @@ export type Database = {
             foreignKeyName: 'family_settings_family_id_fkey';
             columns: ['family_id'];
             isOneToOne: true;
+            referencedRelation: 'families';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      former_members: {
+        Row: {
+          display_name: string;
+          family_id: string;
+          removed_at: string;
+          user_id: string;
+        };
+        Insert: {
+          display_name: string;
+          family_id: string;
+          removed_at?: string;
+          user_id: string;
+        };
+        Update: {
+          display_name?: string;
+          family_id?: string;
+          removed_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'former_members_family_id_fkey';
+            columns: ['family_id'];
+            isOneToOne: false;
             referencedRelation: 'families';
             referencedColumns: ['id'];
           },
@@ -561,11 +632,19 @@ export type Database = {
     };
     Functions: {
       accept_invite: { Args: { display_name: string; invite_code: string }; Returns: string };
+      approve_device_link: { Args: { link_code: string }; Returns: undefined };
       check_invite: {
         Args: { invite_code: string };
         Returns: {
           expires_at: string;
           family_name: string;
+        }[];
+      };
+      claim_device_link: {
+        Args: { link_id: string; link_secret_hash: string };
+        Returns: {
+          email: string;
+          status: string;
         }[];
       };
       create_family: { Args: { display_name: string; family_name: string }; Returns: string };
@@ -577,6 +656,13 @@ export type Database = {
         }[];
       };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
+      device_link_details: {
+        Args: { link_code: string };
+        Returns: {
+          device: string;
+          expires_at: string;
+        }[];
+      };
       end_session: { Args: { end_at?: string; target_event_id: string }; Returns: undefined };
       get_instance_settings: {
         Args: Record<PropertyKey, never>;
@@ -599,6 +685,7 @@ export type Database = {
           baby_id: string;
           created_at: string;
           created_by: string | null;
+          created_device: string | null;
           deleted_at: string | null;
           end_recorded_at: string | null;
           ended_at: string | null;
@@ -640,6 +727,13 @@ export type Database = {
       };
       set_session_start: { Args: { start_at: string; target_event_id: string }; Returns: undefined };
       set_switch_time: { Args: { switch_at: string; target_event_id: string }; Returns: undefined };
+      start_device_link: {
+        Args: { new_code: string; new_device: string; new_requested_from?: string; new_secret_hash: string };
+        Returns: {
+          expires_at: string;
+          id: string;
+        }[];
+      };
       start_session: {
         Args: {
           session_type: Database['public']['Enums']['event_type'];

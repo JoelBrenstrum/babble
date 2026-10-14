@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   babyChoices,
   adminCount,
+  authorName,
   canChangeRole,
   canLog,
   canRemoveMember,
@@ -36,6 +37,7 @@ const family = (id: string, babies: BabyRow[] = []): Family => ({
     { family_id: id, user_id: 'gran', role: 'viewer', display_name: 'Gran', created_at: '' },
     { family_id: id, user_id: 'jane', role: 'caregiver', display_name: 'Jane', created_at: '' },
   ],
+  former_members: [{ family_id: id, user_id: 'chair', display_name: 'Chair', removed_at: '' }],
 });
 
 describe('resolveOnboarding', () => {
@@ -149,5 +151,17 @@ describe('babyChoices', () => {
 
   it('is empty without babies', () => {
     expect(babyChoices([family('empty')])).toEqual([]);
+  });
+});
+
+describe('authorName', () => {
+  it('names current and former members', () => {
+    expect(authorName(family('f'), 'jane')).toBe('Jane');
+    expect(authorName(family('f'), 'chair')).toBe('Chair');
+  });
+
+  it('has no name for unknown or missing authors', () => {
+    expect(authorName(family('f'), 'stranger')).toBeUndefined();
+    expect(authorName(family('f'), null)).toBeUndefined();
   });
 });

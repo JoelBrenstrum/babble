@@ -1,4 +1,4 @@
-import type { BabyRow, Family } from './types';
+import type { Author, BabyRow, Family } from './types';
 
 export type OnboardingStep =
   | { step: 'sign-in' }
@@ -27,6 +27,14 @@ function pickDefaultFamily(families: Family[]): Family {
 
 export function memberRole(family: Family, userId: string) {
   return family.members.find((member) => member.user_id === userId)?.role ?? null;
+}
+
+export function familyAuthors(family: Pick<Family, 'members' | 'former_members'>): Author[] {
+  return [...family.members, ...family.former_members];
+}
+
+export function authorName(family: Pick<Family, 'members' | 'former_members'>, userId: string | null) {
+  return familyAuthors(family).find((author) => author.user_id === userId)?.display_name;
 }
 
 export function canLog(family: Family, userId: string): boolean {

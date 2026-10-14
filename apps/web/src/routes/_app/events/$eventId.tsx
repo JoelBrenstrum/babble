@@ -1,4 +1,11 @@
-import { eventQuery, latestEventsQuery, runningEventsQuery, toBabbleError, type BabbleClient } from '@babble/api';
+import {
+  eventQuery,
+  latestEventsQuery,
+  runningEventsQuery,
+  toBabbleError,
+  type BabbleClient,
+  authorName,
+} from '@babble/api';
 import { useAsyncAction, useResumeFeed, useTrackingSettings } from '@babble/api/react';
 import {
   canResumeFeed,
@@ -64,8 +71,7 @@ function EditEvent() {
   const tracker = trackerFor(event.data.type);
   const note = importedNote(event.data);
   const finishSummary = finish ? pumpFinishSummary(event.data, baby.timezone) : null;
-  const memberName = (userId: string | null) =>
-    family.members.find((member) => member.user_id === userId)?.display_name;
+  const memberName = (userId: string | null) => authorName(family, userId);
   const done = () => {
     if (router.history.length > 1) router.history.back();
     else void navigate({ to: '/track/$type', params: { type: tracker.key } });
@@ -109,6 +115,7 @@ function EditEvent() {
       )}
       <EntryAuthor
         author={memberName(event.data.createdBy)}
+        device={event.data.createdDevice}
         createdAt={event.data.createdAt}
         updatedAt={event.data.updatedAt}
         timeZone={baby.timezone}

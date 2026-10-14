@@ -22,7 +22,7 @@ import {
   type LucideIcon,
 } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
-import type { FamilyMemberRow } from '@babble/api';
+import type { Author } from '@babble/api';
 import { Avatar } from '@/components/avatar';
 import { PooSwatch } from '@/components/poo-swatch';
 import { useTokenColor } from '@/lib/theme';
@@ -81,7 +81,7 @@ export function EventRow({
   divider = false,
   members = [],
 }: {
-  members?: FamilyMemberRow[];
+  members?: Author[];
   event: BabyEvent;
   timeZone: string;
   units: Units;

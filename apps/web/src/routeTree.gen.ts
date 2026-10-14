@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as DeviceSignInRouteImport } from './routes/device-sign-in'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SignInRouteImport } from './routes/sign-in'
@@ -26,17 +27,26 @@ import { Route as ApiVersionRouteImport } from './routes/api/version'
 import { Route as AuthCallbackRouteImport } from './routes/auth/callback'
 import { Route as AuthNewPasswordRouteImport } from './routes/auth/new-password'
 import { Route as JoinCodeRouteImport } from './routes/join/$code'
+import { Route as LinkIndexRouteImport } from './routes/link/index'
+import { Route as LinkCodeRouteImport } from './routes/link/$code'
 import { Route as OnboardingBabyRouteImport } from './routes/onboarding/baby'
 import { Route as OnboardingDayStartRouteImport } from './routes/onboarding/day-start'
 import { Route as OnboardingFamilyRouteImport } from './routes/onboarding/family'
 import { Route as OnboardingInviteRouteImport } from './routes/onboarding/invite'
 import { Route as AppEventsEventIdRouteImport } from './routes/_app/events/$eventId'
 import { Route as AppSessionsEventIdRouteImport } from './routes/_app/sessions/$eventId'
+import { Route as ApiDeviceLinkIndexRouteImport } from './routes/api/device-link/index'
+import { Route as ApiDeviceLinkPollRouteImport } from './routes/api/device-link/poll'
 import { Route as AppTrackTypeIndexRouteImport } from './routes/_app/track/$type/index'
 import { Route as AppTrackTypeNewRouteImport } from './routes/_app/track/$type/new'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DeviceSignInRoute = DeviceSignInRouteImport.update({
+  id: '/device-sign-in',
+  path: '/device-sign-in',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -119,6 +129,16 @@ const JoinCodeRoute = JoinCodeRouteImport.update({
   path: '/join/$code',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LinkIndexRoute = LinkIndexRouteImport.update({
+  id: '/link/',
+  path: '/link/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LinkCodeRoute = LinkCodeRouteImport.update({
+  id: '/link/$code',
+  path: '/link/$code',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const OnboardingBabyRoute = OnboardingBabyRouteImport.update({
   id: '/baby',
   path: '/baby',
@@ -149,6 +169,16 @@ const AppSessionsEventIdRoute = AppSessionsEventIdRouteImport.update({
   path: '/sessions/$eventId',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiDeviceLinkIndexRoute = ApiDeviceLinkIndexRouteImport.update({
+  id: '/api/device-link/',
+  path: '/api/device-link/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiDeviceLinkPollRoute = ApiDeviceLinkPollRouteImport.update({
+  id: '/api/device-link/poll',
+  path: '/api/device-link/poll',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppTrackTypeIndexRoute = AppTrackTypeIndexRouteImport.update({
   id: '/track/$type/',
   path: '/track/$type/',
@@ -162,6 +192,7 @@ const AppTrackTypeNewRoute = AppTrackTypeNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
+  '/device-sign-in': typeof DeviceSignInRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
@@ -177,16 +208,21 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
+  '/link/$code': typeof LinkCodeRoute
   '/onboarding/baby': typeof OnboardingBabyRoute
   '/onboarding/day-start': typeof OnboardingDayStartRoute
   '/onboarding/family': typeof OnboardingFamilyRoute
   '/onboarding/invite': typeof OnboardingInviteRoute
+  '/link/': typeof LinkIndexRoute
   '/events/$eventId': typeof AppEventsEventIdRoute
   '/sessions/$eventId': typeof AppSessionsEventIdRoute
+  '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
+  '/api/device-link/': typeof ApiDeviceLinkIndexRoute
   '/track/$type/new': typeof AppTrackTypeNewRoute
   '/track/$type/': typeof AppTrackTypeIndexRoute
 }
 export interface FileRoutesByTo {
+  '/device-sign-in': typeof DeviceSignInRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
@@ -202,19 +238,24 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
+  '/link/$code': typeof LinkCodeRoute
   '/onboarding/baby': typeof OnboardingBabyRoute
   '/onboarding/day-start': typeof OnboardingDayStartRoute
   '/onboarding/family': typeof OnboardingFamilyRoute
   '/onboarding/invite': typeof OnboardingInviteRoute
   '/': typeof AppIndexRoute
+  '/link': typeof LinkIndexRoute
   '/events/$eventId': typeof AppEventsEventIdRoute
   '/sessions/$eventId': typeof AppSessionsEventIdRoute
+  '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
+  '/api/device-link': typeof ApiDeviceLinkIndexRoute
   '/track/$type/new': typeof AppTrackTypeNewRoute
   '/track/$type': typeof AppTrackTypeIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
+  '/device-sign-in': typeof DeviceSignInRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
@@ -230,13 +271,17 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/auth/new-password': typeof AuthNewPasswordRoute
   '/join/$code': typeof JoinCodeRoute
+  '/link/$code': typeof LinkCodeRoute
   '/onboarding/baby': typeof OnboardingBabyRoute
   '/onboarding/day-start': typeof OnboardingDayStartRoute
   '/onboarding/family': typeof OnboardingFamilyRoute
   '/onboarding/invite': typeof OnboardingInviteRoute
   '/_app/': typeof AppIndexRoute
+  '/link/': typeof LinkIndexRoute
   '/_app/events/$eventId': typeof AppEventsEventIdRoute
   '/_app/sessions/$eventId': typeof AppSessionsEventIdRoute
+  '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
+  '/api/device-link/': typeof ApiDeviceLinkIndexRoute
   '/_app/track/$type/new': typeof AppTrackTypeNewRoute
   '/_app/track/$type/': typeof AppTrackTypeIndexRoute
 }
@@ -244,6 +289,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/device-sign-in'
     | '/onboarding'
     | '/privacy'
     | '/sign-in'
@@ -259,16 +305,21 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/new-password'
     | '/join/$code'
+    | '/link/$code'
     | '/onboarding/baby'
     | '/onboarding/day-start'
     | '/onboarding/family'
     | '/onboarding/invite'
+    | '/link/'
     | '/events/$eventId'
     | '/sessions/$eventId'
+    | '/api/device-link/poll'
+    | '/api/device-link/'
     | '/track/$type/new'
     | '/track/$type/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/device-sign-in'
     | '/onboarding'
     | '/privacy'
     | '/sign-in'
@@ -284,18 +335,23 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/new-password'
     | '/join/$code'
+    | '/link/$code'
     | '/onboarding/baby'
     | '/onboarding/day-start'
     | '/onboarding/family'
     | '/onboarding/invite'
     | '/'
+    | '/link'
     | '/events/$eventId'
     | '/sessions/$eventId'
+    | '/api/device-link/poll'
+    | '/api/device-link'
     | '/track/$type/new'
     | '/track/$type'
   id:
     | '__root__'
     | '/_app'
+    | '/device-sign-in'
     | '/onboarding'
     | '/privacy'
     | '/sign-in'
@@ -311,19 +367,24 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/auth/new-password'
     | '/join/$code'
+    | '/link/$code'
     | '/onboarding/baby'
     | '/onboarding/day-start'
     | '/onboarding/family'
     | '/onboarding/invite'
     | '/_app/'
+    | '/link/'
     | '/_app/events/$eventId'
     | '/_app/sessions/$eventId'
+    | '/api/device-link/poll'
+    | '/api/device-link/'
     | '/_app/track/$type/new'
     | '/_app/track/$type/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
+  DeviceSignInRoute: typeof DeviceSignInRoute
   OnboardingRoute: typeof OnboardingRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   SignInRoute: typeof SignInRoute
@@ -334,6 +395,10 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   AuthNewPasswordRoute: typeof AuthNewPasswordRoute
   JoinCodeRoute: typeof JoinCodeRoute
+  LinkCodeRoute: typeof LinkCodeRoute
+  LinkIndexRoute: typeof LinkIndexRoute
+  ApiDeviceLinkPollRoute: typeof ApiDeviceLinkPollRoute
+  ApiDeviceLinkIndexRoute: typeof ApiDeviceLinkIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -343,6 +408,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/device-sign-in': {
+      id: '/device-sign-in'
+      path: '/device-sign-in'
+      fullPath: '/device-sign-in'
+      preLoaderRoute: typeof DeviceSignInRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -457,6 +529,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JoinCodeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/link/': {
+      id: '/link/'
+      path: '/link'
+      fullPath: '/link/'
+      preLoaderRoute: typeof LinkIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/link/$code': {
+      id: '/link/$code'
+      path: '/link/$code'
+      fullPath: '/link/$code'
+      preLoaderRoute: typeof LinkCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/onboarding/baby': {
       id: '/onboarding/baby'
       path: '/baby'
@@ -498,6 +584,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/sessions/$eventId'
       preLoaderRoute: typeof AppSessionsEventIdRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/api/device-link/': {
+      id: '/api/device-link/'
+      path: '/api/device-link'
+      fullPath: '/api/device-link/'
+      preLoaderRoute: typeof ApiDeviceLinkIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/device-link/poll': {
+      id: '/api/device-link/poll'
+      path: '/api/device-link/poll'
+      fullPath: '/api/device-link/poll'
+      preLoaderRoute: typeof ApiDeviceLinkPollRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/_app/track/$type/': {
       id: '/_app/track/$type/'
@@ -564,6 +664,7 @@ const OnboardingRouteWithChildren = OnboardingRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
+  DeviceSignInRoute: DeviceSignInRoute,
   OnboardingRoute: OnboardingRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   SignInRoute: SignInRoute,
@@ -574,6 +675,10 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   AuthNewPasswordRoute: AuthNewPasswordRoute,
   JoinCodeRoute: JoinCodeRoute,
+  LinkCodeRoute: LinkCodeRoute,
+  LinkIndexRoute: LinkIndexRoute,
+  ApiDeviceLinkPollRoute: ApiDeviceLinkPollRoute,
+  ApiDeviceLinkIndexRoute: ApiDeviceLinkIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

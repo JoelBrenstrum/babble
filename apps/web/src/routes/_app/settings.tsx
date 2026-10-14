@@ -1,4 +1,4 @@
-import { babyChoices, memberRole } from '@babble/api';
+import { authorName, babyChoices, memberRole } from '@babble/api';
 import { refreshFamilies } from '@babble/api/react';
 import { canAddBaby, familyHasFeature, planSummary } from '@babble/config';
 import { settingsGroups, settingsLockedNote, type SettingsGroup, type SettingsGroupId } from '@babble/domain';
@@ -19,6 +19,7 @@ import { ChairModeCard } from '#/features/chair/chair-mode-card';
 import { ExportData } from '#/features/export-data';
 import { InstallSection } from '#/features/install-app';
 import { AppearanceSettings } from '#/features/appearance-settings';
+import { DeviceNameSetting } from '#/features/device-name-setting';
 import { AboutSection } from '#/features/legal/legal-links';
 import { useSelectBaby } from '#/lib/use-select-baby';
 
@@ -93,6 +94,7 @@ function SettingsPage() {
       </SettingsGroupSection>
 
       <SettingsGroupSection groups={groups} id="device">
+        <DeviceNameSetting you={authorName(family, session.user.id) ?? 'you'} />
         <AppearanceSettings client={babble.client} baby={baby} />
         <ChairModeCard
           locked={!familyHasFeature(babble.config.billingEnabled, family.plan, 'chair_mode')}

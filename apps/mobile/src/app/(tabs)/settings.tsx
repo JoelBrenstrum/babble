@@ -8,6 +8,7 @@ import {
   updateBaby,
   type BabyRow,
   type Family,
+  authorName,
 } from '@babble/api';
 import { useAsyncAction } from '@babble/api/react';
 import { canAddBaby, planSummary } from '@babble/config';
@@ -34,6 +35,7 @@ import { TimezoneField } from '@/features/timezone-field';
 import { ExportData } from '@/features/export-data';
 import { PlusPlan } from '@/features/plus-plan';
 import { AppearanceSettings } from '@/features/appearance-settings';
+import { DeviceNameSetting } from '@/features/device-name-setting';
 import { AboutSection } from '@/features/legal-links';
 import { useBabble } from '@/lib/babble';
 import { useThemePreference } from '@/lib/theme';
@@ -84,6 +86,7 @@ export default function SettingsTab() {
           {family.babies.length > 1 && <ExportData client={client} family={family} baby={baby} scope="family" />}
         </SettingsGroupSection>
         <SettingsGroupSection group={deviceGroup}>
+          <DeviceNameSetting you={authorName(family, session.user.id) ?? 'you'} />
           <AppearanceSection babyName={baby.name} />
         </SettingsGroupSection>
         <SettingsGroupSection group={accountGroup}>

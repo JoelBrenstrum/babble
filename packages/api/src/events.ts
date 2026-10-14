@@ -37,6 +37,7 @@ export function rowToEvent(row: EventRow): BabyEvent {
     id: row.id,
     babyId: row.baby_id,
     createdBy: row.created_by,
+    createdDevice: row.created_device,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     deletedAt: row.deleted_at,

@@ -32,7 +32,7 @@ export async function listFamilies(client: BabbleClient): Promise<Family[]> {
   const rows = unwrap(
     await client
       .from('families')
-      .select('*, members:family_members(*), babies(*)')
+      .select('*, members:family_members(*), former_members(*), babies(*)')
       .order('created_at')
       .order('created_at', { referencedTable: 'babies' }),
   );

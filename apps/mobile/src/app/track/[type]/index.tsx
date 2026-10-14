@@ -1,5 +1,5 @@
 import { useUnits } from '@babble/api/react';
-import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
+import { babySettingsQuery, eventListQuery, eventsBetweenQuery, familyAuthors } from '@babble/api';
 import {
   hasStrip,
   isEventType,
@@ -167,7 +167,7 @@ function TrackerListContent({
                 <EventRow
                   key={event.id}
                   event={event}
-                  members={family.members}
+                  members={familyAuthors(family)}
                   timeZone={baby.timezone}
                   units={units}
                   now={now}

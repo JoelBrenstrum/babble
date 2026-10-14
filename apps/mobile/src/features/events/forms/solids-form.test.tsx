@@ -10,6 +10,7 @@ const earlier = {
   id: 'meal-1',
   babyId: 'baby-1',
   createdBy: null,
+  createdDevice: null,
   createdAt: '2026-10-05T10:00:00Z',
   updatedAt: '2026-10-05T10:00:00Z',
   deletedAt: null,

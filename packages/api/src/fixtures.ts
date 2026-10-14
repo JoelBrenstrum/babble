@@ -60,6 +60,7 @@ export const sampleFamily: Family = {
   plan: 'free',
   created_at: '2026-09-26T09:00:00Z',
   members: sampleMembers,
+  former_members: [],
   babies: [sampleBaby, sampleSibling],
 };
 
@@ -73,6 +74,7 @@ function meta(id: string, createdBy = 'user-jane') {
     id,
     babyId: sampleBaby.id,
     createdBy,
+    createdDevice: null,
     createdAt: '2026-10-06T00:00:00Z',
     updatedAt: '2026-10-06T00:00:00Z',
     deletedAt: null,

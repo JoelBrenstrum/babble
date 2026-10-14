@@ -6,7 +6,7 @@ import {
   signUpWithPassword,
 } from '@babble/api';
 import { useSuspenseQuery } from '@tanstack/react-query';
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { CheckEmail } from '#/features/check-email';
@@ -69,6 +69,15 @@ function SignInPage() {
           await signInWithGoogle(babble.client, { redirectTo });
         }}
       />
+      {babble.config.deviceSignInEnabled && (
+        <Link
+          to="/device-sign-in"
+          search={{ to: undefined }}
+          className="mt-6 self-center text-meta font-semibold text-primary underline-offset-4 hover:underline"
+        >
+          Signed in on your phone? Scan a code instead
+        </Link>
+      )}
       <AgreementNote />
       {import.meta.env.DEV && (
         <DevSignIn

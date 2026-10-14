@@ -1,4 +1,4 @@
-import { clock, eventQuery, runningEventsQuery, toBabbleError } from '@babble/api';
+import { clock, eventQuery, runningEventsQuery, toBabbleError, familyAuthors } from '@babble/api';
 import { formatTimeOfDay, READ_ONLY_NOTE, trackerFor, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-router';
@@ -61,7 +61,7 @@ function SessionPage() {
         event={event}
         client={babble.client}
         timeZone={baby.timezone}
-        members={family.members}
+        members={familyAuthors(family)}
         readOnly={!canLog}
         onDiscarded={() => void navigate({ to: '/' })}
       />

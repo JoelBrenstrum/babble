@@ -14,6 +14,7 @@ const META_KEYS = new Set([
   'id',
   'babyId',
   'createdBy',
+  'createdDevice',
   'createdAt',
   'updatedAt',
   'deletedAt',

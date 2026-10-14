@@ -1,5 +1,5 @@
 import { useSessionAction, useTrackingSettings } from '@babble/api/react';
-import { clock, eventQuery, runningEventsQuery } from '@babble/api';
+import { clock, eventQuery, runningEventsQuery, familyAuthors } from '@babble/api';
 import { formatTimeOfDay, READ_ONLY_NOTE, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
@@ -61,7 +61,7 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
             event={event}
             client={client}
             timeZone={baby.timezone}
-            members={family.members}
+            members={familyAuthors(family)}
             onDiscarded={() => router.replace('/')}
           />
         ) : (

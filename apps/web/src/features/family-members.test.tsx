@@ -17,6 +17,7 @@ const family: Family = {
   plan: 'free',
   created_at: '',
   babies: [],
+  former_members: [],
   members: [
     { family_id: 'family-1', user_id: 'john', role: 'owner', display_name: 'John', created_at: '1' },
     { family_id: 'family-1', user_id: 'jane', role: 'caregiver', display_name: 'Jane', created_at: '2' },

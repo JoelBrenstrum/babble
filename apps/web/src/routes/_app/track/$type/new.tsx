@@ -1,4 +1,4 @@
-import { clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { clock, latestEventsQuery, runningEventsQuery, authorName } from '@babble/api';
 import { useAsyncAction, useStartSession, useTrackingSettings, useUnits } from '@babble/api/react';
 import {
   isEventType,
@@ -141,7 +141,7 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   }
 
   if (running) {
-    const startedBy = family.members.find((member) => member.user_id === running.createdBy)?.display_name;
+    const startedBy = authorName(family, running.createdBy);
     return (
       <Card className="flex flex-col gap-4 p-5">
         <div className="flex items-start gap-3">

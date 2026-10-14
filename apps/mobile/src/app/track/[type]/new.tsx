@@ -1,4 +1,4 @@
-import { clock, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { clock, latestEventsQuery, runningEventsQuery, familyAuthors, type Author } from '@babble/api';
 import { useAsyncAction, useStartSession, useUnits } from '@babble/api/react';
 import {
   nextBreastSide,
@@ -42,7 +42,7 @@ export default function NewEntry() {
   if (!type || !isEventType(type)) return <Redirect href="/" />;
   if (!ready) return null;
   if (!logging) return <Redirect href={`/track/${type}`} />;
-  return <NewEntryContent eventType={type} baby={ready.baby} members={ready.family.members} />;
+  return <NewEntryContent eventType={type} baby={ready.baby} members={familyAuthors(ready.family)} />;
 }
 
 function NewEntryContent({
@@ -52,7 +52,7 @@ function NewEntryContent({
 }: {
   eventType: TrackerKey;
   baby: ReadyState['baby'];
-  members: FamilyMemberRow[];
+  members: Author[];
 }) {
   const { client } = useBabble();
   const units = useUnits(client, baby.id);
@@ -99,7 +99,7 @@ function StartSession({
 }: {
   type: SessionType;
   babyId: string;
-  members: FamilyMemberRow[];
+  members: Author[];
   onLogPast: () => void;
 }) {
   const { client } = useBabble();
