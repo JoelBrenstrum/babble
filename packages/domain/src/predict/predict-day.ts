@@ -41,6 +41,8 @@ export interface PredictOptions {
 
 const OVERRUN_MS = 10 * MINUTE_MS;
 const MIN_BLOCK_MS = 5 * MINUTE_MS;
+const SHORT_NAP_FRACTION = 0.5;
+const NEAR_PLANNED_WAKE_MS = 15 * MINUTE_MS;
 
 const DEFAULTS = {
   lookbackDays: 7,
@@ -170,7 +172,9 @@ function estimate(
 }
 
 export type PredictionResult =
-  { status: 'ready'; blocks: PredictedBlock[] } | { status: 'learning' } | { status: 'no-anchor' };
+  | { status: 'ready'; blocks: PredictedBlock[] }
+  | { status: 'learning' }
+  | { status: 'no-anchor' };
 
 export function predictDay(
   events: readonly BabyEvent[],
@@ -212,6 +216,15 @@ export function predictDayStatus(
   const length = (samples: Sample[], at: number, above = 0) => estimate(samples, at, nowMs, settings, above) ?? 0;
   const wakeToFeed = (wake: number) => length(rhythm.wakeToFeed, wake, ANY_VALUE);
   const notBeforeNow = (time: number) => Math.max(time, nowMs);
+  const feedAfterSleep = (sleep: Episode, feedBefore: Episode | undefined) => {
+    const wake = sleep.end!;
+    const short = wake - sleep.start < length(rhythm.sleepLength, sleep.start) * SHORT_NAP_FRACTION;
+    if (!short || !feedBefore) return wake + wakeToFeed(wake);
+    const plannedSleep = feedBefore.start + length(rhythm.feedToSleep, feedBefore.start);
+    const plannedWake = plannedSleep + length(rhythm.sleepLength, plannedSleep);
+    if (wake >= plannedWake - NEAR_PLANNED_WAKE_MS) return wake + wakeToFeed(wake);
+    return plannedWake + wakeToFeed(plannedWake);
+  };
 
   const running = history.filter((e) => e.end === null);
   const lastSleep = lastOfKind(history, 'sleep');
@@ -232,7 +245,7 @@ export function predictDayStatus(
   } else if (lastFeed && (!lastSleep || lastFeed.start > lastSleep.start)) {
     next = { kind: 'sleep', at: notBeforeNow(remaining(rhythm.feedToSleep, lastFeed.start)) };
   } else if (lastSleep) {
-    next = { kind: 'feed', at: notBeforeNow(lastSleep.end! + wakeToFeed(lastSleep.end!)) };
+    next = { kind: 'feed', at: notBeforeNow(feedAfterSleep(lastSleep, lastFeed)) };
   } else {
     return { status: 'no-anchor' };
   }

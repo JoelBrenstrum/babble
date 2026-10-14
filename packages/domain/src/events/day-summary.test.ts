@@ -83,6 +83,7 @@ describe('summariseDay', () => {
     });
     expect(summariseDay([feed], day, { mergeGapMs: 60_000 }).idleMs).toBe(300_000);
     expect(summariseDay([{ ...feed, source: 'huckleberry_csv' }], day, { mergeGapMs: 60_000 }).idleMs).toBe(0);
+    expect(summariseDay([{ ...feed, source: 'babble_export' }], day, { mergeGapMs: 60_000 }).idleMs).toBe(300_000);
   });
 
   it('counts only the time a nap was asleep, and its longest stretch', () => {

@@ -143,6 +143,8 @@ const PREVIEW_ACTIONS: ChairActions = {
   saveNappy: noop,
   startNap: noop,
   endNap: noop,
+  pauseNap: () => undefined,
+  resumeNap: () => undefined,
   undoEntry: noop,
   restoreEntry: noop,
   wake: () => ({ screenWasOff: false }),

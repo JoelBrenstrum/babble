@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { editableRowsToSegments, segmentsToEditableRows, summariseSegments } from './session-summary';
+import { editableRowsToSegments, segmentsToEditableRows, sideTotals, summariseSegments } from './session-summary';
 import type { TimedSegment } from './types';
 
 const at = (minutes: number, seconds = 0) => new Date(Date.UTC(2026, 9, 6, 10, minutes, seconds)).toISOString();
@@ -115,6 +115,24 @@ describe('summariseSegments', () => {
       rightMs: 0,
       spanMs: 0,
     });
+  });
+});
+
+describe('sideTotals', () => {
+  it('totals each breast across switches, leaving out pauses', () => {
+    const summary = summariseSegments(
+      [seg('left', [0], [10]), seg('right', [10], [18, 30]), seg('left', [25], [30, 15]), seg('right', [30, 15], null)],
+      opts,
+    );
+    expect(sideTotals(summary)).toEqual([
+      { side: 'left', durationMs: 15 * 60_000 + 15_000 },
+      { side: 'right', durationMs: 8 * 60_000 + 30_000 + 9 * 60_000 + 45_000 },
+    ]);
+  });
+
+  it('is empty when only one side was used', () => {
+    expect(sideTotals(summariseSegments([seg('left', [0], [10])], opts))).toEqual([]);
+    expect(sideTotals(summariseSegments([], opts))).toEqual([]);
   });
 });
 

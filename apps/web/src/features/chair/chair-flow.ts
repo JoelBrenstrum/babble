@@ -1,7 +1,7 @@
 import { CHAIR_ENDED_MS, type ChairFeed } from '@babble/domain';
 import type { EndedFeed } from './ended-view';
 
-export type ChairSheet = 'bottle' | 'nappy' | 'nappy-ask' | 'baby';
+export type ChairSheet = 'bottle' | 'nappy' | 'nappy-ask' | 'baby' | 'settings';
 export interface ChairToast {
   key: number;
   message: string;

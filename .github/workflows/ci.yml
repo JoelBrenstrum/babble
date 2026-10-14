@@ -24,6 +24,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
+      - run: pnpm lint
       - run: pnpm turbo run typecheck test --filter='!@babble/db'
       - run: pnpm --filter @babble/web build
 

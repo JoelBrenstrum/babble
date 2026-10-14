@@ -103,6 +103,81 @@ describe('predictDay', () => {
     ]);
   });
 
+  it('keeps the expected feed after a short nap early in the predicted sleep', () => {
+    const events = [
+      ...regularCycles(8),
+      makeEvent('breast_feed', {
+        id: 'feed-now',
+        startedAt: iso(BASE + 24 * 60 * M),
+        endedAt: iso(BASE + 24 * 60 * M + 40 * M),
+        segments: [],
+      }),
+      makeEvent('sleep', {
+        id: 'catnap',
+        startedAt: iso(BASE + 24 * 60 * M + 50 * M),
+        endedAt: iso(BASE + 24 * 60 * M + 60 * M),
+        segments: [],
+      }),
+    ];
+    const now = new Date(BASE + 25 * 60 * M + 5 * M);
+    expect(simplify(predictDay(events, now, new Date(BASE + 27 * 60 * M + 30 * M), OPTIONS))?.[0]).toEqual([
+      'feed',
+      '03:00',
+      '03:40',
+      false,
+    ]);
+  });
+
+  it('expects a feed straight after a short nap near the end of the predicted sleep', () => {
+    const events = [
+      ...regularCycles(8),
+      makeEvent('breast_feed', {
+        id: 'feed-now',
+        startedAt: iso(BASE + 24 * 60 * M),
+        endedAt: iso(BASE + 24 * 60 * M + 40 * M),
+        segments: [],
+      }),
+      makeEvent('sleep', {
+        id: 'late-catnap',
+        startedAt: iso(BASE + 24 * 60 * M + 140 * M),
+        endedAt: iso(BASE + 24 * 60 * M + 160 * M),
+        segments: [],
+      }),
+    ];
+    const now = new Date(BASE + 24 * 60 * M + 162 * M);
+    expect(simplify(predictDay(events, now, new Date(BASE + 27 * 60 * M + 30 * M), OPTIONS))?.[0]).toEqual([
+      'feed',
+      '02:50',
+      '03:30',
+      false,
+    ]);
+  });
+
+  it('still expects a feed soon after a full-length nap', () => {
+    const events = [
+      ...regularCycles(8),
+      makeEvent('breast_feed', {
+        id: 'feed-now',
+        startedAt: iso(BASE + 24 * 60 * M),
+        endedAt: iso(BASE + 24 * 60 * M + 40 * M),
+        segments: [],
+      }),
+      makeEvent('sleep', {
+        id: 'early-long-nap',
+        startedAt: iso(BASE + 24 * 60 * M + 45 * M),
+        endedAt: iso(BASE + 24 * 60 * M + 135 * M),
+        segments: [],
+      }),
+    ];
+    const now = new Date(BASE + 24 * 60 * M + 136 * M);
+    expect(simplify(predictDay(events, now, new Date(BASE + 27 * 60 * M + 30 * M), OPTIONS))?.[0]).toEqual([
+      'feed',
+      '02:25',
+      '03:05',
+      false,
+    ]);
+  });
+
   it('expects an overdue sleep shortly after now rather than in the past', () => {
     const events = regularCycles(8).filter((event) => event.id !== 'sleep-7');
     const now = new Date(BASE + 21 * 60 * M + 120 * M);

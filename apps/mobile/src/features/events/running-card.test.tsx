@@ -49,7 +49,7 @@ beforeEach(() => {
 describe('RunningCard discard', () => {
   it('discards a session under a minute old without asking', async () => {
     const alert = jest.spyOn(Alert, 'alert');
-    const { event, onDiscarded } = await renderCard(20);
+    const { onDiscarded } = await renderCard(20);
     await fireEvent.press(screen.getByRole('button', { name: 'Discard feed' }));
     expect(alert).not.toHaveBeenCalled();
     await waitFor(() => expect(fake.update).toHaveBeenCalled());

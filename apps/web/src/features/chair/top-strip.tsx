@@ -1,4 +1,4 @@
-import { ChevronsUpDown, Maximize, Minimize, Moon } from 'lucide-react';
+import { ChevronsUpDown, Maximize, Minimize, Moon, Settings } from 'lucide-react';
 import { TOP_STRIP_ACTION, TOP_STRIP_ICON, TOP_STRIP_PILL } from './styles';
 import type { ChairActions, ChairData } from './types';
 
@@ -7,11 +7,13 @@ export function TopStrip({
   actions,
   canSwitchBaby,
   onSwitchBaby,
+  onSettings,
 }: {
   data: ChairData;
   actions: Pick<ChairActions, 'dimNow' | 'enterFullscreen' | 'exitFullscreen'>;
   canSwitchBaby: boolean;
   onSwitchBaby: () => void;
+  onSettings: () => void;
 }) {
   const { fullscreen } = data;
   return (
@@ -64,6 +66,17 @@ export function TopStrip({
         </span>
       )}
       <span className="tabular font-semibold">{data.clock}</span>
+      {!data.dimmed && (
+        <button
+          type="button"
+          aria-label="Chair mode settings"
+          title="Settings"
+          onClick={onSettings}
+          className={`${TOP_STRIP_PILL} aspect-square justify-center px-0 text-ink-2`}
+        >
+          <Settings className={TOP_STRIP_ICON} strokeWidth={2.5} />
+        </button>
+      )}
     </div>
   );
 }

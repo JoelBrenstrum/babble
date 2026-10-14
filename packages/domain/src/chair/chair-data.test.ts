@@ -85,7 +85,17 @@ describe('buildChairData', () => {
     const sleep = makeEvent('sleep', { id: 'nap', startedAt: '2026-10-06T11:15:00Z', endedAt: null, segments: [] });
     const { data, nap } = buildChairData(input({ running: [sleep] }));
     expect(nap?.id).toBe('nap');
-    expect(data.nap).toBe('45m');
+    expect(data.nap).toEqual({ asleep: '45m', paused: false });
+  });
+
+  it('shows a paused nap with the time asleep before the pause', () => {
+    const sleep = makeEvent('sleep', {
+      id: 'nap',
+      startedAt: '2026-10-06T11:15:00Z',
+      endedAt: null,
+      segments: [{ startedAt: '2026-10-06T11:15:00Z', endedAt: '2026-10-06T11:40:00Z' }],
+    });
+    expect(buildChairData(input({ running: [sleep] })).data.nap).toEqual({ asleep: '25m', paused: true });
   });
 
   it('labels each baby, adding the family only when there are several', () => {

@@ -35,7 +35,8 @@ sleep 1
 while [ ! -e "\$HOME/.babble-chair-off" ]; do
   # After a power cut Chromium thinks it crashed and offers to restore pages; mark the last exit as clean.
   [ -f "\$PREFS" ] && sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]*"/"exit_type":"Normal"/' "\$PREFS"
-  "\$BROWSER" --ozone-platform=wayland --disable-gpu --app="\$URL" --start-maximized --noerrdialogs \\
+  "\$BROWSER" --ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3 --disable-gpu \\
+    --kiosk "\$URL" --noerrdialogs \\
     --disable-infobars --disable-session-crashed-bubble --password-store=basic \\
     --disk-cache-dir=/dev/shm/babble-chair > /tmp/babble-chair.log 2>&1
   sleep 3
@@ -72,6 +73,12 @@ if command -v raspi-config >/dev/null; then
   sudo raspi-config nonint do_boot_behaviour B4
   # The built-in blanking is fixed at 10 minutes; swayidle below replaces it.
   sudo raspi-config nonint do_blanking 1
+fi
+
+say "Turning on the on-screen keyboard"
+command -v squeekboard >/dev/null || sudo apt-get install -y squeekboard || echo "Couldn't install squeekboard."
+if command -v raspi-config >/dev/null; then
+  sudo raspi-config nonint do_squeekboard S1 || echo "Couldn't switch the keyboard on with raspi-config; turn it on in Raspberry Pi Configuration > Display."
 fi
 
 if [ "$SCREEN_OFF_MINUTES" != "0" ] && ! { command -v swayidle && command -v wlopm; } >/dev/null; then

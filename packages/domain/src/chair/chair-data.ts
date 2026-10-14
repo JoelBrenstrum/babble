@@ -62,6 +62,11 @@ export interface ChairFeed {
   startedBy: string | null;
 }
 
+export interface ChairNap {
+  asleep: string;
+  paused: boolean;
+}
+
 export interface ChairViewModel {
   babyName: string;
   age: string;
@@ -73,7 +78,7 @@ export interface ChairViewModel {
   due: { text: string; overdue: boolean } | null;
   suggested: Side | null;
   feed: ChairFeed | null;
-  nap: string | null;
+  nap: ChairNap | null;
   lastNappy: string | null;
   nappyAsk: { start: boolean; switch: boolean; end: boolean };
   units: Units;
@@ -124,7 +129,7 @@ export function buildChairData(input: ChairDataInput): {
             startedBy,
           }
         : null,
-    nap: nap ? formatDurationShort(summariseSleep(nap, now).asleepMs) : null,
+    nap: nap ? chairNap(nap, now) : null,
     lastNappy: lastNappyLine(latest, now),
     nappyAsk: {
       start: nappyPromptOnFeedStart(nappyPrompt, latest, at) !== null,
@@ -138,4 +143,9 @@ export function buildChairData(input: ChairDataInput): {
     bottle: { amount: defaultBottleAmount(latest, units), content: defaultBottleContent(latest) },
   };
   return { data, feed, nap };
+}
+
+export function chairNap(nap: EventOfType<'sleep'>, now: Date): ChairNap {
+  const summary = summariseSleep(nap, now);
+  return { asleep: formatDurationShort(summary.asleepMs), paused: summary.paused };
 }

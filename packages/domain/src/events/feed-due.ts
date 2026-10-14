@@ -88,3 +88,25 @@ export function feedDueFor(
   if (!settings || feedRemindersQuiet(settings, now, timeZone)) return null;
   return nextFeedDue([...latest, ...running], settings);
 }
+
+export interface FeedDueMarker {
+  frac: number;
+  label: string;
+  overdue: boolean;
+}
+
+export function feedDueMarker(
+  due: FeedDue | null,
+  window: { start: Date; end: Date },
+  now: Date,
+  timeZone: string,
+): FeedDueMarker | null {
+  if (!due) return null;
+  const at = Date.parse(due.dueAt);
+  const start = window.start.getTime();
+  const end = window.end.getTime();
+  if (at < start || at > end) return null;
+  const { overdue } = feedDueText(due, now, timeZone);
+  const time = formatTimeOfDay(due.dueAt, timeZone);
+  return { frac: (at - start) / (end - start), label: overdue ? `Feed was due ${time}` : `Feed due ${time}`, overdue };
+}

@@ -7,6 +7,7 @@ import {
   showsItemLabel,
   timelineItemLabel,
   type DayLayout,
+  type FeedDueMarker,
   type PredictedItem,
   type TimelineItem,
   type Units,
@@ -31,6 +32,8 @@ export function DayTimeline({
   nowFrac,
   now,
   predicted = null,
+  compact = false,
+  feedDue = null,
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -39,6 +42,8 @@ export function DayTimeline({
   nowFrac: number | null;
   now: Date;
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
+  compact?: boolean;
+  feedDue?: FeedDueMarker | null;
 }) {
   const lanes: { key: keyof DayLayout; label: string }[] = [
     { key: 'sleep', label: 'Sleep' },
@@ -49,13 +54,15 @@ export function DayTimeline({
 
   return (
     <View className="gap-2">
-      <View className="flex-row gap-2 pl-9">
-        {lanes.map((lane) => (
-          <Text key={lane.key} className="flex-1 font-semibold text-meta text-ink-2">
-            {lane.label}
-          </Text>
-        ))}
-      </View>
+      {!compact && (
+        <View className="flex-row gap-2 pl-9">
+          {lanes.map((lane) => (
+            <Text key={lane.key} className="flex-1 font-semibold text-meta text-ink-2">
+              {lane.label}
+            </Text>
+          ))}
+        </View>
+      )}
       <View className="flex-row gap-2" style={{ height: DAY_TIMELINE_HEIGHT }}>
         <View className="w-7">
           {ticks.map((tick, index) => (
@@ -72,6 +79,22 @@ export function DayTimeline({
           {ticks.map((tick, index) => (
             <View key={index} className="absolute inset-x-0 border-t border-line" style={{ top: pct(tick.frac) }} />
           ))}
+          {feedDue && (
+            <View
+              accessible
+              accessibilityLabel={feedDue.label}
+              testID="feed-due-line"
+              className={`absolute inset-x-0 z-10 border-t-2 border-dashed ${feedDue.overdue ? 'border-danger' : 'border-feed-left'}`}
+              style={{ top: pct(feedDue.frac) }}
+            >
+              <Text
+                className={`absolute right-0 rounded-chip px-1.5 font-semibold text-caption ${feedDue.overdue ? 'bg-danger-soft text-on-danger' : 'bg-feed-left-soft text-on-feed-left'}`}
+                style={{ bottom: 2 }}
+              >
+                {feedDue.label}
+              </Text>
+            </View>
+          )}
           {nowFrac !== null && (
             <View className="absolute inset-x-0 z-10 border-t-2 border-primary" style={{ top: pct(nowFrac) }} />
           )}

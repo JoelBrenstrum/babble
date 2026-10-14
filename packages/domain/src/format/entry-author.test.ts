@@ -14,7 +14,9 @@ describe('entryAuthorText', () => {
   });
 
   it('names the device it was logged on', () => {
-    expect(entryAuthorText({ ...base, author: 'Joel', device: 'Chair' })).toBe('Logged by Joel on Chair · 6 Oct, 3:12 am');
+    expect(entryAuthorText({ ...base, author: 'Joel', device: 'Chair' })).toBe(
+      'Logged by Joel on Chair · 6 Oct, 3:12 am',
+    );
     expect(entryAuthorText({ ...base, imported: true, device: 'Chair' })).toBe('Imported · 6 Oct, 3:12 am');
   });
 

@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "printWidth": 120,
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "docs/design/",
+    "pnpm-lock.yaml",
+    "**/routeTree.gen.ts",
+    ".output/",
+    "dist/",
+    "**/public/",
+    "LICENSE",
+    "packages/tokens/css/babble-tokens.css",
+    "packages/tokens/css/shadcn-theme.css",
+    "apps/mobile/expo-env.d.ts",
+    ".claude/",
+    "todo.md"
+  ]
+}

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { SessionBreakdown } from './session-breakdown';
@@ -17,13 +17,27 @@ describe('SessionBreakdown', () => {
         now={new Date(at(30))}
       />,
     );
-    expect(screen.getByText('Left')).toBeInTheDocument();
+    expect(screen.getAllByText('Left')).toHaveLength(2);
     expect(screen.getByText('Downtime')).toBeInTheDocument();
     expect(screen.getByText('idle')).toBeInTheDocument();
-    expect(screen.getByText('10m 32s')).toBeInTheDocument();
+    expect(screen.getAllByText('10m 32s')).toHaveLength(2);
     expect(screen.getByText('3m 02s')).toBeInTheDocument();
     expect(screen.getByText('22m 55s')).toBeInTheDocument();
     expect(screen.getByText('lost 3m 02s')).toBeInTheDocument();
+    const sides = screen.getByLabelText('Each side');
+    expect(sides).toHaveTextContent('Left10m 32s');
+    expect(sides).toHaveTextContent('Right12m 23s');
+  });
+
+  it('leaves out the per-side totals when only one side was used', () => {
+    render(
+      <SessionBreakdown
+        segments={[{ side: 'left', startedAt: at(0), endedAt: at(10) }]}
+        mergeGapMs={15_000}
+        now={new Date(at(12))}
+      />,
+    );
+    expect(within(document.body).queryByLabelText('Each side')).not.toBeInTheDocument();
   });
 
   it('marks the growing idle row while paused', () => {

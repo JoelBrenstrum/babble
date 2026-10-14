@@ -24,7 +24,6 @@ export const storageKeys = {
   installDismissedAt: 'babble.installDismissedAt',
   installed: 'babble.installed',
   keepAwake: 'babble.keepAwake',
-  chairFullscreen: 'babble.chairFullscreen',
   deviceName: 'babble.deviceName',
 } as const;
 

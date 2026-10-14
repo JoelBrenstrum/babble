@@ -130,7 +130,7 @@ export function chairPreview(now: Date): { idle: ChairData; feeding: ChairData }
     night: false,
     dimmed: false,
     updateReady: false,
-    fullscreen: { supported: false, active: false, wanted: false },
+    fullscreen: { supported: false, active: false },
     offline: false,
     lastFeed: lastFeedLine(events, now, 'metric', timezone),
     due: due ? feedDueText(due, now, timezone) : null,

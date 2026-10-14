@@ -1,4 +1,4 @@
-import { formatDuration, summariseSegments, type TimedSegment } from '@babble/domain';
+import { formatDuration, sideTotals, summariseSegments, type TimedSegment } from '@babble/domain';
 import { Minus } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
@@ -23,6 +23,7 @@ export function SessionBreakdown({
   const lastEnd = segments.at(-1)?.endedAt ?? null;
   const summary = summariseSegments(segments, { mergeGapMs, now, pausedSince: paused ? lastEnd : null });
   if (summary.rows.length === 0) return null;
+  const sides = sideTotals(summary);
 
   return (
     <Card>
@@ -75,6 +76,19 @@ export function SessionBreakdown({
           <Text className="font-sans text-meta text-ink-2">{`lost ${formatDuration(summary.downtimeMs)}`}</Text>
         )}
       </View>
+      {sides.length > 0 && (
+        <View accessibilityLabel="Each side" className="-mt-1 flex-row flex-wrap gap-x-4 gap-y-1 px-4 pb-3">
+          {sides.map((total) => (
+            <View key={total.side} className="flex-row items-center gap-1.5">
+              <View className={`size-2 rounded-full ${total.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`} />
+              <Text className="font-sans text-meta text-ink-2">
+                {`${total.side === 'left' ? 'Left' : 'Right'} `}
+                <Text className="font-semibold text-ink">{formatDuration(total.durationMs)}</Text>
+              </Text>
+            </View>
+          ))}
+        </View>
+      )}
     </Card>
   );
 }

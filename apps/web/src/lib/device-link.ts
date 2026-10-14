@@ -1,6 +1,8 @@
 import { BabbleError, toBabbleError, type DeviceLinkStart, type DeviceLinkStatus } from '@babble/api';
 
-export type DeviceLinkPoll = { status: Exclude<DeviceLinkStatus, 'approved'> } | { status: 'approved'; tokenHash: string };
+export type DeviceLinkPoll =
+  | { status: Exclude<DeviceLinkStatus, 'approved'> }
+  | { status: 'approved'; tokenHash: string };
 
 async function post<T>(path: string, body?: unknown): Promise<T> {
   let response: Response;

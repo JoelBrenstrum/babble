@@ -73,7 +73,7 @@ export function AppShell({
             />
           </div>
           <nav className="flex flex-1 flex-col gap-1 px-3 xl:px-4" aria-label="Main">
-            {NAV.map((item) => {
+            {NAV.filter((item) => item.to !== '/settings').map((item) => {
               const dot = item.to === '/' ? homeDot : null;
               return (
                 <Link
@@ -100,7 +100,16 @@ export function AppShell({
                 <Avatar key={member.user_id} name={member.display_name} className="ring-2 ring-raised" />
               ))}
             </div>
-            <span className="hidden truncate text-meta text-ink-2 xl:inline">{family.name}</span>
+            <span className="hidden min-w-0 flex-1 truncate text-meta text-ink-2 xl:inline">{family.name}</span>
+            <Link
+              to="/settings"
+              aria-label="Settings"
+              title="Settings"
+              className="grid size-tap shrink-0 place-items-center rounded-button text-ink-2 hover:bg-surface hover:text-ink"
+              activeProps={{ className: 'bg-primary-soft text-on-primary-soft hover:bg-primary-soft' }}
+            >
+              <Settings className="size-5" strokeWidth={2.75} />
+            </Link>
           </div>
         </aside>
 

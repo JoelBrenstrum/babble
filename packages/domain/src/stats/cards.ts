@@ -9,6 +9,8 @@ import type { TimeWindow } from '../timeline/days';
 import { feedTimeSplit } from '../timeline/totals';
 import { buildChart, type ChartBar, type StatsChart } from './charts';
 
+const RECENT_POO_COLOURS = 7;
+
 export const MAX_GAP_MS = 12 * HOUR_MS;
 const hours = formatDurationShort;
 
@@ -109,7 +111,7 @@ export function buildCards({
     .filter((event) => ms(event.startedAt) >= range.start.getTime())
     .sort(byStartedAtDesc)
     .flatMap((event) => event.details.pooColours.slice(0, 1))
-    .slice(0, 14);
+    .slice(0, RECENT_POO_COLOURS);
 
   const cards: StatsCard[] = [
     {

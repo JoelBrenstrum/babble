@@ -16,12 +16,14 @@ export function EndedView({
   babyName,
   onUndo,
   onAsleep,
+  onNotNow,
 }: {
   ended: EndedFeed;
   secondsLeft: number;
   babyName: string;
   onUndo: () => void;
   onAsleep: (() => void) | null;
+  onNotNow: () => void;
 }) {
   return (
     <>
@@ -37,6 +39,11 @@ export function EndedView({
           <Undo2 className={ACTION_ICON} strokeWidth={2.75} />
           Undo
         </BigButton>
+        {onAsleep && (
+          <BigButton onClick={onNotNow} className={cn(ACTION_BUTTON, OUTLINED, 'flex-[1_1_30cqmin]')}>
+            Not now
+          </BigButton>
+        )}
         {onAsleep && (
           <BigButton
             onClick={onAsleep}

@@ -1,6 +1,13 @@
-import { babySettingsQuery, eventsBetweenQuery } from '@babble/api';
+import { babySettingsQuery, eventsBetweenQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
 import {
+  comparisonToggleLabel,
+  dayComparison,
   daySummaryStrip,
+  feedDueFor,
+  feedDueMarker,
+  previous24hWindow,
+  previousDayWindow,
+  rollingComparison,
   dayTotalCards,
   predictedLayout,
   predictionText,
@@ -8,20 +15,24 @@ import {
   timelineRange,
   weekSummaryStrip,
   weekTableRows,
+  type DayComparison,
+  type TimelineTick,
   type TimelineView,
+  type Units,
 } from '@babble/domain';
 import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
 import { useUnits } from '@babble/api/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { PageSpinner } from '@/components/page-spinner';
 import { Screen } from '@/components/screen';
 import { Segmented } from '@/components/segmented';
-import { PlusBadge } from '@/components/plus';
+import { PlusBadge, PlusDialog } from '@/components/plus';
 import { PredictionLine } from '@/features/home-overview';
+import { DayComparisonCard } from '@/features/timeline/day-comparison';
 import { DayTimeline } from '@/features/timeline/day-timeline';
 import { DayTotals, SummaryStrip, WeekTable } from '@/features/timeline/totals';
 import { WeekTimeline } from '@/features/timeline/week-timeline';
@@ -66,6 +77,36 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
       : null;
   const showsPrediction = Boolean(predicted && (predicted.sleep.length || predicted.feeds.length));
   const predictionLine = model.view === 'day' && dayKey === todayKey ? predictionText(prediction, baby.timezone) : null;
+  const [compare, setCompare] = useState(false);
+  const [pitching, setPitching] = useState(false);
+  const comparing = (view === 'day' || view === '24h') && compare && !insightsLocked;
+  const toggleCompare = () => (insightsLocked ? setPitching(true) : setCompare(!compare));
+  const previousWindow =
+    view === '24h'
+      ? previous24hWindow({ start: new Date(range.from), end: new Date(range.to) })
+      : previousDayWindow(dayKey, baby);
+  const previousEvents = useQuery({
+    ...eventsBetweenQuery(client, baby.id, previousWindow.start.toISOString(), previousWindow.end.toISOString()),
+    enabled: comparing,
+    placeholderData: view === '24h' ? keepPreviousData : undefined,
+  }).data;
+  const comparison =
+    !comparing || !previousEvents
+      ? null
+      : model.view === 'day'
+        ? dayComparison({ dayKey, todayKey, current: model.day.summary, events: previousEvents, settings, baby, now })
+        : model.view === '24h'
+          ? rollingComparison({ window: model.window, current: model.summary, events: previousEvents, settings, baby })
+          : null;
+  const latest = useQuery({ ...latestEventsQuery(client, baby.id), enabled: !insightsLocked }).data;
+  const running = useQuery({ ...runningEventsQuery(client, baby.id), enabled: !insightsLocked }).data;
+  const due = insightsLocked ? null : feedDueFor(latest ?? [], running ?? [], settings, now, baby.timezone);
+  const feedDue =
+    model.view === 'day'
+      ? feedDueMarker(due, model.day.window, now, baby.timezone)
+      : model.view === '24h'
+        ? feedDueMarker(due, model.window, now, baby.timezone)
+        : null;
   const openDay = (key: string) => {
     setDate(key);
     setView('day');
@@ -90,7 +131,16 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
           </View>
         </View>
         {view === '24h' ? (
-          <Text className="min-h-tap text-center font-semibold text-row-title text-ink">Last 24 hours</Text>
+          <View className="min-h-tap flex-row items-center justify-center gap-2">
+            <Text className="font-semibold text-row-title text-ink">Last 24 hours</Text>
+            <CompareButton
+              comparing={comparing}
+              label="Compare with the 24 hours before"
+              locked={insightsLocked}
+              plus={config.billingEnabled}
+              onPress={toggleCompare}
+            />
+          </View>
         ) : (
           <View className="flex-row items-center justify-between">
             <Pressable
@@ -101,7 +151,18 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             >
               <ChevronLeft size={20} color={ink} strokeWidth={2.75} />
             </Pressable>
-            <Text className="font-semibold text-row-title text-ink">{rangeLabel}</Text>
+            <View className="flex-row items-center gap-2">
+              <Text className="font-semibold text-row-title text-ink">{rangeLabel}</Text>
+              {view === 'day' && (
+                <CompareButton
+                  comparing={comparing}
+                  label={comparisonToggleLabel(dayKey, todayKey)}
+                  locked={insightsLocked}
+                  plus={config.billingEnabled}
+                  onPress={toggleCompare}
+                />
+              )}
+            </View>
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={view === 'day' ? 'Next day' : `Next ${step} days`}
@@ -115,6 +176,8 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
           </View>
         )}
 
+        <PlusDialog feature={pitching ? 'insights' : null} onClose={() => setPitching(false)} />
+
         {sampleOnly ? (
           <PlusMask
             feature="insights"
@@ -127,30 +190,80 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
           <PageSpinner />
         ) : model.view === '24h' ? (
           <>
-            <SummaryStrip items={daySummaryStrip(model.summary)} />
-            <DayTimeline
-              layout={model.layout}
-              ticks={model.ticks}
-              timeZone={baby.timezone}
-              units={units}
-              now={now}
-              nowFrac={model.nowFrac}
-            />
-            <DayTotals cards={dayTotalCards(model.summary, units, baby.timezone)} />
+            {!comparing && <SummaryStrip items={daySummaryStrip(model.summary)} />}
+            {comparing ? (
+              <ComparedTimelines
+                comparison={comparison}
+                currentLabel="Last 24h"
+                ticks={model.ticks}
+                timeZone={baby.timezone}
+                units={units}
+                now={now}
+              >
+                <DayTimeline
+                  layout={model.layout}
+                  ticks={model.ticks}
+                  timeZone={baby.timezone}
+                  units={units}
+                  now={now}
+                  nowFrac={model.nowFrac}
+                  feedDue={feedDue}
+                  compact
+                />
+              </ComparedTimelines>
+            ) : (
+              <DayTimeline
+                layout={model.layout}
+                ticks={model.ticks}
+                timeZone={baby.timezone}
+                units={units}
+                now={now}
+                nowFrac={model.nowFrac}
+                feedDue={feedDue}
+              />
+            )}
+            {comparison && (
+              <DayComparisonCard comparison={comparison} currentLabel="Last 24h" plusBadge={config.billingEnabled} />
+            )}
+            {!comparing && <DayTotals cards={dayTotalCards(model.summary, units, baby.timezone)} />}
           </>
         ) : model.view === 'day' ? (
           <>
-            <SummaryStrip items={daySummaryStrip(model.day.summary)} />
+            {!comparing && <SummaryStrip items={daySummaryStrip(model.day.summary)} />}
             {predictionLine && <PredictionLine text={predictionLine} plus={config.billingEnabled} />}
-            <DayTimeline
-              layout={model.day.layout}
-              ticks={model.ticks}
-              timeZone={baby.timezone}
-              units={units}
-              now={now}
-              nowFrac={model.nowFrac}
-              predicted={predicted}
-            />
+            {comparing ? (
+              <ComparedTimelines
+                comparison={comparison}
+                currentLabel={rangeLabel}
+                ticks={model.ticks}
+                timeZone={baby.timezone}
+                units={units}
+                now={now}
+              >
+                <DayTimeline
+                  layout={model.day.layout}
+                  ticks={model.ticks}
+                  timeZone={baby.timezone}
+                  units={units}
+                  now={now}
+                  nowFrac={model.nowFrac}
+                  predicted={predicted}
+                  feedDue={feedDue}
+                  compact
+                />
+              </ComparedTimelines>
+            ) : (
+              <DayTimeline
+                layout={model.day.layout}
+                ticks={model.ticks}
+                timeZone={baby.timezone}
+                units={units}
+                now={now}
+                nowFrac={model.nowFrac}
+                predicted={predicted}
+                feedDue={feedDue}
+              />
+            )}
             {showsPrediction && (
               <View className="flex-row items-center gap-2">
                 {config.billingEnabled && <PlusBadge />}
@@ -159,7 +272,10 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
                 </Text>
               </View>
             )}
-            <DayTotals cards={dayTotalCards(model.day.summary, units, baby.timezone)} />
+            {comparison && (
+              <DayComparisonCard comparison={comparison} currentLabel={rangeLabel} plusBadge={config.billingEnabled} />
+            )}
+            {!comparing && <DayTotals cards={dayTotalCards(model.day.summary, units, baby.timezone)} />}
           </>
         ) : model.view === '30d' ? (
           <>
@@ -202,5 +318,83 @@ function SampleMonth({ now }: { now: Date }) {
       <SummaryStrip items={weekSummaryStrip(sample.week)} />
       <MonthTimeline days={sample.days} ticks={sample.ticks} todayKey={sample.todayKey} onOpenDay={() => undefined} />
     </>
+  );
+}
+
+function CompareButton({
+  comparing,
+  label,
+  locked,
+  plus,
+  onPress,
+}: {
+  comparing: boolean;
+  label: string;
+  locked: boolean;
+  plus: boolean;
+  onPress: () => void;
+}) {
+  const ink = useTokenColor('--ink');
+  const onPrimary = useTokenColor('--ink-on-solid');
+  const plusIcon = useTokenColor('--on-primary-soft');
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={comparing ? 'Stop comparing' : label}
+      accessibilityHint={locked && plus ? 'Part of Babble Plus' : undefined}
+      accessibilityState={{ selected: comparing }}
+      onPress={onPress}
+      className={`h-11 w-11 items-center justify-center rounded-full ${comparing ? 'bg-primary' : 'bg-surface'}`}
+    >
+      <ArrowLeftRight size={20} color={comparing ? onPrimary : ink} strokeWidth={2.75} />
+      {locked && plus && (
+        <View className="absolute -right-0.5 -top-0.5 size-4 items-center justify-center rounded-full bg-primary-soft">
+          <Sparkles size={10} color={plusIcon} strokeWidth={3} />
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+function ComparedTimelines({
+  comparison,
+  currentLabel,
+  ticks,
+  timeZone,
+  units,
+  now,
+  children,
+}: {
+  comparison: DayComparison | null;
+  currentLabel: string;
+  ticks: TimelineTick[];
+  timeZone: string;
+  units: Units;
+  now: Date;
+  children: ReactNode;
+}) {
+  return (
+    <View className="flex-row gap-3" testID="day-comparison-timelines">
+      <View className="flex-1 gap-2">
+        <Text className="font-semibold text-meta text-ink-2">{comparison?.previousLabel ?? '…'}</Text>
+        {comparison ? (
+          <DayTimeline
+            layout={comparison.layout}
+            ticks={ticks}
+            timeZone={timeZone}
+            units={units}
+            now={now}
+            nowFrac={comparison.cutoffFrac}
+            compact
+          />
+        ) : (
+          <PageSpinner />
+        )}
+      </View>
+      <View className="flex-1 gap-2">
+        <Text className="font-semibold text-meta text-ink">{currentLabel}</Text>
+        {children}
+      </View>
+    </View>
   );
 }

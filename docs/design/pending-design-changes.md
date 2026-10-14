@@ -394,3 +394,59 @@ Paste everything below this line into Claude Design.
 Paste everything below this line into Claude Design.
 
 > (1) **Sign in with your phone** (new page, shown when chair mode opens signed out, and from a "Signed in on your phone? Scan a code instead" text link under the sign-in form): wordmark top left; on wide screens two columns, on phone stacked. Left: title "Sign in to chair mode" (or "Sign in with your phone"), a numbered `ink-2` list "Open the camera on a phone that's signed in to babble." / "Scan the code." / "Tap **Sign in device**. This screen signs in by itself.", a small `ink-3` line "No camera? Go to babble.example/**link** and enter **KX7M-42PQ**.", and a `primary` text link "Sign in with email instead". Right: a raised card with a large QR code (about 256px) on a white tile, then "Code" in `ink-2` and the code in big bold tracked tabular type ("KX7M-42PQ"). While it's making a code or signing in, the card shows a spinner with "Making a code…" / "Signing in…". (2) **Approve on the phone** (`/link/KX7M42PQ`, centred page): "Sign in a device?", "**Linux (Chromium)** will be signed in as **joel@example.com**. It can see and log everything you can.", an info message "Only continue if the screen in front of you shows the code KX7M-42PQ. Never approve a code someone sent you.", then a full-width primary "Sign in device" and ghost "Cancel". After approving: "Device signed in" with a success message and a secondary "Back to babble". Expired: "Code not found" with a danger message and a line that the other screen makes a new code every few minutes. Signed out: a short line and a primary "Sign in". `/link` on its own is a small form: "Sign in a device", a Code field and "Continue". (3) **Settings → This device**: a new "Name" section above Appearance with a "Device name" text field; its placeholder is the automatic name ("Mac (Chrome)", "iPhone", "Google Pixel 7") and the hint reads 'Shown on entries logged here, like "Logged by Joel on Chair".'. (4) **Entry details**: the author line now names the device, "Logged by Joel on Chair · 14 Oct, 3:12 am" / "Started by Joel on iPhone · …". Entries by someone who was removed from the family keep their name ("Logged by Chair on Linux (Chromium)") instead of "a former member". Phone and desktop, light and dark.
+
+---
+
+## 2026-10-15 · Stats: Patterns separate from the range
+
+Paste everything below this line into Claude Design.
+
+> **Stats** (`Stats.dc.html`, `Phone.dc.html` stats): the page title "Stats" stands alone, with no range picker next to it. First comes a **Patterns** section: a bold section heading "Patterns" with an `ink-2` line under it, "From the last 14 finished days. The range below doesn't change these.", then the This week, Wake windows and Night sleep cards (without Plus, just the single Patterns Plus card, no extra heading). Below it, with clear space between, a **Daily stats** section: the bold section heading "Daily stats" with the averages caption under it on the left, and the 7d · 30d · All segmented control on the right (full width under the heading on phone), then the Sleep, Feeds and Nappies cards (or the "Nothing to chart yet" empty state). Growth stays last. Phone and desktop, light and dark, with and without Plus.
+
+---
+
+## 2026-10-15 · Chair mode: no automatic full screen
+
+Paste everything below this line into Claude Design.
+
+> **Chair mode** (`Chair Mode.dc.html`): the first tap no longer switches to full screen. The top strip keeps the **Full screen** / **Exit full screen** button (`maximize` / `minimize`) for tablets, but hides it when the browser itself is already full screen, as on the Raspberry Pi, which now runs in kiosk mode. No other visual change.
+
+---
+
+## 2026-10-15 · Stats jump links
+
+Paste everything below this line into Claude Design.
+
+> **Stats** (`Stats.dc.html`, web): under the "Stats" title, a row of the same rounded `surface` jump links as Settings ("Patterns", "Daily stats", "Growth"), each scrolling to its section; a link only shows when its section is on the page. Desktop and phone width, light and dark.
+
+---
+
+## 2026-10-15 · Chair mode: pause a nap, and "Not now" after a feed
+
+Paste everything below this line into Claude Design.
+
+> **Chair mode** (`Chair Mode.dc.html`): (1) While a nap is running, the Sleep button in the bottom quick row becomes a split button and takes a little more of the row (about 1.45× the width of Bottle and Nappy), so the row stays at three: the main part reads "**End nap · 32m**" (`moon`, `sleep-soft`, `on-sleep`) and ends the nap; a narrow square segment attached to its right, separated by a hairline gap, with the outer corners rounded and the inner corners only slightly rounded, pauses the nap (`pause` icon in `sleep` on `sleep-soft`, labelled "Pause nap" for screen readers). Once paused, the segment fills `session-paused` with an `ink-on-solid` `play` icon ("Resume nap"), and the main part gains a smaller second line "Awake · paused" (the same small bold line Nappy uses for "Wet · 5m ago"). On narrow screens the labels and second lines cut off with "…" instead of wrapping. (2) On the "Fed 13m" screen after ending a feed, the action row is now **Undo** (outlined, `undo-2`), **Not now** (outlined, no icon, same size as Undo) and the wide `sleep` button "**Olivia's asleep**". Not now goes straight back to the start screen without starting a nap. When a nap is already running, neither Not now nor the asleep button shows. Show light and dark, a running and a paused nap, and the ended screen.
+
+---
+
+## 2026-10-15 · Timeline Day: compare with the day before (Plus), and a feed-due line
+
+Paste everything below this line into Claude Design.
+
+> **Timeline** (`Timeline.dc.html`, `Phone.dc.html` timeline): in the Day view header, next to the day label ("Today" / "Yesterday" / "Tue 6 Oct") between the previous and next arrows, add a round icon-only button the size of the arrows with Lucide `arrow-left-right`; its tooltip reads "Compare with yesterday" (or "Compare with Tue 6 Oct" on past days). Off it uses the `surface` fill like the arrows; on it is filled `primary` with an `ink-on-solid` icon and the tooltip "Stop comparing". For a free family with billing on, a tiny `primary-soft` circle with a `sparkles` icon sits on its top-right corner and tapping opens the Plus sheet. When comparing, the summary strip and the day total cards are hidden, and the day timeline splits into two equal columns lined up by time of day, older day on the left: the day before on the left (label "Yesterday", `ink-2`) and the selected day on the right (label "Today", `ink`); both use the compact lane header (lane icons only, no text) and share the hour ticks. For today, the left column draws the same `primary` line at the same time of day as today's now line. In place of the totals (to the right of the timelines on desktop, below them on phone) show a card in the This week style: `arrow-left-right` in a `primary-soft` circle, title "By this time yesterday" (or "Compared with Tue 6 Oct" for a finished day), a caption "Today so far, against yesterday up to the same time." / "Both full days.", the Plus badge at the right when billing is on, then a small table with column headings "Yesterday" then "Today": rows Sleep, Naps, Longest sleep, Feeds, Nappies, each with the `ink-2` older value, the bold selected-day value and a right-aligned `ink-2` change with `trending-up` / `trending-down` / `minus` ("+30m", "−1", "Same"). Separately, on the Day and 24h timelines for Plus families, when a feed is due inside the visible window, draw a dashed 2px line across the lanes in `feed-left` with a small `feed-left-soft` chip at its right end reading "Feed due 3:10 pm"; once overdue the line and chip turn `danger` / `danger-soft` and read "Feed was due 3:10 pm". Phone and desktop, light and dark, Plus and free.
+
+---
+
+## 2026-10-15 · Settings in the sidebar footer
+
+Paste everything below this line into Claude Design.
+
+> **Web sidebar** (`Web.dc.html`, desktop and the narrow icon rail): Settings leaves the main nav (Home, Timeline, Stats remain). In the sidebar footer, after the member avatars and family name, add an icon-only button (Lucide `settings`, `ink-2`, tap-sized, `surface` on hover, tooltip "Settings"); on the Settings page it's filled `primary-soft` with `on-primary-soft`. On the icon rail it sits under the avatars. The phone bottom tab bar keeps Settings as its fourth tab. Light and dark.
+
+---
+
+## 2026-10-15 · Import drop zone, stats card charts, poo colours, feed side totals
+
+Paste everything below this line into Claude Design.
+
+> (1) **Import** (`Import.dc.html`): the dashed file area reads "Choose a file or drop it here" and accepts a dragged file; while a file is dragged over it, the border turns `primary`, the fill `primary-soft`, and the title reads "Drop to import". Once chosen, the second line reads "Choose or drop a different file". (2) **Stats cards** (`Stats.dc.html`): the chart and its legend sit at the bottom of each card, so charts in side-by-side cards line up even when one card has more figure tiles. (3) **Nappies card**: "Recent poo colours, newest first" shows at most 7 swatches. (4) **Feed breakdown** (`Phone.dc.html` and `Web.dc.html` entry and session screens): under "Total feeding **40m 19s**" (with "lost 2m" on the right), when both sides were used, a second `ink-2` meta line: a small `feed-left` dot, "Left", a bold tabular `ink` duration ("22m 10s"), then a `feed-right` dot, "Right" and its bold duration ("18m 09s"), wrapping on narrow screens; not shown for one side. The same line appears in the pumping card ("Total pumping"). Light and dark, phone and desktop.

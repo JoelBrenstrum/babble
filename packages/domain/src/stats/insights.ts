@@ -130,7 +130,7 @@ export function durationChange(current: number, previous: number): string {
   return `${delta > 0 ? '+' : '−'}${duration(Math.abs(delta))}`;
 }
 
-function countChange(current: number, previous: number): string {
+export function countChange(current: number, previous: number): string {
   const delta = Math.round((current - previous) * 10) / 10;
   if (delta === 0) return 'Same';
   return `${delta > 0 ? '+' : '−'}${Math.abs(delta)}`;
@@ -334,6 +334,8 @@ function takeaway(metrics: readonly Metric[], compared: boolean): string {
 }
 
 export const INSIGHT_DAYS = 14;
+
+export const PATTERNS_CAPTION = `From the last ${INSIGHT_DAYS} finished days. The range below doesn't change these.`;
 
 export function insightDays(todayKey: string): string[] {
   return lastDays(shiftDay(todayKey, -1), INSIGHT_DAYS);

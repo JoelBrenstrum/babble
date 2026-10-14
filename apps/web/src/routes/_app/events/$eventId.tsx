@@ -18,6 +18,7 @@ import {
   trackerFor,
   type BabyEvent,
   type Units,
+  tracksIdle,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
@@ -88,7 +89,7 @@ function EditEvent() {
       {(event.data.type === 'breast_feed' || event.data.type === 'pump') && event.data.segments.length > 0 && (
         <SessionBreakdown
           segments={event.data.segments}
-          mergeGapMs={event.data.source === 'manual' ? mergeGapMs : Number.POSITIVE_INFINITY}
+          mergeGapMs={tracksIdle(event.data.source) ? mergeGapMs : Number.POSITIVE_INFINITY}
           now={now}
           noun={event.data.type === 'pump' ? 'pumping' : 'feeding'}
         />

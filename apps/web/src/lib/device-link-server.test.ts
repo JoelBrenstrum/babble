@@ -8,7 +8,10 @@ const SECRET = 'a'.repeat(64);
 
 function fakeClient(rpc: (name: string, args: Record<string, unknown>) => unknown, hashedToken = 'token-hash') {
   const generateLink = vi.fn(async () => ({ data: { properties: { hashed_token: hashedToken } }, error: null }));
-  const client = { rpc: vi.fn(async (name: string, args: Record<string, unknown>) => rpc(name, args)), auth: { admin: { generateLink } } };
+  const client = {
+    rpc: vi.fn(async (name: string, args: Record<string, unknown>) => rpc(name, args)),
+    auth: { admin: { generateLink } },
+  };
   return { client: client as unknown as BabbleClient, rpc: client.rpc, generateLink };
 }
 
@@ -24,7 +27,10 @@ describe('startDeviceLink', () => {
     const { client, rpc } = fakeClient(() => ({ data: [{ id: ID, expires_at: 'soon' }], error: null }));
     const response = await startDeviceLink(
       client,
-      post({}, { 'user-agent': 'Mozilla/5.0 (X11; Linux aarch64) Chromium/126.0 Chrome/126.0', 'fly-client-ip': '1.2.3.4' }),
+      post(
+        {},
+        { 'user-agent': 'Mozilla/5.0 (X11; Linux aarch64) Chromium/126.0 Chrome/126.0', 'fly-client-ip': '1.2.3.4' },
+      ),
     );
     const body = (await response.json()) as { id: string; code: string; secret: string };
     expect(body.id).toBe(ID);
@@ -40,7 +46,9 @@ describe('startDeviceLink', () => {
   it('tries another code when one is taken', async () => {
     let calls = 0;
     const { client } = fakeClient(() =>
-      ++calls === 1 ? { data: null, error: { code: '23505' } } : { data: [{ id: ID, expires_at: 'soon' }], error: null },
+      ++calls === 1
+        ? { data: null, error: { code: '23505' } }
+        : { data: [{ id: ID, expires_at: 'soon' }], error: null },
     );
     expect((await startDeviceLink(client, post({}))).status).toBe(200);
     expect(calls).toBe(2);
@@ -62,7 +70,9 @@ describe('pollDeviceLink', () => {
 
   it('keeps waiting until someone approves', async () => {
     const { client, generateLink } = fakeClient(() => ({ data: [{ status: 'pending', email: null }], error: null }));
-    expect(await (await pollDeviceLink(client, post({ id: ID, secret: SECRET }))).json()).toEqual({ status: 'pending' });
+    expect(await (await pollDeviceLink(client, post({ id: ID, secret: SECRET }))).json()).toEqual({
+      status: 'pending',
+    });
     expect(generateLink).not.toHaveBeenCalled();
   });
 
@@ -79,7 +89,9 @@ describe('pollDeviceLink', () => {
 
   it('treats unknown links as expired', async () => {
     const { client } = fakeClient(() => ({ data: [], error: null }));
-    expect(await (await pollDeviceLink(client, post({ id: ID, secret: SECRET }))).json()).toEqual({ status: 'expired' });
+    expect(await (await pollDeviceLink(client, post({ id: ID, secret: SECRET }))).json()).toEqual({
+      status: 'expired',
+    });
   });
 });
 

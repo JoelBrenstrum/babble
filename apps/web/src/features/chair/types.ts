@@ -4,7 +4,7 @@ export type { ChairBaby, ChairFeed } from '@babble/domain';
 
 export type ChairData = ChairViewModel & {
   updateReady: boolean;
-  fullscreen: { supported: boolean; active: boolean; wanted: boolean };
+  fullscreen: { supported: boolean; active: boolean };
   offline: boolean;
 };
 
@@ -19,6 +19,8 @@ export interface ChairActions {
   saveNappy: (type: NappyType) => Promise<string>;
   startNap: () => Promise<string>;
   endNap: () => Promise<unknown>;
+  pauseNap: () => void;
+  resumeNap: () => void;
   undoEntry: (eventId: string) => Promise<unknown>;
   restoreEntry: (eventId: string) => Promise<unknown>;
   wake: () => { screenWasOff: boolean };

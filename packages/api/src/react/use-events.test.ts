@@ -25,7 +25,7 @@ function setup(respond: Parameters<typeof fakeClient>[0]) {
     createElement(
       QueryClientProvider,
       { client: queryClient },
-      createElement(NotifyProvider, { notify: (toast: Toast) => void toasts.push(toast), children }),
+      createElement(NotifyProvider, { notify: (toast: Toast) => void toasts.push(toast) }, children),
     );
   return { client, requests, queryClient, sleep, toasts, wrapper };
 }

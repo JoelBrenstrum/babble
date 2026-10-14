@@ -32,9 +32,18 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
 
   await expect(page.getByRole('radio', { name: 'Today' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Patterns' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Daily stats' })).toBeVisible();
+  const sections = page.getByRole('navigation', { name: 'Stats sections' });
+  await expect(sections.getByRole('link')).toHaveText(['Patterns', 'Daily stats', 'Growth']);
+  await sections.getByRole('link', { name: 'Growth' }).click();
+  await expect(page).toHaveURL(/#stats-section-growth$/);
 
-  await page.getByRole('radio', { name: '30d' }).click();
+  await page.getByRole('heading', { name: 'Nappies' }).scrollIntoViewIfNeeded();
+  const scrolled = await page.evaluate(() => window.scrollY);
+  await page.getByRole('radio', { name: '30d' }).evaluate((radio: HTMLElement) => radio.click());
   await expect(page).toHaveURL(/range=30d/);
+  await expect(page.locator('[aria-busy=true]')).toHaveCount(0);
+  expect(await page.evaluate(() => window.scrollY)).toBe(scrolled);
   await page.getByRole('radio', { name: 'All' }).click();
   await expect(page).toHaveURL(/range=all/);
   await expect(page.getByRole('heading', { name: 'All-time stats' })).toBeVisible();

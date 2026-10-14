@@ -183,6 +183,7 @@ export { parseDecimalInput, sanitizeDecimalInput } from './format/decimal-input'
 export {
   editableRowsToSegments,
   segmentsToEditableRows,
+  sideTotals,
   summariseSegments,
   type EditableRow,
   type SessionRow,
@@ -210,6 +211,7 @@ export {
   DEFAULT_FEED_REMINDER_INTERVAL_MIN,
   FEED_REMINDER_INTERVALS_MIN,
   feedDueFor,
+  feedDueMarker,
   feedDueText,
   feedReminderChoice,
   feedReminderOptions,
@@ -218,6 +220,7 @@ export {
   formatInterval,
   nextFeedDue,
   type FeedDue,
+  type FeedDueMarker,
   type FeedReminderSettings,
   type NightReminderSettings,
 } from './events/feed-due';
@@ -276,6 +279,7 @@ export {
   nightSleepCard,
   nightStats,
   nightWindow,
+  PATTERNS_CAPTION,
   sleepSpans,
   wakeWindowCard,
   wakeWindows,
@@ -424,6 +428,19 @@ export {
   type TimelineTick,
   type TimelineView,
 } from './timeline/timeline-model';
+export {
+  comparisonCutoff,
+  comparisonRows,
+  comparisonToggleLabel,
+  dayComparison,
+  previous24hWindow,
+  PREVIOUS_24H_LABEL,
+  previousDayWindow,
+  rollingComparison,
+  type ComparisonKey,
+  type ComparisonRow,
+  type DayComparison,
+} from './timeline/day-comparison';
 export { statsInputs, statsOptions } from './stats/inputs';
 export {
   buildChairData,
@@ -431,5 +448,6 @@ export {
   type ChairBabyInput,
   type ChairDataInput,
   type ChairFeed,
+  type ChairNap,
   type ChairViewModel,
 } from './chair/chair-data';

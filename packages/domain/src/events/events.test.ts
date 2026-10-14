@@ -166,7 +166,20 @@ describe('describeEvent', () => {
     expect(describeEvent(event, NOW, 'metric').parts.map((p) => p.text)).toEqual(['L 11m']);
   });
 
-  it('hides downtime for imported feeds', () => {
+  it('keeps downtime for feeds restored from a babble export', () => {
+    const event = makeEvent('breast_feed', {
+      source: 'babble_export',
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: '2026-10-06T10:30:00Z',
+      segments: [{ side: 'right', startedAt: '2026-10-06T10:00:00Z', endedAt: '2026-10-06T10:20:00Z' }],
+    });
+    const huckleberry = { ...event, source: 'huckleberry_csv' as const };
+    expect(describeEvent(event, NOW, 'metric').parts.length).toBeGreaterThan(
+      describeEvent(huckleberry, NOW, 'metric').parts.length,
+    );
+  });
+
+  it('hides downtime for Huckleberry imports', () => {
     const event = makeEvent('breast_feed', {
       source: 'huckleberry_csv',
       startedAt: '2026-10-06T10:00:00Z',

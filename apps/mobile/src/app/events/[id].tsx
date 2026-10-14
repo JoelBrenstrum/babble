@@ -10,6 +10,7 @@ import {
   latestFeed,
   pumpFinishSummary,
   trackerFor,
+  tracksIdle,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
@@ -90,7 +91,7 @@ function EditEventContent({
         <View className="mb-4">
           <SessionBreakdown
             segments={event.data.segments}
-            mergeGapMs={event.data.source === 'manual' ? mergeGapMs : Number.POSITIVE_INFINITY}
+            mergeGapMs={tracksIdle(event.data.source) ? mergeGapMs : Number.POSITIVE_INFINITY}
             now={now}
             noun={event.data.type === 'pump' ? 'pumping' : 'feeding'}
           />

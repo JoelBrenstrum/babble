@@ -27,7 +27,7 @@ function makeData(overrides: Partial<ChairData> = {}): ChairData {
     night: false,
     dimmed: false,
     updateReady: false,
-    fullscreen: { supported: true, active: false, wanted: true },
+    fullscreen: { supported: true, active: false },
     offline: false,
     lastFeed: 'Last fed 2h 10m ago · Right side · 18m',
     due: { text: 'Next feed due in 42m · around 3:02 pm', overdue: false },
@@ -54,6 +54,8 @@ function makeActions(): ChairActions {
     saveNappy: vi.fn(async () => 'nappy-1'),
     startNap: vi.fn(async () => 'nap-1'),
     endNap: vi.fn(async () => undefined),
+    pauseNap: vi.fn(),
+    resumeNap: vi.fn(),
     undoEntry: vi.fn(async () => undefined),
     restoreEntry: vi.fn(async () => undefined),
     wake: vi.fn(() => ({ screenWasOff: false })),
@@ -174,10 +176,37 @@ describe('ChairScreen idle', () => {
     await flush();
     expect(actions.startNap).toHaveBeenCalled();
     expect(screen.getByRole('status')).toHaveTextContent('Nap started');
-    rerender(<ChairScreen data={makeData({ nap: '32m' })} actions={actions} />);
+    rerender(<ChairScreen data={makeData({ nap: { asleep: '32m', paused: false } })} actions={actions} />);
     tap('End nap · 32m');
     await flush();
     expect(actions.endNap).toHaveBeenCalled();
+  });
+
+  it('pauses a running nap from the side of the End nap button, and resumes it', async () => {
+    const actions = makeActions();
+    const { rerender } = render(
+      <ChairScreen data={makeData({ nap: { asleep: '32m', paused: false } })} actions={actions} />,
+    );
+    const endNap = screen.getByRole('button', { name: 'End nap · 32m' });
+    expect(endNap.parentElement).toContainElement(screen.getByRole('button', { name: 'Pause nap' }));
+    expect(screen.queryByRole('button', { name: 'Resume nap' })).not.toBeInTheDocument();
+    tap('Pause nap');
+    expect(actions.pauseNap).toHaveBeenCalled();
+    expect(actions.endNap).not.toHaveBeenCalled();
+
+    rerender(<ChairScreen data={makeData({ nap: { asleep: '32m', paused: true } })} actions={actions} />);
+    expect(screen.getByRole('button', { name: /^End nap · 32m/ })).toHaveTextContent('Awake · paused');
+    expect(screen.getByRole('button', { name: 'Resume nap' })).toHaveClass('bg-session-paused');
+    tap('Resume nap');
+    expect(actions.resumeNap).toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /^End nap · 32m/ }));
+    await flush();
+    expect(actions.endNap).toHaveBeenCalled();
+  });
+
+  it('offers no nap pause without a running nap', () => {
+    render(<ChairScreen data={makeData()} actions={makeActions()} />);
+    expect(screen.queryByRole('button', { name: /(Pause|Resume) nap/ })).not.toBeInTheDocument();
   });
 
   it('shows a failed save', async () => {
@@ -270,12 +299,24 @@ describe('ChairScreen feeding', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Nap started');
   });
 
+  it('goes back to the start screen when the baby is not asleep yet', () => {
+    const actions = makeActions();
+    const { rerender } = render(<ChairScreen data={makeData({ feed })} actions={actions} />);
+    tap('End feed');
+    rerender(<ChairScreen data={makeData()} actions={actions} />);
+    tap('Not now');
+    expect(actions.startNap).not.toHaveBeenCalled();
+    expect(screen.queryByRole('button', { name: "Olivia's asleep" })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Start left' })).toBeInTheDocument();
+  });
+
   it('does not offer a nap when one is already running', () => {
     const actions = makeActions();
-    render(<ChairScreen data={makeData({ feed, nap: '10m' })} actions={actions} />);
+    render(<ChairScreen data={makeData({ feed, nap: { asleep: '10m', paused: false } })} actions={actions} />);
     tap('End feed');
     expect(screen.getByRole('button', { name: 'Undo' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /asleep/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Not now' })).not.toBeInTheDocument();
   });
 });
 
@@ -332,33 +373,36 @@ describe('ChairScreen night and offline', () => {
     expect(actions.refresh).toHaveBeenCalled();
   });
 
-  it('goes full screen on the first tap, and can leave and re-enter it', () => {
+  it('only goes full screen when asked, and can leave it', () => {
     const actions = makeActions();
     const { rerender } = render(<ChairScreen data={makeData()} actions={actions} />);
     fireEvent.click(screen.getByRole('button', { name: 'Start left' }));
+    expect(actions.enterFullscreen).not.toHaveBeenCalled();
+    tap('Full screen');
     expect(actions.enterFullscreen).toHaveBeenCalledTimes(1);
 
-    const inFullscreen = makeData({ fullscreen: { supported: true, active: true, wanted: true } });
-    rerender(<ChairScreen data={inFullscreen} actions={actions} />);
+    rerender(<ChairScreen data={makeData({ fullscreen: { supported: true, active: true } })} actions={actions} />);
     tap('Exit full screen');
     expect(actions.exitFullscreen).toHaveBeenCalled();
-
-    const windowed = makeData({ fullscreen: { supported: true, active: false, wanted: false } });
-    rerender(<ChairScreen data={windowed} actions={actions} />);
-    fireEvent.click(screen.getByRole('button', { name: 'Start left' }));
-    expect(actions.enterFullscreen).toHaveBeenCalledTimes(1);
-    tap('Full screen');
-    expect(actions.enterFullscreen).toHaveBeenCalledTimes(2);
   });
 
   it('hides the full screen button where the browser cannot do it', () => {
     render(
-      <ChairScreen
-        data={makeData({ fullscreen: { supported: false, active: false, wanted: true } })}
-        actions={makeActions()}
-      />,
+      <ChairScreen data={makeData({ fullscreen: { supported: false, active: false } })} actions={makeActions()} />,
     );
     expect(screen.queryByRole('button', { name: /full screen/i })).not.toBeInTheDocument();
+  });
+
+  it('names the device from the settings sheet', () => {
+    render(<ChairScreen data={makeData()} actions={makeActions()} />);
+    tap('Chair mode settings');
+    const field = screen.getByLabelText('Device name');
+    fireEvent.change(field, { target: { value: 'Chair' } });
+    expect(localStorage.getItem('babble.deviceName')).toBe('Chair');
+    expect(screen.getByText('Entries logged on this screen say they were logged on Chair.')).toBeInTheDocument();
+    tap('Close');
+    expect(screen.queryByLabelText('Device name')).not.toBeInTheDocument();
+    localStorage.clear();
   });
 
   it('shows the offline screen', () => {

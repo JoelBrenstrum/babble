@@ -14,7 +14,6 @@ import {
   type Side,
   type TrackerKey,
 } from '@babble/domain';
-import type { FamilyMemberRow } from '@babble/api';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRight, Clock, Moon, Sun } from 'lucide-react-native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';

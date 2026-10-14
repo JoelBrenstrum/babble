@@ -10,7 +10,7 @@ import {
   type Side,
 } from '@babble/domain';
 import { useCallback, useEffect, useReducer } from 'react';
-import { chairErrorMessage, chairFlowReducer, initialChairFlow } from './chair-flow';
+import { chairErrorMessage, chairFlowReducer, initialChairFlow, type ChairSheet } from './chair-flow';
 import { NAPPY_SAVED } from './nappy-sheet';
 import type { ChairActions, ChairData } from './types';
 
@@ -38,7 +38,7 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
     task().catch((caught: unknown) => show(chairErrorMessage(caught)));
   }
 
-  const openSheet = (next: 'bottle' | 'nappy' | 'nappy-ask' | 'baby') => dispatch({ type: 'open-sheet', sheet: next });
+  const openSheet = (next: ChairSheet) => dispatch({ type: 'open-sheet', sheet: next });
   const closeSheet = () => dispatch({ type: 'close-sheet' });
 
   function startFeed(side: Side) {
@@ -78,6 +78,11 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
     });
   }
 
+  function pauseNap() {
+    if (data.nap?.paused) actions.resumeNap();
+    else actions.pauseNap();
+  }
+
   function toggleNap() {
     if (!data.nap) return startNap();
     run(async () => {
@@ -109,6 +114,10 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
     run(() => actions.resumeFeed(ended.id));
   }
 
+  function notAsleepAfterFeed() {
+    dispatch({ type: 'clear-ended' });
+  }
+
   function asleepAfterFeed() {
     dispatch({ type: 'clear-ended' });
     startNap();
@@ -138,10 +147,12 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
     endFeed,
     discardFeed,
     toggleNap,
+    pauseNap,
     saveBottle,
     saveNappy,
     undoEnded,
     asleepAfterFeed,
+    notAsleepAfterFeed,
     undoToast,
     pickBaby,
   };

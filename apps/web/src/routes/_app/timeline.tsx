@@ -1,4 +1,8 @@
+import { babySettingsQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
 import {
+  comparisonToggleLabel,
+  feedDueFor,
+  feedDueMarker,
   daySummaryStrip,
   dayTotalCards,
   predictedLayout,
@@ -6,7 +10,9 @@ import {
   weekSummaryStrip,
   weekTableRows,
   TIMELINE_SPAN,
+  type DayComparison,
   type DayLayout,
+  type FeedDueMarker,
   type DaySummary,
   type PredictedItem,
   type TimelineTick,
@@ -16,13 +22,15 @@ import {
 import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
 import { useUnits } from '@babble/api/react';
+import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useMemo, type ReactNode } from 'react';
+import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Segmented } from '#/components/ui/segmented';
 import { PageSpinner } from '#/components/ui/spinner';
 import { PredictionLine } from '#/features/home-overview';
-import { PlusBadge } from '#/features/plus-dialog';
+import { PlusBadge, PlusDialog } from '#/features/plus-dialog';
+import { DayComparisonCard } from '#/features/timeline/day-comparison';
 import { DayTimeline } from '#/features/timeline/day-timeline';
 import { DayTotals, SummaryStrip, WeekTable } from '#/features/timeline/totals';
 import { WeekTimeline } from '#/features/timeline/week-timeline';
@@ -31,25 +39,26 @@ import { PlusMask } from '#/features/plus-mask';
 import { cn } from '#/lib/cn';
 import { useNow } from '#/lib/use-now';
 import { usePrediction } from '#/lib/use-prediction';
-import { useTimelineModel } from '#/lib/use-timeline';
+import { useDayComparison, useRollingComparison, useTimelineModel } from '#/lib/use-timeline';
 
 type View = TimelineView;
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 export const Route = createFileRoute('/_app/timeline')({
-  validateSearch: (search: Record<string, unknown>): { view?: View; date?: string } => ({
+  validateSearch: (search: Record<string, unknown>): { view?: View; date?: string; compare?: boolean } => ({
     view:
       search.view === '7d' || search.view === '30d' || search.view === 'day' || search.view === '24h'
         ? search.view
         : undefined,
     date: typeof search.date === 'string' && DAY_KEY.test(search.date) ? search.date : undefined,
+    compare: search.compare === true || search.compare === 'true' ? true : undefined,
   }),
   component: TimelinePage,
 });
 
 function TimelinePage() {
   const { babble, baby, family } = Route.useRouteContext();
-  const { view = 'day', date } = Route.useSearch();
+  const { view = 'day', date, compare } = Route.useSearch();
   const navigate = useNavigate({ from: Route.fullPath });
   const now = useNow(60_000);
   const units = useUnits(babble.client, baby.id);
@@ -71,6 +80,38 @@ function TimelinePage() {
     showsToday && model?.view === 'day' ? predictedLayout(prediction, model.day.window, now, baby.timezone) : null;
   const predictionLine = showsToday ? predictionText(prediction, baby.timezone) : null;
   const plus = babble.config.billingEnabled;
+  const [pitching, setPitching] = useState(false);
+  const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
+  const latest = useQuery({ ...latestEventsQuery(babble.client, baby.id), enabled: !insightsLocked }).data;
+  const running = useQuery({ ...runningEventsQuery(babble.client, baby.id), enabled: !insightsLocked }).data;
+  const due = insightsLocked ? null : feedDueFor(latest ?? [], running ?? [], settings, now, baby.timezone);
+  const feedDue =
+    model?.view === 'day'
+      ? feedDueMarker(due, model.day.window, now, baby.timezone)
+      : model?.view === '24h'
+        ? feedDueMarker(due, model.window, now, baby.timezone)
+        : null;
+  const comparing = (view === 'day' || view === '24h') && Boolean(compare) && !insightsLocked;
+  const toggleCompare = () =>
+    insightsLocked ? setPitching(true) : void navigate({ search: { view, date, compare: compare ? undefined : true } });
+  const rolling = useRollingComparison({
+    client: babble.client,
+    babyId: baby.id,
+    baby,
+    window: model?.view === '24h' ? model.window : null,
+    current: model?.view === '24h' ? model.summary : null,
+    enabled: comparing && view === '24h',
+  });
+  const comparison = useDayComparison({
+    client: babble.client,
+    babyId: baby.id,
+    baby,
+    dayKey: range.dayKey,
+    todayKey: range.todayKey,
+    current: model?.view === 'day' ? model.day.summary : null,
+    now,
+    enabled: comparing && view === 'day',
+  });
 
   return (
     <div className="flex flex-col gap-4">
@@ -80,7 +121,7 @@ function TimelinePage() {
           <Segmented<View>
             label="Timeline view"
             value={view}
-            onChange={(next) => void navigate({ search: { view: next, date } })}
+            onChange={(next) => void navigate({ search: { view: next, date, compare } })}
             options={[
               { value: 'day', label: 'Day' },
               { value: '24h', label: '24h' },
@@ -91,23 +132,43 @@ function TimelinePage() {
         </div>
       </div>
       {view === '24h' ? (
-        <p className="flex min-h-tap items-center justify-center text-row-title font-semibold">Last 24 hours</p>
+        <div className="flex min-h-tap items-center justify-center gap-2">
+          <p className="text-row-title font-semibold">Last 24 hours</p>
+          <CompareButton
+            comparing={comparing}
+            label="Compare with the 24 hours before"
+            locked={insightsLocked}
+            plus={plus}
+            onPress={toggleCompare}
+          />
+        </div>
       ) : (
         <div className="flex items-center justify-between">
           <Link
             to="/timeline"
-            search={{ view, date: range.previousKey }}
+            search={{ view, date: range.previousKey, compare }}
             aria-label={view === 'day' ? 'Previous day' : `Previous ${step} days`}
             className="grid size-tap place-items-center rounded-full bg-surface hover:bg-line"
           >
             <ChevronLeft className="size-5" strokeWidth={2.75} />
           </Link>
-          <span className="text-row-title font-semibold" aria-live="polite">
-            {range.rangeLabel}
+          <span className="flex items-center gap-2">
+            <span className="text-row-title font-semibold" aria-live="polite">
+              {range.rangeLabel}
+            </span>
+            {view === 'day' && (
+              <CompareButton
+                comparing={comparing}
+                label={comparisonToggleLabel(range.dayKey, range.todayKey)}
+                locked={insightsLocked}
+                plus={plus}
+                onPress={toggleCompare}
+              />
+            )}
           </span>
           <Link
             to="/timeline"
-            search={{ view, date: range.nextKey }}
+            search={{ view, date: range.nextKey, compare }}
             aria-label={view === 'day' ? 'Next day' : `Next ${step} days`}
             aria-disabled={!range.canGoNext}
             tabIndex={range.canGoNext ? undefined : -1}
@@ -120,6 +181,8 @@ function TimelinePage() {
           </Link>
         </div>
       )}
+
+      {pitching && <PlusDialog feature="insights" onClose={() => setPitching(false)} />}
 
       {sampleOnly ? (
         <PlusMask
@@ -141,6 +204,10 @@ function TimelinePage() {
           units={units}
           timeZone={baby.timezone}
           predicted={predicted}
+          feedDue={feedDue}
+          currentLabel={range.rangeLabel}
+          comparison={comparing ? (comparison ?? 'loading') : null}
+          plusBadge={plus}
           before={predictionLine && <PredictionLine text={predictionLine} plus={plus} />}
           after={
             predicted &&
@@ -161,6 +228,10 @@ function TimelinePage() {
           now={now}
           units={units}
           timeZone={baby.timezone}
+          feedDue={feedDue}
+          currentLabel="Last 24h"
+          comparison={comparing ? (rolling ?? 'loading') : null}
+          plusBadge={plus}
         />
       ) : model.view === '30d' ? (
         <div className="flex flex-col gap-4">
@@ -202,6 +273,10 @@ function DayPanel({
   units,
   timeZone,
   predicted,
+  feedDue = null,
+  currentLabel,
+  comparison = null,
+  plusBadge = false,
   before,
   after,
 }: {
@@ -213,28 +288,77 @@ function DayPanel({
   units: Units;
   timeZone: string;
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
+  feedDue?: FeedDueMarker | null;
+  currentLabel?: string;
+  comparison?: DayComparison | 'loading' | null;
+  plusBadge?: boolean;
   before?: ReactNode;
   after?: ReactNode;
 }) {
   return (
     <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-start">
       <div className="flex flex-col gap-4">
-        <div className="md:hidden">
-          <SummaryStrip items={daySummaryStrip(summary)} />
-        </div>
+        {!comparison && (
+          <div className="md:hidden">
+            <SummaryStrip items={daySummaryStrip(summary)} />
+          </div>
+        )}
         {before}
-        <DayTimeline
-          layout={layout}
-          ticks={ticks}
-          timeZone={timeZone}
-          units={units}
-          nowFrac={nowFrac}
-          now={now}
-          predicted={predicted}
-        />
+        {comparison ? (
+          <div className="grid grid-cols-2 gap-3" data-testid="day-comparison-timelines">
+            <div className="flex min-w-0 flex-col gap-2">
+              <span className="text-meta font-semibold text-ink-2">
+                {comparison === 'loading' ? '…' : comparison.previousLabel}
+              </span>
+              {comparison === 'loading' ? (
+                <PageSpinner />
+              ) : (
+                <DayTimeline
+                  layout={comparison.layout}
+                  ticks={ticks}
+                  timeZone={timeZone}
+                  units={units}
+                  nowFrac={comparison.cutoffFrac}
+                  now={now}
+                  compact
+                />
+              )}
+            </div>
+            <div className="flex min-w-0 flex-col gap-2">
+              <span className="text-meta font-semibold">{currentLabel}</span>
+              <DayTimeline
+                layout={layout}
+                ticks={ticks}
+                timeZone={timeZone}
+                units={units}
+                nowFrac={nowFrac}
+                now={now}
+                predicted={predicted}
+                feedDue={feedDue}
+                compact
+              />
+            </div>
+          </div>
+        ) : (
+          <DayTimeline
+            layout={layout}
+            ticks={ticks}
+            timeZone={timeZone}
+            units={units}
+            nowFrac={nowFrac}
+            now={now}
+            predicted={predicted}
+            feedDue={feedDue}
+          />
+        )}
         {after}
       </div>
-      <DayTotals cards={dayTotalCards(summary, units, timeZone)} />
+      <div className="flex flex-col gap-3">
+        {comparison && comparison !== 'loading' && (
+          <DayComparisonCard comparison={comparison} currentLabel={currentLabel ?? ''} plusBadge={plusBadge} />
+        )}
+        {!comparison && <DayTotals cards={dayTotalCards(summary, units, timeZone)} />}
+      </div>
     </div>
   );
 }
@@ -246,5 +370,41 @@ function SampleMonth({ now }: { now: Date }) {
       <SummaryStrip items={weekSummaryStrip(sample.week)} />
       <MonthTimeline days={sample.days} ticks={sample.ticks} todayKey={sample.todayKey} linkDays={false} />
     </div>
+  );
+}
+
+function CompareButton({
+  comparing,
+  label,
+  locked,
+  plus,
+  onPress,
+}: {
+  comparing: boolean;
+  label: string;
+  locked: boolean;
+  plus: boolean;
+  onPress: () => void;
+}) {
+  const title = comparing ? 'Stop comparing' : label;
+  return (
+    <button
+      type="button"
+      aria-pressed={comparing}
+      aria-label={title}
+      title={title}
+      onClick={onPress}
+      className={cn(
+        'relative grid size-tap place-items-center rounded-full',
+        comparing ? 'bg-primary text-ink-on-solid' : 'bg-surface text-ink hover:bg-line',
+      )}
+    >
+      <ArrowLeftRight className="size-5" strokeWidth={2.75} />
+      {plus && locked && (
+        <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-primary-soft text-on-primary-soft">
+          <Sparkles aria-hidden className="size-2.5" strokeWidth={3} />
+        </span>
+      )}
+    </button>
   );
 }

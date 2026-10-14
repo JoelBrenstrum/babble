@@ -53,7 +53,7 @@ describe('buildExport', () => {
   it('keeps every event in time order, including deleted ones flagged as deleted', () => {
     const exported = result.babies[0]!.events;
     expect(exported).toHaveLength(events.length + 1);
-    expect(exported.map((event) => event.startedAt)).toEqual([...exported.map((event) => event.startedAt)].sort());
+    expect(exported.map((event) => event.startedAt)).toEqual(exported.map((event) => event.startedAt).sort());
     expect(exported.find((event) => event.id === 'deleted-1')!.deletedAt).toBe('2026-10-08T08:00:00Z');
   });
 

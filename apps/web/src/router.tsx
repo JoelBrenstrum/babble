@@ -27,7 +27,7 @@ export function getRouter() {
   return createRouter({
     routeTree,
     context: { queryClient },
-    scrollRestoration: true,
+    scrollRestoration: ({ location }) => !location.state.keepScroll,
     defaultPreload: 'intent',
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: () => <PageSpinner />,
@@ -40,5 +40,8 @@ export function getRouter() {
 declare module '@tanstack/react-router' {
   interface Register {
     router: ReturnType<typeof getRouter>;
+  }
+  interface HistoryState {
+    keepScroll?: boolean;
   }
 }

@@ -3,10 +3,26 @@ export type Side = 'left' | 'right';
 export type Size = 'tiny' | 'little' | 'medium' | 'large' | 'massive';
 
 export type PooColour =
-  'yellow' | 'mustard' | 'green' | 'dark_green' | 'brown' | 'orange' | 'black' | 'red' | 'white_grey';
+  | 'yellow'
+  | 'mustard'
+  | 'green'
+  | 'dark_green'
+  | 'brown'
+  | 'orange'
+  | 'black'
+  | 'red'
+  | 'white_grey';
 
 export type PooTexture =
-  'runny' | 'loose' | 'seedy' | 'pasty' | 'formed' | 'mucousy' | 'solid' | 'pebbles' | 'diarrhea';
+  | 'runny'
+  | 'loose'
+  | 'seedy'
+  | 'pasty'
+  | 'formed'
+  | 'mucousy'
+  | 'solid'
+  | 'pebbles'
+  | 'diarrhea';
 
 export type BottleContent = 'breast_milk' | 'formula' | 'mixed' | 'other';
 
@@ -111,6 +127,10 @@ export type EventType = EventDraft['type'];
 export type SessionState = 'running' | 'paused' | 'ended';
 
 export type EventSource = 'manual' | 'huckleberry_csv' | 'babble_export';
+
+export function tracksIdle(source: EventSource): boolean {
+  return source !== 'huckleberry_csv';
+}
 
 export interface EventMeta {
   id: string;

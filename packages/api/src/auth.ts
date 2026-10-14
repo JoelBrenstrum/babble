@@ -91,7 +91,8 @@ export interface LinkSession {
 }
 
 export type AuthRedirectResult =
-  { kind: 'signed-in'; type: string | null } | { kind: 'confirm'; type: string | null; session: LinkSession };
+  | { kind: 'signed-in'; type: string | null }
+  | { kind: 'confirm'; type: string | null; session: LinkSession };
 
 // Dashboard links carry a session in the URL hash; anyone can craft one, so the account is confirmed before use.
 export async function completeAuthRedirect(client: BabbleClient, href: string): Promise<AuthRedirectResult> {

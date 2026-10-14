@@ -123,7 +123,7 @@ function ChairLive() {
   const data: ChairData = {
     ...view,
     updateReady,
-    fullscreen: { supported: fullscreen.supported, active: fullscreen.active, wanted: fullscreen.wanted },
+    fullscreen: { supported: fullscreen.supported, active: fullscreen.active },
     offline: !online,
   };
 
@@ -157,6 +157,8 @@ function ChairLive() {
     endNap: async () => {
       if (nap) await session.mutateAsync({ event: nap, action: { kind: 'end' } });
     },
+    pauseNap: () => nap && session.mutate({ event: nap, action: { kind: 'pause' } }),
+    resumeNap: () => nap && session.mutate({ event: nap, action: { kind: 'resume' } }),
     undoEntry: (eventId) => remove.mutateAsync(eventId),
     restoreEntry: (eventId) => restore.mutateAsync(eventId),
     wake: () => {

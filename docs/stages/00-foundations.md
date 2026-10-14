@@ -4,7 +4,7 @@
 
 ## Scope
 
-- Monorepo (pnpm + Turborepo), TypeScript, ESLint/Prettier, Vitest, `LICENSE` (AGPL-3.0)
+- Monorepo (pnpm + Turborepo), TypeScript, oxlint/oxfmt, Vitest, `LICENSE` (AGPL-3.0)
 - CI: typecheck, lint, unit tests, pgTAP RLS tests, a web build, and a compose smoke test
 - `apps/web` (TanStack Start) and `apps/mobile` (Expo) scaffolds wired to the shared `api`, `hooks` and `tokens` packages
 - Local dev with the Supabase CLI (`supabase start`)
@@ -36,7 +36,7 @@
 
 Built on branch `stage-0`:
 
-- [x] Monorepo, Turborepo, Prettier, Vitest, AGPL-3.0 licence, CI workflow
+- [x] Monorepo, Turborepo, oxlint and oxfmt, Vitest, AGPL-3.0 licence, CI workflow
 - [x] `packages/config`, `packages/tokens` (generated from the design, with drift test), `packages/api`, `packages/db`
 - [x] Migration for families, members, babies, settings, invites, invite-only sign-up, account deletion, plus pgTAP tests
 - [x] Web: sign-in (magic link + Google), auth callback, invite links, onboarding (family → baby → day start → invite), responsive shell (sidebar / rail / tab bar), Home, History, Stats, Settings, PWA manifest and icons, `/api/health`

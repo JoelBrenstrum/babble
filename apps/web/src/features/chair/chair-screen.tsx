@@ -9,6 +9,7 @@ import { EndedView } from './ended-view';
 import { FeedingView } from './feeding-view';
 import { IdleView } from './idle-view';
 import { NappyAskSheet, NappySheet } from './nappy-sheet';
+import { SettingsSheet } from './settings-sheet';
 import { OfflineView } from './offline-view';
 import { SIDE_SOFT } from './styles';
 import { TopStrip } from './top-strip';
@@ -46,8 +47,6 @@ export function ChairScreen({
         swallowClick.current = actions.wake().screenWasOff;
       }}
       onClickCapture={(event) => {
-        const { supported, active, wanted } = data.fullscreen;
-        if (supported && wanted && !active) actions.enterFullscreen();
         if (!swallowClick.current) return;
         swallowClick.current = false;
         event.stopPropagation();
@@ -61,6 +60,7 @@ export function ChairScreen({
             actions={actions}
             canSwitchBaby={canSwitchBaby}
             onSwitchBaby={() => flow.openSheet('baby')}
+            onSettings={() => flow.openSheet('settings')}
           />
         )}
 
@@ -73,6 +73,7 @@ export function ChairScreen({
             babyName={data.babyName}
             onUndo={flow.undoEnded}
             onAsleep={data.nap ? null : flow.asleepAfterFeed}
+            onNotNow={flow.notAsleepAfterFeed}
           />
         ) : feed ? (
           <FeedingView
@@ -89,6 +90,7 @@ export function ChairScreen({
             onBottle={() => flow.openSheet('bottle')}
             onNappy={() => flow.openSheet('nappy')}
             onSleep={flow.toggleNap}
+            onPauseNap={flow.pauseNap}
           />
         )}
       </div>
@@ -101,6 +103,7 @@ export function ChairScreen({
         <NappyAskSheet babyName={data.babyName} onClose={flow.closeSheet} onYes={() => flow.openSheet('nappy')} />
       )}
       {sheet === 'nappy' && <NappySheet onClose={flow.closeSheet} onPick={flow.saveNappy} />}
+      {sheet === 'settings' && <SettingsSheet onClose={flow.closeSheet} />}
 
       {data.updateReady && !toast && (
         <ChairPill className="gap-[3cqmin] pr-[1.4cqmin]">

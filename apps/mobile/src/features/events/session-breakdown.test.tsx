@@ -38,6 +38,19 @@ describe('SessionBreakdown', () => {
     expect(screen.getByText('idle')).toBeTruthy();
     expect(screen.getByText('3m 02s')).toBeTruthy();
     expect(screen.getByText('lost 3m 02s')).toBeTruthy();
+    expect(screen.getByLabelText('Each side')).toBeTruthy();
+    expect(screen.getAllByText('12m 23s')).toHaveLength(2);
+  });
+
+  it('leaves out the per-side totals when only one side was used', async () => {
+    await render(
+      <SessionBreakdown
+        segments={[{ side: 'left', startedAt: at(0), endedAt: at(10) }]}
+        mergeGapMs={15_000}
+        now={new Date(at(12))}
+      />,
+    );
+    expect(screen.queryByLabelText('Each side')).toBeNull();
   });
 
   it('marks the growing idle row while paused', async () => {

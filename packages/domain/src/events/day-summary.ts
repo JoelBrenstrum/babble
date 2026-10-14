@@ -4,7 +4,7 @@ import { hasFood } from './foods';
 import { segmentTotals } from './segments';
 import { summariseSegments } from './session-summary';
 import { asleepIntervals, asleepWithin } from './sleep-stretches';
-import type { BabyEvent } from './types';
+import { tracksIdle, type BabyEvent } from './types';
 import { SECOND_MS } from '../time/constants';
 import { compareIso } from '../time/instants';
 
@@ -144,7 +144,7 @@ export function summariseDay(
         summary.feeds += 1;
         summary.leftMs += totals.leftMs;
         summary.rightMs += totals.rightMs;
-        if (event.source === 'manual') {
+        if (tracksIdle(event.source)) {
           summary.idleMs += summariseSegments(event.segments, { mergeGapMs: options.mergeGapMs ?? 0, now }).downtimeMs;
         }
         break;

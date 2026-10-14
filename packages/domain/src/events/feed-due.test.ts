@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   feedDueFor,
+  feedDueMarker,
   feedDueText,
   feedReminderChoice,
   feedReminderOptions,
@@ -150,5 +151,32 @@ describe('feedDueFor', () => {
 
   it('is null while a breastfeed is running', () => {
     expect(feedDueFor([breast], [{ ...breast, id: 'live', endedAt: null }], settings, day, 'UTC')).toBeNull();
+  });
+});
+
+describe('feedDueMarker', () => {
+  const window = { start: new Date('2026-10-06T00:00:00Z'), end: new Date('2026-10-07T00:00:00Z') };
+  const due = { dueAt: '2026-10-06T12:00:00.000Z', nextSide: null };
+
+  it('places the due time on the day', () => {
+    expect(feedDueMarker(due, window, new Date('2026-10-06T10:00:00Z'), 'UTC')).toEqual({
+      frac: 0.5,
+      label: 'Feed due 12:00 pm',
+      overdue: false,
+    });
+  });
+
+  it('says when the feed is overdue', () => {
+    expect(feedDueMarker(due, window, new Date('2026-10-06T13:00:00Z'), 'UTC')).toEqual({
+      frac: 0.5,
+      label: 'Feed was due 12:00 pm',
+      overdue: true,
+    });
+  });
+
+  it('shows nothing without a due feed or outside the day', () => {
+    expect(feedDueMarker(null, window, new Date('2026-10-06T10:00:00Z'), 'UTC')).toBeNull();
+    const tomorrow = { dueAt: '2026-10-07T01:00:00.000Z', nextSide: null };
+    expect(feedDueMarker(tomorrow, window, new Date('2026-10-06T23:00:00Z'), 'UTC')).toBeNull();
   });
 });

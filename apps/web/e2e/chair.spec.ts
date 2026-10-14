@@ -43,6 +43,11 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await page.getByRole('button', { name: "Olivia's asleep" }).click();
   await expect(page.getByRole('status')).toContainText('Nap started');
   await expect(page.getByRole('button', { name: /^End nap/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Pause nap' }).click();
+  await expect(page.getByText('Awake · paused')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('nap-paused.png') });
+  await page.getByRole('button', { name: 'Resume nap' }).click();
+  await expect(page.getByRole('button', { name: 'Pause nap' })).toBeVisible();
   await page.getByRole('button', { name: /^End nap/ }).click();
   await expect(page.getByRole('status')).toContainText('Nap ended');
 
@@ -71,6 +76,15 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await expect(page.getByText('Feeding · Right')).toBeVisible();
   await page.getByRole('button', { name: 'Discard' }).click();
   await expect(page.getByRole('button', { name: 'Start right' })).toBeVisible();
+  await expect(page.getByRole('status')).toHaveCount(0, { timeout: 7_000 });
+
+  await page.getByRole('button', { name: 'Start left' }).click();
+  await expect(page.getByText('Feeding · Left')).toBeVisible();
+  await page.getByRole('button', { name: 'End feed' }).click();
+  await page.screenshot({ path: testInfo.outputPath('ended.png') });
+  await page.getByRole('button', { name: 'Not now' }).click();
+  await expect(page.getByRole('button', { name: 'Start right' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Sleep' })).toBeVisible();
 
   await page.goto('/track/nappy');
   await expect(page.getByText('Wet').first()).toBeVisible();

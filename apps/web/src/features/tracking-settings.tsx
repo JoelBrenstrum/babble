@@ -119,22 +119,22 @@ export function BabyTrackingSettings({
       <div className="flex flex-col gap-2">
         <span className="text-label font-semibold">Night</span>
         <div className="grid grid-cols-2 gap-3">
-          <label className="flex flex-col gap-1 text-meta text-ink-2">
+          <div className="flex flex-col gap-1 text-meta text-ink-2">
             From
             <MinutesTimeInput
               label="Night starts"
               minutes={settings.night_start_minutes}
               onChange={(night_start_minutes) => save({ night_start_minutes })}
             />
-          </label>
-          <label className="flex flex-col gap-1 text-meta text-ink-2">
+          </div>
+          <div className="flex flex-col gap-1 text-meta text-ink-2">
             To
             <MinutesTimeInput
               label="Night ends"
               minutes={settings.night_end_minutes}
               onChange={(night_end_minutes) => save({ night_end_minutes })}
             />
-          </label>
+          </div>
         </div>
         <p className="text-meta text-ink-2">
           Sleep in this window counts as night sleep; the rest are naps. Dark at night follows it too.

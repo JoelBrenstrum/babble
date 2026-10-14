@@ -78,7 +78,7 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
           </div>
         ))}
       </dl>
-      <div className="flex flex-col gap-1.5">
+      <div className="mt-auto flex flex-col gap-1.5">
         <div className="flex items-center justify-between text-caption text-ink-3">
           <span className="flex gap-3">
             {chart.legend.map((index) => (

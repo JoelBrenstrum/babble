@@ -12,6 +12,13 @@ const exitFullscreen = vi.fn(async () => {
   document.dispatchEvent(new Event('fullscreenchange'));
 });
 
+function setDisplayMode(fullscreen: boolean) {
+  Object.defineProperty(window, 'matchMedia', {
+    value: (query: string) => ({ matches: fullscreen && query === '(display-mode: fullscreen)' }),
+    configurable: true,
+  });
+}
+
 beforeEach(() => {
   element = null;
   Object.defineProperty(document, 'fullscreenEnabled', { value: true, configurable: true });
@@ -21,29 +28,25 @@ beforeEach(() => {
     value: requestFullscreen,
     configurable: true,
   });
+  setDisplayMode(false);
 });
 
-afterEach(() => {
-  localStorage.clear();
-  vi.clearAllMocks();
-});
+afterEach(() => vi.clearAllMocks());
 
 describe('useFullscreen', () => {
-  it('wants full screen by default and follows the browser state', async () => {
+  it('enters and leaves full screen when asked', async () => {
     const { result } = renderHook(() => useFullscreen());
-    expect(result.current).toMatchObject({ supported: true, active: false, wanted: true });
+    expect(result.current).toMatchObject({ supported: true, active: false });
     await act(async () => result.current.enter());
     expect(requestFullscreen).toHaveBeenCalled();
     expect(result.current.active).toBe(true);
-  });
-
-  it('remembers leaving full screen', async () => {
-    const { result } = renderHook(() => useFullscreen());
-    await act(async () => result.current.enter());
     await act(async () => result.current.exit());
     expect(exitFullscreen).toHaveBeenCalled();
-    expect(result.current).toMatchObject({ active: false, wanted: false });
-    expect(localStorage.getItem('babble.chairFullscreen')).toBe('off');
-    expect(renderHook(() => useFullscreen()).result.current.wanted).toBe(false);
+    expect(result.current.active).toBe(false);
+  });
+
+  it('offers nothing when the browser itself is full screen, as in kiosk mode', () => {
+    setDisplayMode(true);
+    expect(renderHook(() => useFullscreen()).result.current.supported).toBe(false);
   });
 });

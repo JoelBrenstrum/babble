@@ -154,6 +154,9 @@ test('a feed can be edited segment by segment', async ({ page }, testInfo) => {
     .first()
     .click();
   await expect(page.getByText('Total feeding')).toBeVisible();
+  const sides = page.getByLabel('Each side');
+  await expect(sides).toContainText('Left10m 00s');
+  await expect(sides).toContainText('Right12m 00s');
   const first = page.getByLabel('Segment 1 minutes');
   await first.fill('8');
   await page.getByRole('button', { name: 'Add downtime' }).click();

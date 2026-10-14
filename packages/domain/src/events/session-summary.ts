@@ -96,6 +96,14 @@ export function summariseSegments(
   };
 }
 
+export function sideTotals(summary: Pick<SessionSummary, 'leftMs' | 'rightMs'>): { side: Side; durationMs: number }[] {
+  if (summary.leftMs <= 0 || summary.rightMs <= 0) return [];
+  return [
+    { side: 'left', durationMs: summary.leftMs },
+    { side: 'right', durationMs: summary.rightMs },
+  ];
+}
+
 export type EditableRow = { kind: 'side'; side: Side; durationMs: number } | { kind: 'downtime'; durationMs: number };
 
 export function segmentsToEditableRows(segments: readonly TimedSegment[], now: Date): EditableRow[] {

@@ -1,6 +1,7 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
 import {
   growthReport,
+  PATTERNS_CAPTION,
   STATS_RANGES,
   statsCaption,
   statsInputs,
@@ -9,8 +10,8 @@ import {
   type StatsRange,
 } from '@babble/domain';
 import { sampleStatsReport } from '@babble/api/fixtures';
-import { useUnits } from '@babble/api/react';
-import { useQuery } from '@tanstack/react-query';
+import { useSettled, useUnits } from '@babble/api/react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ChartColumn } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
@@ -40,10 +41,17 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
   const units = useUnits(client, baby.id);
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const [range, setRange] = useState<StatsRange>('7d');
-  const { todayKey, keys, from, to } = statsInputs(range, baby, now);
+  const { from, to } = statsInputs(range, baby, now);
   const insights = useInsights(baby, family, now);
   const sampleOnly = range === 'all' && insights.locked;
-  const events = useQuery({ ...eventsBetweenQuery(client, baby.id, from, to), enabled: !sampleOnly });
+  const events = useQuery({
+    ...eventsBetweenQuery(client, baby.id, from, to),
+    enabled: !sampleOnly,
+    placeholderData: keepPreviousData,
+  });
+  const loading = events.isPlaceholderData && !sampleOnly;
+  const shownRange = useSettled(range, !loading);
+  const { todayKey, keys } = statsInputs(shownRange, baby, now);
   const growth = useQuery(eventListQuery(client, baby.id, ['growth']));
   const sample = useMemo(() => (sampleOnly ? sampleStatsReport(now) : null), [sampleOnly, now]);
 
@@ -53,33 +61,44 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
       ? statsReport(events.data, keys, todayKey, now, statsOptions(baby, settings, units))
       : null);
 
+  const empty = !sample && !events.data?.length;
+
   return (
     <Screen edges={['top']}>
-      <View className="gap-4">
+      <View className="gap-8">
         <Text className="font-bold text-title text-ink">Stats</Text>
-        <Segmented<StatsRange> value={range} onChange={setRange} options={STATS_RANGES} />
-        {report && !sample && <Text className="font-sans text-meta text-ink-2">{statsCaption(report)}</Text>}
-        {!report ? (
-          <PageSpinner />
-        ) : !sample && !events.data?.length ? (
-          <EmptyState
-            icon={ChartColumn}
-            title="Nothing to chart yet"
-            body="Stats for sleep, feeds and nappies appear once you start logging."
-          />
-        ) : (
-          <>
-            <Insights state={insights} babyName={baby.name} plusBadges={config.billingEnabled} />
+        <Insights state={insights} babyName={baby.name} plusBadges={config.billingEnabled} />
+        <View className="gap-4">
+          <View className="gap-1">
+            <Text accessibilityRole="header" className="font-bold text-heading text-ink">
+              Daily stats
+            </Text>
+            {report && !sample && !empty && (
+              <Text className="font-sans text-meta text-ink-2">{statsCaption(report)}</Text>
+            )}
+          </View>
+          <Segmented<StatsRange> value={range} onChange={setRange} options={STATS_RANGES} />
+          {!report ? (
+            <PageSpinner />
+          ) : empty ? (
+            <EmptyState
+              icon={ChartColumn}
+              title="Nothing to chart yet"
+              body="Stats for sleep, feeds and nappies appear once you start logging."
+            />
+          ) : (
             <PlusMask
               locked={Boolean(sample)}
               feature="insights"
               title="All-time stats"
               body={`Charts and averages for every day since ${baby.name} was born are part of Babble Plus.`}
             >
-              <StatsCards cards={report.cards} />
+              <View style={{ opacity: loading ? 0.6 : 1 }}>
+                <StatsCards cards={report.cards} />
+              </View>
             </PlusMask>
-          </>
-        )}
+          )}
+        </View>
         {growth.data && (growth.data.length > 0 || (events.data?.length ?? 0) > 0) && (
           <GrowthCard
             report={growthReport(
@@ -109,10 +128,17 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
   const { report } = state;
   if (!report) return null;
   const cards = [report.wake, report.night].filter((card) => card !== null);
+  if (!report.weekly && cards.length === 0) return null;
   return (
-    <>
+    <View className="gap-4">
+      <View className="gap-1">
+        <Text accessibilityRole="header" className="font-bold text-heading text-ink">
+          Patterns
+        </Text>
+        <Text className="font-sans text-meta text-ink-2">{PATTERNS_CAPTION}</Text>
+      </View>
       {report.weekly && <WeeklySummaryCard summary={report.weekly} plusBadge={plusBadges} />}
       {cards.length > 0 && <StatsCards cards={cards} plusBadges={plusBadges} />}
-    </>
+    </View>
   );
 }

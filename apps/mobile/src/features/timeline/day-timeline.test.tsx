@@ -44,4 +44,22 @@ describe('DayTimeline', () => {
     );
     expect(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm')).toBeTruthy();
   });
+
+  it('marks when the next feed is due', async () => {
+    const now = new Date();
+    const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
+    await render(
+      <DayTimeline
+        layout={dayLayout([], window, now)}
+        ticks={[]}
+        timeZone={sampleBaby.timezone}
+        units="metric"
+        nowFrac={0.5}
+        now={now}
+        feedDue={{ frac: 0.6, label: 'Feed due 3:10 pm', overdue: false }}
+      />,
+    );
+    expect(screen.getByLabelText('Feed due 3:10 pm')).toBeOnTheScreen();
+    expect(screen.getByText('Feed due 3:10 pm')).toBeOnTheScreen();
+  });
 });

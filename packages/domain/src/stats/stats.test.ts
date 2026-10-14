@@ -3,8 +3,6 @@ import { makeEvent } from '../events/test-events';
 import {
   barAnchor,
   barReadout,
-  barTitle,
-  chartEnds,
   chartValue,
   gapsBetween,
   isStatsRange,
@@ -144,6 +142,21 @@ describe('statsReport', () => {
       [0, 1, 0],
       [1, 0, 0],
     ]);
+  });
+
+  it('lists only the newest seven poo colours', () => {
+    const dirty = Array.from({ length: 9 }, (_, index) =>
+      makeEvent('nappy', {
+        id: `dirty-${index}`,
+        startedAt: `2026-10-08T0${index}:00:00Z`,
+        details: { ...makeEvent('nappy').details, dirty: true, pooColours: [index < 2 ? 'green' : 'mustard'] },
+      }),
+    );
+    const colours = statsReport(dirty, keys, '2026-10-08', NOW, settings).cards.find(
+      (card) => card.key === 'nappies',
+    )!.colours;
+    expect(colours).toHaveLength(7);
+    expect(colours).not.toContain('green');
   });
 
   it('starts from the first logged day, so empty days before it do not lower the averages', () => {

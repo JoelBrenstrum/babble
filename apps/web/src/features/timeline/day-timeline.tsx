@@ -10,6 +10,7 @@ import {
   summariseSleep,
   timelineItemLabel,
   type DayLayout,
+  type FeedDueMarker,
   type PredictedItem,
   type TimelineItem,
   type Units,
@@ -53,6 +54,8 @@ export function DayTimeline({
   now,
   nowFrac,
   predicted = null,
+  compact = false,
+  feedDue = null,
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -61,6 +64,8 @@ export function DayTimeline({
   now: Date;
   nowFrac: number | null;
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
+  compact?: boolean;
+  feedDue?: FeedDueMarker | null;
 }) {
   const lanes: { key: keyof DayLayout; label: string; icon: LucideIcon; tone: string }[] = [
     { key: 'sleep', label: 'Sleep', icon: Moon, tone: 'text-sleep' },
@@ -77,7 +82,7 @@ export function DayTimeline({
         {lanes.map((lane) => (
           <span key={lane.key} className="flex items-center gap-1.5">
             <lane.icon className={cn('size-3.5', lane.tone)} strokeWidth={2.75} />
-            {lane.label}
+            <span className={cn(compact && 'sr-only')}>{lane.label}</span>
           </span>
         ))}
       </div>
@@ -101,6 +106,27 @@ export function DayTimeline({
               style={{ top: formatFraction(tick.frac) }}
             />
           ))}
+          {feedDue && (
+            <div
+              role="img"
+              aria-label={feedDue.label}
+              data-testid="feed-due-line"
+              className={cn(
+                'absolute inset-x-0 z-10 border-t-2 border-dashed',
+                feedDue.overdue ? 'border-danger' : 'border-feed-left',
+              )}
+              style={{ top: formatFraction(feedDue.frac) }}
+            >
+              <span
+                className={cn(
+                  'tabular absolute right-0 -translate-y-full whitespace-nowrap rounded-chip px-1.5 text-caption font-semibold',
+                  feedDue.overdue ? 'bg-danger-soft text-on-danger' : 'bg-feed-left-soft text-on-feed-left',
+                )}
+              >
+                {feedDue.label}
+              </span>
+            </div>
+          )}
           {nowFrac !== null && (
             <div className="absolute inset-x-0 z-10 border-t-2 border-primary" style={{ top: formatFraction(nowFrac) }}>
               <span className={cn('absolute size-2 rounded-full bg-primary', NOW_DOT_OFFSET)} />

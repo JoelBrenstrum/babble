@@ -9,7 +9,6 @@ const feed = makeEvent('breast_feed', {
   endedAt: '2026-10-06T10:20:00Z',
   segments: [{ side: 'left', startedAt: '2026-10-06T10:00:00Z', endedAt: '2026-10-06T10:20:00Z' }],
 });
-const bottle = makeEvent('bottle', { id: 'bottle', startedAt: '2026-10-06T11:00:00Z' });
 const nap = makeEvent('sleep', { id: 'nap', startedAt: '2026-10-06T11:30:00Z', endedAt: null });
 
 describe('napPromptContent', () => {

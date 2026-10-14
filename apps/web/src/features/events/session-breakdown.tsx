@@ -1,4 +1,4 @@
-import { formatDuration, summariseSegments, type TimedSegment } from '@babble/domain';
+import { formatDuration, sideTotals, summariseSegments, type TimedSegment } from '@babble/domain';
 import { Minus } from 'lucide-react';
 import { Card } from '#/components/ui/card';
 import { cn } from '#/lib/cn';
@@ -21,6 +21,7 @@ export function SessionBreakdown({
   const lastEnd = segments.at(-1)?.endedAt ?? null;
   const summary = summariseSegments(segments, { mergeGapMs, now, pausedSince: paused ? lastEnd : null });
   if (summary.rows.length === 0) return null;
+  const sides = sideTotals(summary);
 
   return (
     <Card className="divide-y divide-line">
@@ -62,13 +63,29 @@ export function SessionBreakdown({
           )}
         </div>
       ))}
-      <div className="flex items-baseline justify-between px-4 py-3 text-meta text-ink-2">
+      <div
+        className={cn(
+          'flex items-baseline justify-between px-4 pt-3 text-meta text-ink-2',
+          sides.length === 0 && 'pb-3',
+        )}
+      >
         <span>
           Total {noun}{' '}
           <span className="tabular text-body font-semibold text-ink">{formatDuration(summary.activeMs)}</span>
         </span>
         {summary.downtimeMs > 0 && <span className="tabular">lost {formatDuration(summary.downtimeMs)}</span>}
       </div>
+      {sides.length > 0 && (
+        <div aria-label="Each side" className="flex flex-wrap gap-x-4 gap-y-1 px-4 pb-3 text-meta text-ink-2">
+          {sides.map((total) => (
+            <span key={total.side} className="flex items-center gap-1.5">
+              <span className={cn('size-2 rounded-full', total.side === 'left' ? 'bg-feed-left' : 'bg-feed-right')} />
+              {total.side === 'left' ? 'Left' : 'Right'}
+              <span className="tabular font-semibold text-ink">{formatDuration(total.durationMs)}</span>
+            </span>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }

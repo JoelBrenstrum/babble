@@ -1,9 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import * as prettier from 'prettier';
+import { format } from 'oxfmt';
 import { describe, expect, it } from 'vitest';
 import { parseTokenCss, renderNativePreset, renderVarsModule, renderWebCss } from './build.ts';
 
+const FORMAT = JSON.parse(readFileSync(new URL('../../../.oxfmtrc.json', import.meta.url), 'utf8'));
 const file = (path: string) => new URL(`../${path}`, import.meta.url);
 const read = (path: string) => readFileSync(file(path), 'utf8');
 
@@ -103,9 +104,8 @@ describe('generated files', () => {
     ['nativewind-preset.cjs', () => renderNativePreset(tokens)],
     ['src/generated/vars.ts', () => renderVarsModule(tokens)],
   ])('%s is up to date (run `pnpm generate`)', async (path, render) => {
-    const options = await prettier.resolveConfig(fileURLToPath(file(path)));
-    const expected = await prettier.format(render(), { ...options, filepath: fileURLToPath(file(path)) });
-    expect(read(path)).toBe(expected);
+    const { code } = await format(fileURLToPath(file(path)), render(), FORMAT);
+    expect(read(path)).toBe(code);
   });
 
   it('maps every colour into the web theme and the native preset', () => {

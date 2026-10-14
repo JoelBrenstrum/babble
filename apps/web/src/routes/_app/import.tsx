@@ -19,6 +19,7 @@ import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
 import { SelectField } from '#/components/ui/field';
 import { StatusMessage } from '#/components/ui/status';
+import { cn } from '#/lib/cn';
 import { ImportPreview } from '#/features/import/import-preview';
 import { listTimeZones } from '#/lib/timezones';
 
@@ -49,6 +50,18 @@ function ImportPage() {
   const { run, error, setError } = useAsyncAction();
 
   const [fromIndex, setFromIndex] = useState(0);
+  const [dragging, setDragging] = useState(false);
+
+  async function choose(chosen: File) {
+    if (chosen.size > MAX_IMPORT_BYTES) {
+      setFile(null);
+      setError('That file is too big to import. Choose a babble or Huckleberry export.');
+      return;
+    }
+    setError(null);
+    setFromIndex(0);
+    setFile({ name: chosen.name, text: await chosen.text() });
+  }
 
   const parsed = useMemo(():
     | { source: 'huckleberry_csv'; result: HuckleberryImport }
@@ -120,28 +133,44 @@ function ImportPage() {
             device; only the entries are sent to your babble server.
           </p>
 
-          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-card border-2 border-dashed border-line-strong bg-raised px-6 py-10 text-center has-focus-visible:ring-2 has-focus-visible:ring-primary hover:border-primary">
+          <label
+            className={cn(
+              'flex cursor-pointer flex-col items-center gap-3 rounded-card border-2 border-dashed border-line-strong bg-raised px-6 py-10 text-center has-focus-visible:ring-2 has-focus-visible:ring-primary hover:border-primary',
+              dragging && 'border-primary bg-primary-soft',
+            )}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDragging(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+            }}
+            onDragLeave={(event) => {
+              if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setDragging(false);
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              setDragging(false);
+              const dropped = event.dataTransfer.files[0];
+              if (dropped) void choose(dropped);
+            }}
+          >
             <FileUp className="size-8 text-primary" strokeWidth={2.5} />
-            <span className="text-body font-semibold">{file ? file.name : 'Choose a file'}</span>
+            <span className="text-body font-semibold">
+              {dragging ? 'Drop to import' : file ? file.name : 'Choose a file or drop it here'}
+            </span>
             <span className="text-meta text-ink-2">
-              {file ? 'Choose a different file' : 'babble export (.json) or Huckleberry export (.csv)'}
+              {file ? 'Choose or drop a different file' : 'babble export (.json) or Huckleberry export (.csv)'}
             </span>
             <input
               type="file"
               accept=".csv,text/csv,.json,application/json"
               className="sr-only"
               aria-label="File to import"
-              onChange={async (event) => {
+              onChange={(event) => {
                 const chosen = event.target.files?.[0];
-                if (!chosen) return;
-                if (chosen.size > MAX_IMPORT_BYTES) {
-                  setFile(null);
-                  setError('That file is too big to import. Choose a babble or Huckleberry export.');
-                  return;
-                }
-                setError(null);
-                setFromIndex(0);
-                setFile({ name: chosen.name, text: await chosen.text() });
+                if (chosen) void choose(chosen);
               }}
             />
           </label>

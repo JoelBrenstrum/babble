@@ -58,3 +58,23 @@ test('a babble export restored into the baby it came from skips the entries alre
   await expect(page.getByText('0 entries imported')).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(new RegExp(`^${count} (was|were) already in babble`))).toBeVisible();
 });
+
+test('a file can be dropped onto the import area', async ({ page }) => {
+  await page.goto('/sign-in');
+  await page.getByRole('button', { name: 'Sign in as John' }).click();
+  await expect(page.getByText('Olivia').filter({ visible: true }).first()).toBeVisible();
+
+  await page.goto('/import');
+  const csv = (await readFile(fixture)).toString();
+  const transfer = await page.evaluateHandle((text) => {
+    const data = new DataTransfer();
+    data.items.add(new File([text], 'real-week.csv', { type: 'text/csv' }));
+    return data;
+  }, csv);
+  const zone = page.getByText('Choose a file or drop it here');
+  await zone.dispatchEvent('dragenter', { dataTransfer: transfer });
+  await expect(page.getByText('Drop to import')).toBeVisible();
+  await page.getByText('Drop to import').dispatchEvent('drop', { dataTransfer: transfer });
+  await expect(page.getByText('real-week.csv')).toBeVisible();
+  await expect(page.getByText('134 entries ready to import')).toBeVisible();
+});

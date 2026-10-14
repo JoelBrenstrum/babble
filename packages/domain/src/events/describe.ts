@@ -14,7 +14,15 @@ import {
   SOLIDS_REACTION_LABELS,
 } from './labels';
 import type { NappyType } from './nappy';
-import type { BabyEvent, Mood, PooColour, Side, TimedSegment, Units } from './types';
+import {
+  tracksIdle,
+  type BabyEvent,
+  type Mood,
+  type PooColour,
+  type Side,
+  type TimedSegment,
+  type Units,
+} from './types';
 import { byStartedAtAsc } from '../time/instants';
 import { MINUTE_MS } from '../time/constants';
 
@@ -128,7 +136,7 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
   switch (event.type) {
     case 'breast_feed': {
       const totals = segmentTotals(event.segments, now);
-      const idleMs = !running && event.source === 'manual' ? Math.max(0, spanMs - totals.activeMs) : 0;
+      const idleMs = !running && tracksIdle(event.source) ? Math.max(0, spanMs - totals.activeMs) : 0;
       const parts = sidesInOrder(event.segments, idleMs, (side) => {
         const ms = side === 'left' ? totals.leftMs : totals.rightMs;
         if (ms <= 0 || (ms < IDLE_MIN_MS && totals.activeMs - ms >= IDLE_MIN_MS)) return null;
@@ -142,7 +150,7 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
       const { leftMl, rightMl, totalMl } = event.details;
       const totals = segmentTotals(event.segments, now);
       const hasSegments = event.segments.length > 0;
-      const idleMs = hasSegments && !running && event.source === 'manual' ? Math.max(0, spanMs - totals.activeMs) : 0;
+      const idleMs = hasSegments && !running && tracksIdle(event.source) ? Math.max(0, spanMs - totals.activeMs) : 0;
       const sidePart = (side: Side): DescriptionPart | null => {
         const ms = side === 'left' ? totals.leftMs : totals.rightMs;
         const ml = side === 'left' ? leftMl : rightMl;

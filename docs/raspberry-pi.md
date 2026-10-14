@@ -19,16 +19,18 @@ The script source is [`apps/web/public/pi/setup.sh`](../apps/web/public/pi/setup
 ## What the script does
 
 - Installs Chromium if it's missing.
-- Adds `~/.local/bin/babble-chair`, which opens `/chair` as a maximised app window (`--app`, no address bar) with `--ozone-platform=wayland --disable-gpu` (the Pi's GPU drivers otherwise give a white screen), restarts Chromium if it exits or crashed after a power cut, and keeps Chromium's cache in memory.
+- Adds `~/.local/bin/babble-chair`, which opens `/chair` in Chromium's kiosk mode (`--kiosk`: full screen from the start, no address bar or window controls) with `--ozone-platform=wayland --disable-gpu` (the Pi's GPU drivers otherwise give a white screen), restarts Chromium if it exits or crashed after a power cut, and keeps Chromium's cache in memory.
 - Adds `babble-chair-stop` and a **babble chair** desktop icon, and lets the desktop run it on a double tap without asking.
 - Starts chair mode 10 seconds after the desktop loads (labwc autostart), replacing any older chromium line. Set `BABBLE_CHAIR_AUTOSTART=no` before running to skip this.
 - Boots to the desktop with auto-login.
+- Turns on the on-screen keyboard (squeekboard) and starts Chromium with Wayland text input, so the keyboard pops up when you tap a text field, e.g. the device name in chair mode's settings.
 - Switches the display off after 30 minutes without a tap (a tap wakes it without pressing anything; chair mode keeps it on during a feed). The launcher adds `?screenOff=30` to the chair URL so chair mode knows to ignore that waking tap. It uses `swayidle` and `wlopm` in the labwc autostart instead of the Pi's built-in blanking, which is fixed at 10 minutes. Set `BABBLE_CHAIR_SCREEN_OFF_MINUTES` before running to change it, or `0` to never switch it off.
 - Cuts SD card writes: system logs go to memory and swap is turned off.
 
 ## Day to day
 
-- Chair mode goes full screen on the first tap (browsers only allow full screen after a tap). **Exit full screen** in its top strip drops back to a normal window for debugging, and **Full screen** goes back; the choice is remembered on the Pi.
+- Chair mode fills the screen from boot. Kiosk mode has no window controls; to get to the desktop, stop chair mode (below), or plug in a keyboard and press Alt+F4 (it restarts by itself after 3 seconds unless stopped).
+- Already set up before kiosk mode? Run the setup command again and reboot to switch over.
 
 - Stop chair mode: `ssh` in and run `babble-chair-stop`.
 - Start it again: the **babble chair** desktop icon, or `babble-chair`.
