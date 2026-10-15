@@ -9,6 +9,7 @@ import { AccountSection } from '#/components/settings/account-section';
 import { BabySection } from '#/components/settings/baby-section';
 import { InviteToggle } from '#/components/settings/invite-toggle';
 import { CardLink } from '#/components/ui/card-link';
+import { FamilyDevices } from '#/features/family-devices';
 import { FamilyMembers } from '#/features/family-members';
 import { MembersLabel, PendingInvites } from '#/features/pending-invites';
 import { PlusBadge } from '#/features/plus-dialog';
@@ -88,6 +89,7 @@ function SettingsPage() {
             />
           )}
         </section>
+        <FamilyDevices client={babble.client} familyId={family.id} admin={admin} />
         {plan && <PlusPlan summary={plan} />}
         <FamilyTrackingSettings client={babble.client} familyId={family.id} babyId={baby.id} disabled={!admin} />
         {family.babies.length > 1 && <ExportData client={babble.client} family={family} baby={baby} scope="family" />}

@@ -45,8 +45,9 @@ import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { useScreenWakeLock } from '#/lib/wake-lock';
 
 export const Route = createFileRoute('/_app/chair')({
-  validateSearch: (search: Record<string, unknown>): { screenOff?: number } => ({
+  validateSearch: (search: Record<string, unknown>): { screenOff?: number; kiosk?: boolean } => ({
     screenOff: screenOffMinutes(search.screenOff),
+    kiosk: search.kiosk === 1 || search.kiosk === '1' || search.kiosk === true ? true : undefined,
   }),
   beforeLoad: ({ context }) => {
     if (!context.canLog) throw redirect({ to: '/' });
@@ -102,7 +103,7 @@ function ChairLive() {
   const tones = useMemo(() => memberTones(family.members), [family.members]);
   const selectBaby = useSelectBaby();
   const choices = babyChoices(families);
-  const { screenOff } = Route.useSearch();
+  const { screenOff, kiosk } = Route.useSearch();
 
   const {
     data: view,
@@ -124,7 +125,7 @@ function ChairLive() {
   const data: ChairData = {
     ...view,
     updateReady,
-    fullscreen: { supported: fullscreen.supported, active: fullscreen.active },
+    fullscreen: { supported: fullscreen.supported && !kiosk, active: fullscreen.active },
     offline: !online,
   };
 

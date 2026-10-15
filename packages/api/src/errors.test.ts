@@ -11,6 +11,7 @@ describe('toBabbleError', () => {
     [{ code: 'PL004', message: 'A family needs at least one admin' }, 'last_admin'],
     [{ code: 'PL005', message: 'This code has expired' }, 'device_link_invalid'],
     [{ code: 'PL006', message: 'Too many sign-in codes' }, 'too_many_codes'],
+    [{ code: 'PL007', message: 'Feeds can only be merged' }, 'merge_invalid'],
     [{ message: 'Database error saving new user', status: 500 }, 'invite_required'],
     [{ code: 'P0002', message: 'This invite code is invalid, used or expired' }, 'invite_invalid'],
     [{ code: 'invalid_credentials', message: 'Invalid login credentials', status: 400 }, 'invalid_credentials'],

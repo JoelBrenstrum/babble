@@ -437,6 +437,10 @@ export function runSessionAction(client: BabbleClient, eventId: string, action: 
   }
 }
 
+export async function mergeFeeds(client: BabbleClient, earlierId: string, laterId: string): Promise<void> {
+  unwrapVoid(await client.rpc('merge_feeds', { earlier_id: earlierId, later_id: laterId }));
+}
+
 export async function resumeFeed(client: BabbleClient, eventId: string, side?: Side): Promise<void> {
   unwrapVoid(
     await client.rpc('resume_feed', {

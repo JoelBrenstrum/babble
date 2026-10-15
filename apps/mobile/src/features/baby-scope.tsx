@@ -2,7 +2,8 @@ import { memberTones } from '@babble/domain';
 import { useEffect, useMemo, type ReactNode } from 'react';
 import { MemberTonesProvider } from '@/components/avatar';
 import { useBabble } from '@/lib/babble';
-import { refreshEvents, useAutoEndStaleSessions, useRealtimeEvents } from '@babble/api/react';
+import { localDeviceName } from '@/lib/device-name';
+import { refreshEvents, useAutoEndStaleSessions, useDeviceNameSync, useRealtimeEvents } from '@babble/api/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useForegroundCount } from '@/lib/foreground';
 import { useCanLog } from '@/lib/use-can-log';
@@ -26,6 +27,7 @@ export function BabyScope({ children }: { children: ReactNode }) {
         enabled={logging}
       >
         <BabyEffects babyId={ready.baby.id} logging={logging} />
+        <DeviceNameSync familyId={ready.family.id} />
         {children}
       </NapPromptProvider>
     </MemberTonesProvider>
@@ -41,5 +43,11 @@ function BabyEffects({ babyId, logging }: { babyId: string; logging: boolean }) 
   useEffect(() => {
     if (foregrounds > 0) void refreshEvents(queryClient, babyId);
   }, [foregrounds, queryClient, babyId]);
+  return null;
+}
+
+function DeviceNameSync({ familyId }: { familyId: string }) {
+  const { client } = useBabble();
+  useDeviceNameSync(client, familyId, localDeviceName);
   return null;
 }

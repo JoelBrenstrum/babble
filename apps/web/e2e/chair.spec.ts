@@ -89,3 +89,16 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await page.goto('/track/nappy');
   await expect(page.getByText('Wet').first()).toBeVisible();
 });
+
+test('on the Pi, chair mode hides its full screen button', async ({ page }, testInfo) => {
+  const email = uniqueEmail('john', testInfo.project.name);
+  await signUpWithPassword(page, email);
+  await onboard(page);
+  joinPlus(email);
+
+  await page.goto('/chair');
+  await expect(page.getByRole('button', { name: 'Full screen' })).toBeVisible();
+  await page.goto('/chair?kiosk=1&screenOff=30');
+  await expect(page.getByText('No feeds logged yet')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Full screen' })).toHaveCount(0);
+});

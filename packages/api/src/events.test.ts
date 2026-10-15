@@ -8,6 +8,7 @@ import {
   latestEvents,
   listEvents,
   listEventsBetween,
+  mergeFeeds,
   resumeFeed,
   rowToEvent,
   endSession,
@@ -295,6 +296,14 @@ describe('event requests', () => {
     expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
       ['/rest/v1/rpc/end_session', { target_event_id: 'nap-1', end_at: '2026-10-06T09:00:00Z' }],
       ['/rest/v1/rpc/resume_feed', { target_event_id: 'feed-1' }],
+    ]);
+  });
+
+  it('merges a feed into the one before it', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await mergeFeeds(client, 'feed-1', 'feed-2');
+    expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
+      ['/rest/v1/rpc/merge_feeds', { earlier_id: 'feed-1', later_id: 'feed-2' }],
     ]);
   });
 

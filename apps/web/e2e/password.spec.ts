@@ -15,7 +15,7 @@ test('a parent creates an account with a password and signs back in', async ({ p
   await onboard(page);
 
   await page.getByRole('link', { name: 'Settings' }).filter({ visible: true }).click();
-  await page.getByRole('button', { name: 'Sign out' }).click();
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Sign in' })).toBeVisible();
 
   await page.getByLabel('Email').fill(email);

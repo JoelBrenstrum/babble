@@ -530,6 +530,27 @@ export type Database = {
           },
         ];
       };
+      session_devices: {
+        Row: {
+          name: string;
+          session_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          name: string;
+          session_id: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          name?: string;
+          session_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       sleep_details: {
         Row: {
           end_moods: Database['public']['Enums']['mood'][];
@@ -664,6 +685,19 @@ export type Database = {
         }[];
       };
       end_session: { Args: { end_at?: string; target_event_id: string }; Returns: undefined };
+      family_devices: {
+        Args: { target_family_id: string };
+        Returns: {
+          created_at: string;
+          is_current: boolean;
+          last_active: string;
+          member_name: string;
+          name: string;
+          session_id: string;
+          user_agent: string;
+          user_id: string;
+        }[];
+      };
       get_instance_settings: {
         Args: Record<PropertyKey, never>;
         Returns: {
@@ -705,7 +739,9 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      merge_feeds: { Args: { earlier_id: string; later_id: string }; Returns: undefined };
       pause_session: { Args: { target_event_id: string }; Returns: undefined };
+      rename_device: { Args: { new_name: string; target_session_id: string }; Returns: undefined };
       resume_feed: {
         Args: { resume_side?: Database['public']['Enums']['side']; target_event_id: string };
         Returns: undefined;
@@ -727,6 +763,7 @@ export type Database = {
       };
       set_session_start: { Args: { start_at: string; target_event_id: string }; Returns: undefined };
       set_switch_time: { Args: { switch_at: string; target_event_id: string }; Returns: undefined };
+      sign_out_device: { Args: { target_session_id: string }; Returns: undefined };
       start_device_link: {
         Args: { new_code: string; new_device: string; new_requested_from?: string; new_secret_hash: string };
         Returns: {

@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { accountChanged, authLinkErrorMessage, completeAuthRedirect, parseAuthRedirect, tokenEmail } from './auth';
+import { describe, expect, it, vi } from 'vitest';
+import {
+  accountChanged,
+  authLinkErrorMessage,
+  completeAuthRedirect,
+  parseAuthRedirect,
+  signOut,
+  tokenEmail,
+} from './auth';
 import { fakeClient } from './test-utils';
 
 describe('parseAuthRedirect', () => {
@@ -89,5 +96,14 @@ describe('accountChanged', () => {
   it('is false on first load and token refreshes', () => {
     expect(accountChanged(undefined, 'a')).toBe(false);
     expect(accountChanged('a', 'a')).toBe(false);
+  });
+});
+
+describe('signOut', () => {
+  it('ends only the session on this device', async () => {
+    const { client } = fakeClient(() => ({ body: {} }));
+    const spy = vi.spyOn(client.auth, 'signOut');
+    await signOut(client);
+    expect(spy).toHaveBeenCalledWith({ scope: 'local' });
   });
 });

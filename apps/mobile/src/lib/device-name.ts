@@ -42,3 +42,8 @@ export async function saveDeviceName(name: string): Promise<void> {
   saved = name;
   await (name.trim() ? AsyncStorage.setItem(KEY, name) : AsyncStorage.removeItem(KEY)).catch(() => undefined);
 }
+
+export const localDeviceName = {
+  read: savedDeviceName,
+  write: (name: string) => void saveDeviceName(name),
+};

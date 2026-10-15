@@ -191,6 +191,15 @@ export {
 } from './events/session-summary';
 export { canResumeFeed, feedEndTime, latestFeed, nextBreastSide, staleSessions } from './events/feed-rules';
 export {
+  liveMergeOffer,
+  liveMergeText,
+  MERGE_FEEDS_WITHIN_MS,
+  mergeableFeeds,
+  mergeCandidate,
+  mergeGapText,
+  type FeedMerge,
+} from './events/merge-feeds';
+export {
   feedPromptOnNapStart,
   napPromptOnFeedEnd,
   napPromptOnFeedStart,

@@ -1,6 +1,6 @@
 import { useSessionAction, useTrackingSettings } from '@babble/api/react';
-import { clock, eventQuery, runningEventsQuery, familyAuthors } from '@babble/api';
-import { formatTimeOfDay, READ_ONLY_NOTE, trimIdleSwitch } from '@babble/domain';
+import { clock, eventListQuery, eventQuery, runningEventsQuery, familyAuthors } from '@babble/api';
+import { formatTimeOfDay, liveMergeOffer, READ_ONLY_NOTE, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, Text, View } from 'react-native';
@@ -11,6 +11,7 @@ import { StatusMessage } from '@/components/status-message';
 import { ReadOnlyRunning } from '@/features/events/read-only-running';
 import { RunningCard } from '@/features/events/running-card';
 import { KeepAwakeToggle } from '@/features/keep-awake-toggle';
+import { LiveMergeOffer } from '@/features/events/merge-feeds';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
@@ -38,6 +39,10 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
   const action = useSessionAction(client, baby.id);
   const spinnerColor = useTokenColor('--primary');
   const event = running.data?.find((item) => item.id === id) ?? fallback.data;
+  const feeds = useQuery({
+    ...eventListQuery(client, baby.id, ['breast_feed']),
+    enabled: logging && event?.type === 'breast_feed',
+  });
 
   if (!event) return <ActivityIndicator size="large" color={spinnerColor} className="flex-1 bg-bg" />;
   if (event.deletedAt) return <Redirect href="/" />;
@@ -45,6 +50,7 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
   const trimTo = logging ? trimIdleSwitch(event, clock.now()) : null;
+  const merge = logging && feeds.data ? liveMergeOffer(event, feeds.data) : null;
   const title = event.type === 'sleep' ? 'Sleep' : event.type === 'pump' ? 'Pump' : 'Breastfeed';
 
   return (
@@ -69,6 +75,15 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
             <StatusMessage tone="info">{READ_ONLY_NOTE}</StatusMessage>
             <ReadOnlyRunning event={event} now={now} units={units} timeZone={baby.timezone} />
           </>
+        )}
+        {merge && (
+          <LiveMergeOffer
+            key={merge.earlierId}
+            client={client}
+            babyId={baby.id}
+            merge={merge}
+            onMerged={() => router.replace(`/sessions/${merge.earlierId}`)}
+          />
         )}
         {logging && event.type !== 'sleep' && <KeepAwakeToggle />}
         {logging && event.type === 'sleep' && (

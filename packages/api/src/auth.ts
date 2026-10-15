@@ -134,8 +134,7 @@ export async function exchangeAuthCode(client: BabbleClient, code: string): Prom
 }
 
 export async function signOut(client: BabbleClient): Promise<void> {
-  const { error } = await client.auth.signOut();
-  if (error) await client.auth.signOut({ scope: 'local' });
+  await client.auth.signOut({ scope: 'local' });
 }
 
 export function accountChanged(previousUserId: string | null | undefined, nextUserId: string | null): boolean {

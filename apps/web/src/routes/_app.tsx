@@ -15,6 +15,7 @@ import { AppShell } from '#/components/shell/app-shell';
 import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
 import { readStorage, storageKeys } from '#/lib/storage';
+import { DeviceNameProvider } from '#/features/device-name-context';
 import { NapPromptProvider } from '#/features/nap-prompt';
 import { useAutoEndStaleSessions, useRealtimeEvents } from '@babble/api/react';
 import { useNightTheme } from '#/lib/use-night-theme';
@@ -72,9 +73,11 @@ function AppLayout() {
   );
 
   const page = (
-    <NapPromptProvider client={babble.client} babyId={baby.id} babyName={baby.name} timeZone={baby.timezone}>
-      <Outlet />
-    </NapPromptProvider>
+    <DeviceNameProvider client={babble.client} familyId={family.id}>
+      <NapPromptProvider client={babble.client} babyId={baby.id} babyName={baby.name} timeZone={baby.timezone}>
+        <Outlet />
+      </NapPromptProvider>
+    </DeviceNameProvider>
   );
   if (pathname === '/chair') return page;
 

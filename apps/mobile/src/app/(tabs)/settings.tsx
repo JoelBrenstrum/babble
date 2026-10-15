@@ -36,6 +36,7 @@ import { ExportData } from '@/features/export-data';
 import { PlusPlan } from '@/features/plus-plan';
 import { AppearanceSettings } from '@/features/appearance-settings';
 import { DeviceNameSetting } from '@/features/device-name-setting';
+import { FamilyDevices } from '@/features/family-devices';
 import { AboutSection } from '@/features/legal-links';
 import { useBabble } from '@/lib/babble';
 import { useThemePreference } from '@/lib/theme';
@@ -81,12 +82,13 @@ export default function SettingsTab() {
         </SettingsGroupSection>
         <SettingsGroupSection group={familyGroup} plus={plan?.plus ?? false} note={lockedNote}>
           <MembersSection family={family} userId={session.user.id} admin={admin} />
+          <FamilyDevices client={client} familyId={family.id} admin={admin} />
           {plan && <PlusPlan summary={plan} />}
           <FamilyTrackingSettings client={client} familyId={family.id} babyId={baby.id} disabled={!admin} />
           {family.babies.length > 1 && <ExportData client={client} family={family} baby={baby} scope="family" />}
         </SettingsGroupSection>
         <SettingsGroupSection group={deviceGroup}>
-          <DeviceNameSetting you={authorName(family, session.user.id) ?? 'you'} />
+          <DeviceNameSetting you={authorName(family, session.user.id) ?? 'you'} familyId={family.id} />
           <AppearanceSection babyName={baby.name} />
         </SettingsGroupSection>
         <SettingsGroupSection group={accountGroup}>

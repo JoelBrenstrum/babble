@@ -1,13 +1,14 @@
 import { MAX_DEVICE_NAME } from '@babble/api';
 import { LogOut, Settings } from 'lucide-react';
 import { useId, useState } from 'react';
-import { defaultDeviceName, saveDeviceName, savedDeviceName } from '#/lib/device-name';
+import { useDeviceName } from '#/features/device-name-context';
+import { defaultDeviceName } from '#/lib/device-name';
 import { BigButton } from './big-button';
 import { Sheet } from './sheet';
 
 export function SettingsSheet({ onClose, onSignOut }: { onClose: () => void; onSignOut: () => Promise<void> }) {
   const id = useId();
-  const [name, setName] = useState(savedDeviceName);
+  const { name, setName } = useDeviceName();
   const [confirming, setConfirming] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   return (
@@ -23,10 +24,7 @@ export function SettingsSheet({ onClose, onSignOut }: { onClose: () => void; onS
           placeholder={defaultDeviceName()}
           autoComplete="off"
           enterKeyHint="done"
-          onChange={(event) => {
-            setName(event.target.value);
-            saveDeviceName(event.target.value);
-          }}
+          onChange={(event) => setName(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === 'Enter') onClose();
           }}

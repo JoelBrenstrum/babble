@@ -1,5 +1,5 @@
-import { clock, eventQuery, runningEventsQuery, toBabbleError, familyAuthors } from '@babble/api';
-import { formatTimeOfDay, READ_ONLY_NOTE, trackerFor, trimIdleSwitch } from '@babble/domain';
+import { clock, eventListQuery, eventQuery, runningEventsQuery, toBabbleError, familyAuthors } from '@babble/api';
+import { formatTimeOfDay, liveMergeOffer, READ_ONLY_NOTE, trackerFor, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, Navigate, useNavigate } from '@tanstack/react-router';
 import { PageHeader } from '#/components/shell/page-header';
@@ -8,6 +8,7 @@ import { SectionSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { RunningCard } from '#/features/events/running-card';
 import { KeepAwakeToggle } from '#/features/keep-awake-toggle';
+import { LiveMergeOffer } from '#/features/events/merge-feeds';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { SleepDetailsEditor } from '#/features/events/sleep-details-editor';
@@ -26,6 +27,10 @@ function SessionPage() {
   const { mergeGapMs } = useTrackingSettings(babble.client, baby.id);
   const action = useSessionAction(babble.client, baby.id);
   const event = running.data?.find((item) => item.id === eventId) ?? fallback.data;
+  const feeds = useQuery({
+    ...eventListQuery(babble.client, baby.id, ['breast_feed']),
+    enabled: canLog && event?.type === 'breast_feed',
+  });
 
   if (!event) {
     if (running.isPending || fallback.isPending) return <SectionSpinner />;
@@ -49,6 +54,7 @@ function SessionPage() {
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
   const trimTo = canLog ? trimIdleSwitch(event, clock.now()) : null;
+  const merge = canLog && feeds.data ? liveMergeOffer(event, feeds.data) : null;
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
@@ -65,6 +71,17 @@ function SessionPage() {
         readOnly={!canLog}
         onDiscarded={() => void navigate({ to: '/' })}
       />
+      {merge && (
+        <LiveMergeOffer
+          key={merge.earlierId}
+          client={babble.client}
+          babyId={baby.id}
+          merge={merge}
+          onMerged={() =>
+            void navigate({ to: '/sessions/$eventId', params: { eventId: merge.earlierId }, replace: true })
+          }
+        />
+      )}
       {!canLog && <StatusMessage tone="info">{READ_ONLY_NOTE}</StatusMessage>}
       {event.type !== 'sleep' && <KeepAwakeToggle />}
       {canLog && event.type === 'sleep' && (

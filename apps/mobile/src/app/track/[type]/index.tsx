@@ -10,11 +10,12 @@ import {
   stripWindow,
   trackerFor,
   type TrackerKey,
+  mergeableFeeds,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Link, Redirect, router, useLocalSearchParams } from 'expo-router';
 import { Plus } from 'lucide-react-native';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -24,6 +25,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { Segmented } from '@/components/segmented';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventRow } from '@/features/events/event-row';
+import { MergeFeedsRow } from '@/features/events/merge-feeds';
 import { SummaryStrip } from '@/features/timeline/totals';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
@@ -57,6 +59,8 @@ function TrackerListContent({
     eventType === 'bottle' ? 'bottle' : eventType === 'breast_feed' ? 'breast' : 'all',
   );
   const events = useQuery(eventListQuery(client, baby.id, listTypesFor(eventType, filter)));
+  const merges =
+    logging && listTypesFor(eventType, filter).includes('breast_feed') ? mergeableFeeds(events.data ?? []) : null;
   const tracker = trackerFor(eventType);
   const kind = stripKind(eventType, filter);
   const groups = listDayGroups(kind, events.data ?? [], {
@@ -163,19 +167,26 @@ function TrackerListContent({
               <Text className="font-semibold text-meta text-ink-2">{group.totals}</Text>
             </View>
             <Card className="overflow-hidden">
-              {group.items.map((event, index) => (
-                <EventRow
-                  key={event.id}
-                  event={event}
-                  members={familyAuthors(family)}
-                  timeZone={baby.timezone}
-                  units={units}
-                  now={now}
-                  showTitle={(isFeed && filter === 'all') || eventType === 'custom'}
-                  showNotes={!group.notesInSubtitle}
-                  divider={index > 0}
-                />
-              ))}
+              {group.items.map((event, index) => {
+                const merge = merges?.get(event.id);
+                return (
+                  <Fragment key={event.id}>
+                    <EventRow
+                      event={event}
+                      members={familyAuthors(family)}
+                      timeZone={baby.timezone}
+                      units={units}
+                      now={now}
+                      showTitle={(isFeed && filter === 'all') || eventType === 'custom'}
+                      showNotes={!group.notesInSubtitle}
+                      divider={index > 0}
+                    />
+                    {merge && group.items.some((item) => item.id === merge.earlierId) && (
+                      <MergeFeedsRow client={client} babyId={baby.id} merge={merge} />
+                    )}
+                  </Fragment>
+                );
+              })}
             </Card>
           </View>
         ))}

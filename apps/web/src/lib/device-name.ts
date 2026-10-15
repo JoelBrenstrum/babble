@@ -16,3 +16,5 @@ export function currentDeviceName(): string {
 export function saveDeviceName(name: string): void {
   writeStorage(storageKeys.deviceName, name.trim() ? name : null);
 }
+
+export const localDeviceName = { read: savedDeviceName, write: saveDeviceName };

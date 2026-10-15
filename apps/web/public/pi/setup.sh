@@ -7,6 +7,8 @@ AUTOSTART="${BABBLE_CHAIR_AUTOSTART:-yes}"
 SCREEN_OFF_MINUTES="${BABBLE_CHAIR_SCREEN_OFF_MINUTES:-30}"
 BIN="$HOME/.local/bin"
 LABWC="$HOME/.config/labwc"
+# Tells chair mode it's on the Pi, so it hides its full screen button.
+case "$URL" in *\?*) URL="$URL&kiosk=1" ;; *) URL="$URL?kiosk=1" ;; esac
 if [ "$SCREEN_OFF_MINUTES" != "0" ]; then
   # Tells chair mode to ignore the tap that only wakes the screen.
   case "$URL" in *\?*) URL="$URL&screenOff=$SCREEN_OFF_MINUTES" ;; *) URL="$URL?screenOff=$SCREEN_OFF_MINUTES" ;; esac
@@ -35,8 +37,7 @@ sleep 1
 while [ ! -e "\$HOME/.babble-chair-off" ]; do
   # After a power cut Chromium thinks it crashed and offers to restore pages; mark the last exit as clean.
   [ -f "\$PREFS" ] && sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]*"/"exit_type":"Normal"/' "\$PREFS"
-  "\$BROWSER" --ozone-platform=wayland --enable-wayland-ime --wayland-text-input-version=3 --disable-gpu \\
-    --kiosk "\$URL" --noerrdialogs \\
+  "\$BROWSER" --ozone-platform=wayland --disable-gpu --kiosk "\$URL" --noerrdialogs \\
     --disable-infobars --disable-session-crashed-bubble --password-store=basic \\
     --disk-cache-dir=/dev/shm/babble-chair > /tmp/babble-chair.log 2>&1
   sleep 3
@@ -75,12 +76,6 @@ if command -v raspi-config >/dev/null; then
   sudo raspi-config nonint do_blanking 1
 fi
 
-say "Turning on the on-screen keyboard"
-command -v squeekboard >/dev/null || sudo apt-get install -y squeekboard || echo "Couldn't install squeekboard."
-if command -v raspi-config >/dev/null; then
-  sudo raspi-config nonint do_squeekboard S1 || echo "Couldn't switch the keyboard on with raspi-config; turn it on in Raspberry Pi Configuration > Display."
-fi
-
 if [ "$SCREEN_OFF_MINUTES" != "0" ] && ! { command -v swayidle && command -v wlopm; } >/dev/null; then
   say "Installing the screen-off tools"
   sudo apt-get install -y swayidle wlopm
@@ -91,7 +86,7 @@ if [ ! -f "$LABWC/autostart" ] && [ -f /etc/xdg/labwc/autostart ]; then
   cp /etc/xdg/labwc/autostart "$LABWC/autostart"
 fi
 touch "$LABWC/autostart"
-sed -i '/babble-chair\|chromium\|swayidle/d' "$LABWC/autostart"
+sed -i '/babble-chair\|chromium\|swayidle\|screen-keyboard-enabled/d' "$LABWC/autostart"
 if [ "$SCREEN_OFF_MINUTES" != "0" ]; then
   say "Switching the screen off after $SCREEN_OFF_MINUTES minutes without a tap"
   echo "swayidle -w timeout $((SCREEN_OFF_MINUTES * 60)) 'wlopm --off \*' resume 'wlopm --on \*' &" >> "$LABWC/autostart"

@@ -16,6 +16,7 @@ import { toBabbleError } from '../errors';
 import {
   deleteEvent,
   restoreEvent,
+  mergeFeeds,
   resumeFeed,
   runSessionAction,
   saveEvent,
@@ -164,6 +165,15 @@ export function useResumeFeed(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (eventId: string) => resumeFeed(client, eventId),
+    onSettled: () => refreshEvents(queryClient, babyId),
+  });
+}
+
+export function useMergeFeeds(client: BabbleClient, babyId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ earlierId, laterId }: { earlierId: string; laterId: string }) =>
+      mergeFeeds(client, earlierId, laterId),
     onSettled: () => refreshEvents(queryClient, babyId),
   });
 }
