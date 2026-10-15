@@ -45,7 +45,11 @@ jobs:
       - working-directory: apps/web
         run: pnpm exec playwright install --with-deps chromium
       - working-directory: apps/web
-        run: cp .env.example .env && pnpm e2e
+        run: |
+          cp .env.example .env
+          sed -i 's/^BILLING_ENABLED=.*/BILLING_ENABLED=true/' .env
+          echo "SUPABASE_SERVICE_ROLE_KEY=$(pnpm --dir ../../packages/db exec supabase status -o env | sed -n 's/^SERVICE_ROLE_KEY="\(.*\)"$/\1/p')" >> .env
+          pnpm e2e
       - if: failure()
         uses: actions/upload-artifact@v4
         with:
