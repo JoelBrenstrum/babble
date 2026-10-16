@@ -63,7 +63,7 @@ describe('DayTimeline', () => {
     expect(screen.getByText('Feed due 3:10 pm')).toBeOnTheScreen();
   });
 
-  it('marks when the night starts and ends', async () => {
+  it('marks when the night starts', async () => {
     const now = new Date();
     const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
     await render(
@@ -74,13 +74,10 @@ describe('DayTimeline', () => {
         units="metric"
         nowFrac={0.5}
         now={now}
-        night={[
-          { kind: 'end', frac: 0.2, label: 'Night ends 7:00 am' },
-          { kind: 'start', frac: 0.8, label: 'Night starts 7:00 pm' },
-        ]}
+        night={[{ frac: 0.8, label: 'Night starts 7:00 pm' }]}
       />,
     );
-    expect(screen.getByLabelText('Night ends 7:00 am')).toBeTruthy();
+    expect(screen.getByLabelText('Night starts 7:00 pm')).toBeTruthy();
     expect(screen.getByText('Night starts 7:00 pm')).toBeTruthy();
   });
 });

@@ -89,7 +89,7 @@ export function DayTimeline({
           ))}
           {night.map((marker) => (
             <View
-              key={marker.kind + marker.frac}
+              key={marker.frac}
               accessible
               accessibilityLabel={marker.label}
               testID="night-marker"

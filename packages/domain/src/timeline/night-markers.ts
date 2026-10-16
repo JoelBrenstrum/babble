@@ -2,7 +2,6 @@ import { dayKeyFor, formatTimeOfDay } from '../time/local-time';
 import { nightIntervals, type TimeWindow } from './days';
 
 export interface NightMarker {
-  kind: 'start' | 'end';
   frac: number;
   label: string;
 }
@@ -21,16 +20,11 @@ export function nightMarkers(
     settings.night_start_minutes,
     settings.night_end_minutes,
   );
-  const markers = nights.flatMap((night) => [
-    { kind: 'start' as const, at: night.start },
-    { kind: 'end' as const, at: night.end },
-  ]);
-  return markers
-    .filter(({ at }) => at.getTime() >= start && at.getTime() <= end)
-    .sort((a, b) => a.at.getTime() - b.at.getTime())
-    .map(({ kind, at }) => ({
-      kind,
+  return nights
+    .map((night) => night.start)
+    .filter((at) => at.getTime() >= start && at.getTime() <= end)
+    .map((at) => ({
       frac: (at.getTime() - start) / (end - start),
-      label: `${kind === 'start' ? 'Night starts' : 'Night ends'} ${formatTimeOfDay(at.toISOString(), timeZone)}`,
+      label: `Night starts ${formatTimeOfDay(at.toISOString(), timeZone)}`,
     }));
 }
