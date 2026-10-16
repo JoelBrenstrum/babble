@@ -45,6 +45,7 @@ test('an admin invites someone read only, then lets them log', async ({ page, br
   await members.getByRole('button', { name: "Change Gran's role" }).click();
   await members.getByRole('radio', { name: 'Caregiver' }).click();
   await members.getByRole('button', { name: 'Save' }).click();
+  await expect(members.getByRole('radio')).toHaveCount(0);
   await expect(members.getByText('Caregiver', { exact: true })).toBeVisible();
 
   await gran.goto('/');
