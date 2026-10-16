@@ -141,7 +141,9 @@ export const ESTIMATE_MIN_POINTS = 3;
 const ESTIMATE_RECENT_POINTS = 6;
 const ESTIMATE_MAX_AHEAD_DAYS = 90;
 
-export function linearFit(points: readonly { x: number; y: number }[]): { at: (x: number) => number } | null {
+export function linearFit(
+  points: readonly { x: number; y: number }[],
+): { at: (x: number) => number; slope: number } | null {
   const n = points.length;
   if (n < 2) return null;
   const meanX = points.reduce((total, point) => total + point.x, 0) / n;
@@ -149,7 +151,30 @@ export function linearFit(points: readonly { x: number; y: number }[]): { at: (x
   const spread = points.reduce((total, point) => total + (point.x - meanX) ** 2, 0);
   if (spread === 0) return null;
   const slope = points.reduce((total, point) => total + (point.x - meanX) * (point.y - meanY), 0) / spread;
-  return { at: (x) => meanY + slope * (x - meanX) };
+  return { at: (x) => meanY + slope * (x - meanX), slope };
+}
+
+const NEWBORN_MONTHS = 14 / DAYS_PER_MONTH;
+const Z_DRIFT_HALF_LIFE_MONTHS = 14 / DAYS_PER_MONTH;
+const MAX_Z_DRIFT = 0.5;
+const GROWTH_HALF_LIFE_MONTHS = 3;
+
+export function fadingFit(
+  points: readonly { x: number; y: number }[],
+  halfLife: number,
+  maxDrift = Infinity,
+): (x: number) => number {
+  // Weight loss and catch-up in the first two weeks would set a slope that doesn't last.
+  const settled = points.filter((point) => point.x >= NEWBORN_MONTHS);
+  const fit = settled.length >= ESTIMATE_MIN_POINTS ? linearFit(settled) : null;
+  const last = points.at(-1)!;
+  const start = fit ? fit.at(last.x) : last.y;
+  const slope = fit?.slope ?? 0;
+  return (x) => {
+    const elapsed = Math.max(0, x - last.x);
+    const drift = ((slope * halfLife) / Math.LN2) * (1 - 2 ** (-elapsed / halfLife));
+    return start + Math.min(maxDrift, Math.max(-maxDrift, drift));
+  };
 }
 
 type Trend = (months: number) => { value: number; z: number | null } | null;
@@ -161,24 +186,26 @@ function growthTrend(
 ): Trend | null {
   const recent = measured.slice(-ESTIMATE_RECENT_POINTS);
   if (recent.length < ESTIMATE_MIN_POINTS) return null;
-  const linear = linearFit(recent.map((point) => ({ x: point.months, y: point.value })));
+  const values = fadingFit(
+    recent.map((point) => ({ x: point.months, y: point.value })),
+    GROWTH_HALF_LIFE_MONTHS,
+  );
   const zPoints = sex
     ? recent.flatMap((point) => {
         const lms = lmsAt(measure, sex, point.months);
         return lms ? [{ x: point.months, y: zScore(point.value, lms) }] : [];
       })
     : [];
-  // Growth slows with age, so fitting the percentile position tracks the curve better than a straight line.
-  const zFit = zPoints.length === recent.length ? linearFit(zPoints) : null;
-  if (!linear && !zFit) return null;
+  // Babies settle into a percentile band, so a climb through the percentiles eases off rather than carrying on.
+  const z = zPoints.length === recent.length ? fadingFit(zPoints, Z_DRIFT_HALF_LIFE_MONTHS, MAX_Z_DRIFT) : null;
   return (months) => {
     const lms = sex ? lmsAt(measure, sex, months) : null;
-    if (lms && zFit) {
-      const z = zFit.at(months);
-      return { value: valueAtZ(z, lms), z };
+    if (lms && z) {
+      const position = z(months);
+      return { value: valueAtZ(position, lms), z: position };
     }
-    const value = linear?.at(months);
-    return value === undefined || value <= 0 ? null : { value, z: null };
+    const value = values(months);
+    return value > 0 ? { value, z: null } : null;
   };
 }
 
