@@ -129,4 +129,3 @@ describe('timelineItemTip', () => {
     expect(lines[2]!.length).toBe(80);
   });
 });
-
