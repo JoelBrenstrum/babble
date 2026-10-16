@@ -24,7 +24,7 @@ export interface StatsSettings {
 }
 
 export interface StatsCard {
-  key: 'sleep' | 'feeds' | 'nappies' | 'pump' | 'wake' | 'night' | 'feed-trend' | 'feed-spacing';
+  key: 'sleep' | 'feeds' | 'nappies' | 'pump' | 'wake' | 'night' | 'feed-trend' | 'feed-spacing' | 'cluster-feeds';
   title: string;
   figures: { label: string; value: string }[];
   chart: StatsChart;

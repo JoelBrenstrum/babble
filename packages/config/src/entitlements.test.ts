@@ -81,6 +81,7 @@ describe('plusPitch', () => {
         'Wake windows, night sleep, a weekly summary and all-time stats',
         'Breastfeed trends: time per feed, per side and idle',
         'Feed spacing: how far apart feeds are, day and night',
+        'Cluster feeding: when feeds bunch up, and what time of day',
         'A 30-day timeline to see patterns form',
         'Chair mode, a feed station for a tablet by the feeding chair',
       ],

@@ -3,7 +3,9 @@ import type { DaySummary } from '../events/day-summary';
 import { makeEvent } from '../events/test-events';
 import { lastDays } from '../timeline/days';
 import {
+  clusterFeedingCard,
   durationChange,
+  feedClusters,
   feedGaps,
   feedSpacingCard,
   feedStats,
@@ -369,5 +371,105 @@ describe('feed spacing', () => {
 
   it('needs six daytime gaps in the last week', () => {
     expect(feedSpacingCard([gap('2026-10-14', 3), gap('2026-10-14', 3), gap('2026-10-14', 3, true)], keys)).toBeNull();
+  });
+});
+
+describe('cluster feeding', () => {
+  const keys = insightDays('2026-10-15');
+  const breast = (id: string, start: string, end: string) =>
+    makeEvent('breast_feed', { id, startedAt: start, endedAt: end, segments: [] });
+  const bottle = (id: string, start: string) => makeEvent('bottle', { id, startedAt: start, endedAt: null });
+  const cluster = (dayKey: string, hour: number) =>
+    [0, 1, 2, 3].map((index) => {
+      const start = Date.parse(`${dayKey}T00:00:00Z`) + hour * HOUR + index * 45 * 60_000;
+      return breast(`${dayKey}-c${index}`, new Date(start).toISOString(), new Date(start + 20 * 60_000).toISOString());
+    });
+  const spaced = (dayKey: string) =>
+    [6, 9, 12].map((hour) =>
+      breast(
+        `${dayKey}-${hour}`,
+        `${dayKey}T${String(hour).padStart(2, '0')}:00:00Z`,
+        `${dayKey}T${String(hour).padStart(2, '0')}:20:00Z`,
+      ),
+    );
+
+  it('finds three or more feeds close together over at least an hour and a half', () => {
+    const events = [
+      breast('a', '2026-10-13T17:00:00Z', '2026-10-13T17:20:00Z'),
+      breast('b', '2026-10-13T17:50:00Z', '2026-10-13T18:05:00Z'),
+      breast('c', '2026-10-13T18:30:00Z', '2026-10-13T18:45:00Z'),
+      breast('d', '2026-10-13T19:10:00Z', '2026-10-13T19:30:00Z'),
+      bottle('top-up', '2026-10-13T19:32:00Z'),
+      breast('short-1', '2026-10-13T08:00:00Z', '2026-10-13T08:10:00Z'),
+      breast('short-2', '2026-10-13T08:30:00Z', '2026-10-13T08:40:00Z'),
+      breast('short-3', '2026-10-13T09:00:00Z', '2026-10-13T09:10:00Z'),
+      breast('apart', '2026-10-13T12:00:00Z', '2026-10-13T12:20:00Z'),
+      { ...bottle('deleted', '2026-10-13T12:50:00Z'), deletedAt: '2026-10-13T13:00:00Z' },
+      breast('apart-2', '2026-10-13T14:00:00Z', '2026-10-13T14:20:00Z'),
+    ];
+    expect(feedClusters(events, settings)).toEqual([
+      {
+        dayKey: '2026-10-13',
+        start: Date.parse('2026-10-13T17:00:00Z'),
+        end: Date.parse('2026-10-13T19:32:00Z'),
+        feeds: 4,
+      },
+    ]);
+  });
+
+  it('splits a breastfeed at idle breaks of 10 minutes or more', () => {
+    const side = (side: 'left' | 'right', start: string, end: string) => ({
+      side,
+      startedAt: `2026-10-13T${start}:00Z`,
+      endedAt: `2026-10-13T${end}:00Z`,
+    });
+    const onAndOff = makeEvent('breast_feed', {
+      id: 'evening',
+      startedAt: '2026-10-13T17:00:00Z',
+      endedAt: '2026-10-13T19:00:00Z',
+      segments: [
+        side('left', '17:00', '17:15'),
+        side('right', '17:20', '17:30'),
+        side('left', '17:50', '18:05'),
+        side('right', '18:30', '18:40'),
+        side('left', '18:45', '19:00'),
+      ],
+    });
+    expect(feedClusters([onAndOff], settings)).toEqual([
+      {
+        dayKey: '2026-10-13',
+        start: Date.parse('2026-10-13T17:00:00Z'),
+        end: Date.parse('2026-10-13T19:00:00Z'),
+        feeds: 3,
+      },
+    ]);
+    const steady = { ...onAndOff, segments: [side('left', '17:00', '18:00'), side('right', '18:05', '19:00')] };
+    expect(feedClusters([steady], settings)).toEqual([]);
+  });
+
+  it('counts the days with a cluster, when they usually start and the longest this week', () => {
+    const events = [
+      ...keys.flatMap(spaced),
+      ...cluster('2026-10-12', 17),
+      ...cluster('2026-10-14', 18),
+      ...cluster('2026-10-14', 6).slice(0, 2),
+    ];
+    const card = clusterFeedingCard(events, keys, settings)!;
+    expect(card).toMatchObject({ key: 'cluster-feeds', title: 'Cluster feeding', plus: true });
+    expect(card.figures).toEqual([
+      { label: 'Last 7 days', value: '2 days' },
+      { label: 'On last week', value: '+2' },
+      { label: 'Usually starts', value: 'Around 5:30 pm' },
+      { label: 'Longest this week', value: '4 feeds over 2h 35m' },
+    ]);
+    expect(card.chart.bars).toHaveLength(14);
+    expect(card.chart.bars.at(-1)).toEqual({ label: '2026-10-14', values: [2.6] });
+    expect(card.chart.bars.at(-2)).toEqual({ label: '2026-10-13', values: [0] });
+  });
+
+  it('shows no clusters as zero days, and needs a week of feeds first', () => {
+    const card = clusterFeedingCard(keys.slice(-7).flatMap(spaced), keys, settings)!;
+    expect(card.figures).toEqual([{ label: 'Last 7 days', value: '0 days' }]);
+    expect(clusterFeedingCard(spaced('2026-10-14'), keys, settings)).toBeNull();
   });
 });
