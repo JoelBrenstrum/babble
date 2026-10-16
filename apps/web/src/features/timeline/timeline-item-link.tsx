@@ -1,6 +1,8 @@
 import type { BabyEvent } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import type { CSSProperties, ReactNode } from 'react';
+import { cn } from '#/lib/cn';
+import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 
 export function TimelineItemLink({
   event,
@@ -23,7 +25,8 @@ export function TimelineItemLink({
       params={{ eventId: event.id }}
       aria-label={label}
       title={label}
-      className={className}
+      className={cn(className, NO_CALLOUT)}
+      onContextMenu={blockTouchMenu}
       style={style}
     >
       {children}

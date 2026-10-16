@@ -16,6 +16,7 @@ import { ChartTip } from '#/components/ui/chart-tip';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { PlusBadge } from '#/features/plus-dialog';
 import { cn } from '#/lib/cn';
+import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft text-on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
@@ -163,7 +164,8 @@ function StatsCardView({ card, plusBadge, linkBars }: { card: StatsCard; plusBad
                 to="/timeline"
                 search={link}
                 aria-label={`${readout}. Open in timeline`}
-                className={cn(props.className, 'cursor-pointer hover:opacity-80')}
+                className={cn(props.className, NO_CALLOUT, 'cursor-pointer hover:opacity-80')}
+                onContextMenu={blockTouchMenu}
               >
                 {segments}
               </Link>
