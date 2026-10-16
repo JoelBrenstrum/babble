@@ -71,6 +71,8 @@ export function BabyTrackingSettings({
   const save = (patch: BabySettingsUpdate) =>
     panel.save(async (queryClient) => {
       queryClient.setQueryData(queryKeys.babySettings(babyId), await updateBabySettings(client, babyId, patch));
+      if (patch.night_end_minutes !== undefined)
+        await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
     });
 
   if (!settings) return null;
@@ -137,7 +139,8 @@ export function BabyTrackingSettings({
           </div>
         </div>
         <p className="text-meta text-ink-2">
-          Sleep in this window counts as night sleep; the rest are naps. Dark at night follows it too.
+          Sleep in this window counts as night sleep; the rest are naps. Dark at night follows it too, and so does the
+          start of the day if it begins when the night ends.
         </p>
       </div>
     </SettingsPanel>

@@ -1,8 +1,19 @@
-import { DEFAULT_CUSTOM_DAY_START_MIN } from '@babble/domain';
+import { DEFAULT_CUSTOM_DAY_START_MIN, minutesToClock } from '@babble/domain';
 import { Pressable, Text, View } from 'react-native';
-import { TimeButton } from '@/components/time-button';
 
-export function DayStartPicker({ value, onChange }: { value: number; onChange: (minutes: number) => void }) {
+function nightEndDescription(minutes: number): string {
+  return `Each day starts at ${minutesToClock(minutes || DEFAULT_CUSTOM_DAY_START_MIN)}, keeping each night in one day. Change it under Night in Settings.`;
+}
+
+export function DayStartPicker({
+  value,
+  nightEnd = DEFAULT_CUSTOM_DAY_START_MIN,
+  onChange,
+}: {
+  value: number;
+  nightEnd?: number;
+  onChange: (minutes: number) => void;
+}) {
   const custom = value !== 0;
   return (
     <View accessibilityRole="radiogroup" className="gap-3">
@@ -14,19 +25,10 @@ export function DayStartPicker({ value, onChange }: { value: number; onChange: (
       />
       <Option
         selected={custom}
-        title="Custom time"
-        description="Keeps each night in one day."
-        onPress={() => onChange(custom ? value : DEFAULT_CUSTOM_DAY_START_MIN)}
-      >
-        {custom && (
-          <TimeButton
-            label="Day start time"
-            minutes={value}
-            className="mt-3 self-start"
-            onChange={(minutes) => minutes !== 0 && onChange(minutes)}
-          />
-        )}
-      </Option>
+        title="When the night ends"
+        description={nightEndDescription(custom ? value : nightEnd)}
+        onPress={() => onChange(custom ? value : nightEnd || DEFAULT_CUSTOM_DAY_START_MIN)}
+      />
     </View>
   );
 }
@@ -36,13 +38,11 @@ function Option({
   title,
   description,
   onPress,
-  children,
 }: {
   selected: boolean;
   title: string;
   description: string;
   onPress: () => void;
-  children?: React.ReactNode;
 }) {
   return (
     <View
@@ -63,7 +63,6 @@ function Option({
           <Text className="font-sans text-meta text-ink-2">{description}</Text>
         </View>
       </Pressable>
-      {children}
     </View>
   );
 }

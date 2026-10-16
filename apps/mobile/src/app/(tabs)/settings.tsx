@@ -1,4 +1,5 @@
 import {
+  babySettingsQuery,
   clock,
   deleteMyAccount,
   isAdmin,
@@ -13,7 +14,7 @@ import {
 import { useAsyncAction } from '@babble/api/react';
 import { canAddBaby, planSummary } from '@babble/config';
 import { settingsGroups, settingsLockedNote, type SettingsGroup } from '@babble/domain';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Text, View } from 'react-native';
@@ -135,7 +136,8 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
   const [name, setName] = useState(baby.name);
   const [birthDate, setBirthDate] = useState(baby.birth_date);
   const [timezone, setTimezone] = useState(baby.timezone);
-  const [dayStart, setDayStart] = useState(baby.day_start_minutes);
+  const [dayStart, setDayStart] = useState<number | null>(null);
+  const nightEnd = useQuery(babySettingsQuery(client, baby.id)).data?.night_end_minutes;
   const [sex, setSex] = useState(baby.sex);
   const { run, error } = useAsyncAction();
   const [saved, setSaved] = useState(false);
@@ -147,10 +149,14 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
         name: name.trim(),
         birth_date: birthDate,
         timezone,
-        day_start_minutes: dayStart,
+        ...(dayStart === null ? {} : { day_start_minutes: dayStart }),
         sex,
       });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' });
+      setDayStart(null);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.families, refetchType: 'all' }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.babySettings(baby.id) }),
+      ]);
     });
     setSaved(ok);
   }
@@ -164,7 +170,7 @@ function BabySection({ baby, disabled }: { baby: BabyRow; disabled: boolean }) {
       <TimezoneField value={timezone} onChange={setTimezone} />
       <View className="gap-2">
         <Text className="font-semibold text-label text-ink">Day starts at</Text>
-        <DayStartPicker value={dayStart} onChange={setDayStart} />
+        <DayStartPicker value={dayStart ?? baby.day_start_minutes} nightEnd={nightEnd} onChange={setDayStart} />
       </View>
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
       {saved && !error && <StatusMessage tone="success">Saved.</StatusMessage>}

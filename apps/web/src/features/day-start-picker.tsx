@@ -1,9 +1,20 @@
 import { DEFAULT_CUSTOM_DAY_START_MIN, minutesToClock } from '@babble/domain';
 import { Check } from 'lucide-react';
 import { cn } from '#/lib/cn';
-import { MinutesTimeInput } from './minutes-time-input';
 
-export function DayStartPicker({ value, onChange }: { value: number; onChange: (minutes: number) => void }) {
+function nightEndDescription(minutes: number): string {
+  return `Each day starts at ${minutesToClock(minutes || DEFAULT_CUSTOM_DAY_START_MIN)}, keeping each night in one day. Change it under Night in Settings.`;
+}
+
+export function DayStartPicker({
+  value,
+  nightEnd = DEFAULT_CUSTOM_DAY_START_MIN,
+  onChange,
+}: {
+  value: number;
+  nightEnd?: number;
+  onChange: (minutes: number) => void;
+}) {
   const custom = value !== 0;
 
   return (
@@ -16,23 +27,10 @@ export function DayStartPicker({ value, onChange }: { value: number; onChange: (
       />
       <Option
         selected={custom}
-        title="Custom time"
-        description="Keeps each night in one day."
-        onSelect={() => onChange(custom ? value : DEFAULT_CUSTOM_DAY_START_MIN)}
-      >
-        {custom && (
-          <label className="mt-3 flex items-center gap-3 text-meta text-ink-2">
-            Day starts at
-            <MinutesTimeInput
-              label="Day start time"
-              minutes={value}
-              accept={(minutes) => minutes !== 0}
-              onChange={onChange}
-            />
-            <span className="tabular text-ink">{minutesToClock(value)}</span>
-          </label>
-        )}
-      </Option>
+        title="When the night ends"
+        description={nightEndDescription(custom ? value : nightEnd)}
+        onSelect={() => onChange(custom ? value : nightEnd || DEFAULT_CUSTOM_DAY_START_MIN)}
+      />
     </div>
   );
 }
@@ -42,13 +40,11 @@ function Option({
   title,
   description,
   onSelect,
-  children,
 }: {
   selected: boolean;
   title: string;
   description: string;
   onSelect: () => void;
-  children?: React.ReactNode;
 }) {
   return (
     <div
@@ -77,7 +73,6 @@ function Option({
           <span className="block text-meta text-ink-2">{description}</span>
         </span>
       </button>
-      {children}
     </div>
   );
 }

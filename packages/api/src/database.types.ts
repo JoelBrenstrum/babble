@@ -8,6 +8,7 @@ export type Database = {
           birth_date: string;
           created_at: string;
           day_start_minutes: number;
+          day_starts_at_night_end: boolean;
           family_id: string;
           id: string;
           name: string;
@@ -19,6 +20,7 @@ export type Database = {
           birth_date: string;
           created_at?: string;
           day_start_minutes?: number;
+          day_starts_at_night_end?: boolean;
           family_id: string;
           id?: string;
           name: string;
@@ -30,6 +32,7 @@ export type Database = {
           birth_date?: string;
           created_at?: string;
           day_start_minutes?: number;
+          day_starts_at_night_end?: boolean;
           family_id?: string;
           id?: string;
           name?: string;
