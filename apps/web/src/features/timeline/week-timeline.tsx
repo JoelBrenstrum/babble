@@ -1,6 +1,7 @@
 import { formatFraction, weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { cn } from '#/lib/cn';
+import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 import { daySummaryText } from './day-summary-text';
 
 export function WeekTimeline({
@@ -70,8 +71,10 @@ export function WeekTimeline({
               search={{ view: 'day', date: dayKey, show }}
               aria-label={`Open ${weekday} ${day}`}
               aria-describedby={`week-summary-${dayKey}`}
+              onContextMenu={blockTouchMenu}
               className={cn(
                 'relative overflow-hidden rounded-tile bg-surface hover:ring-2 hover:ring-line-strong',
+                NO_CALLOUT,
                 dayKey === todayKey && 'ring-2 ring-primary hover:ring-primary',
                 !layout && 'opacity-50',
               )}

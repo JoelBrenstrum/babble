@@ -2,6 +2,7 @@ import { weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from 
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { cn } from '#/lib/cn';
+import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 
 const pct = (frac: number) => `${(frac * 100).toFixed(3)}%`;
 
@@ -151,7 +152,13 @@ function RowLink({
   const className = 'group grid h-4 grid-cols-[4rem_minmax(0,1fr)] items-center md:h-5';
   if (!enabled) return <div className={className}>{children}</div>;
   return (
-    <Link to="/timeline" search={{ view: 'day', date: dayKey, show }} aria-label={label} className={className}>
+    <Link
+      to="/timeline"
+      search={{ view: 'day', date: dayKey, show }}
+      aria-label={label}
+      className={cn(className, NO_CALLOUT)}
+      onContextMenu={blockTouchMenu}
+    >
       {children}
     </Link>
   );

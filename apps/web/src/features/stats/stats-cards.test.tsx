@@ -54,6 +54,24 @@ describe('StatsCards', () => {
     expect(first).toHaveAttribute('href', '/timeline?view=day&date=2026-10-06&show=feeds');
   });
 
+  it("keeps the phone's link menu from opening on a long press but leaves right-click alone", async () => {
+    render(
+      <FixtureRouter>
+        <StatsCards cards={[card]} linkBars />
+      </FixtureRouter>,
+    );
+    const bar = await screen.findByRole('link', { name: /^6 Oct: .* Open in timeline$/ });
+    const press = (pointerType: string) => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'pointerType', { value: pointerType });
+      bar.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(press('touch')).toBe(true);
+    expect(press('mouse')).toBe(false);
+    expect(bar).toHaveClass('[-webkit-touch-callout:none]');
+  });
+
   it('shows the breastfeed trend as left, right and idle minutes with its note', () => {
     render(
       <StatsCards
