@@ -1,7 +1,8 @@
-import { weekdayLabel, type DayLayout } from '@babble/domain';
+import { weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { cn } from '#/lib/cn';
+import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 
 const pct = (frac: number) => `${(frac * 100).toFixed(3)}%`;
 
@@ -10,31 +11,41 @@ export function MonthTimeline({
   ticks,
   todayKey,
   linkDays = true,
+  lanes = TIMELINE_LANES,
+  show,
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
   ticks: { frac: number; label: string }[];
   todayKey: string;
   linkDays?: boolean;
+  lanes?: readonly TimelineLane[];
+  show?: string;
 }) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-x-4 gap-y-1 pl-16 text-meta font-semibold text-ink-2">
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-sleep" />
-          Sleep
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-0.5 rounded-full bg-feed-left" />
-          Left
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-0.5 rounded-full bg-feed-right" />
-          Right
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-2.5 w-0.5 rounded-full bg-bottle" />
-          Bottle
-        </span>
+        {lanes.includes('sleep') && (
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-sm bg-sleep" />
+            Sleep
+          </span>
+        )}
+        {lanes.includes('feeds') && (
+          <>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-0.5 rounded-full bg-feed-left" />
+              Left
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-0.5 rounded-full bg-feed-right" />
+              Right
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-2.5 w-0.5 rounded-full bg-bottle" />
+              Bottle
+            </span>
+          </>
+        )}
       </div>
       <div className="grid grid-cols-[4rem_minmax(0,1fr)]">
         <span />
@@ -59,7 +70,7 @@ export function MonthTimeline({
           const today = dayKey === todayKey;
           return (
             <li key={dayKey}>
-              <RowLink dayKey={dayKey} label={`Open ${weekday} ${day}`} enabled={linkDays}>
+              <RowLink dayKey={dayKey} label={`Open ${weekday} ${day}`} enabled={linkDays} show={show}>
                 <span
                   className={cn(
                     'tabular truncate pr-2 text-caption',
@@ -129,17 +140,25 @@ function RowLink({
   dayKey,
   label,
   enabled,
+  show,
   children,
 }: {
   dayKey: string;
   label: string;
   enabled: boolean;
+  show?: string;
   children: ReactNode;
 }) {
   const className = 'group grid h-4 grid-cols-[4rem_minmax(0,1fr)] items-center md:h-5';
   if (!enabled) return <div className={className}>{children}</div>;
   return (
-    <Link to="/timeline" search={{ view: 'day', date: dayKey }} aria-label={label} className={className}>
+    <Link
+      to="/timeline"
+      search={{ view: 'day', date: dayKey, show }}
+      aria-label={label}
+      className={cn(className, NO_CALLOUT)}
+      onContextMenu={blockTouchMenu}
+    >
       {children}
     </Link>
   );

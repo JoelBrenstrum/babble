@@ -1,41 +1,54 @@
-import { formatFraction, weekdayLabel, type DayLayout } from '@babble/domain';
+import { formatFraction, weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { cn } from '#/lib/cn';
+import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 import { daySummaryText } from './day-summary-text';
 
 export function WeekTimeline({
   days,
   ticks,
   todayKey,
+  lanes = TIMELINE_LANES,
+  show,
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
   ticks: { frac: number; label: string }[];
   todayKey: string;
+  lanes?: readonly TimelineLane[];
+  show?: string;
 }) {
   const columns = { gridTemplateColumns: '2rem repeat(7, minmax(0, 1fr))' };
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-x-4 gap-y-1 pl-8 text-meta font-semibold text-ink-2">
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-sleep" />
-          Sleep
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-1 w-2.5 rounded-full bg-feed-left" />
-          Left
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-1 w-2.5 rounded-full bg-feed-right" />
-          Right
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="h-1 w-2.5 rounded-full bg-bottle" />
-          Bottle
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-2 rounded-full bg-nappy" />
-          Nappy
-        </span>
+        {lanes.includes('sleep') && (
+          <span className="flex items-center gap-1.5">
+            <span className="size-2.5 rounded-sm bg-sleep" />
+            Sleep
+          </span>
+        )}
+        {lanes.includes('feeds') && (
+          <>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1 w-2.5 rounded-full bg-feed-left" />
+              Left
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1 w-2.5 rounded-full bg-feed-right" />
+              Right
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span className="h-1 w-2.5 rounded-full bg-bottle" />
+              Bottle
+            </span>
+          </>
+        )}
+        {lanes.includes('nappies') && (
+          <span className="flex items-center gap-1.5">
+            <span className="size-2 rounded-full bg-nappy" />
+            Nappy
+          </span>
+        )}
       </div>
       <div className="grid h-[28rem] gap-1.5 md:h-[34rem]" style={columns}>
         <div className="relative">
@@ -55,11 +68,13 @@ export function WeekTimeline({
             <Link
               key={dayKey}
               to="/timeline"
-              search={{ view: 'day', date: dayKey }}
+              search={{ view: 'day', date: dayKey, show }}
               aria-label={`Open ${weekday} ${day}`}
               aria-describedby={`week-summary-${dayKey}`}
+              onContextMenu={blockTouchMenu}
               className={cn(
                 'relative overflow-hidden rounded-tile bg-surface hover:ring-2 hover:ring-line-strong',
+                NO_CALLOUT,
                 dayKey === todayKey && 'ring-2 ring-primary hover:ring-primary',
                 !layout && 'opacity-50',
               )}

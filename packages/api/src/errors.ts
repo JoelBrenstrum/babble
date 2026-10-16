@@ -41,7 +41,7 @@ const MESSAGES: Record<BabbleErrorCode, string> = {
   baby_limit: 'Adding more than one baby to a family needs Babble Plus.',
   carer_limit: 'A free family can have two carers. Babble Plus allows more.',
   last_admin: 'A family needs at least one admin. Make someone else an admin first.',
-  merge_invalid: 'Those feeds can no longer be merged. They may have changed; refresh and try again.',
+  merge_invalid: 'These can no longer be merged. They may have changed; refresh and try again.',
   device_link_invalid: 'This code has expired or was already used. Make a new one on the other screen.',
   too_many_codes: 'Too many sign-in codes. Try again in a few minutes.',
   invalid_input: 'Check the details and try again.',

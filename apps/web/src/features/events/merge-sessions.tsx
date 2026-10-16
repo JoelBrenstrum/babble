@@ -1,19 +1,19 @@
 import type { BabbleClient } from '@babble/api';
-import { useAsyncAction, useMergeFeeds } from '@babble/api/react';
-import { liveMergeText, mergeGapText, type FeedMerge } from '@babble/domain';
+import { useAsyncAction, useMergeSessions } from '@babble/api/react';
+import { liveMergeText, mergeCopy, mergeGapText, type SessionMerge } from '@babble/domain';
 import { Merge } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
 import { StatusMessage } from '#/components/ui/status';
 
-function useMerge(client: BabbleClient, babyId: string, merge: FeedMerge, onMerged?: () => void) {
-  const mutation = useMergeFeeds(client, babyId);
+function useMerge(client: BabbleClient, babyId: string, merge: SessionMerge, onMerged?: () => void) {
+  const mutation = useMergeSessions(client, babyId);
   const { run, busy, error } = useAsyncAction();
   const [confirming, setConfirming] = useState(false);
   const confirm = () =>
     void run(async () => {
-      await mutation.mutateAsync({ earlierId: merge.earlierId, laterId: merge.laterId });
+      await mutation.mutateAsync(merge);
       setConfirming(false);
       onMerged?.();
     });
@@ -21,12 +21,14 @@ function useMerge(client: BabbleClient, babyId: string, merge: FeedMerge, onMerg
 }
 
 function MergeConfirm({
+  title,
   message,
   busy,
   error,
   onConfirm,
   onCancel,
 }: {
+  title: string;
   message: string;
   busy: boolean;
   error: string | null;
@@ -34,7 +36,7 @@ function MergeConfirm({
   onCancel: () => void;
 }) {
   return (
-    <div role="alertdialog" aria-label="Merge feeds" className="flex flex-col gap-3">
+    <div role="alertdialog" aria-label={title} className="flex flex-col gap-3">
       <p className="text-meta text-ink-2">{message}</p>
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
       <div className="flex gap-3">
@@ -49,13 +51,23 @@ function MergeConfirm({
   );
 }
 
-export function MergeFeedsRow({ client, babyId, merge }: { client: BabbleClient; babyId: string; merge: FeedMerge }) {
+export function MergeSessionsRow({
+  client,
+  babyId,
+  merge,
+}: {
+  client: BabbleClient;
+  babyId: string;
+  merge: SessionMerge;
+}) {
   const { busy, error, confirming, setConfirming, confirm } = useMerge(client, babyId, merge);
+  const copy = mergeCopy(merge.type);
   if (confirming) {
     return (
       <div className="bg-surface px-4 py-3">
         <MergeConfirm
-          message="Merge these two feeds into one? Their sides and notes are combined, and this can't be undone."
+          title={copy.title}
+          message={copy.confirm}
           busy={busy}
           error={error}
           onConfirm={confirm}
@@ -71,7 +83,7 @@ export function MergeFeedsRow({ client, babyId, merge }: { client: BabbleClient;
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="min-h-tap-sm rounded-button px-2 font-semibold text-primary hover:bg-line"
+        className="h-10 rounded-button px-2 font-semibold text-primary hover:bg-line"
       >
         Merge
       </button>
@@ -87,15 +99,17 @@ export function LiveMergeOffer({
 }: {
   client: BabbleClient;
   babyId: string;
-  merge: FeedMerge;
+  merge: SessionMerge;
   onMerged: () => void;
 }) {
   const { busy, error, confirming, setConfirming, confirm } = useMerge(client, babyId, merge, onMerged);
+  const copy = mergeCopy(merge.type);
   return (
     <Card className="flex flex-col gap-3 p-4">
       {confirming ? (
         <MergeConfirm
-          message="Merge this feed into the last one? It keeps running as one feed, with both feeds' sides."
+          title={copy.title}
+          message={copy.liveConfirm}
           busy={busy}
           error={error}
           onConfirm={confirm}
@@ -104,7 +118,7 @@ export function LiveMergeOffer({
       ) : (
         <div className="flex flex-wrap items-center gap-3">
           <Merge aria-hidden className="size-5 shrink-0 rotate-180 text-ink-2" strokeWidth={2.5} />
-          <span className="min-w-[10rem] flex-1 text-meta text-ink-2">{liveMergeText(merge.gapMs)}</span>
+          <span className="min-w-[10rem] flex-1 text-meta text-ink-2">{liveMergeText(merge)}</span>
           <Button variant="secondary" onClick={() => setConfirming(true)}>
             Merge into it
           </Button>

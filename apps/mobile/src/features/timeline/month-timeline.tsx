@@ -1,4 +1,4 @@
-import { weekdayLabel, type DayLayout } from '@babble/domain';
+import { weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
 import { Pressable, Text, View } from 'react-native';
 import { pct } from './percent';
 
@@ -7,19 +7,25 @@ export function MonthTimeline({
   ticks,
   todayKey,
   onOpenDay,
+  lanes = TIMELINE_LANES,
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
   ticks: { frac: number; label: string }[];
   todayKey: string;
   onOpenDay: (dayKey: string) => void;
+  lanes?: readonly TimelineLane[];
 }) {
   return (
     <View className="gap-2">
       <View className="flex-row flex-wrap gap-x-4 gap-y-1 pl-14">
-        <Legend swatch="h-2.5 w-2.5 rounded-sm bg-sleep" label="Sleep" />
-        <Legend swatch="h-2.5 w-0.5 rounded-full bg-feed-left" label="Left" />
-        <Legend swatch="h-2.5 w-0.5 rounded-full bg-feed-right" label="Right" />
-        <Legend swatch="h-2.5 w-0.5 rounded-full bg-bottle" label="Bottle" />
+        {lanes.includes('sleep') && <Legend swatch="h-2.5 w-2.5 rounded-sm bg-sleep" label="Sleep" />}
+        {lanes.includes('feeds') && (
+          <>
+            <Legend swatch="h-2.5 w-0.5 rounded-full bg-feed-left" label="Left" />
+            <Legend swatch="h-2.5 w-0.5 rounded-full bg-feed-right" label="Right" />
+            <Legend swatch="h-2.5 w-0.5 rounded-full bg-bottle" label="Bottle" />
+          </>
+        )}
       </View>
       <View className="flex-row">
         <View className="w-14" />

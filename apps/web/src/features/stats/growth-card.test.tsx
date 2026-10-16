@@ -58,3 +58,40 @@ describe('GrowthCard', () => {
     expect(screen.getByText('1 Sept · 3.23 kg · 50th percentile')).toBeInTheDocument();
   });
 });
+
+describe('GrowthCard estimate', () => {
+  it("shows today's estimate with its readout once there are three measurements", async () => {
+    const withEstimate = growthReport(
+      [
+        weighIn('g1', '2026-09-01T10:00:00Z', 3232),
+        weighIn('g2', '2026-09-15T10:00:00Z', 3700),
+        weighIn('g3', '2026-10-01T10:00:00Z', 4187),
+      ],
+      { birthDate: '2026-09-01', sex: 'female', timeZone: 'UTC' },
+      'metric',
+      new Date('2026-10-14T10:00:00Z'),
+    );
+    render(
+      <FixtureRouter>
+        <GrowthCard report={withEstimate} babyName="Olivia" timeZone="UTC" plusBadge />
+      </FixtureRouter>,
+    );
+    await screen.findByRole('heading', { name: 'Growth' });
+    expect(screen.getByText('Estimate for today')).toBeInTheDocument();
+    expect(screen.queryByText(/^Next:/)).not.toBeInTheDocument();
+    const milestone = screen.getByRole('img', { name: /^5 kg around \d+ \w+$/ });
+    expect(screen.getByRole('img', { name: /^6 kg around \d+ \w+$/ })).toBeInTheDocument();
+    fireEvent.mouseEnter(milestone);
+    expect(screen.getByText(/^5 kg around \d+ \w+$/)).toBeInTheDocument();
+    fireEvent.mouseLeave(milestone);
+    expect(screen.getByText('Plus')).toBeInTheDocument();
+    const point = screen.getByRole('img', { name: /^Estimate for today · \d\.\d+ kg · \d+(st|nd|rd|th) percentile$/ });
+    fireEvent.mouseEnter(point);
+    expect(screen.getAllByText(/^Estimate for today · /).length).toBeGreaterThan(0);
+  });
+
+  it('leaves the estimate out when the report has none', async () => {
+    await renderCard();
+    expect(screen.queryByText('Estimate for today')).not.toBeInTheDocument();
+  });
+});

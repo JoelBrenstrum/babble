@@ -1,5 +1,23 @@
-import { barReadout, chartEnds, chartValue, topSegment, type StatsCard } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, MoonStar, Sun, type LucideIcon } from 'lucide-react-native';
+import {
+  barReadout,
+  chartEnds,
+  chartValue,
+  statsBarLink,
+  topSegment,
+  type StatsCard,
+  type TimelineLink,
+} from '@babble/domain';
+import {
+  Droplets,
+  GlassWater,
+  Heart,
+  Hourglass,
+  Moon,
+  MoonStar,
+  Sun,
+  TrendingUp,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
@@ -7,7 +25,14 @@ import { PlusBadge } from '@/components/plus';
 import { PooSwatch } from '@/components/poo-swatch';
 import { useTokenColor } from '@/lib/theme';
 
-type InkToken = '--on-sleep' | '--on-feed-right' | '--on-nappy' | '--on-pump' | '--on-primary-soft';
+type InkToken =
+  | '--on-sleep'
+  | '--on-bottle'
+  | '--on-feed-left'
+  | '--on-feed-right'
+  | '--on-nappy'
+  | '--on-pump'
+  | '--on-primary-soft';
 
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkToken; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
@@ -21,24 +46,59 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkT
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump', series: ['bg-pump'] },
   wake: { icon: Sun, tile: 'bg-primary-soft', ink: '--on-primary-soft', series: ['bg-primary'] },
   night: { icon: MoonStar, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep'] },
+  'feed-trend': {
+    icon: TrendingUp,
+    tile: 'bg-feed-left-soft',
+    ink: '--on-feed-left',
+    series: ['bg-feed-left', 'bg-feed-right', 'bg-session-downtime'],
+  },
+  'feed-spacing': { icon: Hourglass, tile: 'bg-bottle-soft', ink: '--on-bottle', series: ['bg-bottle'] },
 };
 
-export function StatsCards({ cards, plusBadges = false }: { cards: StatsCard[]; plusBadges?: boolean }) {
+const CHART_LABEL: Partial<Record<StatsCard['key'], string>> = {
+  night: 'per night',
+  'feed-trend': 'per feed, 7-day average by day',
+  'feed-spacing': 'typical daytime gap by day',
+};
+
+export function StatsCards({
+  cards,
+  plusBadges = false,
+  onOpenTimeline,
+}: {
+  cards: StatsCard[];
+  plusBadges?: boolean;
+  onOpenTimeline?: (link: TimelineLink) => void;
+}) {
   return (
     <View className="gap-4">
       {cards.map((card) => (
-        <StatsCardView key={card.key} card={card} plusBadge={plusBadges && Boolean(card.plus)} />
+        <StatsCardView
+          key={card.key}
+          card={card}
+          plusBadge={plusBadges && Boolean(card.plus)}
+          onOpenTimeline={onOpenTimeline}
+        />
       ))}
     </View>
   );
 }
 
-function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolean }) {
+function StatsCardView({
+  card,
+  plusBadge,
+  onOpenTimeline,
+}: {
+  card: StatsCard;
+  plusBadge: boolean;
+  onOpenTimeline?: (link: TimelineLink) => void;
+}) {
   const look = LOOK[card.key];
   const color = useTokenColor(look.ink);
   const { chart } = card;
   const [selected, setSelected] = useState<string | null>(null);
   const selectedBar = chart.bars.find((bar) => bar.label === selected);
+  const link = selectedBar && onOpenTimeline ? statsBarLink(card.key, selectedBar, chart.weekly) : null;
   return (
     <Card className="gap-4 p-5">
       <View className="flex-row items-center gap-3">
@@ -74,11 +134,24 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
             </Text>
           )}
         </View>
-        <Text className={selectedBar ? 'font-semibold text-caption text-ink' : 'font-sans text-caption text-ink-3'}>
-          {selectedBar ? barReadout(chart, selectedBar) : 'Tap a bar to see its day'}
-        </Text>
+        <View className="min-h-8 flex-row items-center justify-between gap-2">
+          <Text
+            className={`flex-1 ${selectedBar ? 'font-semibold text-caption text-ink' : 'font-sans text-caption text-ink-3'}`}
+          >
+            {selectedBar ? barReadout(chart, selectedBar) : 'Tap a bar to see its day'}
+          </Text>
+          {link && (
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => onOpenTimeline?.(link)}
+              className="h-8 justify-center rounded-full bg-surface px-3"
+            >
+              <Text className="font-semibold text-caption text-primary">Open in timeline</Text>
+            </Pressable>
+          )}
+        </View>
         <View
-          accessibilityLabel={`${card.title} per ${card.key === 'night' ? 'night' : 'day'}`}
+          accessibilityLabel={`${card.title} ${CHART_LABEL[card.key] ?? 'per day'}`}
           className="h-32 flex-row items-end gap-[2px] border-b border-line"
         >
           {chart.bars.map((bar) => {
@@ -110,6 +183,7 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
             <Text className="font-sans text-caption text-ink-3">{chartEnds(chart)![1]}</Text>
           </View>
         )}
+        {card.note && <Text className="font-sans text-caption text-ink-3">{card.note}</Text>}
       </View>
       {card.colours && card.colours.length > 0 && (
         <View className="gap-1.5">

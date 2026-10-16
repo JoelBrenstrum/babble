@@ -6,6 +6,7 @@ export interface ChartBar {
   label: string;
   values: number[];
   title?: string;
+  lastDay?: string;
 }
 
 export interface StatsChart {
@@ -27,6 +28,7 @@ export function weeklyBars(bars: readonly ChartBar[]): ChartBar[] {
     const width = chunk[0]!.values.length;
     weeks.unshift({
       label: chunk[0]!.label,
+      lastDay: chunk.at(-1)!.label,
       values: Array.from(
         { length: width },
         (_, index) => chunk.reduce((total, bar) => total + bar.values[index]!, 0) / chunk.length,

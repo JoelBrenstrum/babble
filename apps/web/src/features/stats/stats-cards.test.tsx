@@ -1,6 +1,7 @@
 import type { StatsCard } from '@babble/domain';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { FixtureRouter } from '#/fixtures/router';
 import { StatsCards } from './stats-cards';
 
 const card: StatsCard = {
@@ -41,5 +42,94 @@ describe('StatsCards', () => {
     fireEvent.keyDown(last, { key: 'ArrowLeft' });
     expect(first).toHaveFocus();
     expect(screen.getByText('6 Oct: Breast 8, Bottle 1 · Total 9')).toBeInTheDocument();
+  });
+
+  it('opens the day in the timeline showing just that kind of entry', async () => {
+    render(
+      <FixtureRouter>
+        <StatsCards cards={[card]} linkBars />
+      </FixtureRouter>,
+    );
+    const first = await screen.findByRole('link', { name: '6 Oct: Breast 8, Bottle 1 · Total 9. Open in timeline' });
+    expect(first).toHaveAttribute('href', '/timeline?view=day&date=2026-10-06&show=feeds');
+  });
+
+  it("keeps the phone's link menu from opening on a long press but leaves right-click alone", async () => {
+    render(
+      <FixtureRouter>
+        <StatsCards cards={[card]} linkBars />
+      </FixtureRouter>,
+    );
+    const bar = await screen.findByRole('link', { name: /^6 Oct: .* Open in timeline$/ });
+    const press = (pointerType: string) => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      Object.defineProperty(event, 'pointerType', { value: pointerType });
+      bar.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    expect(press('touch')).toBe(true);
+    expect(press('mouse')).toBe(false);
+    expect(bar).toHaveClass('[-webkit-touch-callout:none]');
+  });
+
+  it('shows the breastfeed trend as left, right and idle minutes with its note', () => {
+    render(
+      <StatsCards
+        cards={[
+          {
+            key: 'feed-trend',
+            title: 'Breastfeeds',
+            note: 'Each bar is the average feed over the 7 days up to that day.',
+            plus: true,
+            figures: [{ label: 'Per feed', value: '24m' }],
+            chart: {
+              unit: 'min',
+              series: ['Left', 'Right', 'Idle'],
+              legend: [0, 1, 2],
+              bars: [{ label: '2026-10-14', values: [12, 10, 2] }],
+              max: 24,
+              weekly: false,
+            },
+          },
+        ]}
+        plusBadges
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Breastfeeds per feed, 7-day average by day' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('img', { name: '14 Oct: Left 12 min, Right 10 min, Idle 2 min · Total 24 min' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Each bar is the average feed over the 7 days up to that day.')).toBeInTheDocument();
+    expect(screen.getByText('Plus')).toBeInTheDocument();
+  });
+
+  it('shows feed spacing as the typical daytime gap in hours', () => {
+    render(
+      <StatsCards
+        cards={[
+          {
+            key: 'feed-spacing',
+            title: 'Feed spacing',
+            plus: true,
+            figures: [
+              { label: 'Daytime', value: '3h 15m' },
+              { label: 'Overnight', value: '4h 30m' },
+            ],
+            chart: {
+              unit: 'h',
+              series: ['Typical daytime gap'],
+              legend: [0],
+              bars: [{ label: '2026-10-14', values: [3.5] }],
+              max: 3.5,
+              weekly: false,
+            },
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByRole('group', { name: 'Feed spacing typical daytime gap by day' })).toBeInTheDocument();
+    expect(screen.getByText('Overnight')).toBeInTheDocument();
+    expect(screen.getByText('4h 30m')).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '14 Oct: 3.5h' })).toBeInTheDocument();
   });
 });

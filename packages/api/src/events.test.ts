@@ -8,7 +8,7 @@ import {
   latestEvents,
   listEvents,
   listEventsBetween,
-  mergeFeeds,
+  mergeSessions,
   resumeFeed,
   rowToEvent,
   endSession,
@@ -299,11 +299,13 @@ describe('event requests', () => {
     ]);
   });
 
-  it('merges a feed into the one before it', async () => {
+  it('merges a feed or a sleep into the one before it', async () => {
     const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
-    await mergeFeeds(client, 'feed-1', 'feed-2');
+    await mergeSessions(client, { type: 'breast_feed', earlierId: 'feed-1', laterId: 'feed-2' });
+    await mergeSessions(client, { type: 'sleep', earlierId: 'nap-1', laterId: 'nap-2' });
     expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
       ['/rest/v1/rpc/merge_feeds', { earlier_id: 'feed-1', later_id: 'feed-2' }],
+      ['/rest/v1/rpc/merge_sleeps', { earlier_id: 'nap-1', later_id: 'nap-2' }],
     ]);
   });
 

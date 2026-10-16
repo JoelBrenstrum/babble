@@ -1,5 +1,6 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
 import {
+  type TimelineLink,
   growthReport,
   PATTERNS_CAPTION,
   STATS_RANGES,
@@ -10,8 +11,10 @@ import {
   type StatsRange,
 } from '@babble/domain';
 import { sampleStatsReport } from '@babble/api/fixtures';
+import { familyHasFeature } from '@babble/config';
 import { useSettled, useUnits } from '@babble/api/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { ChartColumn } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
@@ -94,7 +97,7 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
               body={`Charts and averages for every day since ${baby.name} was born are part of Babble Plus.`}
             >
               <View style={{ opacity: loading ? 0.6 : 1 }}>
-                <StatsCards cards={report.cards} />
+                <StatsCards cards={report.cards} onOpenTimeline={sample ? undefined : openTimeline} />
               </View>
             </PlusMask>
           )}
@@ -105,9 +108,11 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
               growth.data,
               { birthDate: baby.birth_date, sex: baby.sex, timeZone: baby.timezone },
               units,
+              familyHasFeature(config.billingEnabled, family.plan, 'predictions') ? now : undefined,
             )}
             babyName={baby.name}
             timeZone={baby.timezone}
+            plusBadge={config.billingEnabled}
           />
         )}
       </View>
@@ -121,13 +126,13 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
       <PlusTeaser
         feature="insights"
         title="Patterns"
-        body={`See ${babyName}'s wake windows, how night sleep is stretching out, and a weekly summary of what changed.`}
+        body={`See ${babyName}'s wake windows, how night sleep is stretching out, how breastfeeds are changing, how far apart feeds are, and a weekly summary of what changed.`}
       />
     );
   }
   const { report } = state;
   if (!report) return null;
-  const cards = [report.wake, report.night].filter((card) => card !== null);
+  const cards = [report.feeds, report.spacing, report.wake, report.night].filter((card) => card !== null);
   if (!report.weekly && cards.length === 0) return null;
   return (
     <View className="gap-4">
@@ -138,7 +143,11 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
         <Text className="font-sans text-meta text-ink-2">{PATTERNS_CAPTION}</Text>
       </View>
       {report.weekly && <WeeklySummaryCard summary={report.weekly} plusBadge={plusBadges} />}
-      {cards.length > 0 && <StatsCards cards={cards} plusBadges={plusBadges} />}
+      {cards.length > 0 && <StatsCards cards={cards} plusBadges={plusBadges} onOpenTimeline={openTimeline} />}
     </View>
   );
+}
+
+function openTimeline(link: TimelineLink) {
+  router.navigate({ pathname: '/timeline', params: { ...link, at: String(Date.now()) } });
 }

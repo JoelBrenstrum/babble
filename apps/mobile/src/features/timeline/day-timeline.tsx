@@ -6,19 +6,25 @@ import {
   partSpan,
   showsItemLabel,
   timelineItemLabel,
+  timelineItemTip,
   type DayLayout,
+  type TimelineLane,
+  TIMELINE_LANES,
   type FeedDueMarker,
+  type NightMarker,
   type PredictedItem,
   type TimelineItem,
   type Units,
   summariseSleep,
 } from '@babble/domain';
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { PooSwatch } from '@/components/poo-swatch';
 import { pct } from './percent';
 
 export const DAY_TIMELINE_HEIGHT = 560;
+const TIP_ROOM_FRAC = 0.15;
 
 function open(item: TimelineItem) {
   router.push(item.running ? `/sessions/${item.event.id}` : `/events/${item.event.id}`);
@@ -34,6 +40,8 @@ export function DayTimeline({
   predicted = null,
   compact = false,
   feedDue = null,
+  lanes: shown = TIMELINE_LANES,
+  night = [],
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -44,13 +52,18 @@ export function DayTimeline({
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
   compact?: boolean;
   feedDue?: FeedDueMarker | null;
+  lanes?: readonly TimelineLane[];
+  night?: NightMarker[];
 }) {
+  const filtered = shown.length < TIMELINE_LANES.length;
   const lanes: { key: keyof DayLayout; label: string }[] = [
-    { key: 'sleep', label: 'Sleep' },
-    { key: 'feeds', label: 'Feeds' },
-    { key: 'nappies', label: 'Nappy' },
-    ...(layout.pumps.length ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
-  ];
+    { key: 'sleep' as const, label: 'Sleep' },
+    { key: 'feeds' as const, label: 'Feeds' },
+    { key: 'nappies' as const, label: 'Nappy' },
+    ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
+  ].filter((lane) => shown.includes(lane.key));
+  const [tip, setTip] = useState<TimelineItem | null>(null);
+  const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
 
   return (
     <View className="gap-2">
@@ -78,6 +91,25 @@ export function DayTimeline({
         <View className="absolute bottom-0 left-9 right-0 top-0" pointerEvents="none">
           {ticks.map((tick, index) => (
             <View key={index} className="absolute inset-x-0 border-t border-line" style={{ top: pct(tick.frac) }} />
+          ))}
+          {night.map((marker) => (
+            <View
+              key={marker.frac}
+              accessible
+              accessibilityLabel={marker.label}
+              testID="night-marker"
+              className="absolute inset-x-0 border-t border-dashed border-sleep"
+              style={{ top: pct(marker.frac) }}
+            >
+              {!compact && (
+                <Text
+                  className="absolute right-0 rounded-chip bg-sleep-soft px-1.5 font-semibold text-caption text-on-sleep"
+                  style={{ top: 2 }}
+                >
+                  {marker.label}
+                </Text>
+              )}
+            </View>
           ))}
           {feedDue && (
             <View
@@ -108,6 +140,7 @@ export function DayTimeline({
                 label={timelineItemLabel(item, timeZone, units)}
                 units={units}
                 now={now}
+                onTip={() => setTip(item)}
               />
             ))}
             {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
@@ -115,6 +148,27 @@ export function DayTimeline({
             ))}
           </View>
         ))}
+        {tip && tipContent && (
+          <View
+            className="absolute left-9 right-0 z-20 items-center"
+            style={tip.startFrac > TIP_ROOM_FRAC ? { bottom: pct(1 - tip.startFrac) } : { top: pct(tip.endFrac) }}
+          >
+            <Pressable
+              testID="timeline-tip"
+              accessibilityRole="button"
+              accessibilityLabel={[tipContent.title, ...tipContent.lines].join('. ')}
+              onPress={() => setTip(null)}
+              className="my-1.5 max-w-[16rem] rounded-[10px] bg-ink px-2.5 py-1.5"
+            >
+              <Text className="font-bold text-caption text-bg">{tipContent.title}</Text>
+              {tipContent.lines.map((line) => (
+                <Text key={line} className="font-medium text-caption text-bg">
+                  {line}
+                </Text>
+              ))}
+            </Pressable>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -137,7 +191,19 @@ function Predicted({ item }: { item: PredictedItem }) {
   );
 }
 
-function Item({ item, label, units, now }: { item: TimelineItem; label: string; units: Units; now: Date }) {
+function Item({
+  item,
+  label,
+  units,
+  now,
+  onTip,
+}: {
+  item: TimelineItem;
+  label: string;
+  units: Units;
+  now: Date;
+  onTip: () => void;
+}) {
   const { event } = item;
   const height = item.endFrac - item.startFrac;
   const span = { top: pct(item.startFrac), height: pct(height), minHeight: 4 };
@@ -154,6 +220,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => open(item)}
+        onLongPress={onTip}
         className={`absolute inset-x-0 overflow-hidden px-1.5 py-0.5 ${item.parts.length > 0 ? 'border border-dashed border-sleep' : 'bg-sleep'}`}
         style={[span, corners]}
       >
@@ -182,6 +249,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => open(item)}
+        onLongPress={onTip}
         className={`absolute inset-x-0 overflow-hidden ${event.type === 'pump' ? 'bg-pump/40' : 'border border-dashed border-session-downtime'}`}
         style={[span, corners]}
       >
@@ -211,6 +279,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => open(item)}
+        onLongPress={onTip}
         className="absolute z-[1] h-5 justify-center rounded-chip border border-bottle/50 bg-bottle-soft px-1.5"
         style={marker}
       >
@@ -226,6 +295,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => open(item)}
+        onLongPress={onTip}
         className="absolute z-[1] h-5 justify-center rounded-chip border border-solids/50 bg-solids-soft px-1.5"
         style={marker}
       >
@@ -241,6 +311,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         accessibilityRole="button"
         accessibilityLabel={label}
         onPress={() => open(item)}
+        onLongPress={onTip}
         className="absolute h-5 flex-row items-center gap-1 rounded-chip border border-nappy/50 bg-nappy-soft px-1.5"
         style={marker}
       >

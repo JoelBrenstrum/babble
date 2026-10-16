@@ -132,6 +132,18 @@ export {
   windowTicks,
   type TimeWindow,
 } from './timeline/days';
+export { nightMarkers, type NightMarker } from './timeline/night-markers';
+export {
+  filterLayout,
+  parseTimelineLanes,
+  shownLanes,
+  statsBarLink,
+  toggleLane,
+  TIMELINE_LANE_LABELS,
+  TIMELINE_LANES,
+  type TimelineLane,
+  type TimelineLink,
+} from './timeline/lanes';
 export { bucketByDay, dayLayout, markerShiftPercent, type DayLayout, type TimelineItem } from './timeline/day-layout';
 export {
   countedDays,
@@ -193,12 +205,15 @@ export { canResumeFeed, feedEndTime, latestFeed, nextBreastSide, staleSessions }
 export {
   liveMergeOffer,
   liveMergeText,
-  MERGE_FEEDS_WITHIN_MS,
-  mergeableFeeds,
+  MERGE_WITHIN_MS,
+  mergeableSessions,
   mergeCandidate,
+  mergeCopy,
   mergeGapText,
-  type FeedMerge,
-} from './events/merge-feeds';
+  type MergeableType,
+  type MergeCopy,
+  type SessionMerge,
+} from './events/merge-sessions';
 export {
   feedPromptOnNapStart,
   napPromptOnFeedEnd,
@@ -303,12 +318,17 @@ export {
 export {
   ageInMonths,
   formatPercentile,
+  estimateToday,
+  growthMilestoneText,
+  growthEstimateReadout,
   growthPointReadout,
   growthReport,
   readoutEdge,
   type BabySex,
   type ChartPoint,
   type GrowthChart,
+  type GrowthEstimate,
+  type GrowthMilestone,
   type MeasuredPoint,
   type GrowthMeasure,
   type GrowthReport,
@@ -423,6 +443,8 @@ export {
   partSpan,
   showsItemLabel,
   timelineItemLabel,
+  timelineItemTip,
+  type TimelineTip,
 } from './timeline/item-label';
 export { homeWindow } from './timeline/home-window';
 export {
