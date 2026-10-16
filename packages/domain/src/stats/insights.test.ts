@@ -217,7 +217,7 @@ describe('feed trend', () => {
   const now = new Date('2026-10-15T12:00:00Z');
   const scope = { timeZone: 'UTC', dayStartMinutes: 0, mergeGapMs: 15_000 };
 
-  it('splits each finished breastfeed with real timings into left, right and idle time', () => {
+  it('splits each finished breastfeed into left, right and idle time, with no idle for Huckleberry imports', () => {
     const events = [
       feed('a', '2026-10-10T08:00:00Z', [
         { side: 'left', from: 0, to: 10 },
@@ -230,6 +230,7 @@ describe('feed trend', () => {
     ];
     expect(feedStats(events, now, scope)).toEqual([
       { dayKey: '2026-10-10', leftMs: 10 * 60_000, rightMs: 8 * 60_000, idleMs: 2 * 60_000 },
+      { dayKey: '2026-10-10', leftMs: 5 * 60_000, rightMs: 0, idleMs: null },
       { dayKey: '2026-10-11', leftMs: 0, rightMs: 6 * 60_000, idleMs: 0 },
     ]);
   });
@@ -262,6 +263,46 @@ describe('feed trend', () => {
     expect(card.chart.bars.at(-1)).toEqual({ label: '2026-10-14', values: [12, 10, 2] });
     expect(card.chart.bars.find((bar) => bar.label === '2026-10-11')!.values).toEqual([0, 0, 0]);
     expect(card.chart.bars.find((bar) => bar.label === '2026-10-05')!.values).toEqual([10, 10, 0]);
+  });
+
+  it('averages idle over feeds that record pauses and compares feeding time when a week has imports', () => {
+    const stat = (dayKey: string, left: number, right: number, idle: number | null) => ({
+      dayKey,
+      leftMs: left * 60_000,
+      rightMs: right * 60_000,
+      idleMs: idle === null ? null : idle * 60_000,
+    });
+    const feeds = [
+      stat('2026-10-02', 10, 10, null),
+      stat('2026-10-03', 10, 10, null),
+      stat('2026-10-04', 10, 10, null),
+      stat('2026-10-12', 12, 8, null),
+      stat('2026-10-13', 12, 8, 4),
+      stat('2026-10-14', 12, 8, 2),
+    ];
+    const card = feedTrendCard(feeds, keys)!;
+    expect(card.figures).toEqual([
+      { label: 'Per feed', value: '23m' },
+      { label: 'Left', value: '12m' },
+      { label: 'Right', value: '8m' },
+      { label: 'Idle', value: '3m' },
+      { label: 'Feeding a day', value: '20m' },
+      { label: 'On last week', value: 'Same' },
+    ]);
+    expect(card.chart.bars.find((bar) => bar.label === '2026-10-05')!.values).toEqual([10, 10, 0]);
+    expect(card.note).toMatch(/Huckleberry doesn't record pauses/);
+  });
+
+  it('shows no idle time for a week of Huckleberry imports', () => {
+    const imported = ['2026-10-12', '2026-10-13', '2026-10-14'].map((dayKey) => ({
+      dayKey,
+      leftMs: 10 * 60_000,
+      rightMs: 10 * 60_000,
+      idleMs: null,
+    }));
+    const card = feedTrendCard(imported, keys)!;
+    expect(card.figures.find((figure) => figure.label === 'Idle')!.value).toBe('—');
+    expect(card.figures[0]).toEqual({ label: 'Per feed', value: '20m' });
   });
 
   it('needs at least three feeds in the last week', () => {
