@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi } from 'vitest';
 import { DayStartPicker } from './day-start-picker';
@@ -14,7 +14,6 @@ describe('DayStartPicker', () => {
   it('starts the day when the night currently ends', async () => {
     const onChange = vi.fn();
     render(<DayStartPicker value={0} nightEnd={405} onChange={onChange} />);
-    expect(screen.queryByLabelText('Night end time')).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole('radio', { name: /when the night ends/i }));
     expect(onChange).toHaveBeenCalledWith(405);
   });
@@ -26,29 +25,14 @@ describe('DayStartPicker', () => {
     expect(onChange).toHaveBeenCalledWith(420);
   });
 
-  it('shows when the night ends', () => {
+  it('shows when the night ends without letting it be edited here', () => {
     render(<DayStartPicker value={390} onChange={vi.fn()} />);
-    expect(screen.getByLabelText('Night end time')).toHaveValue('06:30');
-    expect(screen.getByText('6:30 am')).toBeInTheDocument();
+    expect(screen.getByText(/Each day starts at 6:30 am/)).toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
-  it('commits an edited time when the field is left', () => {
-    const onChange = vi.fn();
-    render(<DayStartPicker value={390} onChange={onChange} />);
-    const input = screen.getByLabelText('Night end time');
-    fireEvent.change(input, { target: { value: '08:15' } });
-    expect(onChange).not.toHaveBeenCalled();
-    fireEvent.blur(input);
-    expect(onChange).toHaveBeenCalledWith(495);
-  });
-
-  it('keeps midnight as its own option rather than a night end', () => {
-    const onChange = vi.fn();
-    render(<DayStartPicker value={390} onChange={onChange} />);
-    const input = screen.getByLabelText('Night end time');
-    fireEvent.change(input, { target: { value: '00:00' } });
-    fireEvent.blur(input);
-    expect(onChange).not.toHaveBeenCalled();
-    expect(input).toHaveValue('06:30');
+  it('shows the current night end before it is picked', () => {
+    render(<DayStartPicker value={0} nightEnd={405} onChange={vi.fn()} />);
+    expect(screen.getByText(/Each day starts at 6:45 am/)).toBeInTheDocument();
   });
 });

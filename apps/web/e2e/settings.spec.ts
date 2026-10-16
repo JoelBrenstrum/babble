@@ -42,18 +42,18 @@ test('the day can start when the night ends, and follows the night end', async (
   await onboard(page);
 
   await page.goto('/settings');
+  await page.getByLabel('Night ends', { exact: true }).fill('06:30');
+  await page.getByLabel('Night ends', { exact: true }).blur();
   await page.getByRole('radio', { name: /When the night ends/ }).click();
-  await expect(page.getByLabel('Night end time')).toHaveValue('07:00');
-  await page.getByLabel('Night end time').fill('06:30');
-  await page.getByLabel('Night end time').blur();
+  await expect(page.getByRole('radio', { name: /Each day starts at 6:30 am/ })).toBeVisible();
   await page.getByRole('button', { name: 'Save changes' }).first().click();
   await expect(page.getByText('Saved.')).toBeVisible();
-  await expect(page.getByLabel('Night ends', { exact: true })).toHaveValue('06:30');
 
   await page.getByLabel('Night ends', { exact: true }).fill('05:45');
   await page.getByLabel('Night ends', { exact: true }).blur();
   await page.reload();
-  await expect(page.getByLabel('Night end time')).toHaveValue('05:45');
+  await expect(page.getByRole('radio', { name: /When the night ends/, checked: true })).toBeVisible();
+  await expect(page.getByText(/Each day starts at 5:45 am/)).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('day-start.png'), fullPage: true });
 
   await page.getByRole('radio', { name: /Midnight/ }).click();

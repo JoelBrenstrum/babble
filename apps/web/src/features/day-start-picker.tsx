@@ -1,7 +1,10 @@
 import { DEFAULT_CUSTOM_DAY_START_MIN, minutesToClock } from '@babble/domain';
 import { Check } from 'lucide-react';
 import { cn } from '#/lib/cn';
-import { MinutesTimeInput } from './minutes-time-input';
+
+function nightEndDescription(minutes: number): string {
+  return `Each day starts at ${minutesToClock(minutes || DEFAULT_CUSTOM_DAY_START_MIN)}, keeping each night in one day. Change it under Night in Settings.`;
+}
 
 export function DayStartPicker({
   value,
@@ -25,22 +28,9 @@ export function DayStartPicker({
       <Option
         selected={custom}
         title="When the night ends"
-        description="Keeps each night in one day. Sleep before this time counts as night sleep."
+        description={nightEndDescription(custom ? value : nightEnd)}
         onSelect={() => onChange(custom ? value : nightEnd || DEFAULT_CUSTOM_DAY_START_MIN)}
-      >
-        {custom && (
-          <label className="mt-3 flex items-center gap-3 text-meta text-ink-2">
-            Night ends at
-            <MinutesTimeInput
-              label="Night end time"
-              minutes={value}
-              accept={(minutes) => minutes !== 0}
-              onChange={onChange}
-            />
-            <span className="tabular text-ink">{minutesToClock(value)}</span>
-          </label>
-        )}
-      </Option>
+      />
     </div>
   );
 }
@@ -50,13 +40,11 @@ function Option({
   title,
   description,
   onSelect,
-  children,
 }: {
   selected: boolean;
   title: string;
   description: string;
   onSelect: () => void;
-  children?: React.ReactNode;
 }) {
   return (
     <div
@@ -85,7 +73,6 @@ function Option({
           <span className="block text-meta text-ink-2">{description}</span>
         </span>
       </button>
-      {children}
     </div>
   );
 }

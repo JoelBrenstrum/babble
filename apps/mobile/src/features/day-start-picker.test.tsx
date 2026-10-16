@@ -12,13 +12,12 @@ describe('DayStartPicker', () => {
   it('starts the day when the night currently ends', async () => {
     const onChange = jest.fn();
     await render(<DayStartPicker value={0} nightEnd={405} onChange={onChange} />);
-    expect(screen.queryByLabelText('Night end time')).toBeNull();
     await fireEvent.press(screen.getByLabelText('When the night ends'));
     expect(onChange).toHaveBeenCalledWith(405);
   });
 
   it('shows when the night ends', async () => {
     await render(<DayStartPicker value={390} onChange={jest.fn()} />);
-    expect(screen.getByText('6:30 am')).toBeTruthy();
+    expect(screen.getByText(/Each day starts at 6:30 am/)).toBeTruthy();
   });
 });
