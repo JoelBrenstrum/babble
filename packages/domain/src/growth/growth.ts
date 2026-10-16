@@ -102,7 +102,7 @@ export interface GrowthEstimate extends ChartPoint {
   percentile: string | null;
 }
 
-export interface GrowthMilestone {
+export interface GrowthMilestone extends ChartPoint {
   reading: string;
   dayKey: string;
 }
@@ -268,10 +268,16 @@ export function growthReport(
       todayMonths === null || todayKey === null
         ? []
         : nextMilestones(measure, measured, baby.sex, todayMonths, units).map(({ target, days }) => ({
+            months: todayMonths + days / DAYS_PER_MONTH,
+            value: target,
             reading: `${target} ${display.unit}`,
             dayKey: shiftDay(todayKey, days),
           }));
-    const lastMonths = Math.max(...measured.map((item) => item.months), estimate?.months ?? 0);
+    const lastMonths = Math.max(
+      ...measured.map((item) => item.months),
+      estimate?.months ?? 0,
+      ...milestones.map((milestone) => milestone.months),
+    );
     const xMax = Math.max(3, Math.ceil(lastMonths + 1));
     const curveEnd = Math.min(xMax, WHO_MAX_MONTHS);
     const curves = baby.sex
@@ -295,9 +301,12 @@ export function growthReport(
       };
     });
     const last = points.at(-1)!;
-    const values = [...points, ...(estimate ? [estimate] : []), ...curves.flatMap((curve) => curve.points)].map(
-      (point) => point.value,
-    );
+    const values = [
+      ...points,
+      ...(estimate ? [estimate] : []),
+      ...milestones,
+      ...curves.flatMap((curve) => curve.points),
+    ].map((point) => point.value);
     const low = Math.min(...values);
     const high = Math.max(...values);
     const pad = Math.max((high - low) * 0.06, 0.1);
