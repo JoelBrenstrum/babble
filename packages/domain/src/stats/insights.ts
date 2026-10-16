@@ -1,10 +1,11 @@
 import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
+import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent } from '../events/types';
 import { formatDuration } from '../format/duration';
 import { bucketByDay } from '../timeline/day-layout';
 import { lastDays, localInstant, type TimeWindow } from '../timeline/days';
 import { dayKeyFor, dayWindow, shiftDay } from '../time/local-time';
-import type { StatsCard } from './cards';
+import { MAX_GAP_MS, type StatsCard } from './cards';
 import { HOUR_MS, MINUTE_MS } from '../time/constants';
 
 export interface InsightSettings {
@@ -93,10 +94,13 @@ export function nightStats(
   });
 }
 
-function inAnyNight(instant: number, settings: InsightSettings): boolean {
+function nightKeyOf(instant: number, settings: InsightSettings): string | null {
   const key = dayKeyFor(new Date(instant).toISOString(), settings.timeZone, 0);
-  return [-1, 0].some((offset) => inside(instant, nightWindow(shiftDay(key, offset), settings)));
+  const keys = [shiftDay(key, -1), key];
+  return keys.find((dayKey) => inside(instant, nightWindow(dayKey, settings))) ?? null;
 }
+
+const inAnyNight = (instant: number, settings: InsightSettings) => nightKeyOf(instant, settings) !== null;
 
 export function wakeWindows(spans: readonly Span[], settings: InsightSettings): WakeWindow[] {
   const windows: WakeWindow[] = [];
@@ -342,11 +346,181 @@ export function insightDays(todayKey: string): string[] {
 }
 
 export function insightsSince(todayKey: string, settings: InsightSettings): string {
-  const first = shiftDay(insightDays(todayKey)[0]!, -1);
+  const first = shiftDay(insightDays(todayKey)[0]!, -FEED_TREND_DAYS);
   return dayWindow(first, settings.timeZone, settings.dayStartMinutes).start.toISOString();
 }
 
+export interface FeedStat {
+  dayKey: string;
+  leftMs: number;
+  rightMs: number;
+  idleMs: number;
+}
+
+export const FEED_TREND_DAYS = 7;
+
+export function feedStats(
+  events: readonly BabyEvent[],
+  now: Date,
+  settings: Pick<InsightSettings, 'timeZone' | 'dayStartMinutes'> & { mergeGapMs: number },
+): FeedStat[] {
+  return events.flatMap((event) => {
+    if (event.type !== 'breast_feed' || event.deletedAt || !event.endedAt) return [];
+    if (event.source === 'huckleberry_csv' || event.segments.length === 0) return [];
+    const summary = summariseSegments(event.segments, { mergeGapMs: settings.mergeGapMs, now });
+    return [
+      {
+        dayKey: dayKeyFor(event.startedAt, settings.timeZone, settings.dayStartMinutes),
+        leftMs: summary.leftMs,
+        rightMs: summary.rightMs,
+        idleMs: summary.downtimeMs,
+      },
+    ];
+  });
+}
+
+interface FeedAverage {
+  count: number;
+  leftMs: number;
+  rightMs: number;
+  idleMs: number;
+  totalMs: number;
+}
+
+function averageFeed(feeds: readonly FeedStat[]): FeedAverage | null {
+  if (feeds.length === 0) return null;
+  const mean = (pick: (feed: FeedStat) => number) =>
+    feeds.reduce((total, feed) => total + pick(feed), 0) / feeds.length;
+  const leftMs = mean((feed) => feed.leftMs);
+  const rightMs = mean((feed) => feed.rightMs);
+  const idleMs = mean((feed) => feed.idleMs);
+  return { count: feeds.length, leftMs, rightMs, idleMs, totalMs: leftMs + rightMs + idleMs };
+}
+
+const feedsWithin = (feeds: readonly FeedStat[], keys: readonly string[]) => {
+  const within = new Set(keys);
+  return feeds.filter((feed) => within.has(feed.dayKey));
+};
+
+export function feedTrendCard(feeds: readonly FeedStat[], dayKeys: readonly string[]): StatsCard | null {
+  const recent = feedsWithin(feeds, dayKeys.slice(-FEED_TREND_DAYS));
+  const thisWeek = averageFeed(recent);
+  if (!thisWeek || thisWeek.count < MIN_SAMPLES) return null;
+  const earlier = averageFeed(feedsWithin(feeds, dayKeys.slice(-2 * FEED_TREND_DAYS, -FEED_TREND_DAYS)));
+  const feedingDays = new Set(recent.map((feed) => feed.dayKey)).size;
+  const activeMs = recent.reduce((total, feed) => total + feed.leftMs + feed.rightMs, 0);
+
+  const figures = [
+    { label: 'Per feed', value: duration(thisWeek.totalMs) },
+    { label: 'Left', value: duration(thisWeek.leftMs) },
+    { label: 'Right', value: duration(thisWeek.rightMs) },
+    { label: 'Idle', value: duration(thisWeek.idleMs) },
+    { label: 'Feeding a day', value: duration(activeMs / feedingDays) },
+  ];
+  if (earlier && earlier.count >= MIN_SAMPLES) {
+    figures.push({ label: 'On last week', value: durationChange(thisWeek.totalMs, earlier.totalMs) });
+  }
+
+  const minutes = (value: number) => Math.round((value / MINUTE_MS) * 10) / 10;
+  const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => {
+    const average = averageFeed(feedsWithin(feeds, lastDays(dayKey, FEED_TREND_DAYS)));
+    return {
+      label: dayKey,
+      values: average ? [minutes(average.leftMs), minutes(average.rightMs), minutes(average.idleMs)] : [0, 0, 0],
+    };
+  });
+  return {
+    key: 'feed-trend',
+    title: 'Breastfeeds',
+    note: 'Each bar is the average feed over the 7 days up to that day.',
+    plus: true,
+    figures,
+    chart: {
+      unit: 'min',
+      series: ['Left', 'Right', 'Idle'],
+      legend: [0, 1, 2],
+      bars,
+      max: Math.max(0, ...bars.map((bar) => bar.values.reduce((sum, value) => sum + value, 0))),
+      weekly: false,
+    },
+  };
+}
+
+export interface FeedGap {
+  dayKey: string;
+  ms: number;
+  night: boolean;
+}
+
+export const TOP_UP_MS = 20 * MINUTE_MS;
+
+export function feedGaps(events: readonly BabyEvent[], settings: InsightSettings): FeedGap[] {
+  const feeds = events
+    .filter((event) => (event.type === 'breast_feed' || event.type === 'bottle') && !event.deletedAt)
+    .map((event) => ({ start: Date.parse(event.startedAt), end: Date.parse(event.endedAt ?? event.startedAt) }))
+    .sort((a, b) => a.start - b.start);
+  const gaps: FeedGap[] = [];
+  let previous = feeds[0];
+  for (const feed of feeds.slice(1)) {
+    if (!previous) break;
+    if (feed.start - previous.end <= TOP_UP_MS) {
+      previous = { start: previous.start, end: Math.max(previous.end, feed.end) };
+      continue;
+    }
+    const ms = feed.start - previous.start;
+    if (ms < MAX_GAP_MS) {
+      const nightKey = nightKeyOf(previous.start, settings);
+      const dayKey =
+        nightKey ?? dayKeyFor(new Date(previous.start).toISOString(), settings.timeZone, settings.dayStartMinutes);
+      gaps.push({ dayKey, ms, night: nightKey !== null });
+    }
+    previous = feed;
+  }
+  return gaps;
+}
+
+export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly string[]): StatsCard | null {
+  const recent = new Set(dayKeys.slice(-7));
+  const earlier = new Set(dayKeys.slice(-14, -7));
+  const sample = (night: boolean, keys: Set<string>) =>
+    gaps.filter((gap) => gap.night === night && keys.has(gap.dayKey)).map((gap) => gap.ms);
+  const daytime = sample(false, recent);
+  const typical = median(daytime);
+  if (typical === null || daytime.length < MIN_WINDOWS) return null;
+
+  const figures = [{ label: 'Daytime', value: duration(typical) }];
+  const before = sample(false, earlier);
+  if (before.length >= MIN_SAMPLES)
+    figures.push({ label: 'On last week', value: durationChange(typical, median(before)!) });
+  const overnight = sample(true, recent);
+  if (overnight.length >= MIN_SAMPLES) figures.push({ label: 'Overnight', value: duration(median(overnight)!) });
+  const lastNight = sample(true, new Set(dayKeys.slice(-1)));
+  if (lastNight.length > 0) figures.push({ label: 'Longest, last night', value: duration(Math.max(...lastNight)) });
+
+  const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => {
+    const value = median(sample(false, new Set([dayKey]))) ?? 0;
+    return { label: dayKey, values: [Math.round((value / HOUR_MS) * 10) / 10] };
+  });
+  return {
+    key: 'feed-spacing',
+    title: 'Feed spacing',
+    note: 'Gaps run from the start of one feed to the start of the next. A top-up within 20 minutes counts as the same feed.',
+    plus: true,
+    figures,
+    chart: {
+      unit: 'h',
+      series: ['Typical daytime gap'],
+      legend: [0],
+      bars,
+      max: Math.max(0, ...bars.map((bar) => bar.values[0]!)),
+      weekly: false,
+    },
+  };
+}
+
 export interface InsightsReport {
+  feeds: StatsCard | null;
+  spacing: StatsCard | null;
   wake: StatsCard | null;
   night: StatsCard | null;
   weekly: WeeklySummary | null;
@@ -377,6 +551,8 @@ export function insightsReport(
   const thisWeek = summaries.filter((day) => recent.has(day.dayKey)).map((day) => day.summary);
   const lastWeek = summaries.filter((day) => !recent.has(day.dayKey)).map((day) => day.summary);
   return {
+    feeds: feedTrendCard(feedStats(events, now, settings), keys),
+    spacing: feedSpacingCard(feedGaps(events, settings), keys),
     wake: wakeWindowCard(windows, keys),
     night: nightSleepCard(nights, keys),
     weekly: weeklySummary(thisWeek, lastWeek, nights, windows, keys),

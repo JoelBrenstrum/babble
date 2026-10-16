@@ -10,6 +10,7 @@ import {
   type StatsRange,
 } from '@babble/domain';
 import { sampleStatsReport } from '@babble/api/fixtures';
+import { familyHasFeature } from '@babble/config';
 import { useSettled, useUnits } from '@babble/api/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ChartColumn } from 'lucide-react-native';
@@ -105,9 +106,11 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
               growth.data,
               { birthDate: baby.birth_date, sex: baby.sex, timeZone: baby.timezone },
               units,
+              familyHasFeature(config.billingEnabled, family.plan, 'predictions') ? now : undefined,
             )}
             babyName={baby.name}
             timeZone={baby.timezone}
+            plusBadge={config.billingEnabled}
           />
         )}
       </View>
@@ -121,13 +124,13 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
       <PlusTeaser
         feature="insights"
         title="Patterns"
-        body={`See ${babyName}'s wake windows, how night sleep is stretching out, and a weekly summary of what changed.`}
+        body={`See ${babyName}'s wake windows, how night sleep is stretching out, how breastfeeds are changing, how far apart feeds are, and a weekly summary of what changed.`}
       />
     );
   }
   const { report } = state;
   if (!report) return null;
-  const cards = [report.wake, report.night].filter((card) => card !== null);
+  const cards = [report.feeds, report.spacing, report.wake, report.night].filter((card) => card !== null);
   if (!report.weekly && cards.length === 0) return null;
   return (
     <View className="gap-4">

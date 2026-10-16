@@ -1,5 +1,5 @@
 import { barAnchor, barReadout, chartEnds, chartValue, nextBarIndex, topSegment, type StatsCard } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, MoonStar, Sun, type LucideIcon } from 'lucide-react';
+import { Droplets, GlassWater, Heart, Hourglass, Moon, MoonStar, Sun, TrendingUp, type LucideIcon } from 'lucide-react';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { Card } from '#/components/ui/card';
 import { ChartTip } from '#/components/ui/chart-tip';
@@ -14,6 +14,18 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; series: s
   pump: { icon: GlassWater, tile: 'bg-pump-soft text-on-pump', series: ['bg-pump'] },
   wake: { icon: Sun, tile: 'bg-primary-soft text-on-primary-soft', series: ['bg-primary'] },
   night: { icon: MoonStar, tile: 'bg-sleep-soft text-on-sleep', series: ['bg-sleep'] },
+  'feed-trend': {
+    icon: TrendingUp,
+    tile: 'bg-feed-left-soft text-on-feed-left',
+    series: ['bg-feed-left', 'bg-feed-right', 'bg-session-downtime'],
+  },
+  'feed-spacing': { icon: Hourglass, tile: 'bg-bottle-soft text-on-bottle', series: ['bg-bottle'] },
+};
+
+const CHART_LABEL: Partial<Record<StatsCard['key'], string>> = {
+  night: 'per night',
+  'feed-trend': 'per feed, 7-day average by day',
+  'feed-spacing': 'typical daytime gap by day',
 };
 
 function tipPosition(index: number, count: number) {
@@ -95,7 +107,7 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
         <div
           className="relative flex h-32 items-end gap-[3px] border-b border-line"
           role="group"
-          aria-label={`${card.title} per ${card.key === 'night' ? 'night' : 'day'}`}
+          aria-label={`${card.title} ${CHART_LABEL[card.key] ?? 'per day'}`}
         >
           {chart.bars.map((bar, index) => {
             const total = bar.values.reduce((sum, value) => sum + value, 0);
@@ -148,6 +160,7 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
             <span>{ends[1]}</span>
           </div>
         )}
+        {card.note && <p className="text-caption text-ink-3">{card.note}</p>}
       </div>
       {card.colours && card.colours.length > 0 && (
         <div className="flex flex-col gap-1.5">

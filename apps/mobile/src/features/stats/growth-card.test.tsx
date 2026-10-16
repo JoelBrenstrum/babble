@@ -42,4 +42,20 @@ describe('GrowthCard', () => {
     expect(screen.getByText(/Set Olivia's sex in Settings/)).toBeTruthy();
     expect(screen.queryByText(/percentile$/)).toBeNull();
   });
+
+  it("shows today's estimate and its readout when the report has one", async () => {
+    const at = (id: string, startedAt: string, weightG: number) =>
+      ({ ...weighIn, id, startedAt, details: { weightG, lengthMm: null, headCircumferenceMm: null } }) as BabyEvent;
+    const report = growthReport(
+      [at('g1', '2026-09-01T10:00:00Z', 3232), at('g2', '2026-09-15T10:00:00Z', 3700), weighIn],
+      { birthDate: '2026-09-01', sex: 'female', timeZone: 'UTC' },
+      'metric',
+      new Date('2026-10-14T10:00:00Z'),
+    );
+    await render(<GrowthCard report={report} babyName="Olivia" timeZone="UTC" plusBadge />);
+    expect(screen.getByText('Estimate for today')).toBeTruthy();
+    expect(screen.getByText(/^Next: 5 kg around \d+ \w+ · 6 kg around \d+ \w+$/)).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('growth-estimate-weight'));
+    expect(screen.getByText(/^Estimate for today · \d\.\d+ kg · \d+(st|nd|rd|th) percentile$/)).toBeTruthy();
+  });
 });
