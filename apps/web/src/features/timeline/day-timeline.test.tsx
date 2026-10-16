@@ -1,7 +1,7 @@
 import { sampleBaby, sampleRunningSleep } from '@babble/api/fixtures';
 import { dayLayout, dayWindow, fractionOf, type TimelineLane } from '@babble/domain';
-import { render, screen } from '@testing-library/react';
-import { describe, expect, it } from 'vitest';
+import { act, createEvent, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FixtureRouter } from '#/fixtures/router';
 import { DayTimeline } from './day-timeline';
 
@@ -44,5 +44,31 @@ describe('DayTimeline', () => {
     expect(screen.getByText('Pump')).toBeInTheDocument();
     expect(screen.queryByText('Sleep')).not.toBeInTheDocument();
     expect(screen.queryByText('1h 12m')).not.toBeInTheDocument();
+  });
+
+  it('shows a summary when an entry is hovered', async () => {
+    renderTimeline(now);
+    const sleep = await screen.findByRole('link', { name: /^Sleep / });
+    fireEvent.mouseEnter(sleep);
+    expect(screen.getByText(/ – now · 1h 12m so far$/)).toBeInTheDocument();
+    fireEvent.mouseLeave(sleep);
+    expect(screen.queryByText(/so far$/)).not.toBeInTheDocument();
+  });
+
+  describe('on a phone', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it('shows the summary on a long press instead of opening the entry', async () => {
+      renderTimeline(now);
+      const sleep = await screen.findByRole('link', { name: /^Sleep / });
+      vi.useFakeTimers();
+      const press = createEvent.pointerDown(sleep);
+      Object.defineProperty(press, 'pointerType', { value: 'touch' });
+      fireEvent(sleep, press);
+      act(() => vi.advanceTimersByTime(500));
+      fireEvent.pointerUp(sleep);
+      expect(screen.getByText(/ – now · 1h 12m so far$/)).toBeInTheDocument();
+      expect(fireEvent.click(sleep)).toBe(false);
+    });
   });
 });
