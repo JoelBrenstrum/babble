@@ -1,6 +1,6 @@
 import type { BabbleClient } from '@babble/api';
-import { useAsyncAction, useMergeFeeds } from '@babble/api/react';
-import { liveMergeText, mergeGapText, type FeedMerge } from '@babble/domain';
+import { useAsyncAction, useMergeSessions } from '@babble/api/react';
+import { liveMergeText, mergeCopy, mergeGapText, type SessionMerge } from '@babble/domain';
 import { Merge } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
@@ -9,13 +9,13 @@ import { Card } from '@/components/card';
 import { StatusMessage } from '@/components/status-message';
 import { useTokenColor } from '@/lib/theme';
 
-function useMerge(client: BabbleClient, babyId: string, merge: FeedMerge, onMerged?: () => void) {
-  const mutation = useMergeFeeds(client, babyId);
+function useMerge(client: BabbleClient, babyId: string, merge: SessionMerge, onMerged?: () => void) {
+  const mutation = useMergeSessions(client, babyId);
   const { run, busy, error } = useAsyncAction();
   const [confirming, setConfirming] = useState(false);
   const confirm = () =>
     void run(async () => {
-      await mutation.mutateAsync({ earlierId: merge.earlierId, laterId: merge.laterId });
+      await mutation.mutateAsync(merge);
       setConfirming(false);
       onMerged?.();
     });
@@ -23,12 +23,14 @@ function useMerge(client: BabbleClient, babyId: string, merge: FeedMerge, onMerg
 }
 
 function MergeConfirm({
+  title,
   message,
   busy,
   error,
   onConfirm,
   onCancel,
 }: {
+  title: string;
   message: string;
   busy: boolean;
   error: string | null;
@@ -36,7 +38,7 @@ function MergeConfirm({
   onCancel: () => void;
 }) {
   return (
-    <View accessibilityLabel="Merge feeds" className="gap-3">
+    <View accessibilityLabel={title} className="gap-3">
       <Text className="font-sans text-meta text-ink-2">{message}</Text>
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
       <View className="flex-row gap-3">
@@ -51,14 +53,24 @@ function MergeConfirm({
   );
 }
 
-export function MergeFeedsRow({ client, babyId, merge }: { client: BabbleClient; babyId: string; merge: FeedMerge }) {
+export function MergeSessionsRow({
+  client,
+  babyId,
+  merge,
+}: {
+  client: BabbleClient;
+  babyId: string;
+  merge: SessionMerge;
+}) {
   const { busy, error, confirming, setConfirming, confirm } = useMerge(client, babyId, merge);
+  const copy = mergeCopy(merge.type);
   const iconColor = useTokenColor('--ink-2');
   if (confirming) {
     return (
       <View className="border-t border-line bg-surface px-4 py-3">
         <MergeConfirm
-          message="Merge these two feeds into one? Their sides and notes are combined, and this can't be undone."
+          title={copy.title}
+          message={copy.confirm}
           busy={busy}
           error={error}
           onConfirm={confirm}
@@ -91,16 +103,18 @@ export function LiveMergeOffer({
 }: {
   client: BabbleClient;
   babyId: string;
-  merge: FeedMerge;
+  merge: SessionMerge;
   onMerged: () => void;
 }) {
   const { busy, error, confirming, setConfirming, confirm } = useMerge(client, babyId, merge, onMerged);
+  const copy = mergeCopy(merge.type);
   const iconColor = useTokenColor('--ink-2');
   return (
     <Card className="gap-3 p-4">
       {confirming ? (
         <MergeConfirm
-          message="Merge this feed into the last one? It keeps running as one feed, with both feeds' sides."
+          title={copy.title}
+          message={copy.liveConfirm}
           busy={busy}
           error={error}
           onConfirm={confirm}
@@ -109,7 +123,7 @@ export function LiveMergeOffer({
       ) : (
         <View className="flex-row flex-wrap items-center gap-3">
           <Merge size={20} color={iconColor} strokeWidth={2.5} style={{ transform: [{ rotate: '180deg' }] }} />
-          <Text className="min-w-[160px] flex-1 font-sans text-meta text-ink-2">{liveMergeText(merge.gapMs)}</Text>
+          <Text className="min-w-[160px] flex-1 font-sans text-meta text-ink-2">{liveMergeText(merge)}</Text>
           <Button variant="secondary" onPress={() => setConfirming(true)}>
             Merge into it
           </Button>

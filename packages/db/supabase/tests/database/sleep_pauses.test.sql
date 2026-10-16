@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(9);
+select plan(11);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -78,6 +78,24 @@ select public.end_session((select id from plain), now() - interval '5 minutes');
 select ok(
   (select ended_at = now() - interval '5 minutes' from public.events where id = (select id from plain)),
   'a nap that was never paused still ends at the chosen time'
+);
+
+reset role;
+insert into public.events (id, baby_id, type, started_at) values
+  ('82000000-0000-0000-0000-000000000001', '72000000-0000-0000-0000-00000000000a', 'sleep', now() - interval '60 minutes');
+insert into public.timed_segments (event_id, side, started_at, ended_at) values
+  ('82000000-0000-0000-0000-000000000001', null, now() - interval '60 minutes', now() - interval '20 minutes');
+insert into public.session_details (event_id, state) values ('82000000-0000-0000-0000-000000000001', 'paused');
+select pg_temp.sign_in_as('52000000-0000-0000-0000-00000000000a');
+select public.end_session('82000000-0000-0000-0000-000000000001', now() - interval '40 minutes');
+select ok(
+  (select ended_at = now() - interval '40 minutes' from public.events where id = '82000000-0000-0000-0000-000000000001'),
+  'a paused nap can end before it was paused'
+);
+select ok(
+  (select ended_at = now() - interval '40 minutes' from public.timed_segments
+   where event_id = '82000000-0000-0000-0000-000000000001'),
+  'ending a paused nap earlier cuts its last stretch of sleep short'
 );
 
 select public.save_event(jsonb_build_object(

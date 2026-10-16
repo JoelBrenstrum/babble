@@ -5,6 +5,7 @@ import {
   type EventSource,
   type EventType,
   type SessionAction,
+  type SessionMerge,
   type Side,
   type SleepDetails,
   type TimedSegment,
@@ -437,8 +438,12 @@ export function runSessionAction(client: BabbleClient, eventId: string, action: 
   }
 }
 
-export async function mergeFeeds(client: BabbleClient, earlierId: string, laterId: string): Promise<void> {
-  unwrapVoid(await client.rpc('merge_feeds', { earlier_id: earlierId, later_id: laterId }));
+export async function mergeSessions(
+  client: BabbleClient,
+  merge: Pick<SessionMerge, 'type' | 'earlierId' | 'laterId'>,
+): Promise<void> {
+  const args = { earlier_id: merge.earlierId, later_id: merge.laterId };
+  unwrapVoid(await client.rpc(merge.type === 'sleep' ? 'merge_sleeps' : 'merge_feeds', args));
 }
 
 export async function resumeFeed(client: BabbleClient, eventId: string, side?: Side): Promise<void> {

@@ -98,8 +98,13 @@ function applyNapAction(
       if (open || nap.segments.length === 0) return nap;
       return { ...nap, sessionState: 'running', segments: [...nap.segments, { startedAt: at, endedAt: null }] };
     case 'end': {
-      const segments = closeOpen(nap.segments, endAt(action, at));
-      return { ...nap, sessionState: 'ended', segments, endedAt: settledEnd(segments) ?? endAt(action, at) };
+      const end = endAt(action, at);
+      const segments = closeOpen(nap.segments, end).map((segment) =>
+        segment.endedAt && compareIso(segment.endedAt, end) > 0
+          ? { ...segment, endedAt: compareIso(segment.startedAt, end) > 0 ? segment.startedAt : end }
+          : segment,
+      );
+      return { ...nap, sessionState: 'ended', segments, endedAt: settledEnd(segments) ?? end };
     }
     case 'switch':
       return nap;
@@ -143,6 +148,8 @@ export function earlierEnd(now: Date, minutes: number): string {
 }
 
 export function suggestedEnd(event: BabyEvent, now: Date): string {
+  const pausedAt = event.type === 'sleep' ? event.segments.at(-1)?.endedAt : null;
+  if (pausedAt) return pausedAt;
   const earliest = earliestEnd(event);
   const fiveAgo = earlierEnd(now, 5);
   return Date.parse(earliest) > Date.parse(fiveAgo) ? earliest : fiveAgo;
@@ -152,6 +159,7 @@ export function earliestEnd(event: BabyEvent): string {
   if (!hasSegments(event)) return event.startedAt;
   const last = event.segments.at(-1);
   if (!last) return event.startedAt;
+  if (event.type === 'sleep') return last.startedAt;
   return last.endedAt ?? last.startedAt;
 }
 
@@ -160,13 +168,14 @@ export function endChangeError(event: BabyEvent, endedAt: string, now: Date): st
   if (Number.isNaN(end)) return 'Pick an end time.';
   if (end > now.getTime()) return "The end can't be in the future.";
   if (end >= Date.parse(earliestEnd(event))) return null;
-  const last = hasSegments(event) ? event.segments.at(-1) : undefined;
-  const nap = event.type === 'sleep';
-  if (last && last.endedAt === null) {
-    return nap ? "The end can't be before the nap resumed." : "The end can't be before the current side started.";
+  if (event.type === 'sleep') {
+    return event.segments.length > 1
+      ? "The end can't be before the nap resumed."
+      : "The end can't be before the nap started.";
   }
-  if (last)
-    return nap ? "The end can't be before the nap was paused." : "The end can't be before the last side finished.";
+  const last = hasSegments(event) ? event.segments.at(-1) : undefined;
+  if (last && last.endedAt === null) return "The end can't be before the current side started.";
+  if (last) return "The end can't be before the last side finished.";
   return `The end can't be before the ${sessionNoun(event.type)} started.`;
 }
 
