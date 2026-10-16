@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { StrictMode } from 'react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { InvitePanel } from './invite-panel';
 
 const qr = vi.hoisted(() => ({ toString: vi.fn() }));
@@ -9,13 +9,14 @@ vi.mock('qrcode', () => ({ default: qr }));
 const invite = (code = 'K7Q4M-D2XPA') => ({ code, expiresAt: new Date(Date.now() + 7 * 86_400_000).toISOString() });
 
 describe('InvitePanel', () => {
-  afterEach(() => {
-    vi.useRealTimers();
+  beforeEach(() => {
     qr.toString.mockReset();
+    qr.toString.mockResolvedValue('<svg />');
   });
 
+  afterEach(() => vi.useRealTimers());
+
   it('creates one invite even when effects run twice', async () => {
-    qr.toString.mockResolvedValue('<svg />');
     const onCreate = vi.fn(async () => invite());
     render(
       <StrictMode>
@@ -28,7 +29,6 @@ describe('InvitePanel', () => {
   });
 
   it('creates a fresh invite when the creator changes', async () => {
-    qr.toString.mockResolvedValue('<svg />');
     const first = vi.fn(async () => invite('AAAAA-AAAAA'));
     const second = vi.fn(async () => invite('BBBBB-BBBBB'));
     const { rerender } = render(<InvitePanel publicUrl="https://babble.test" onCreate={first} />);
@@ -57,7 +57,6 @@ describe('InvitePanel', () => {
   });
 
   it('copies the code, then reverts the label', async () => {
-    qr.toString.mockResolvedValue('<svg />');
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
     render(<InvitePanel publicUrl="https://babble.test" onCreate={async () => invite()} />);
@@ -71,7 +70,6 @@ describe('InvitePanel', () => {
   });
 
   it('says so when the clipboard refuses', async () => {
-    qr.toString.mockResolvedValue('<svg />');
     Object.defineProperty(navigator, 'clipboard', {
       value: { writeText: vi.fn().mockRejectedValue(new Error('denied')) },
       configurable: true,
