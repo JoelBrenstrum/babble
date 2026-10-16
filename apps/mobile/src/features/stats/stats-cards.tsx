@@ -12,6 +12,7 @@ import {
   GlassWater,
   Heart,
   Hourglass,
+  Layers,
   Moon,
   MoonStar,
   Sun,
@@ -53,12 +54,14 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkT
     series: ['bg-feed-left', 'bg-feed-right', 'bg-session-downtime'],
   },
   'feed-spacing': { icon: Hourglass, tile: 'bg-bottle-soft', ink: '--on-bottle', series: ['bg-bottle'] },
+  'cluster-feeds': { icon: Layers, tile: 'bg-feed-right-soft', ink: '--on-feed-right', series: ['bg-feed-right'] },
 };
 
 const CHART_LABEL: Partial<Record<StatsCard['key'], string>> = {
   night: 'per night',
   'feed-trend': 'per feed, 7-day average by day',
   'feed-spacing': 'typical daytime gap by day',
+  'cluster-feeds': 'hours cluster feeding by day',
 };
 
 export function StatsCards({

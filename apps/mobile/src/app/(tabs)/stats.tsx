@@ -126,13 +126,15 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
       <PlusTeaser
         feature="insights"
         title="Patterns"
-        body={`See ${babyName}'s wake windows, how night sleep is stretching out, how breastfeeds are changing, how far apart feeds are, and a weekly summary of what changed.`}
+        body={`See ${babyName}'s wake windows, how night sleep is stretching out, how breastfeeds are changing, how far apart feeds are, when feeds bunch up into clusters, and a weekly summary of what changed.`}
       />
     );
   }
   const { report } = state;
   if (!report) return null;
-  const cards = [report.feeds, report.spacing, report.wake, report.night].filter((card) => card !== null);
+  const cards = [report.feeds, report.spacing, report.clusters, report.wake, report.night].filter(
+    (card) => card !== null,
+  );
   if (!report.weekly && cards.length === 0) return null;
   return (
     <View className="gap-4">

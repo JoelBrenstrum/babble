@@ -46,6 +46,7 @@ const CARD_LANES: Record<StatsCard['key'], TimelineLane> = {
   sleep: 'sleep',
   feeds: 'feeds',
   'feed-spacing': 'feeds',
+  'cluster-feeds': 'feeds',
   'feed-trend': 'feeds',
   nappies: 'nappies',
   pump: 'pumps',

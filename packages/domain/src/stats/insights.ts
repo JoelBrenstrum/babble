@@ -1,10 +1,11 @@
 import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
 import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent } from '../events/types';
-import { formatDuration } from '../format/duration';
+import { formatDuration, formatDurationShort } from '../format/duration';
+import { minutesToClock } from '../format/time-of-day';
 import { bucketByDay } from '../timeline/day-layout';
 import { lastDays, localInstant, type TimeWindow } from '../timeline/days';
-import { dayKeyFor, dayWindow, shiftDay } from '../time/local-time';
+import { dayKeyFor, dayWindow, minutesOfDay, shiftDay } from '../time/local-time';
 import { MAX_GAP_MS, type StatsCard } from './cards';
 import { HOUR_MS, MINUTE_MS } from '../time/constants';
 
@@ -526,9 +527,122 @@ export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly stri
   };
 }
 
+export interface FeedCluster {
+  dayKey: string;
+  start: number;
+  end: number;
+  feeds: number;
+}
+
+export const CLUSTER_GAP_MS = 45 * MINUTE_MS;
+export const CLUSTER_MIN_FEEDS = 3;
+export const CLUSTER_MIN_SPAN_MS = 90 * MINUTE_MS;
+const SAME_FEED_MS = 5 * MINUTE_MS;
+
+function joinedFeeds(events: readonly BabyEvent[]): Span[] {
+  const feeds = events
+    .filter((event) => (event.type === 'breast_feed' || event.type === 'bottle') && !event.deletedAt)
+    .map((event) => ({ start: Date.parse(event.startedAt), end: Date.parse(event.endedAt ?? event.startedAt) }))
+    .sort((a, b) => a.start - b.start);
+  const joined: Span[] = [];
+  for (const feed of feeds) {
+    const last = joined.at(-1);
+    if (last && feed.start - last.end <= SAME_FEED_MS) last.end = Math.max(last.end, feed.end);
+    else joined.push({ ...feed });
+  }
+  return joined;
+}
+
+const dayKeyOf = (instant: number, settings: InsightSettings) =>
+  dayKeyFor(new Date(instant).toISOString(), settings.timeZone, settings.dayStartMinutes);
+
+export function feedClusters(events: readonly BabyEvent[], settings: InsightSettings): FeedCluster[] {
+  const clusters: FeedCluster[] = [];
+  let run: Span[] = [];
+  const close = () => {
+    const first = run[0];
+    const last = run.at(-1);
+    if (first && last && run.length >= CLUSTER_MIN_FEEDS && last.end - first.start >= CLUSTER_MIN_SPAN_MS) {
+      clusters.push({ dayKey: dayKeyOf(first.start, settings), start: first.start, end: last.end, feeds: run.length });
+    }
+  };
+  for (const feed of joinedFeeds(events)) {
+    const previous = run.at(-1);
+    if (previous && feed.start - previous.end <= CLUSTER_GAP_MS) {
+      run.push(feed);
+    } else {
+      close();
+      run = [feed];
+    }
+  }
+  close();
+  return clusters;
+}
+
+function usualStart(clusters: readonly FeedCluster[], settings: InsightSettings): string | null {
+  const fromDayStart = clusters.map(
+    (cluster) => (minutesOfDay(new Date(cluster.start), settings.timeZone) - settings.dayStartMinutes + 1440) % 1440,
+  );
+  const typical = median(fromDayStart);
+  if (typical === null) return null;
+  return `Around ${minutesToClock(Math.round(typical / 15) * 15 + settings.dayStartMinutes)}`;
+}
+
+export function clusterFeedingCard(
+  events: readonly BabyEvent[],
+  dayKeys: readonly string[],
+  settings: InsightSettings,
+): StatsCard | null {
+  const recent = new Set(dayKeys.slice(-7));
+  const earlier = new Set(dayKeys.slice(-14, -7));
+  const feeds = joinedFeeds(events).map((feed) => dayKeyOf(feed.start, settings));
+  if (feeds.filter((dayKey) => recent.has(dayKey)).length < MIN_WINDOWS) return null;
+
+  const clusters = feedClusters(events, settings).filter((cluster) => dayKeys.includes(cluster.dayKey));
+  const daysWith = (keys: Set<string>) => new Set(clusters.filter((c) => keys.has(c.dayKey)).map((c) => c.dayKey)).size;
+  const thisWeek = daysWith(recent);
+  const figures = [{ label: 'Last 7 days', value: `${thisWeek} ${thisWeek === 1 ? 'day' : 'days'}` }];
+  if (feeds.some((dayKey) => earlier.has(dayKey)))
+    figures.push({ label: 'On last week', value: countChange(thisWeek, daysWith(earlier)) });
+  const usually = clusters.length >= 2 ? usualStart(clusters, settings) : null;
+  if (usually) figures.push({ label: 'Usually starts', value: usually });
+  const longest = clusters
+    .filter((cluster) => recent.has(cluster.dayKey))
+    .sort((a, b) => b.end - b.start - (a.end - a.start))[0];
+  if (longest) {
+    figures.push({
+      label: 'Longest this week',
+      value: `${longest.feeds} feeds over ${formatDurationShort(longest.end - longest.start)}`,
+    });
+  }
+
+  const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => {
+    const ms = clusters
+      .filter((cluster) => cluster.dayKey === dayKey)
+      .reduce((total, cluster) => total + cluster.end - cluster.start, 0);
+    return { label: dayKey, values: [Math.round((ms / HOUR_MS) * 10) / 10] };
+  });
+  return {
+    key: 'cluster-feeds',
+    title: 'Cluster feeding',
+    note: 'A cluster is 3 or more feeds, each starting within 45 minutes of the last one ending, over at least 1h 30m. It is common, especially in the evening and during growth spurts.',
+    plus: true,
+    figures,
+    chart: {
+      unit: 'h',
+      series: ['Time cluster feeding'],
+      legend: [0],
+      bars,
+      max: Math.max(0, ...bars.map((bar) => bar.values[0]!)),
+      weekly: false,
+    },
+  };
+}
+
 export interface InsightsReport {
   feeds: StatsCard | null;
   spacing: StatsCard | null;
+  clusters: StatsCard | null;
   wake: StatsCard | null;
   night: StatsCard | null;
   weekly: WeeklySummary | null;
@@ -561,6 +675,7 @@ export function insightsReport(
   return {
     feeds: feedTrendCard(feedStats(events, now, settings), keys),
     spacing: feedSpacingCard(feedGaps(events, settings), keys),
+    clusters: clusterFeedingCard(events, keys, settings),
     wake: wakeWindowCard(windows, keys),
     night: nightSleepCard(nights, keys),
     weekly: weeklySummary(thisWeek, lastWeek, nights, windows, keys),

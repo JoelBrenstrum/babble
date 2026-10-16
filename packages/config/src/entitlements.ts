@@ -59,6 +59,7 @@ const PLUS_HIGHLIGHTS: readonly string[] = [
   'Wake windows, night sleep, a weekly summary and all-time stats',
   'Breastfeed trends: time per feed, per side and idle',
   'Feed spacing: how far apart feeds are, day and night',
+  'Cluster feeding: when feeds bunch up, and what time of day',
   'A 30-day timeline to see patterns form',
   'Chair mode, a feed station for a tablet by the feeding chair',
 ];
@@ -70,7 +71,7 @@ const PLUS_REASONS: Record<PlusFeature, string> = {
   multiple_babies: 'Adding more than one baby to a family is part of Babble Plus.',
   extra_carers: 'A free family can have two carers, counting invites waiting to be accepted. Babble Plus allows more.',
   insights:
-    'Wake windows, night sleep trends, breastfeed trends, feed spacing, the weekly summary, all-time stats and the 30-day timeline are part of Babble Plus.',
+    'Wake windows, night sleep trends, breastfeed trends, feed spacing, cluster feeding, the weekly summary, all-time stats and the 30-day timeline are part of Babble Plus.',
   chair_mode: 'Chair mode is part of Babble Plus. You can preview it from Settings.',
 };
 
