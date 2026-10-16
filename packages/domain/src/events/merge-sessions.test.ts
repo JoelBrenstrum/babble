@@ -39,9 +39,19 @@ describe('mergeCandidate', () => {
     expect(mergeCandidate(nap, sleep('b', '2026-10-06T11:11:00Z', null))).toBeNull();
   });
 
-  it('refuses feeds too far apart, overlapping, running first, bottles, deleted, other babies or mixed types', () => {
+  it('offers a merge when the next one starts before the first ended', () => {
+    expect(mergeCandidate(first, feed('b', '2026-10-06T10:15:00Z', '2026-10-06T10:30:00Z'))).toMatchObject({
+      laterId: 'b',
+      gapMs: -5 * 60_000,
+    });
+    expect(mergeCandidate(first, feed('b', '2026-10-06T10:19:00Z', null))?.gapMs).toBe(-60_000);
+  });
+
+  it('refuses feeds too far apart, inside or before the first, running first, bottles, deleted, other babies or mixed types', () => {
     expect(mergeCandidate(first, feed('b', '2026-10-06T10:51:00Z', null))).toBeNull();
-    expect(mergeCandidate(first, feed('b', '2026-10-06T10:19:00Z', null))).toBeNull();
+    expect(mergeCandidate(first, feed('b', '2026-10-06T10:05:00Z', '2026-10-06T10:10:00Z'))).toBeNull();
+    expect(mergeCandidate(first, feed('b', '2026-10-06T10:00:00Z', null))).toBeNull();
+    expect(mergeCandidate(first, feed('b', '2026-10-06T09:55:00Z', null))).toBeNull();
     expect(mergeCandidate(feed('a', '2026-10-06T10:00:00Z', null), feed('b', '2026-10-06T10:05:00Z', null))).toBeNull();
     expect(mergeCandidate(first, makeEvent('bottle', { id: 'b', startedAt: '2026-10-06T10:25:00Z' }))).toBeNull();
     expect(
@@ -95,10 +105,13 @@ describe('merge text', () => {
   it('describes the gap', () => {
     expect(mergeGapText(12 * 60_000)).toBe('12m apart');
     expect(mergeGapText(20_000)).toBe('Under a minute apart');
+    expect(mergeGapText(-12 * 60_000)).toBe('Overlaps by 12m');
+    expect(mergeGapText(-20_000)).toBe('Overlaps by under a minute');
     const merge = { earlierId: 'a', laterId: 'b' };
     expect(liveMergeText({ ...merge, type: 'breast_feed', gapMs: 8 * 60_000 })).toBe('Started 8m after the last feed');
     expect(liveMergeText({ ...merge, type: 'breast_feed', gapMs: 0 })).toBe('Started straight after the last feed');
     expect(liveMergeText({ ...merge, type: 'sleep', gapMs: 8 * 60_000 })).toBe('Started 8m after the last sleep');
+    expect(liveMergeText({ ...merge, type: 'sleep', gapMs: -5 * 60_000 })).toBe('Started before the last sleep ended');
   });
 
   it('names what is being merged', () => {

@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(17);
+select plan(19);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -78,7 +78,7 @@ select throws_ok(
 select pg_temp.sign_in_as('53000000-0000-0000-0000-00000000000a');
 select throws_ok(
   $$ select public.merge_feeds('83000000-0000-0000-0000-000000000002', '83000000-0000-0000-0000-000000000003') $$,
-  'PL007', 'Feeds can only be merged when the second starts within 30 minutes of the first ending',
+  'PL007', 'Feeds can only be merged when the second starts during the first or within 30 minutes of it ending',
   'feeds more than 30 minutes apart cannot be merged'
 );
 select throws_ok(
@@ -144,6 +144,28 @@ select ok(
   (select ended_by = '53000000-0000-0000-0000-00000000000a'::uuid and end_recorded_at is not null
    from public.events where id = '83000000-0000-0000-0000-000000000003'),
   'ending the merged feed records who ended it as usual'
+);
+
+reset role;
+insert into public.events (id, baby_id, type, started_at, ended_at) values
+  ('83000000-0000-0000-0000-000000000007', '73000000-0000-0000-0000-00000000000a', 'breast_feed',
+   now() - interval '8 hours', now() - interval '470 minutes'),
+  ('83000000-0000-0000-0000-000000000008', '73000000-0000-0000-0000-00000000000a', 'breast_feed',
+   now() - interval '475 minutes', now() - interval '460 minutes');
+insert into public.timed_segments (event_id, side, started_at, ended_at) values
+  ('83000000-0000-0000-0000-000000000007', 'left', now() - interval '8 hours', now() - interval '470 minutes'),
+  ('83000000-0000-0000-0000-000000000008', 'right', now() - interval '475 minutes', now() - interval '460 minutes');
+select pg_temp.sign_in_as('53000000-0000-0000-0000-00000000000a');
+select lives_ok(
+  $$ select public.merge_feeds('83000000-0000-0000-0000-000000000007', '83000000-0000-0000-0000-000000000008') $$,
+  'a feed that started before the last one ended can be merged into it'
+);
+select results_eq(
+  $$ select side::text, started_at, ended_at from public.timed_segments
+     where event_id = '83000000-0000-0000-0000-000000000007' order by started_at $$,
+  $$ values ('left', now() - interval '8 hours', now() - interval '475 minutes'),
+            ('right', now() - interval '475 minutes', now() - interval '460 minutes') $$,
+  'the earlier feed stops where the later one started'
 );
 
 select * from finish();
