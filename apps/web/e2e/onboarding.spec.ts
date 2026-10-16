@@ -21,7 +21,7 @@ test('a new parent signs in with a magic link and sets up their family', async (
   await page.getByRole('button', { name: 'Continue' }).click();
 
   await expect(page.getByRole('heading', { name: "When does Olivia's day start?" })).toBeVisible();
-  await page.getByRole('radio', { name: /custom time/i }).click();
+  await page.getByRole('radio', { name: /When the night ends/ }).click();
   await page.getByRole('button', { name: 'Continue' }).click();
 
   await expect(page.getByRole('heading', { name: 'Invite a caregiver' })).toBeVisible();
