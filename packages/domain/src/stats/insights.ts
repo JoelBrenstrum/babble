@@ -545,7 +545,10 @@ function activeParts(event: BabyEvent): Span[] {
   const whole = { start: Date.parse(event.startedAt), end: Date.parse(event.endedAt ?? event.startedAt) };
   if (event.type !== 'breast_feed' || event.segments.length === 0) return [whole];
   const segments = event.segments
-    .map((segment) => ({ start: Date.parse(segment.startedAt), end: Date.parse(segment.endedAt ?? whole.end) }))
+    .map((segment) => ({
+      start: Date.parse(segment.startedAt),
+      end: segment.endedAt ? Date.parse(segment.endedAt) : whole.end,
+    }))
     .sort((a, b) => a.start - b.start);
   const parts: Span[] = [];
   for (const segment of segments) {
