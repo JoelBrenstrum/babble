@@ -1,4 +1,12 @@
-import { barReadout, chartEnds, chartValue, topSegment, type StatsCard } from '@babble/domain';
+import {
+  barReadout,
+  chartEnds,
+  chartValue,
+  statsBarLink,
+  topSegment,
+  type StatsCard,
+  type TimelineLink,
+} from '@babble/domain';
 import {
   Droplets,
   GlassWater,
@@ -53,22 +61,44 @@ const CHART_LABEL: Partial<Record<StatsCard['key'], string>> = {
   'feed-spacing': 'typical daytime gap by day',
 };
 
-export function StatsCards({ cards, plusBadges = false }: { cards: StatsCard[]; plusBadges?: boolean }) {
+export function StatsCards({
+  cards,
+  plusBadges = false,
+  onOpenTimeline,
+}: {
+  cards: StatsCard[];
+  plusBadges?: boolean;
+  onOpenTimeline?: (link: TimelineLink) => void;
+}) {
   return (
     <View className="gap-4">
       {cards.map((card) => (
-        <StatsCardView key={card.key} card={card} plusBadge={plusBadges && Boolean(card.plus)} />
+        <StatsCardView
+          key={card.key}
+          card={card}
+          plusBadge={plusBadges && Boolean(card.plus)}
+          onOpenTimeline={onOpenTimeline}
+        />
       ))}
     </View>
   );
 }
 
-function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolean }) {
+function StatsCardView({
+  card,
+  plusBadge,
+  onOpenTimeline,
+}: {
+  card: StatsCard;
+  plusBadge: boolean;
+  onOpenTimeline?: (link: TimelineLink) => void;
+}) {
   const look = LOOK[card.key];
   const color = useTokenColor(look.ink);
   const { chart } = card;
   const [selected, setSelected] = useState<string | null>(null);
   const selectedBar = chart.bars.find((bar) => bar.label === selected);
+  const link = selectedBar && onOpenTimeline ? statsBarLink(card.key, selectedBar, chart.weekly) : null;
   return (
     <Card className="gap-4 p-5">
       <View className="flex-row items-center gap-3">
@@ -104,9 +134,22 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
             </Text>
           )}
         </View>
-        <Text className={selectedBar ? 'font-semibold text-caption text-ink' : 'font-sans text-caption text-ink-3'}>
-          {selectedBar ? barReadout(chart, selectedBar) : 'Tap a bar to see its day'}
-        </Text>
+        <View className="min-h-8 flex-row items-center justify-between gap-2">
+          <Text
+            className={`flex-1 ${selectedBar ? 'font-semibold text-caption text-ink' : 'font-sans text-caption text-ink-3'}`}
+          >
+            {selectedBar ? barReadout(chart, selectedBar) : 'Tap a bar to see its day'}
+          </Text>
+          {link && (
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => onOpenTimeline?.(link)}
+              className="h-8 justify-center rounded-full bg-surface px-3"
+            >
+              <Text className="font-semibold text-caption text-primary">Open in timeline</Text>
+            </Pressable>
+          )}
+        </View>
         <View
           accessibilityLabel={`${card.title} ${CHART_LABEL[card.key] ?? 'per day'}`}
           className="h-32 flex-row items-end gap-[2px] border-b border-line"

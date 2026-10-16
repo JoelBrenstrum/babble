@@ -132,6 +132,18 @@ export {
   windowTicks,
   type TimeWindow,
 } from './timeline/days';
+export { nightMarkers, type NightMarker } from './timeline/night-markers';
+export {
+  filterLayout,
+  parseTimelineLanes,
+  shownLanes,
+  statsBarLink,
+  toggleLane,
+  TIMELINE_LANE_LABELS,
+  TIMELINE_LANES,
+  type TimelineLane,
+  type TimelineLink,
+} from './timeline/lanes';
 export { bucketByDay, dayLayout, markerShiftPercent, type DayLayout, type TimelineItem } from './timeline/day-layout';
 export {
   countedDays,

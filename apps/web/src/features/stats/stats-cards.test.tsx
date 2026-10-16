@@ -1,6 +1,7 @@
 import type { StatsCard } from '@babble/domain';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
+import { FixtureRouter } from '#/fixtures/router';
 import { StatsCards } from './stats-cards';
 
 const card: StatsCard = {
@@ -41,6 +42,16 @@ describe('StatsCards', () => {
     fireEvent.keyDown(last, { key: 'ArrowLeft' });
     expect(first).toHaveFocus();
     expect(screen.getByText('6 Oct: Breast 8, Bottle 1 · Total 9')).toBeInTheDocument();
+  });
+
+  it('opens the day in the timeline showing just that kind of entry', async () => {
+    render(
+      <FixtureRouter>
+        <StatsCards cards={[card]} linkBars />
+      </FixtureRouter>,
+    );
+    const first = await screen.findByRole('link', { name: '6 Oct: Breast 8, Bottle 1 · Total 9. Open in timeline' });
+    expect(first).toHaveAttribute('href', '/timeline?view=day&date=2026-10-06&show=feeds');
   });
 
   it('shows the breastfeed trend as left, right and idle minutes with its note', () => {

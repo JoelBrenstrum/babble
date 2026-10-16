@@ -11,9 +11,12 @@ import {
   timelineItemLabel,
   type DayLayout,
   type FeedDueMarker,
+  type NightMarker,
   type PredictedItem,
   type TimelineItem,
+  type TimelineLane,
   type Units,
+  TIMELINE_LANES,
 } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
 import { PooSwatch } from '#/components/ui/poo-swatch';
@@ -56,6 +59,8 @@ export function DayTimeline({
   predicted = null,
   compact = false,
   feedDue = null,
+  lanes: shown = TIMELINE_LANES,
+  night = [],
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -66,13 +71,18 @@ export function DayTimeline({
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
   compact?: boolean;
   feedDue?: FeedDueMarker | null;
+  lanes?: readonly TimelineLane[];
+  night?: NightMarker[];
 }) {
+  const filtered = shown.length < TIMELINE_LANES.length;
   const lanes: { key: keyof DayLayout; label: string; icon: LucideIcon; tone: string }[] = [
-    { key: 'sleep', label: 'Sleep', icon: Moon, tone: 'text-sleep' },
-    { key: 'feeds', label: 'Feeds', icon: Heart, tone: 'text-feed-left' },
-    { key: 'nappies', label: 'Nappy', icon: Droplets, tone: 'text-nappy' },
-    ...(layout.pumps.length ? [{ key: 'pumps' as const, label: 'Pump', icon: GlassWater, tone: 'text-pump' }] : []),
-  ];
+    { key: 'sleep' as const, label: 'Sleep', icon: Moon, tone: 'text-sleep' },
+    { key: 'feeds' as const, label: 'Feeds', icon: Heart, tone: 'text-feed-left' },
+    { key: 'nappies' as const, label: 'Nappy', icon: Droplets, tone: 'text-nappy' },
+    ...(layout.pumps.length || filtered
+      ? [{ key: 'pumps' as const, label: 'Pump', icon: GlassWater, tone: 'text-pump' }]
+      : []),
+  ].filter((lane) => shown.includes(lane.key));
   const columns = { gridTemplateColumns: `2.25rem repeat(${lanes.length}, minmax(0, 1fr))` };
 
   return (
@@ -105,6 +115,22 @@ export function DayTimeline({
               className="absolute inset-x-0 border-t border-line"
               style={{ top: formatFraction(tick.frac) }}
             />
+          ))}
+          {night.map((marker) => (
+            <div
+              key={marker.frac}
+              role="img"
+              aria-label={marker.label}
+              title={marker.label}
+              data-testid="night-marker"
+              className="absolute inset-x-0 border-t border-dotted border-sleep"
+              style={{ top: formatFraction(marker.frac) }}
+            >
+              <span className="absolute right-0 top-0.5 flex items-center gap-1 rounded-chip bg-sleep-soft px-1.5 text-caption font-semibold text-on-sleep">
+                <Moon aria-hidden className="size-3" strokeWidth={2.75} />
+                <span className={cn('tabular', compact && 'sr-only')}>{marker.label}</span>
+              </span>
+            </div>
           ))}
           {feedDue && (
             <div

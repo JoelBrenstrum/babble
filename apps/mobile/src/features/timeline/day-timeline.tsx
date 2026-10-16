@@ -7,7 +7,10 @@ import {
   showsItemLabel,
   timelineItemLabel,
   type DayLayout,
+  type TimelineLane,
+  TIMELINE_LANES,
   type FeedDueMarker,
+  type NightMarker,
   type PredictedItem,
   type TimelineItem,
   type Units,
@@ -34,6 +37,8 @@ export function DayTimeline({
   predicted = null,
   compact = false,
   feedDue = null,
+  lanes: shown = TIMELINE_LANES,
+  night = [],
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -44,13 +49,16 @@ export function DayTimeline({
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
   compact?: boolean;
   feedDue?: FeedDueMarker | null;
+  lanes?: readonly TimelineLane[];
+  night?: NightMarker[];
 }) {
+  const filtered = shown.length < TIMELINE_LANES.length;
   const lanes: { key: keyof DayLayout; label: string }[] = [
-    { key: 'sleep', label: 'Sleep' },
-    { key: 'feeds', label: 'Feeds' },
-    { key: 'nappies', label: 'Nappy' },
-    ...(layout.pumps.length ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
-  ];
+    { key: 'sleep' as const, label: 'Sleep' },
+    { key: 'feeds' as const, label: 'Feeds' },
+    { key: 'nappies' as const, label: 'Nappy' },
+    ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
+  ].filter((lane) => shown.includes(lane.key));
 
   return (
     <View className="gap-2">
@@ -78,6 +86,25 @@ export function DayTimeline({
         <View className="absolute bottom-0 left-9 right-0 top-0" pointerEvents="none">
           {ticks.map((tick, index) => (
             <View key={index} className="absolute inset-x-0 border-t border-line" style={{ top: pct(tick.frac) }} />
+          ))}
+          {night.map((marker) => (
+            <View
+              key={marker.frac}
+              accessible
+              accessibilityLabel={marker.label}
+              testID="night-marker"
+              className="absolute inset-x-0 border-t border-dashed border-sleep"
+              style={{ top: pct(marker.frac) }}
+            >
+              {!compact && (
+                <Text
+                  className="absolute right-0 rounded-chip bg-sleep-soft px-1.5 font-semibold text-caption text-on-sleep"
+                  style={{ top: 2 }}
+                >
+                  {marker.label}
+                </Text>
+              )}
+            </View>
           ))}
           {feedDue && (
             <View

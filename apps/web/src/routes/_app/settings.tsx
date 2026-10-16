@@ -43,7 +43,7 @@ function SettingsPage() {
             <a
               key={group.id}
               href={`#settings-${group.id}`}
-              className="min-h-tap-sm inline-flex items-center rounded-full bg-surface px-4 text-label font-semibold text-ink-2 hover:bg-line hover:text-ink"
+              className="h-10 inline-flex items-center rounded-full bg-surface px-4 text-label font-semibold text-ink-2 hover:bg-line hover:text-ink"
             >
               {group.nav}
             </a>

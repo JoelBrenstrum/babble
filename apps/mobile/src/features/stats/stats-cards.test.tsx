@@ -22,23 +22,24 @@ describe('StatsCards', () => {
     expect(screen.getByLabelText('Nappies per day')).toBeTruthy();
   });
 
+  const card: StatsCard = {
+    key: 'feeds',
+    title: 'Feeds',
+    figures: [],
+    chart: {
+      unit: '',
+      series: ['Bottle', 'Breast'],
+      legend: [1, 0],
+      bars: [
+        { label: '2026-10-06', values: [1, 8] },
+        { label: '2026-10-07', values: [0, 9] },
+      ],
+      max: 9,
+      weekly: false,
+    },
+  };
+
   it('reads out a tapped bar and clears it on a second tap', async () => {
-    const card: StatsCard = {
-      key: 'feeds',
-      title: 'Feeds',
-      figures: [],
-      chart: {
-        unit: '',
-        series: ['Bottle', 'Breast'],
-        legend: [1, 0],
-        bars: [
-          { label: '2026-10-06', values: [1, 8] },
-          { label: '2026-10-07', values: [0, 9] },
-        ],
-        max: 9,
-        weekly: false,
-      },
-    };
     await render(<StatsCards cards={[card]} />);
     const bar = screen.getByRole('button', { name: '7 Oct: Breast 9, Bottle 0 · Total 9' });
     await fireEvent.press(bar);
@@ -47,5 +48,14 @@ describe('StatsCards', () => {
     expect(screen.getByText('6 Oct: Breast 8, Bottle 1 · Total 9')).toBeTruthy();
     await fireEvent.press(screen.getByRole('button', { name: '6 Oct: Breast 8, Bottle 1 · Total 9' }));
     expect(screen.getByText('Tap a bar to see its day')).toBeTruthy();
+  });
+
+  it('opens a tapped day in the timeline', async () => {
+    const onOpenTimeline = jest.fn();
+    await render(<StatsCards cards={[card]} onOpenTimeline={onOpenTimeline} />);
+    expect(screen.queryByRole('link', { name: 'Open in timeline' })).toBeNull();
+    await fireEvent.press(screen.getByRole('button', { name: '6 Oct: Breast 8, Bottle 1 · Total 9' }));
+    await fireEvent.press(screen.getByRole('link', { name: 'Open in timeline' }));
+    expect(onOpenTimeline).toHaveBeenCalledWith({ view: 'day', date: '2026-10-06', show: 'feeds' });
   });
 });

@@ -71,7 +71,7 @@ export function MergeFeedsRow({ client, babyId, merge }: { client: BabbleClient;
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="min-h-tap-sm rounded-button px-2 font-semibold text-primary hover:bg-line"
+        className="h-10 rounded-button px-2 font-semibold text-primary hover:bg-line"
       >
         Merge
       </button>

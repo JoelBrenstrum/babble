@@ -62,4 +62,22 @@ describe('DayTimeline', () => {
     expect(screen.getByLabelText('Feed due 3:10 pm')).toBeOnTheScreen();
     expect(screen.getByText('Feed due 3:10 pm')).toBeOnTheScreen();
   });
+
+  it('marks when the night starts', async () => {
+    const now = new Date();
+    const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
+    await render(
+      <DayTimeline
+        layout={dayLayout([], window, now)}
+        ticks={[]}
+        timeZone={sampleBaby.timezone}
+        units="metric"
+        nowFrac={0.5}
+        now={now}
+        night={[{ frac: 0.8, label: 'Night starts 7:00 pm' }]}
+      />,
+    );
+    expect(screen.getByLabelText('Night starts 7:00 pm')).toBeTruthy();
+    expect(screen.getByText('Night starts 7:00 pm')).toBeTruthy();
+  });
 });

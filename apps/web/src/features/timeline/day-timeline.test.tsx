@@ -1,5 +1,5 @@
 import { sampleBaby, sampleRunningSleep } from '@babble/api/fixtures';
-import { dayLayout, dayWindow, fractionOf } from '@babble/domain';
+import { dayLayout, dayWindow, fractionOf, type TimelineLane } from '@babble/domain';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { FixtureRouter } from '#/fixtures/router';
@@ -9,7 +9,7 @@ const timeZone = sampleBaby.timezone;
 const now = new Date('2026-10-13T00:30:00Z');
 const window = dayWindow('2026-10-13', timeZone, 0);
 
-function renderTimeline(at: Date, shownAt: Date = at) {
+function renderTimeline(at: Date, shownAt: Date = at, lanes?: TimelineLane[]) {
   const nap = { ...sampleRunningSleep(at), startedAt: new Date(at.getTime() - 72 * 60_000).toISOString() };
   render(
     <FixtureRouter>
@@ -20,6 +20,7 @@ function renderTimeline(at: Date, shownAt: Date = at) {
         units="metric"
         now={shownAt}
         nowFrac={fractionOf(window, at.getTime())}
+        lanes={lanes}
       />
     </FixtureRouter>,
   );
@@ -35,5 +36,13 @@ describe('DayTimeline', () => {
   it('follows the time as it moves on', async () => {
     renderTimeline(now, new Date(now.getTime() + 30 * 60_000));
     expect(await screen.findByText('1h 42m')).toBeInTheDocument();
+  });
+
+  it('only draws the lanes it is asked to', async () => {
+    renderTimeline(now, now, ['nappies', 'pumps']);
+    expect(await screen.findByText('Nappy')).toBeInTheDocument();
+    expect(screen.getByText('Pump')).toBeInTheDocument();
+    expect(screen.queryByText('Sleep')).not.toBeInTheDocument();
+    expect(screen.queryByText('1h 12m')).not.toBeInTheDocument();
   });
 });
