@@ -4,6 +4,7 @@ import {
   feedDueFor,
   feedDueMarker,
   filterLayout,
+  nightMarkers,
   parseTimelineLanes,
   shownLanes,
   daySummaryStrip,
@@ -16,6 +17,7 @@ import {
   type DayComparison,
   type DayLayout,
   type FeedDueMarker,
+  type NightMarker,
   type DaySummary,
   type PredictedItem,
   type TimelineLane,
@@ -101,6 +103,12 @@ function TimelinePage() {
       : model?.view === '24h'
         ? feedDueMarker(due, model.window, now, baby.timezone)
         : null;
+  const night =
+    model?.view === 'day'
+      ? nightMarkers(model.day.window, settings, baby.timezone)
+      : model?.view === '24h'
+        ? nightMarkers(model.window, settings, baby.timezone)
+        : [];
   const comparing = (view === 'day' || view === '24h') && Boolean(compare) && !insightsLocked;
   const toggleCompare = () =>
     insightsLocked
@@ -229,6 +237,7 @@ function TimelinePage() {
           timeZone={baby.timezone}
           predicted={predicted}
           feedDue={feedDue}
+          night={night}
           currentLabel={range.rangeLabel}
           comparison={comparing ? (comparison ?? 'loading') : null}
           plusBadge={plus}
@@ -254,6 +263,7 @@ function TimelinePage() {
           units={units}
           timeZone={baby.timezone}
           feedDue={feedDue}
+          night={night}
           currentLabel="Last 24h"
           comparison={comparing ? (rolling ?? 'loading') : null}
           plusBadge={plus}
@@ -310,6 +320,7 @@ function DayPanel({
   timeZone,
   predicted,
   feedDue = null,
+  night,
   currentLabel,
   comparison = null,
   plusBadge = false,
@@ -326,6 +337,7 @@ function DayPanel({
   timeZone: string;
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
   feedDue?: FeedDueMarker | null;
+  night: NightMarker[];
   currentLabel?: string;
   comparison?: DayComparison | 'loading' | null;
   plusBadge?: boolean;
@@ -353,6 +365,7 @@ function DayPanel({
                 <DayTimeline
                   layout={comparison.layout}
                   lanes={lanes}
+                  night={night}
                   ticks={ticks}
                   timeZone={timeZone}
                   units={units}
@@ -367,6 +380,7 @@ function DayPanel({
               <DayTimeline
                 layout={layout}
                 lanes={lanes}
+                night={night}
                 ticks={ticks}
                 timeZone={timeZone}
                 units={units}
@@ -382,6 +396,7 @@ function DayPanel({
           <DayTimeline
             layout={layout}
             lanes={lanes}
+            night={night}
             ticks={ticks}
             timeZone={timeZone}
             units={units}

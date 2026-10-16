@@ -6,6 +6,7 @@ import {
   feedDueFor,
   feedDueMarker,
   filterLayout,
+  nightMarkers,
   parseTimelineLanes,
   shownLanes,
   previous24hWindow,
@@ -19,6 +20,7 @@ import {
   weekSummaryStrip,
   weekTableRows,
   type DayComparison,
+  type NightMarker,
   type TimelineLane,
   type TimelineTick,
   type TimelineView,
@@ -123,6 +125,12 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
       : model.view === '24h'
         ? feedDueMarker(due, model.window, now, baby.timezone)
         : null;
+  const night =
+    model.view === 'day'
+      ? nightMarkers(model.day.window, settings, baby.timezone)
+      : model.view === '24h'
+        ? nightMarkers(model.window, settings, baby.timezone)
+        : [];
   const openDay = (key: string) => {
     setDate(key);
     setView('day');
@@ -212,6 +220,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             {comparing ? (
               <ComparedTimelines
                 lanes={lanes}
+                night={night}
                 comparison={comparison}
                 currentLabel="Last 24h"
                 ticks={model.ticks}
@@ -221,6 +230,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
               >
                 <DayTimeline
                   lanes={lanes}
+                  night={night}
                   layout={model.layout}
                   ticks={model.ticks}
                   timeZone={baby.timezone}
@@ -234,6 +244,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             ) : (
               <DayTimeline
                 lanes={lanes}
+                night={night}
                 layout={model.layout}
                 ticks={model.ticks}
                 timeZone={baby.timezone}
@@ -255,6 +266,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             {comparing ? (
               <ComparedTimelines
                 lanes={lanes}
+                night={night}
                 comparison={comparison}
                 currentLabel={rangeLabel}
                 ticks={model.ticks}
@@ -264,6 +276,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
               >
                 <DayTimeline
                   lanes={lanes}
+                  night={night}
                   layout={model.day.layout}
                   ticks={model.ticks}
                   timeZone={baby.timezone}
@@ -278,6 +291,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             ) : (
               <DayTimeline
                 lanes={lanes}
+                night={night}
                 layout={model.day.layout}
                 ticks={model.ticks}
                 timeZone={baby.timezone}
@@ -396,9 +410,11 @@ function ComparedTimelines({
   units,
   now,
   lanes,
+  night,
   children,
 }: {
   lanes: readonly TimelineLane[];
+  night: NightMarker[];
   comparison: DayComparison | null;
   currentLabel: string;
   ticks: TimelineTick[];
@@ -414,6 +430,7 @@ function ComparedTimelines({
         {comparison ? (
           <DayTimeline
             lanes={lanes}
+            night={night}
             layout={comparison.layout}
             ticks={ticks}
             timeZone={timeZone}

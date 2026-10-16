@@ -26,6 +26,9 @@ test('the timeline shows the day and the last 7 days and opens entries', async (
   await expect(page.getByRole('link', { name: 'Home, nap running' }).filter({ visible: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /^Sleep .*running$/ })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Next day' })).toHaveAttribute('aria-disabled', 'true');
+  await expect(page.getByRole('img', { name: /^Night ends \d/ })).toBeVisible();
+  await expect(page.getByRole('img', { name: /^Night starts \d/ })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('night.png'), fullPage: true });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
   await page.getByRole('link', { name: /^Nappy .*both$/ }).click();

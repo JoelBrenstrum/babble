@@ -11,13 +11,14 @@ import {
   timelineItemLabel,
   type DayLayout,
   type FeedDueMarker,
+  type NightMarker,
   type PredictedItem,
   type TimelineItem,
   type TimelineLane,
   type Units,
   TIMELINE_LANES,
 } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
+import { Droplets, GlassWater, Heart, Moon, Sunrise, type LucideIcon } from 'lucide-react';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
 import { TimelineItemLink } from './timeline-item-link';
@@ -59,6 +60,7 @@ export function DayTimeline({
   compact = false,
   feedDue = null,
   lanes: shown = TIMELINE_LANES,
+  night = [],
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -70,6 +72,7 @@ export function DayTimeline({
   compact?: boolean;
   feedDue?: FeedDueMarker | null;
   lanes?: readonly TimelineLane[];
+  night?: NightMarker[];
 }) {
   const filtered = shown.length < TIMELINE_LANES.length;
   const lanes: { key: keyof DayLayout; label: string; icon: LucideIcon; tone: string }[] = [
@@ -113,6 +116,25 @@ export function DayTimeline({
               style={{ top: formatFraction(tick.frac) }}
             />
           ))}
+          {night.map((marker) => {
+            const Icon = marker.kind === 'start' ? Moon : Sunrise;
+            return (
+              <div
+                key={marker.kind + marker.frac}
+                role="img"
+                aria-label={marker.label}
+                title={marker.label}
+                data-testid="night-marker"
+                className="absolute inset-x-0 border-t border-dotted border-sleep"
+                style={{ top: formatFraction(marker.frac) }}
+              >
+                <span className="absolute right-0 top-0.5 flex items-center gap-1 rounded-chip bg-sleep-soft px-1.5 text-caption font-semibold text-on-sleep">
+                  <Icon aria-hidden className="size-3" strokeWidth={2.75} />
+                  <span className={cn('tabular', compact && 'sr-only')}>{marker.label}</span>
+                </span>
+              </div>
+            );
+          })}
           {feedDue && (
             <div
               role="img"

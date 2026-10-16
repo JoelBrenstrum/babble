@@ -132,6 +132,7 @@ export {
   windowTicks,
   type TimeWindow,
 } from './timeline/days';
+export { nightMarkers, type NightMarker } from './timeline/night-markers';
 export {
   filterLayout,
   parseTimelineLanes,
