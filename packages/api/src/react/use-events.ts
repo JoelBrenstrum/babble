@@ -4,6 +4,7 @@ import {
   type BabyEvent,
   type EventDraft,
   type SessionAction,
+  type SessionMerge,
   type SessionType,
   type Side,
   type Units,
@@ -16,7 +17,7 @@ import { toBabbleError } from '../errors';
 import {
   deleteEvent,
   restoreEvent,
-  mergeFeeds,
+  mergeSessions,
   resumeFeed,
   runSessionAction,
   saveEvent,
@@ -169,11 +170,10 @@ export function useResumeFeed(client: BabbleClient, babyId: string) {
   });
 }
 
-export function useMergeFeeds(client: BabbleClient, babyId: string) {
+export function useMergeSessions(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ earlierId, laterId }: { earlierId: string; laterId: string }) =>
-      mergeFeeds(client, earlierId, laterId),
+    mutationFn: (merge: SessionMerge) => mergeSessions(client, merge),
     onSettled: () => refreshEvents(queryClient, babyId),
   });
 }

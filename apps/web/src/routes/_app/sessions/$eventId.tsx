@@ -8,7 +8,7 @@ import { SectionSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
 import { RunningCard } from '#/features/events/running-card';
 import { KeepAwakeToggle } from '#/features/keep-awake-toggle';
-import { LiveMergeOffer } from '#/features/events/merge-feeds';
+import { LiveMergeOffer } from '#/features/events/merge-sessions';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { SleepDetailsEditor } from '#/features/events/sleep-details-editor';
@@ -27,9 +27,9 @@ function SessionPage() {
   const { mergeGapMs } = useTrackingSettings(babble.client, baby.id);
   const action = useSessionAction(babble.client, baby.id);
   const event = running.data?.find((item) => item.id === eventId) ?? fallback.data;
-  const feeds = useQuery({
-    ...eventListQuery(babble.client, baby.id, ['breast_feed']),
-    enabled: canLog && event?.type === 'breast_feed',
+  const earlier = useQuery({
+    ...eventListQuery(babble.client, baby.id, [event?.type === 'sleep' ? 'sleep' : 'breast_feed']),
+    enabled: canLog && (event?.type === 'breast_feed' || event?.type === 'sleep'),
   });
 
   if (!event) {
@@ -54,7 +54,7 @@ function SessionPage() {
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
   const trimTo = canLog ? trimIdleSwitch(event, clock.now()) : null;
-  const merge = canLog && feeds.data ? liveMergeOffer(event, feeds.data) : null;
+  const merge = canLog && earlier.data ? liveMergeOffer(event, earlier.data) : null;
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">

@@ -740,6 +740,7 @@ export type Database = {
         };
       };
       merge_feeds: { Args: { earlier_id: string; later_id: string }; Returns: undefined };
+      merge_sleeps: { Args: { earlier_id: string; later_id: string }; Returns: undefined };
       pause_session: { Args: { target_event_id: string }; Returns: undefined };
       rename_device: { Args: { new_name: string; target_session_id: string }; Returns: undefined };
       resume_feed: {

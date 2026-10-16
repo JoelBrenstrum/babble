@@ -11,7 +11,7 @@ import { StatusMessage } from '@/components/status-message';
 import { ReadOnlyRunning } from '@/features/events/read-only-running';
 import { RunningCard } from '@/features/events/running-card';
 import { KeepAwakeToggle } from '@/features/keep-awake-toggle';
-import { LiveMergeOffer } from '@/features/events/merge-feeds';
+import { LiveMergeOffer } from '@/features/events/merge-sessions';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
@@ -39,9 +39,9 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
   const action = useSessionAction(client, baby.id);
   const spinnerColor = useTokenColor('--primary');
   const event = running.data?.find((item) => item.id === id) ?? fallback.data;
-  const feeds = useQuery({
-    ...eventListQuery(client, baby.id, ['breast_feed']),
-    enabled: logging && event?.type === 'breast_feed',
+  const earlier = useQuery({
+    ...eventListQuery(client, baby.id, [event?.type === 'sleep' ? 'sleep' : 'breast_feed']),
+    enabled: logging && (event?.type === 'breast_feed' || event?.type === 'sleep'),
   });
 
   if (!event) return <ActivityIndicator size="large" color={spinnerColor} className="flex-1 bg-bg" />;
@@ -50,7 +50,7 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
   const trimTo = logging ? trimIdleSwitch(event, clock.now()) : null;
-  const merge = logging && feeds.data ? liveMergeOffer(event, feeds.data) : null;
+  const merge = logging && earlier.data ? liveMergeOffer(event, earlier.data) : null;
   const title = event.type === 'sleep' ? 'Sleep' : event.type === 'pump' ? 'Pump' : 'Breastfeed';
 
   return (

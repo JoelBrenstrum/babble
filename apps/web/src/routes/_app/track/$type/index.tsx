@@ -1,5 +1,5 @@
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery, familyAuthors } from '@babble/api';
-import { hasStrip, listDayGroups, listStrip, mergeableFeeds, stripKind, stripWindow } from '@babble/domain';
+import { hasStrip, listDayGroups, listStrip, mergeableSessions, stripKind, stripWindow } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
 import { Fragment } from 'react';
@@ -10,7 +10,7 @@ import { Segmented } from '#/components/ui/segmented';
 import { SectionSpinner } from '#/components/ui/spinner';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventRow } from '#/features/events/event-row';
-import { MergeFeedsRow } from '#/features/events/merge-feeds';
+import { MergeSessionsRow } from '#/features/events/merge-sessions';
 import { SummaryStrip } from '#/features/timeline/totals';
 import { isEventType, listTypesFor, trackerFor } from '@babble/domain';
 import { useUnits } from '@babble/api/react';
@@ -50,7 +50,7 @@ function TrackerList() {
     birthDate: baby.birth_date,
   });
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
-  const merges = canLog && types.includes('breast_feed') ? mergeableFeeds(events.data ?? []) : null;
+  const merges = canLog ? mergeableSessions(events.data ?? []) : null;
   const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
   const showStrip = hasStrip(kind);
   const recent = useQuery({
@@ -153,7 +153,7 @@ function TrackerList() {
                     showNotes={!group.notesInSubtitle}
                   />
                   {merge && group.items.some((item) => item.id === merge.earlierId) && (
-                    <MergeFeedsRow client={babble.client} babyId={baby.id} merge={merge} />
+                    <MergeSessionsRow client={babble.client} babyId={baby.id} merge={merge} />
                   )}
                 </Fragment>
               );

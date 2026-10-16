@@ -205,12 +205,15 @@ export { canResumeFeed, feedEndTime, latestFeed, nextBreastSide, staleSessions }
 export {
   liveMergeOffer,
   liveMergeText,
-  MERGE_FEEDS_WITHIN_MS,
-  mergeableFeeds,
+  MERGE_WITHIN_MS,
+  mergeableSessions,
   mergeCandidate,
+  mergeCopy,
   mergeGapText,
-  type FeedMerge,
-} from './events/merge-feeds';
+  type MergeableType,
+  type MergeCopy,
+  type SessionMerge,
+} from './events/merge-sessions';
 export {
   feedPromptOnNapStart,
   napPromptOnFeedEnd,

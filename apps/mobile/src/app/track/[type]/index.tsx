@@ -10,7 +10,7 @@ import {
   stripWindow,
   trackerFor,
   type TrackerKey,
-  mergeableFeeds,
+  mergeableSessions,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Link, Redirect, router, useLocalSearchParams } from 'expo-router';
@@ -25,7 +25,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { Segmented } from '@/components/segmented';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventRow } from '@/features/events/event-row';
-import { MergeFeedsRow } from '@/features/events/merge-feeds';
+import { MergeSessionsRow } from '@/features/events/merge-sessions';
 import { SummaryStrip } from '@/features/timeline/totals';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
@@ -59,8 +59,7 @@ function TrackerListContent({
     eventType === 'bottle' ? 'bottle' : eventType === 'breast_feed' ? 'breast' : 'all',
   );
   const events = useQuery(eventListQuery(client, baby.id, listTypesFor(eventType, filter)));
-  const merges =
-    logging && listTypesFor(eventType, filter).includes('breast_feed') ? mergeableFeeds(events.data ?? []) : null;
+  const merges = logging ? mergeableSessions(events.data ?? []) : null;
   const tracker = trackerFor(eventType);
   const kind = stripKind(eventType, filter);
   const groups = listDayGroups(kind, events.data ?? [], {
@@ -182,7 +181,7 @@ function TrackerListContent({
                       divider={index > 0}
                     />
                     {merge && group.items.some((item) => item.id === merge.earlierId) && (
-                      <MergeFeedsRow client={client} babyId={baby.id} merge={merge} />
+                      <MergeSessionsRow client={client} babyId={baby.id} merge={merge} />
                     )}
                   </Fragment>
                 );
