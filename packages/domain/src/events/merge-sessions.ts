@@ -20,9 +20,10 @@ const isMergeable = (event: BabyEvent): event is Extract<BabyEvent, { type: Merg
 export function mergeCandidate(earlier: BabyEvent, later: BabyEvent): SessionMerge | null {
   if (!isMergeable(earlier) || !isMergeable(later)) return null;
   if (earlier.type !== later.type || earlier.babyId !== later.babyId) return null;
-  if (earlier.endedAt === null) return null;
+  if (earlier.endedAt === null || ms(later.startedAt) <= ms(earlier.startedAt)) return null;
+  if (later.endedAt !== null && ms(later.endedAt) < ms(earlier.endedAt)) return null;
   const gapMs = ms(later.startedAt) - ms(earlier.endedAt);
-  if (gapMs < 0 || gapMs > MERGE_WITHIN_MS) return null;
+  if (gapMs > MERGE_WITHIN_MS) return null;
   return { type: later.type, earlierId: earlier.id, laterId: later.id, gapMs };
 }
 
@@ -60,11 +61,14 @@ const NOUNS: Record<MergeableType, { one: string; many: string }> = {
 };
 
 export function mergeGapText(gapMs: number): string {
+  if (gapMs < 0)
+    return -gapMs < MINUTE_MS ? 'Overlaps by under a minute' : `Overlaps by ${formatDurationShort(-gapMs)}`;
   return gapMs < MINUTE_MS ? 'Under a minute apart' : `${formatDurationShort(gapMs)} apart`;
 }
 
 export function liveMergeText(merge: SessionMerge): string {
   const { one } = NOUNS[merge.type];
+  if (merge.gapMs < 0) return `Started before the last ${one} ended`;
   return merge.gapMs < MINUTE_MS
     ? `Started straight after the last ${one}`
     : `Started ${formatDurationShort(merge.gapMs)} after the last ${one}`;
@@ -81,7 +85,7 @@ export function mergeCopy(type: MergeableType): MergeCopy {
     return {
       title: 'Merge sleeps',
       confirm:
-        "Merge these two sleeps into one? The time between them shows as awake, notes are combined, and this can't be undone.",
+        "Merge these two sleeps into one? Any time between them shows as awake, notes are combined, and this can't be undone.",
       liveConfirm: 'Merge this sleep into the last one? It keeps running as one sleep, with the time between as awake.',
     };
   }

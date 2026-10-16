@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(16);
+select plan(20);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -63,7 +63,7 @@ select throws_ok(
 select pg_temp.sign_in_as('54000000-0000-0000-0000-00000000000b');
 select throws_ok(
   $$ select public.merge_sleeps('84000000-0000-0000-0000-000000000002', '84000000-0000-0000-0000-000000000003') $$,
-  'PL007', 'Sleeps can only be merged when the second starts within 30 minutes of the first ending',
+  'PL007', 'Sleeps can only be merged when the second starts during the first or within 30 minutes of it ending',
   'sleeps more than 30 minutes apart cannot be merged'
 );
 select throws_ok(
@@ -134,6 +134,35 @@ select lives_ok(
      select public.resume_session('84000000-0000-0000-0000-000000000003');
      select public.end_session('84000000-0000-0000-0000-000000000003') $$,
   'the merged sleep can pause, resume and end'
+);
+
+reset role;
+insert into public.events (id, baby_id, type, started_at, ended_at) values
+  ('84000000-0000-0000-0000-000000000007', '74000000-0000-0000-0000-00000000000a', 'sleep',
+   now() - interval '10 hours', now() - interval '9 hours'),
+  ('84000000-0000-0000-0000-000000000008', '74000000-0000-0000-0000-00000000000a', 'sleep',
+   now() - interval '560 minutes', now() - interval '8 hours'),
+  ('84000000-0000-0000-0000-000000000009', '74000000-0000-0000-0000-00000000000a', 'sleep',
+   now() - interval '590 minutes', now() - interval '570 minutes');
+select pg_temp.sign_in_as('54000000-0000-0000-0000-00000000000b');
+select throws_ok(
+  $$ select public.merge_sleeps('84000000-0000-0000-0000-000000000007', '84000000-0000-0000-0000-000000000009') $$,
+  'PL007', null, 'a sleep inside another cannot be merged into it'
+);
+select lives_ok(
+  $$ select public.merge_sleeps('84000000-0000-0000-0000-000000000007', '84000000-0000-0000-0000-000000000008') $$,
+  'a sleep that started before the last one ended can be merged into it'
+);
+select results_eq(
+  $$ select started_at, ended_at from public.timed_segments
+     where event_id = '84000000-0000-0000-0000-000000000007' order by started_at $$,
+  $$ values (now() - interval '10 hours', now() - interval '560 minutes'),
+            (now() - interval '560 minutes', now() - interval '8 hours') $$,
+  'the overlap is counted once, from the later sleep'
+);
+select is(
+  (select ended_at from public.events where id = '84000000-0000-0000-0000-000000000007'),
+  now() - interval '8 hours', 'the overlapping merge ends when the later sleep ended'
 );
 
 select * from finish();
