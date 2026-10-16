@@ -188,6 +188,31 @@ describe('ending a running session earlier', () => {
     expect(earliestEnd(paused)).toBe('2026-10-06T09:55:00Z');
   });
 
+  it('ends a paused nap earlier than the pause, cutting its last stretch short', () => {
+    const pausedNap = makeEvent('sleep', {
+      startedAt: '2026-10-06T09:00:00Z',
+      endedAt: null,
+      sessionState: 'paused',
+      segments: [
+        { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T09:30:00Z' },
+        { startedAt: '2026-10-06T09:40:00Z', endedAt: '2026-10-06T10:10:00Z' },
+      ],
+    });
+    expect(earliestEnd(pausedNap)).toBe('2026-10-06T09:40:00Z');
+    expect(suggestedEnd(pausedNap, NOW)).toBe('2026-10-06T10:10:00Z');
+    expect(endChangeError(pausedNap, '2026-10-06T09:55:00Z', NOW)).toBeNull();
+    expect(endChangeError(pausedNap, '2026-10-06T09:35:00Z', NOW)).toBe("The end can't be before the nap resumed.");
+    const ended = applySessionAction(pausedNap, { kind: 'end', at: '2026-10-06T09:55:00Z' }, NOW);
+    expect(ended.endedAt).toBe('2026-10-06T09:55:00.000Z');
+    expect(ended.type === 'sleep' && ended.segments.map((segment) => segment.endedAt)).toEqual([
+      '2026-10-06T09:30:00Z',
+      '2026-10-06T09:55:00Z',
+    ]);
+    expect(applySessionAction(pausedNap, { kind: 'end', at: '2026-10-06T10:15:00Z' }, NOW).endedAt).toBe(
+      '2026-10-06T10:10:00.000Z',
+    );
+  });
+
   it('suggests five minutes ago, or the earliest allowed end if that is later', () => {
     expect(suggestedEnd(nap, NOW)).toBe('2026-10-06T10:15:00.000Z');
     expect(suggestedEnd(running, new Date('2026-10-06T10:02:00Z'))).toBe('2026-10-06T10:00:00Z');
