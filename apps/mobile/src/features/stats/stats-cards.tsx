@@ -7,7 +7,17 @@ import {
   type StatsCard,
   type TimelineLink,
 } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, MoonStar, Sun, type LucideIcon } from 'lucide-react-native';
+import {
+  Droplets,
+  GlassWater,
+  Heart,
+  Hourglass,
+  Moon,
+  MoonStar,
+  Sun,
+  TrendingUp,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
@@ -15,7 +25,14 @@ import { PlusBadge } from '@/components/plus';
 import { PooSwatch } from '@/components/poo-swatch';
 import { useTokenColor } from '@/lib/theme';
 
-type InkToken = '--on-sleep' | '--on-feed-right' | '--on-nappy' | '--on-pump' | '--on-primary-soft';
+type InkToken =
+  | '--on-sleep'
+  | '--on-bottle'
+  | '--on-feed-left'
+  | '--on-feed-right'
+  | '--on-nappy'
+  | '--on-pump'
+  | '--on-primary-soft';
 
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkToken; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
@@ -29,6 +46,19 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkT
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump', series: ['bg-pump'] },
   wake: { icon: Sun, tile: 'bg-primary-soft', ink: '--on-primary-soft', series: ['bg-primary'] },
   night: { icon: MoonStar, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep'] },
+  'feed-trend': {
+    icon: TrendingUp,
+    tile: 'bg-feed-left-soft',
+    ink: '--on-feed-left',
+    series: ['bg-feed-left', 'bg-feed-right', 'bg-session-downtime'],
+  },
+  'feed-spacing': { icon: Hourglass, tile: 'bg-bottle-soft', ink: '--on-bottle', series: ['bg-bottle'] },
+};
+
+const CHART_LABEL: Partial<Record<StatsCard['key'], string>> = {
+  night: 'per night',
+  'feed-trend': 'per feed, 7-day average by day',
+  'feed-spacing': 'typical daytime gap by day',
 };
 
 export function StatsCards({
@@ -121,7 +151,7 @@ function StatsCardView({
           )}
         </View>
         <View
-          accessibilityLabel={`${card.title} per ${card.key === 'night' ? 'night' : 'day'}`}
+          accessibilityLabel={`${card.title} ${CHART_LABEL[card.key] ?? 'per day'}`}
           className="h-32 flex-row items-end gap-[2px] border-b border-line"
         >
           {chart.bars.map((bar) => {
@@ -153,6 +183,7 @@ function StatsCardView({
             <Text className="font-sans text-caption text-ink-3">{chartEnds(chart)![1]}</Text>
           </View>
         )}
+        {card.note && <Text className="font-sans text-caption text-ink-3">{card.note}</Text>}
       </View>
       {card.colours && card.colours.length > 0 && (
         <View className="gap-1.5">

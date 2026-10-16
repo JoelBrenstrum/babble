@@ -24,11 +24,12 @@ export interface StatsSettings {
 }
 
 export interface StatsCard {
-  key: 'sleep' | 'feeds' | 'nappies' | 'pump' | 'wake' | 'night';
+  key: 'sleep' | 'feeds' | 'nappies' | 'pump' | 'wake' | 'night' | 'feed-trend' | 'feed-spacing';
   title: string;
   figures: { label: string; value: string }[];
   chart: StatsChart;
   colours?: PooColour[];
+  note?: string;
   plus?: boolean;
 }
 
@@ -93,7 +94,7 @@ export function buildCards({
   const breastFeeds = logged.filter(
     (event): event is EventOfType<'breast_feed'> =>
       event.type === 'breast_feed' &&
-      event.source === 'manual' &&
+      event.source !== 'huckleberry_csv' &&
       event.segments.length > 0 &&
       ms(event.startedAt) >= range.start.getTime(),
   );

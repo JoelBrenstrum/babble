@@ -48,6 +48,8 @@ describe('statsBarLink', () => {
     });
     expect(statsBarLink('pump', { label: '2026-10-12', values: [3] }, false)?.show).toBe('pumps');
     expect(statsBarLink('night', { label: '2026-10-12', values: [3] }, false)?.show).toBe('sleep');
+    expect(statsBarLink('feed-trend', { label: '2026-10-12', values: [3] }, false)?.show).toBe('feeds');
+    expect(statsBarLink('feed-spacing', { label: '2026-10-12', values: [3] }, false)?.show).toBe('feeds');
   });
 
   it('opens the week ending on a weekly bar’s last day', () =>

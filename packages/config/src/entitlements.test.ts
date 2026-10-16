@@ -75,9 +75,12 @@ describe('plusPitch', () => {
       reason: 'Adding more than one baby to a family is part of Babble Plus.',
       highlights: [
         'Predicted sleeps and feeds on Home and the Timeline',
+        "An estimate of today's weight, length and head size",
         'More than one baby in a family',
         'More than two carers in a family',
         'Wake windows, night sleep, a weekly summary and all-time stats',
+        'Breastfeed trends: time per feed, per side and idle',
+        'Feed spacing: how far apart feeds are, day and night',
         'A 30-day timeline to see patterns form',
         'Chair mode, a feed station for a tablet by the feeding chair',
       ],
