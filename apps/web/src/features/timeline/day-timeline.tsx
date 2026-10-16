@@ -6,9 +6,12 @@ import {
   markerShiftPercent,
   nappyKind,
   partSpan,
+  readoutEdge,
   showsItemLabel,
   summariseSleep,
   timelineItemLabel,
+  timelineItemTip,
+  type BabyEvent,
   type DayLayout,
   type FeedDueMarker,
   type NightMarker,
@@ -19,9 +22,39 @@ import {
   TIMELINE_LANES,
 } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChartTip } from '#/components/ui/chart-tip';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
 import { TimelineItemLink } from './timeline-item-link';
+
+const TIP_ROOM_PX = 72;
+
+interface TipAnchor {
+  event: BabyEvent;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+  width: number;
+}
+
+function tipPlacement(anchor: TipAnchor) {
+  const centre = (anchor.left + anchor.right) / 2;
+  const edge = readoutEdge(centre / anchor.width);
+  const above = anchor.top >= TIP_ROOM_PX;
+  return {
+    className: cn(
+      above ? '-translate-y-full -mt-1.5' : 'mt-1.5',
+      edge === 'center' && '-translate-x-1/2',
+      edge === 'right' && '-translate-x-full',
+    ),
+    style: {
+      left: edge === 'left' ? anchor.left : edge === 'right' ? anchor.right : centre,
+      top: above ? anchor.top : anchor.bottom,
+    },
+  };
+}
 
 const NOW_DOT_OFFSET = '-left-1 -top-[5px]';
 const MARKER_COLUMN_SHIFT_REM = 3.75;
@@ -84,6 +117,32 @@ export function DayTimeline({
       : []),
   ].filter((lane) => shown.includes(lane.key));
   const columns = { gridTemplateColumns: `2.25rem repeat(${lanes.length}, minmax(0, 1fr))` };
+  const grid = useRef<HTMLDivElement>(null);
+  const [tip, setTip] = useState<TipAnchor | null>(null);
+  useEffect(() => {
+    if (!tip) return;
+    const close = () => setTip(null);
+    document.addEventListener('pointerdown', close);
+    document.addEventListener('scroll', close, true);
+    return () => {
+      document.removeEventListener('pointerdown', close);
+      document.removeEventListener('scroll', close, true);
+    };
+  }, [tip]);
+  const showTip = (event: BabyEvent) => (target: HTMLElement | null) => {
+    const box = grid.current?.getBoundingClientRect();
+    if (!target || !box) return setTip(null);
+    const rect = target.getBoundingClientRect();
+    setTip({
+      event,
+      left: rect.left - box.left,
+      right: rect.right - box.left,
+      top: rect.top - box.top,
+      bottom: rect.bottom - box.top,
+      width: box.width,
+    });
+  };
+  const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -96,7 +155,7 @@ export function DayTimeline({
           </span>
         ))}
       </div>
-      <div className="relative grid h-[36rem] gap-2 md:h-[46rem]" style={columns} data-testid="day-timeline">
+      <div ref={grid} className="relative grid h-[36rem] gap-2 md:h-[46rem]" style={columns} data-testid="day-timeline">
         <div className="relative">
           {ticks.map((tick, index) => (
             <span
@@ -168,6 +227,7 @@ export function DayTimeline({
                 label={timelineItemLabel(item, timeZone, units)}
                 units={units}
                 now={now}
+                onTip={showTip(item.event)}
               />
             ))}
             {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
@@ -175,6 +235,16 @@ export function DayTimeline({
             ))}
           </div>
         ))}
+        {tip && tipContent && (
+          <ChartTip className={cn('z-20', tipPlacement(tip).className)} style={tipPlacement(tip).style}>
+            <span className="block font-bold">{tipContent.title}</span>
+            {tipContent.lines.map((line) => (
+              <span key={line} className="tabular block font-medium">
+                {line}
+              </span>
+            ))}
+          </ChartTip>
+        )}
       </div>
     </div>
   );
@@ -196,7 +266,19 @@ function Predicted({ item }: { item: PredictedItem }) {
   );
 }
 
-function Item({ item, label, units, now }: { item: TimelineItem; label: string; units: Units; now: Date }) {
+function Item({
+  item,
+  label,
+  units,
+  now,
+  onTip,
+}: {
+  item: TimelineItem;
+  label: string;
+  units: Units;
+  now: Date;
+  onTip: (target: HTMLElement | null) => void;
+}) {
   const { event } = item;
   const span = { top: formatFraction(item.startFrac), height: formatFraction(item.endFrac - item.startFrac) };
   const roundEnds = cn(
@@ -210,6 +292,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         event={event}
         running={item.running}
         label={label}
+        onTip={onTip}
         style={span}
         className={cn(
           'absolute inset-x-0 min-h-1 overflow-hidden px-1.5 py-0.5 text-caption font-bold text-ink-on-solid hover:brightness-110',
@@ -234,6 +317,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         event={event}
         running={item.running}
         label={label}
+        onTip={onTip}
         style={span}
         className={cn(
           'absolute inset-x-0 min-h-1 overflow-hidden hover:brightness-110',
@@ -265,6 +349,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         event={event}
         running={false}
         label={label}
+        onTip={onTip}
         style={markerPosition(item)}
         className={cn(marker, 'z-[1] border-bottle/50 bg-bottle-soft text-on-bottle')}
       >
@@ -278,6 +363,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         event={event}
         running={false}
         label={label}
+        onTip={onTip}
         style={markerPosition(item)}
         className={cn(marker, 'z-[1] max-w-full border-solids/50 bg-solids-soft text-on-solids')}
       >
@@ -292,6 +378,7 @@ function Item({ item, label, units, now }: { item: TimelineItem; label: string; 
         event={event}
         running={false}
         label={label}
+        onTip={onTip}
         style={markerPosition(item)}
         className={cn(marker, 'border-nappy/50 bg-nappy-soft text-on-nappy')}
       >

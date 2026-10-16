@@ -443,6 +443,8 @@ export {
   partSpan,
   showsItemLabel,
   timelineItemLabel,
+  timelineItemTip,
+  type TimelineTip,
 } from './timeline/item-label';
 export { homeWindow } from './timeline/home-window';
 export {

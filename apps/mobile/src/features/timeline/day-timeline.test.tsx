@@ -21,6 +21,23 @@ describe('DayTimeline', () => {
     expect(router.push).toHaveBeenCalledWith(`/events/${sleep.event.id}`);
   });
 
+  it('shows a summary on a long press and hides it when tapped', async () => {
+    const now = new Date();
+    const events = sampleEvents(now);
+    const window = { start: new Date(now.getTime() - 24 * 3_600_000), end: now };
+    const layout = dayLayout(events, window, now);
+    const sleep = layout.sleep.find((item) => !item.running)!;
+
+    await render(
+      <DayTimeline layout={layout} ticks={[]} timeZone={sampleBaby.timezone} units="metric" nowFrac={null} now={now} />,
+    );
+    await fireEvent(screen.getAllByRole('button', { name: /^Sleep / })[layout.sleep.indexOf(sleep)]!, 'longPress');
+    expect(screen.getByTestId('timeline-tip')).toBeTruthy();
+    expect(screen.getByText(/^\d{1,2}:\d{2} [ap]m – \d{1,2}:\d{2} [ap]m · /)).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('timeline-tip'));
+    expect(screen.queryByTestId('timeline-tip')).toBeNull();
+  });
+
   it('draws predicted blocks with their likely times', async () => {
     const now = new Date();
     const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };

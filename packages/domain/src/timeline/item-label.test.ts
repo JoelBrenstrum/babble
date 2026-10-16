@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import type { BabyEvent } from '../events/types';
 import type { TimelineItem } from './day-layout';
-import { formatFraction, LABEL_MIN_FRAC, partSpan, showsItemLabel, timelineItemLabel } from './item-label';
+import {
+  formatFraction,
+  LABEL_MIN_FRAC,
+  partSpan,
+  showsItemLabel,
+  timelineItemLabel,
+  timelineItemTip,
+} from './item-label';
 
 const item = (event: BabyEvent, startFrac = 0, endFrac = 0.1): TimelineItem => ({
   event,
@@ -83,3 +90,43 @@ describe('label and part geometry', () => {
     expect(formatFraction(1 / 3)).toBe('33.333%');
   });
 });
+
+describe('timelineItemTip', () => {
+  const now = new Date('2026-10-06T12:00:00Z');
+  const tip = (event: BabyEvent) => timelineItemTip(event, now, 'UTC', 'metric');
+
+  it('gives a breastfeed its times, sides and idle time', () => {
+    const feed = makeEvent('breast_feed', {
+      startedAt: '2026-10-06T08:00:00Z',
+      endedAt: '2026-10-06T08:40:00Z',
+      segments: [
+        { side: 'left', startedAt: '2026-10-06T08:00:00Z', endedAt: '2026-10-06T08:15:00Z' },
+        { side: 'right', startedAt: '2026-10-06T08:20:00Z', endedAt: '2026-10-06T08:40:00Z' },
+      ],
+    });
+    expect(tip(feed)).toEqual({
+      title: 'Breastfeed',
+      lines: ['8:00 am – 8:40 am · 40m', 'L 15m · idle 5m · R 20m'],
+    });
+  });
+
+  it('shows a running sleep as so far', () => {
+    const sleep = makeEvent('sleep', { startedAt: '2026-10-06T11:15:00Z', endedAt: null });
+    expect(tip(sleep).lines[0]).toBe('11:15 am – now · 45m so far');
+  });
+
+  it('gives an instant entry one time, its details and a shortened note', () => {
+    const nappy = makeEvent('nappy', {
+      startedAt: '2026-10-06T09:00:00Z',
+      endedAt: '2026-10-06T09:00:00Z',
+      notes: `Rash on the left side ${'and more '.repeat(12)}`,
+    });
+    const { title, lines } = tip(nappy);
+    expect(title).toBe('Nappy');
+    expect(lines[0]).toBe('9:00 am');
+    expect(lines[1]).toBe('Wet');
+    expect(lines[2]).toMatch(/^Rash on the left side .+…$/);
+    expect(lines[2]!.length).toBe(80);
+  });
+});
+

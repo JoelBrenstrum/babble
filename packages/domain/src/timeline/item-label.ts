@@ -1,6 +1,7 @@
+import { describeEvent } from '../events/describe';
 import { formatDuration } from '../format/duration';
 import { formatVolume } from '../format/units';
-import type { Units } from '../events/types';
+import type { BabyEvent, Units } from '../events/types';
 import { MINUTE_MS } from '../time/constants';
 import { ms } from '../time/instants';
 import { formatTimeOfDay } from '../time/local-time';
@@ -56,4 +57,34 @@ export function partSpan(
 ): { top: number; height: number } {
   const span = Math.max(itemSpanFrac(item), MIN_SPAN_FRAC);
   return { top: (part.startFrac - item.startFrac) / span, height: (part.endFrac - part.startFrac) / span };
+}
+
+export interface TimelineTip {
+  title: string;
+  lines: string[];
+}
+
+const NOTE_MAX = 80;
+
+export function timelineItemTip(event: BabyEvent, now: Date, timeZone: string, units: Units): TimelineTip {
+  const description = describeEvent(event, now, units);
+  const from = formatTimeOfDay(event.startedAt, timeZone);
+  const endMs = event.endedAt ? ms(event.endedAt) : now.getTime();
+  const spanMs = endMs - ms(event.startedAt);
+  const span = formatDuration(spanMs, { seconds: false });
+  const when = !event.endedAt
+    ? `${from} – now · ${span} so far`
+    : spanMs < MINUTE_MS
+      ? from
+      : `${from} – ${formatTimeOfDay(event.endedAt, timeZone)} · ${span}`;
+  const details = description.parts
+    .filter((part) => part.tone !== 'active')
+    .map((part) => (part.tone === 'downtime' && !part.text.startsWith('awake') ? `idle ${part.text}` : part.text));
+  if (event.type === 'sleep' && description.duration && description.duration !== span && event.endedAt) {
+    details.unshift(`asleep ${description.duration}`);
+  }
+  if (description.trailing && description.trailing !== description.duration) details.push(description.trailing);
+  const note = event.notes?.trim();
+  const lines = [when, details.join(' · '), note && note.length > NOTE_MAX ? `${note.slice(0, NOTE_MAX - 1)}…` : note];
+  return { title: description.title, lines: lines.filter((line): line is string => Boolean(line)) };
 }
