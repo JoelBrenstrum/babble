@@ -417,6 +417,36 @@ describe('cluster feeding', () => {
     ]);
   });
 
+  it('splits a breastfeed at idle breaks of 10 minutes or more', () => {
+    const side = (side: 'left' | 'right', start: string, end: string) => ({
+      side,
+      startedAt: `2026-10-13T${start}:00Z`,
+      endedAt: `2026-10-13T${end}:00Z`,
+    });
+    const onAndOff = makeEvent('breast_feed', {
+      id: 'evening',
+      startedAt: '2026-10-13T17:00:00Z',
+      endedAt: '2026-10-13T19:00:00Z',
+      segments: [
+        side('left', '17:00', '17:15'),
+        side('right', '17:20', '17:30'),
+        side('left', '17:50', '18:05'),
+        side('right', '18:30', '18:40'),
+        side('left', '18:45', '19:00'),
+      ],
+    });
+    expect(feedClusters([onAndOff], settings)).toEqual([
+      {
+        dayKey: '2026-10-13',
+        start: Date.parse('2026-10-13T17:00:00Z'),
+        end: Date.parse('2026-10-13T19:00:00Z'),
+        feeds: 3,
+      },
+    ]);
+    const steady = { ...onAndOff, segments: [side('left', '17:00', '18:00'), side('right', '18:05', '19:00')] };
+    expect(feedClusters([steady], settings)).toEqual([]);
+  });
+
   it('counts the days with a cluster, when they usually start and the longest this week', () => {
     const events = [
       ...keys.flatMap(spaced),

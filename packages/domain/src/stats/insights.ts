@@ -539,10 +539,27 @@ export const CLUSTER_MIN_FEEDS = 3;
 export const CLUSTER_MIN_SPAN_MS = 90 * MINUTE_MS;
 const SAME_FEED_MS = 5 * MINUTE_MS;
 
+export const CLUSTER_SPLIT_IDLE_MS = 10 * MINUTE_MS;
+
+function activeParts(event: BabyEvent): Span[] {
+  const whole = { start: Date.parse(event.startedAt), end: Date.parse(event.endedAt ?? event.startedAt) };
+  if (event.type !== 'breast_feed' || event.segments.length === 0) return [whole];
+  const segments = event.segments
+    .map((segment) => ({ start: Date.parse(segment.startedAt), end: Date.parse(segment.endedAt ?? whole.end) }))
+    .sort((a, b) => a.start - b.start);
+  const parts: Span[] = [];
+  for (const segment of segments) {
+    const last = parts.at(-1);
+    if (last && segment.start - last.end < CLUSTER_SPLIT_IDLE_MS) last.end = Math.max(last.end, segment.end);
+    else parts.push({ ...segment });
+  }
+  return parts;
+}
+
 function joinedFeeds(events: readonly BabyEvent[]): Span[] {
   const feeds = events
     .filter((event) => (event.type === 'breast_feed' || event.type === 'bottle') && !event.deletedAt)
-    .map((event) => ({ start: Date.parse(event.startedAt), end: Date.parse(event.endedAt ?? event.startedAt) }))
+    .flatMap(activeParts)
     .sort((a, b) => a.start - b.start);
   const joined: Span[] = [];
   for (const feed of feeds) {
@@ -625,7 +642,7 @@ export function clusterFeedingCard(
   return {
     key: 'cluster-feeds',
     title: 'Cluster feeding',
-    note: 'A cluster is 3 or more feeds, each starting within 45 minutes of the last one ending, over at least 1h 30m. It is common, especially in the evening and during growth spurts.',
+    note: 'A cluster is 3 or more feeds, each starting within 45 minutes of the last one ending, over at least 1h 30m. A break of 10 minutes or more within a breastfeed counts as a new feed. It is common, especially in the evening and during growth spurts.',
     plus: true,
     figures,
     chart: {
