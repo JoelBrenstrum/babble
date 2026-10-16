@@ -7,6 +7,7 @@ export interface ChartBar {
   values: number[];
   title?: string;
   lastDay?: string;
+  breakdown?: string[];
 }
 
 export interface StatsChart {
@@ -60,16 +61,19 @@ export function chartEnds(chart: StatsChart): [string, string] | null {
   return [barTitle(first), last.title ? 'Now' : barTitle(last)];
 }
 
-export function barReadout(chart: StatsChart, bar: ChartBar): string {
+export function barLines(chart: StatsChart, bar: ChartBar): string[] {
+  const total = bar.values.reduce((sum, value) => sum + value, 0);
   const values =
     chart.series.length === 1
-      ? chartValue(bar.values[0]!, chart.unit)
+      ? chartValue(total, chart.unit)
       : `${chart.legend.map((index) => `${chart.series[index]} ${chartValue(bar.values[index]!, chart.unit)}`).join(', ')} · Total ${chartValue(
-          bar.values.reduce((sum, value) => sum + value, 0),
+          total,
           chart.unit,
         )}`;
-  return `${chart.weekly ? 'Week of ' : ''}${barTitle(bar)}: ${values}`;
+  return [`${chart.weekly ? 'Week of ' : ''}${barTitle(bar)}: ${values}`, ...(bar.breakdown ?? [])];
 }
+
+export const barReadout = (chart: StatsChart, bar: ChartBar) => barLines(chart, bar).join(' · ');
 
 export function barAnchor(index: number, count: number): { edge: 'left' | 'center' | 'right'; percent: number } {
   if (index < count / 3) return { edge: 'left', percent: (index / count) * 100 };

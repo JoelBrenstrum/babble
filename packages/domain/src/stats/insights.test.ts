@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { DaySummary } from '../events/day-summary';
 import { makeEvent } from '../events/test-events';
 import { lastDays } from '../timeline/days';
+import { barReadout } from './charts';
 import {
   clusterFeedingCard,
   durationChange,
@@ -463,8 +464,25 @@ describe('cluster feeding', () => {
       { label: 'Longest this week', value: '4 feeds over 2h 35m' },
     ]);
     expect(card.chart.bars).toHaveLength(14);
-    expect(card.chart.bars.at(-1)).toEqual({ label: '2026-10-14', values: [2.6] });
+    expect(card.chart.bars.at(-1)).toEqual({
+      label: '2026-10-14',
+      values: [2.6],
+      breakdown: ['6:00 pm–8:35 pm, 4 feeds'],
+    });
     expect(card.chart.bars.at(-2)).toEqual({ label: '2026-10-13', values: [0] });
+  });
+
+  it('stacks each cluster in its day bar and lists when each ran', () => {
+    const events = [...keys.flatMap(spaced), ...cluster('2026-10-14', 1), ...cluster('2026-10-14', 15)];
+    const card = clusterFeedingCard(events, keys, settings)!;
+    const bar = card.chart.bars.at(-1)!;
+    expect(bar).toEqual({
+      label: '2026-10-14',
+      values: [2.6, 2.6],
+      breakdown: ['1:00 am–3:35 am, 4 feeds', '3:00 pm–5:35 pm, 4 feeds'],
+    });
+    expect(card.chart.max).toBe(5.2);
+    expect(barReadout(card.chart, bar)).toBe('14 Oct: 5.2h · 1:00 am–3:35 am, 4 feeds · 3:00 pm–5:35 pm, 4 feeds');
   });
 
   it('shows no clusters as zero days, and needs a week of feeds first', () => {

@@ -1,4 +1,5 @@
 import {
+  barLines,
   barReadout,
   chartEnds,
   chartValue,
@@ -54,7 +55,12 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkT
     series: ['bg-feed-left', 'bg-feed-right', 'bg-session-downtime'],
   },
   'feed-spacing': { icon: Hourglass, tile: 'bg-bottle-soft', ink: '--on-bottle', series: ['bg-bottle'] },
-  'cluster-feeds': { icon: Layers, tile: 'bg-feed-right-soft', ink: '--on-feed-right', series: ['bg-feed-right'] },
+  'cluster-feeds': {
+    icon: Layers,
+    tile: 'bg-feed-right-soft',
+    ink: '--on-feed-right',
+    series: ['bg-feed-right', 'bg-feed-right/55'],
+  },
 };
 
 const CHART_LABEL: Partial<Record<StatsCard['key'], string>> = {
@@ -141,7 +147,7 @@ function StatsCardView({
           <Text
             className={`flex-1 ${selectedBar ? 'font-semibold text-caption text-ink' : 'font-sans text-caption text-ink-3'}`}
           >
-            {selectedBar ? barReadout(chart, selectedBar) : 'Tap a bar to see its day'}
+            {selectedBar ? barLines(chart, selectedBar).join('\n') : 'Tap a bar to see its day'}
           </Text>
           {link && (
             <Pressable
@@ -171,7 +177,7 @@ function StatsCardView({
                 {bar.values.map((value, index) => (
                   <View
                     key={index}
-                    className={`${look.series[index]} ${index === top ? 'rounded-t-sm' : ''}`}
+                    className={`${look.series[index % look.series.length]} ${index === top ? 'rounded-t-sm' : ''}`}
                     style={{ height: chart.max ? `${(value / chart.max) * 100}%` : 0 }}
                   />
                 ))}

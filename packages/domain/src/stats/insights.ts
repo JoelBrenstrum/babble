@@ -5,7 +5,7 @@ import { formatDuration, formatDurationShort } from '../format/duration';
 import { minutesToClock } from '../format/time-of-day';
 import { bucketByDay } from '../timeline/day-layout';
 import { lastDays, localInstant, type TimeWindow } from '../timeline/days';
-import { dayKeyFor, dayWindow, minutesOfDay, shiftDay } from '../time/local-time';
+import { dayKeyFor, dayWindow, formatTimeOfDay, minutesOfDay, shiftDay } from '../time/local-time';
 import { MAX_GAP_MS, type StatsCard } from './cards';
 import { HOUR_MS, MINUTE_MS } from '../time/constants';
 
@@ -177,7 +177,7 @@ export function wakeWindowCard(windows: readonly WakeWindow[], dayKeys: readonly
       series: ['Typical awake time'],
       legend: [0],
       bars,
-      max: Math.max(0, ...bars.map((bar) => bar.values[0]!)),
+      max: Math.max(0, ...bars.map((bar) => bar.values.reduce((sum, value) => sum + value, 0))),
       weekly: false,
     },
   };
@@ -219,7 +219,7 @@ export function nightSleepCard(nights: readonly NightStat[], dayKeys: readonly s
       series: ['Longest stretch'],
       legend: [0],
       bars,
-      max: Math.max(0, ...bars.map((bar) => bar.values[0]!)),
+      max: Math.max(0, ...bars.map((bar) => bar.values.reduce((sum, value) => sum + value, 0))),
       weekly: false,
     },
   };
@@ -521,7 +521,7 @@ export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly stri
       series: ['Typical daytime gap'],
       legend: [0],
       bars,
-      max: Math.max(0, ...bars.map((bar) => bar.values[0]!)),
+      max: Math.max(0, ...bars.map((bar) => bar.values.reduce((sum, value) => sum + value, 0))),
       weekly: false,
     },
   };
@@ -608,6 +608,11 @@ function usualStart(clusters: readonly FeedCluster[], settings: InsightSettings)
   return `Around ${minutesToClock(Math.round(typical / 15) * 15 + settings.dayStartMinutes)}`;
 }
 
+function clusterText(cluster: FeedCluster, settings: InsightSettings): string {
+  const at = (time: number) => formatTimeOfDay(new Date(time).toISOString(), settings.timeZone);
+  return `${at(cluster.start)}–${at(cluster.end)}, ${cluster.feeds} feeds`;
+}
+
 export function clusterFeedingCard(
   events: readonly BabyEvent[],
   dayKeys: readonly string[],
@@ -637,10 +642,13 @@ export function clusterFeedingCard(
   }
 
   const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => {
-    const ms = clusters
-      .filter((cluster) => cluster.dayKey === dayKey)
-      .reduce((total, cluster) => total + cluster.end - cluster.start, 0);
-    return { label: dayKey, values: [Math.round((ms / HOUR_MS) * 10) / 10] };
+    const onDay = clusters.filter((cluster) => cluster.dayKey === dayKey).sort((a, b) => a.start - b.start);
+    if (onDay.length === 0) return { label: dayKey, values: [0] };
+    return {
+      label: dayKey,
+      values: onDay.map((cluster) => Math.round(((cluster.end - cluster.start) / HOUR_MS) * 10) / 10),
+      breakdown: onDay.map((cluster) => clusterText(cluster, settings)),
+    };
   });
   return {
     key: 'cluster-feeds',
@@ -653,7 +661,7 @@ export function clusterFeedingCard(
       series: ['Time cluster feeding'],
       legend: [0],
       bars,
-      max: Math.max(0, ...bars.map((bar) => bar.values[0]!)),
+      max: Math.max(0, ...bars.map((bar) => bar.values.reduce((sum, value) => sum + value, 0))),
       weekly: false,
     },
   };

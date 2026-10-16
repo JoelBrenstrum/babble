@@ -270,6 +270,7 @@ export {
 } from './predict/predicted-view';
 export {
   barAnchor,
+  barLines,
   barReadout,
   barTitle,
   buildChart,

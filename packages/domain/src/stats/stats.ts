@@ -1,5 +1,6 @@
 export {
   barAnchor,
+  barLines,
   barReadout,
   barTitle,
   buildChart,
