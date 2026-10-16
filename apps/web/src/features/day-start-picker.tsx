@@ -3,7 +3,15 @@ import { Check } from 'lucide-react';
 import { cn } from '#/lib/cn';
 import { MinutesTimeInput } from './minutes-time-input';
 
-export function DayStartPicker({ value, onChange }: { value: number; onChange: (minutes: number) => void }) {
+export function DayStartPicker({
+  value,
+  nightEnd = DEFAULT_CUSTOM_DAY_START_MIN,
+  onChange,
+}: {
+  value: number;
+  nightEnd?: number;
+  onChange: (minutes: number) => void;
+}) {
   const custom = value !== 0;
 
   return (
@@ -16,15 +24,15 @@ export function DayStartPicker({ value, onChange }: { value: number; onChange: (
       />
       <Option
         selected={custom}
-        title="Custom time"
-        description="Keeps each night in one day."
-        onSelect={() => onChange(custom ? value : DEFAULT_CUSTOM_DAY_START_MIN)}
+        title="When the night ends"
+        description="Keeps each night in one day. Sleep before this time counts as night sleep."
+        onSelect={() => onChange(custom ? value : nightEnd || DEFAULT_CUSTOM_DAY_START_MIN)}
       >
         {custom && (
           <label className="mt-3 flex items-center gap-3 text-meta text-ink-2">
-            Day starts at
+            Night ends at
             <MinutesTimeInput
-              label="Day start time"
+              label="Night end time"
               minutes={value}
               accept={(minutes) => minutes !== 0}
               onChange={onChange}

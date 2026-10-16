@@ -1,6 +1,6 @@
-import { updateBaby, type BabbleClient, type BabyRow } from '@babble/api';
+import { babySettingsQuery, queryKeys, updateBaby, type BabbleClient, type BabyRow } from '@babble/api';
 import { refreshFamilies, useAsyncAction } from '@babble/api/react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useMemo, useState, type FormEvent } from 'react';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
@@ -16,7 +16,8 @@ export function BabySection({ client, baby, disabled }: { client: BabbleClient; 
   const [name, setName] = useState(baby.name);
   const [birthDate, setBirthDate] = useState(baby.birth_date);
   const [timezone, setTimezone] = useState(baby.timezone);
-  const [dayStart, setDayStart] = useState(baby.day_start_minutes);
+  const [dayStart, setDayStart] = useState<number | null>(null);
+  const nightEnd = useQuery(babySettingsQuery(client, baby.id)).data?.night_end_minutes;
   const [sex, setSex] = useState(baby.sex);
   const [saved, setSaved] = useState(false);
   const { run, error } = useAsyncAction();
@@ -29,10 +30,14 @@ export function BabySection({ client, baby, disabled }: { client: BabbleClient; 
         name: name.trim(),
         birth_date: birthDate,
         timezone,
-        day_start_minutes: dayStart,
+        ...(dayStart === null ? {} : { day_start_minutes: dayStart }),
         sex,
       });
-      await refreshFamilies(queryClient);
+      setDayStart(null);
+      await Promise.all([
+        refreshFamilies(queryClient),
+        queryClient.invalidateQueries({ queryKey: queryKeys.babySettings(baby.id) }),
+      ]);
     });
     setSaved(ok);
   }
@@ -61,7 +66,7 @@ export function BabySection({ client, baby, disabled }: { client: BabbleClient; 
           </SelectField>
           <div className="flex flex-col gap-2">
             <span className="text-label font-semibold">Day starts at</span>
-            <DayStartPicker value={dayStart} onChange={setDayStart} />
+            <DayStartPicker value={dayStart ?? baby.day_start_minutes} nightEnd={nightEnd} onChange={setDayStart} />
           </div>
         </fieldset>
         {error && <StatusMessage tone="danger">{error}</StatusMessage>}
