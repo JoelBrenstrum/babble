@@ -354,7 +354,7 @@ export interface FeedStat {
   dayKey: string;
   leftMs: number;
   rightMs: number;
-  idleMs: number;
+  idleMs: number | null;
 }
 
 export const FEED_TREND_DAYS = 7;
@@ -366,14 +366,15 @@ export function feedStats(
 ): FeedStat[] {
   return events.flatMap((event) => {
     if (event.type !== 'breast_feed' || event.deletedAt || !event.endedAt) return [];
-    if (event.source === 'huckleberry_csv' || event.segments.length === 0) return [];
+    if (event.segments.length === 0) return [];
     const summary = summariseSegments(event.segments, { mergeGapMs: settings.mergeGapMs, now });
     return [
       {
         dayKey: dayKeyFor(event.startedAt, settings.timeZone, settings.dayStartMinutes),
         leftMs: summary.leftMs,
         rightMs: summary.rightMs,
-        idleMs: summary.downtimeMs,
+        // Huckleberry records how long each side lasted but not the pauses.
+        idleMs: event.source === 'huckleberry_csv' ? null : summary.downtimeMs,
       },
     ];
   });
@@ -385,6 +386,7 @@ interface FeedAverage {
   rightMs: number;
   idleMs: number;
   totalMs: number;
+  idleKnown: 'all' | 'some' | 'none';
 }
 
 function averageFeed(feeds: readonly FeedStat[]): FeedAverage | null {
@@ -393,8 +395,10 @@ function averageFeed(feeds: readonly FeedStat[]): FeedAverage | null {
     feeds.reduce((total, feed) => total + pick(feed), 0) / feeds.length;
   const leftMs = mean((feed) => feed.leftMs);
   const rightMs = mean((feed) => feed.rightMs);
-  const idleMs = mean((feed) => feed.idleMs);
-  return { count: feeds.length, leftMs, rightMs, idleMs, totalMs: leftMs + rightMs + idleMs };
+  const idles = feeds.flatMap((feed) => (feed.idleMs === null ? [] : [feed.idleMs]));
+  const idleMs = idles.length ? idles.reduce((total, idle) => total + idle, 0) / idles.length : 0;
+  const idleKnown = idles.length === feeds.length ? 'all' : idles.length ? 'some' : 'none';
+  return { count: feeds.length, leftMs, rightMs, idleMs, totalMs: leftMs + rightMs + idleMs, idleKnown };
 }
 
 const feedsWithin = (feeds: readonly FeedStat[], keys: readonly string[]) => {
@@ -414,11 +418,13 @@ export function feedTrendCard(feeds: readonly FeedStat[], dayKeys: readonly stri
     { label: 'Per feed', value: duration(thisWeek.totalMs) },
     { label: 'Left', value: duration(thisWeek.leftMs) },
     { label: 'Right', value: duration(thisWeek.rightMs) },
-    { label: 'Idle', value: duration(thisWeek.idleMs) },
+    { label: 'Idle', value: thisWeek.idleKnown === 'none' ? '—' : duration(thisWeek.idleMs) },
     { label: 'Feeding a day', value: duration(activeMs / feedingDays) },
   ];
   if (earlier && earlier.count >= MIN_SAMPLES) {
-    figures.push({ label: 'On last week', value: durationChange(thisWeek.totalMs, earlier.totalMs) });
+    const comparable = thisWeek.idleKnown === 'all' && earlier.idleKnown === 'all';
+    const feeding = (average: FeedAverage) => (comparable ? average.totalMs : average.leftMs + average.rightMs);
+    figures.push({ label: 'On last week', value: durationChange(feeding(thisWeek), feeding(earlier)) });
   }
 
   const minutes = (value: number) => Math.round((value / MINUTE_MS) * 10) / 10;
@@ -432,7 +438,9 @@ export function feedTrendCard(feeds: readonly FeedStat[], dayKeys: readonly stri
   return {
     key: 'feed-trend',
     title: 'Breastfeeds',
-    note: 'Each bar is the average feed over the 7 days up to that day.',
+    note: feeds.some((feed) => feed.idleMs === null)
+      ? "Each bar is the average feed over the 7 days up to that day. Huckleberry doesn't record pauses, so idle time only counts feeds logged in babble."
+      : 'Each bar is the average feed over the 7 days up to that day.',
     plus: true,
     figures,
     chart: {
