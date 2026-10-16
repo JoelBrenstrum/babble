@@ -5,15 +5,18 @@ import {
   estimateToday,
   formatPercentile,
   growthEstimateReadout,
+  growthMilestoneText,
   growthPointReadout,
   growthReport,
   linearFit,
   lmsAt,
+  nextMilestones,
   readoutEdge,
   normalCdf,
   valueAtZ,
   zForPercentile,
   zScore,
+  type GrowthMeasure,
 } from './growth';
 
 const weigh = (startedAt: string, weightG: number | null, lengthMm: number | null = null) =>
@@ -118,9 +121,9 @@ describe('growthReport', () => {
 });
 
 describe('growth estimate for today', () => {
-  const along = (percentile: number, months: number[]) => {
+  const along = (percentile: number, months: number[], measure: GrowthMeasure = 'weight') => {
     const z = zForPercentile(percentile);
-    return months.map((age) => ({ months: age, value: valueAtZ(z, lmsAt('weight', 'female', age)!) }));
+    return months.map((age) => ({ months: age, value: valueAtZ(z, lmsAt(measure, 'female', age)!) }));
   };
 
   it('fits a straight line', () => {
@@ -181,5 +184,47 @@ describe('growth estimate for today', () => {
     expect(growthEstimateReadout(chart.estimate!)).toMatch(
       /^Estimate for today · \d\.\d+ kg · \d+(st|nd|rd|th) percentile$/,
     );
+  });
+
+  it('finds the next two round numbers the trend reaches', () => {
+    const points = [
+      { months: 1, value: 4 },
+      { months: 2, value: 5 },
+      { months: 3, value: 6 },
+    ];
+    expect(nextMilestones('weight', points, null, 3.5, 'metric')).toEqual([
+      { target: 7, days: 16 },
+      { target: 8, days: 46 },
+    ]);
+    expect(nextMilestones('weight', points, null, 3.5, 'imperial').map((item) => item.target)).toEqual([16, 18]);
+    expect(nextMilestones('length', along(50, [1, 2, 3], 'length'), 'female', 3.2, 'metric')[0]!.target).toBe(65);
+  });
+
+  it('skips head size, a flat trend, a stale trend and too few measurements', () => {
+    const flat = [
+      { months: 1, value: 5 },
+      { months: 2, value: 5 },
+      { months: 3, value: 5 },
+    ];
+    expect(nextMilestones('head', along(50, [1, 2, 3], 'head'), 'female', 3.2, 'metric')).toEqual([]);
+    expect(nextMilestones('weight', flat, null, 3.5, 'metric')).toEqual([]);
+    expect(nextMilestones('weight', along(50, [1, 2, 3]), 'female', 7, 'metric')).toEqual([]);
+    expect(nextMilestones('weight', along(50, [1, 2]), 'female', 2.5, 'metric')).toEqual([]);
+  });
+
+  it('dates milestones from today and only when asked', () => {
+    const events = [
+      weigh('2026-01-01T10:00:00Z', 3300),
+      weigh('2026-02-01T10:00:00Z', 4300),
+      weigh('2026-03-01T10:00:00Z', 5200),
+    ];
+    const baby = { birthDate: '2026-01-01', sex: 'female' as const, timeZone: 'UTC' };
+    expect(growthReport(events, baby, 'metric').charts[0]!.milestones).toEqual([]);
+    const [first, second] = growthReport(events, baby, 'metric', new Date('2026-03-20T10:00:00Z')).charts[0]!
+      .milestones;
+    expect(first!.reading).toBe('6 kg');
+    expect(second!.reading).toBe('7 kg');
+    expect(first!.dayKey > '2026-03-20' && second!.dayKey > first!.dayKey).toBe(true);
+    expect(growthMilestoneText({ reading: '6 kg', dayKey: '2026-11-03' })).toBe('6 kg around 3 Nov');
   });
 });

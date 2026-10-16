@@ -2,6 +2,7 @@ import {
   chartAxis,
   formatShortDate,
   growthEstimateReadout,
+  growthMilestoneText,
   growthPointReadout,
   readoutEdge,
   type GrowthChart,
@@ -83,9 +84,10 @@ export function GrowthCard({
           Lines show the WHO 3rd, 15th, 50th, 85th and 97th percentiles, up to 2 years.
         </p>
       )}
-      {report.charts.some((chart) => chart.estimate) && (
+      {report.charts.some((chart) => chart.estimate || chart.milestones.length > 0) && (
         <p className="text-caption text-ink-3">
-          Today's estimate follows the trend of the last few measurements. It's a guide, not a measurement.
+          Today's estimate and the next milestones follow the trend of the last few measurements. They're a guide, not a
+          measurement.
         </p>
       )}
     </Card>
@@ -103,6 +105,7 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
       .join(' ');
   const { yTicks, xTicks } = chartAxis(chart);
   const { estimate } = chart;
+  const milestones = chart.milestones.map(growthMilestoneText);
   const last = chart.points.at(-1)!;
   const tip =
     active === 'estimate' && estimate
@@ -123,14 +126,29 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
           <span className="block text-caption text-ink-3">{formatShortDate(chart.latest.at, timeZone)}</span>
         </span>
       </figcaption>
-      {estimate && (
+      {(estimate || milestones.length > 0) && (
         <div className="flex items-center justify-between gap-2 rounded-tile bg-growth-soft px-3 py-2 text-on-growth">
           <span className="flex flex-col">
-            <span className="text-caption">Estimate for today</span>
-            <span className="tabular text-label font-bold">
-              {estimate.reading}
-              {estimate.percentile && <span className="font-semibold"> · {estimate.percentile} percentile</span>}
-            </span>
+            {estimate && (
+              <>
+                <span className="text-caption">Estimate for today</span>
+                <span className="tabular text-label font-bold">
+                  {estimate.reading}
+                  {estimate.percentile && <span className="font-semibold"> · {estimate.percentile} percentile</span>}
+                </span>
+              </>
+            )}
+            {milestones.length > 0 && (
+              <span className="tabular text-caption">
+                Next:{' '}
+                {milestones.map((text, index) => (
+                  <span key={text} className="whitespace-nowrap">
+                    {index > 0 && ' · '}
+                    {text}
+                  </span>
+                ))}
+              </span>
+            )}
           </span>
           {plusBadge && <PlusBadge />}
         </div>

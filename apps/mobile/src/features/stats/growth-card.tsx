@@ -2,6 +2,7 @@ import {
   chartAxis,
   formatShortDate,
   growthEstimateReadout,
+  growthMilestoneText,
   growthPointReadout,
   type GrowthChart,
   type GrowthReport,
@@ -66,9 +67,10 @@ export function GrowthCard({
           Lines show the WHO 3rd, 15th, 50th, 85th and 97th percentiles, up to 2 years.
         </Text>
       )}
-      {report.charts.some((chart) => chart.estimate) && (
+      {report.charts.some((chart) => chart.estimate || chart.milestones.length > 0) && (
         <Text className="font-sans text-caption text-ink-3">
-          Today's estimate follows the trend of the last few measurements. It's a guide, not a measurement.
+          Today's estimate and the next milestones follow the trend of the last few measurements. They're a guide, not a
+          measurement.
         </Text>
       )}
     </Card>
@@ -90,6 +92,7 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
   const { yTicks, xTicks } = chartAxis(chart);
   const [selected, setSelected] = useState<number | 'estimate' | null>(null);
   const { estimate } = chart;
+  const milestones = chart.milestones.length ? `Next: ${chart.milestones.map(growthMilestoneText).join(' · ')}` : null;
   const last = chart.points.at(-1)!;
   const readout =
     selected === 'estimate' && estimate
@@ -110,13 +113,18 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
           <Text className="font-sans text-caption text-ink-3">{formatShortDate(chart.latest.at, timeZone)}</Text>
         </View>
       </View>
-      {estimate && (
+      {(estimate || milestones) && (
         <View className="flex-row items-center justify-between gap-2 rounded-tile bg-growth-soft px-3 py-2">
-          <View>
-            <Text className="font-sans text-caption text-on-growth">Estimate for today</Text>
-            <Text className="font-bold text-label text-on-growth">
-              {estimate.percentile ? `${estimate.reading} · ${estimate.percentile} percentile` : estimate.reading}
-            </Text>
+          <View className="flex-1">
+            {estimate && (
+              <>
+                <Text className="font-sans text-caption text-on-growth">Estimate for today</Text>
+                <Text className="font-bold text-label text-on-growth">
+                  {estimate.percentile ? `${estimate.reading} · ${estimate.percentile} percentile` : estimate.reading}
+                </Text>
+              </>
+            )}
+            {milestones && <Text className="font-sans text-caption text-on-growth">{milestones}</Text>}
           </View>
           {plusBadge && <PlusBadge />}
         </View>
