@@ -3,6 +3,7 @@ import { makeEvent } from '../events/test-events';
 import {
   ageInMonths,
   estimateToday,
+  fadingFit,
   formatPercentile,
   growthEstimateReadout,
   growthMilestoneText,
@@ -149,19 +150,47 @@ describe('growth estimate for today', () => {
     expect(normalCdf(estimate.z!) * 100).toBeCloseTo(50, 1);
   });
 
-  it('carries a rising percentile forward', () => {
+  it('carries a rising percentile forward but eases it off', () => {
     const points = [...along(25, [1]), ...along(40, [2]), ...along(55, [3])];
     const estimate = estimateToday('weight', points, 'female', 4)!;
-    expect(normalCdf(estimate.z!) * 100).toBeGreaterThan(65);
+    expect(normalCdf(estimate.z!) * 100).toBeGreaterThan(58);
+    expect(normalCdf(estimate.z!) * 100).toBeLessThan(65);
   });
 
-  it('uses a straight line without a sex', () => {
+  it('without a sex, follows the recent gain and slows it as the months pass', () => {
     const points = [
       { months: 1, value: 4 },
       { months: 2, value: 5 },
       { months: 3, value: 6 },
     ];
-    expect(estimateToday('weight', points, null, 3.5)).toEqual({ value: 6.5, z: null });
+    expect(estimateToday('weight', points, null, 3.5)!.value).toBeCloseTo(6.47, 2);
+    expect(estimateToday('weight', points, null, 3.5)!.z).toBeNull();
+  });
+
+  it('holds the latest percentile when every measurement is from the first two weeks', () => {
+    const points = [...along(30, [0.1]), ...along(50, [0.25]), ...along(70, [0.4])];
+    const estimate = estimateToday('weight', points, 'female', 0.6)!;
+    expect(normalCdf(estimate.z!) * 100).toBeCloseTo(70, 1);
+  });
+
+  it('never moves more than half a standard deviation past the trend', () => {
+    const points = [...along(10, [1]), ...along(50, [2]), ...along(90, [3])];
+    const estimate = estimateToday('weight', points, 'female', 5.5)!;
+    expect(estimate.z!).toBeCloseTo(zForPercentile(90) + 0.5, 3);
+  });
+
+  it('fades a straight line towards flat', () => {
+    const trend = fadingFit(
+      [
+        { x: 1, y: 0 },
+        { x: 2, y: 1 },
+        { x: 3, y: 2 },
+      ],
+      1,
+    );
+    expect(trend(3)).toBeCloseTo(2);
+    expect(trend(4)).toBeCloseTo(2 + 0.5 / Math.LN2);
+    expect(trend(100)).toBeCloseTo(2 + 1 / Math.LN2);
   });
 
   it('needs three measurements, and today must be after the last one but not months later', () => {
@@ -193,8 +222,8 @@ describe('growth estimate for today', () => {
       { months: 3, value: 6 },
     ];
     expect(nextMilestones('weight', points, null, 3.5, 'metric')).toEqual([
-      { target: 7, days: 16 },
-      { target: 8, days: 46 },
+      { target: 7, days: 20 },
+      { target: 8, days: 67 },
     ]);
     expect(nextMilestones('weight', points, null, 3.5, 'imperial').map((item) => item.target)).toEqual([16, 18]);
     expect(nextMilestones('length', along(50, [1, 2, 3], 'length'), 'female', 3.2, 'metric')[0]!.target).toBe(65);
