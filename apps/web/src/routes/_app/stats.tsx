@@ -79,7 +79,7 @@ function StatsPage() {
             <a
               key={section.id}
               href={`#stats-section-${section.id}`}
-              className="min-h-tap-sm inline-flex items-center rounded-full bg-surface px-4 text-label font-semibold text-ink-2 hover:bg-line hover:text-ink"
+              className="h-10 inline-flex items-center rounded-full bg-surface px-4 text-label font-semibold text-ink-2 hover:bg-line hover:text-ink"
             >
               {section.label}
             </a>
@@ -124,7 +124,7 @@ function StatsPage() {
             body={`Charts and averages for every day since ${baby.name} was born are part of Babble Plus.`}
           >
             <div className={cn('transition-opacity', loading && 'opacity-60')} aria-busy={loading}>
-              <StatsCards cards={report.cards} />
+              <StatsCards cards={report.cards} linkBars={!sample} />
             </div>
           </PlusMask>
         )}
@@ -175,7 +175,7 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
         <p className="mt-1 text-meta text-ink-2">{PATTERNS_CAPTION}</p>
       </div>
       {report.weekly && <WeeklySummaryCard summary={report.weekly} plusBadge={plusBadges} />}
-      {cards.length > 0 && <StatsCards cards={cards} plusBadges={plusBadges} />}
+      {cards.length > 0 && <StatsCards cards={cards} plusBadges={plusBadges} linkBars />}
     </section>
   );
 }

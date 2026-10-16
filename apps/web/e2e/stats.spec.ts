@@ -25,8 +25,8 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
     await expect(page.getByRole('heading', { name: title })).toBeVisible();
   }
   await expect(page.getByRole('group', { name: 'Nappies per day' })).toBeVisible();
-  const nappyBar = page.getByRole('group', { name: 'Nappies per day' }).getByRole('img').last();
-  await expect(nappyBar).toHaveAccessibleName(/· Total 1$/);
+  const nappyBar = page.getByRole('group', { name: 'Nappies per day' }).getByRole('link').last();
+  await expect(nappyBar).toHaveAccessibleName(/· Total 1\. Open in timeline$/);
   await nappyBar.hover();
   await expect(page.getByText(/· Total 1$/)).toBeVisible();
 
@@ -47,6 +47,19 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
   await page.getByRole('radio', { name: 'All' }).click();
   await expect(page).toHaveURL(/range=all/);
   await expect(page.getByRole('heading', { name: 'All-time stats' })).toBeVisible();
+
+  await page.getByRole('radio', { name: '7d' }).click();
+  await page.getByRole('group', { name: 'Nappies per day' }).getByRole('link').last().click();
+  await expect(page).toHaveURL(/\/timeline\?view=day&date=\d{4}-\d{2}-\d{2}&show=nappies$/);
+  const lanes = page.getByRole('group', { name: 'Show on the timeline' });
+  await expect(lanes.getByRole('button', { name: 'Nappies' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(lanes.getByRole('button', { name: 'Sleep' })).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.getByRole('link', { name: /^Nappy/ })).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('timeline-nappies.png') });
+  await lanes.getByRole('button', { name: 'Sleep' }).click();
+  await expect(page).toHaveURL(/show=sleep%2Cnappies$|show=sleep,nappies$/);
+  await page.getByRole('radio', { name: '7d' }).click();
+  await expect(page).toHaveURL(/view=7d.*show=sleep/);
 });
 
 test('growth is compared with the WHO charts once the sex is set', async ({ page }, testInfo) => {

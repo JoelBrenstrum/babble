@@ -5,6 +5,9 @@ import {
   daySummaryStrip,
   feedDueFor,
   feedDueMarker,
+  filterLayout,
+  parseTimelineLanes,
+  shownLanes,
   previous24hWindow,
   previousDayWindow,
   rollingComparison,
@@ -16,6 +19,7 @@ import {
   weekSummaryStrip,
   weekTableRows,
   type DayComparison,
+  type TimelineLane,
   type TimelineTick,
   type TimelineView,
   type Units,
@@ -25,7 +29,8 @@ import { sampleMonthView } from '@babble/api/fixtures';
 import { useUnits } from '@babble/api/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
-import { useMemo, useState, type ReactNode } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { PageSpinner } from '@/components/page-spinner';
 import { Screen } from '@/components/screen';
@@ -34,6 +39,7 @@ import { PlusBadge, PlusDialog } from '@/components/plus';
 import { PredictionLine } from '@/features/home-overview';
 import { DayComparisonCard } from '@/features/timeline/day-comparison';
 import { DayTimeline } from '@/features/timeline/day-timeline';
+import { LaneToggles } from '@/features/timeline/lane-toggles';
 import { DayTotals, SummaryStrip, WeekTable } from '@/features/timeline/totals';
 import { WeekTimeline } from '@/features/timeline/week-timeline';
 import { MonthTimeline } from '@/features/timeline/month-timeline';
@@ -56,8 +62,17 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
   const units = useUnits(client, baby.id);
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const ink = useTokenColor('--ink');
+  const params = useLocalSearchParams<{ view?: string; date?: string; show?: string; at?: string }>();
   const [view, setView] = useState<TimelineView>('day');
   const [date, setDate] = useState<string | null>(null);
+  const [show, setShow] = useState<string | undefined>(undefined);
+  const lanes = shownLanes(show);
+  useEffect(() => {
+    if (!params.date) return;
+    setView(params.view === '7d' ? '7d' : 'day');
+    setDate(params.date);
+    setShow(parseTimelineLanes(params.show));
+  }, [params.view, params.date, params.show, params.at]);
 
   const range = timelineRange({ view, date, baby, now });
   const { dayKey, todayKey, keys, step, previousKey, nextKey, canGoNext, rangeLabel } = range;
@@ -101,8 +116,9 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
   const latest = useQuery({ ...latestEventsQuery(client, baby.id), enabled: !insightsLocked }).data;
   const running = useQuery({ ...runningEventsQuery(client, baby.id), enabled: !insightsLocked }).data;
   const due = insightsLocked ? null : feedDueFor(latest ?? [], running ?? [], settings, now, baby.timezone);
-  const feedDue =
-    model.view === 'day'
+  const feedDue = !lanes.includes('feeds')
+    ? null
+    : model.view === 'day'
       ? feedDueMarker(due, model.day.window, now, baby.timezone)
       : model.view === '24h'
         ? feedDueMarker(due, model.window, now, baby.timezone)
@@ -176,6 +192,8 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
           </View>
         )}
 
+        <LaneToggles show={show} onChange={setShow} />
+
         <PlusDialog feature={pitching ? 'insights' : null} onClose={() => setPitching(false)} />
 
         {sampleOnly ? (
@@ -193,6 +211,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             {!comparing && <SummaryStrip items={daySummaryStrip(model.summary)} />}
             {comparing ? (
               <ComparedTimelines
+                lanes={lanes}
                 comparison={comparison}
                 currentLabel="Last 24h"
                 ticks={model.ticks}
@@ -201,6 +220,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
                 now={now}
               >
                 <DayTimeline
+                  lanes={lanes}
                   layout={model.layout}
                   ticks={model.ticks}
                   timeZone={baby.timezone}
@@ -213,6 +233,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
               </ComparedTimelines>
             ) : (
               <DayTimeline
+                lanes={lanes}
                 layout={model.layout}
                 ticks={model.ticks}
                 timeZone={baby.timezone}
@@ -233,6 +254,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             {predictionLine && <PredictionLine text={predictionLine} plus={config.billingEnabled} />}
             {comparing ? (
               <ComparedTimelines
+                lanes={lanes}
                 comparison={comparison}
                 currentLabel={rangeLabel}
                 ticks={model.ticks}
@@ -241,6 +263,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
                 now={now}
               >
                 <DayTimeline
+                  lanes={lanes}
                   layout={model.day.layout}
                   ticks={model.ticks}
                   timeZone={baby.timezone}
@@ -254,6 +277,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
               </ComparedTimelines>
             ) : (
               <DayTimeline
+                lanes={lanes}
                 layout={model.day.layout}
                 ticks={model.ticks}
                 timeZone={baby.timezone}
@@ -281,7 +305,11 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
           <>
             <SummaryStrip items={weekSummaryStrip(model.week)} />
             <MonthTimeline
-              days={model.days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
+              lanes={lanes}
+              days={model.days.map((day) => ({
+                dayKey: day.dayKey,
+                layout: day.layout && filterLayout(day.layout, lanes),
+              }))}
               ticks={model.ticks}
               todayKey={todayKey}
               onOpenDay={openDay}
@@ -291,7 +319,11 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
           <>
             <SummaryStrip items={weekSummaryStrip(model.week)} />
             <WeekTimeline
-              days={model.days.map((day) => ({ dayKey: day.dayKey, layout: day.layout }))}
+              lanes={lanes}
+              days={model.days.map((day) => ({
+                dayKey: day.dayKey,
+                layout: day.layout && filterLayout(day.layout, lanes),
+              }))}
               ticks={model.ticks}
               todayKey={todayKey}
               onOpenDay={openDay}
@@ -363,8 +395,10 @@ function ComparedTimelines({
   timeZone,
   units,
   now,
+  lanes,
   children,
 }: {
+  lanes: readonly TimelineLane[];
   comparison: DayComparison | null;
   currentLabel: string;
   ticks: TimelineTick[];
@@ -379,6 +413,7 @@ function ComparedTimelines({
         <Text className="font-semibold text-meta text-ink-2">{comparison?.previousLabel ?? '…'}</Text>
         {comparison ? (
           <DayTimeline
+            lanes={lanes}
             layout={comparison.layout}
             ticks={ticks}
             timeZone={timeZone}

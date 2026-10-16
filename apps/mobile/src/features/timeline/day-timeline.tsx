@@ -7,6 +7,8 @@ import {
   showsItemLabel,
   timelineItemLabel,
   type DayLayout,
+  type TimelineLane,
+  TIMELINE_LANES,
   type FeedDueMarker,
   type PredictedItem,
   type TimelineItem,
@@ -34,6 +36,7 @@ export function DayTimeline({
   predicted = null,
   compact = false,
   feedDue = null,
+  lanes: shown = TIMELINE_LANES,
 }: {
   layout: DayLayout;
   ticks: { frac: number; label: string }[];
@@ -44,13 +47,15 @@ export function DayTimeline({
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
   compact?: boolean;
   feedDue?: FeedDueMarker | null;
+  lanes?: readonly TimelineLane[];
 }) {
+  const filtered = shown.length < TIMELINE_LANES.length;
   const lanes: { key: keyof DayLayout; label: string }[] = [
-    { key: 'sleep', label: 'Sleep' },
-    { key: 'feeds', label: 'Feeds' },
-    { key: 'nappies', label: 'Nappy' },
-    ...(layout.pumps.length ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
-  ];
+    { key: 'sleep' as const, label: 'Sleep' },
+    { key: 'feeds' as const, label: 'Feeds' },
+    { key: 'nappies' as const, label: 'Nappy' },
+    ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
+  ].filter((lane) => shown.includes(lane.key));
 
   return (
     <View className="gap-2">

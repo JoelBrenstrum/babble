@@ -73,8 +73,8 @@ describe('weeklyBars', () => {
     const bars = Array.from({ length: 35 }, (_, index) => ({ label: String(index), values: [index < 7 ? 7 : 14] }));
     const weeks = weeklyBars(bars);
     expect(weeks).toHaveLength(5);
-    expect(weeks[0]).toEqual({ label: '0', values: [7] });
-    expect(weeks.at(-1)).toEqual({ label: '28', values: [14] });
+    expect(weeks[0]).toEqual({ label: '0', lastDay: '6', values: [7] });
+    expect(weeks.at(-1)).toEqual({ label: '28', lastDay: '34', values: [14] });
   });
 });
 

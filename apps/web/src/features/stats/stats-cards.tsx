@@ -1,4 +1,14 @@
-import { barAnchor, barReadout, chartEnds, chartValue, nextBarIndex, topSegment, type StatsCard } from '@babble/domain';
+import {
+  barAnchor,
+  barReadout,
+  chartEnds,
+  chartValue,
+  nextBarIndex,
+  statsBarLink,
+  topSegment,
+  type StatsCard,
+} from '@babble/domain';
+import { Link } from '@tanstack/react-router';
 import { Droplets, GlassWater, Heart, Moon, MoonStar, Sun, type LucideIcon } from 'lucide-react';
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { Card } from '#/components/ui/card';
@@ -28,26 +38,28 @@ export function StatsCards({
   cards,
   plusBadges = false,
   columns = 2,
+  linkBars = false,
 }: {
   cards: StatsCard[];
   plusBadges?: boolean;
   columns?: 1 | 2;
+  linkBars?: boolean;
 }) {
   return (
     <div className={cn('grid gap-4', columns === 2 && 'lg:grid-cols-2')}>
       {cards.map((card) => (
-        <StatsCardView key={card.key} card={card} plusBadge={plusBadges && Boolean(card.plus)} />
+        <StatsCardView key={card.key} card={card} plusBadge={plusBadges && Boolean(card.plus)} linkBars={linkBars} />
       ))}
     </div>
   );
 }
 
-function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolean }) {
+function StatsCardView({ card, plusBadge, linkBars }: { card: StatsCard; plusBadge: boolean; linkBars: boolean }) {
   const look = LOOK[card.key];
   const { chart } = card;
   const [active, setActive] = useState<number | null>(null);
   const [focusIndex, setFocusIndex] = useState(chart.bars.length - 1);
-  const bars = useRef<(HTMLDivElement | null)[]>([]);
+  const bars = useRef<(HTMLElement | null)[]>([]);
   const tabStop = Math.min(focusIndex, chart.bars.length - 1);
   const ends = chartEnds(chart);
 
@@ -100,28 +112,28 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
           {chart.bars.map((bar, index) => {
             const total = bar.values.reduce((sum, value) => sum + value, 0);
             const top = topSegment(bar.values);
-            return (
-              <div
-                key={bar.label}
-                ref={(element) => {
-                  bars.current[index] = element;
-                }}
-                role="img"
-                aria-label={barReadout(chart, bar)}
-                tabIndex={index === tabStop ? 0 : -1}
-                className={cn(
-                  'flex h-full min-w-0 flex-1 flex-col-reverse rounded-t-sm outline-none focus-visible:ring-2 focus-visible:ring-primary',
-                  active === index && 'opacity-80',
-                )}
-                onMouseEnter={() => setActive(index)}
-                onMouseLeave={() => setActive(null)}
-                onFocus={() => {
-                  setActive(index);
-                  setFocusIndex(index);
-                }}
-                onBlur={() => setActive(null)}
-                onKeyDown={(event) => onKeyDown(event, index)}
-              >
+            const link = linkBars ? statsBarLink(card.key, bar, chart.weekly) : null;
+            const readout = barReadout(chart, bar);
+            const props = {
+              ref: (element: HTMLElement | null) => {
+                bars.current[index] = element;
+              },
+              tabIndex: index === tabStop ? 0 : -1,
+              className: cn(
+                'flex h-full min-w-0 flex-1 flex-col-reverse rounded-t-sm outline-none focus-visible:ring-2 focus-visible:ring-primary',
+                active === index && 'opacity-80',
+              ),
+              onMouseEnter: () => setActive(index),
+              onMouseLeave: () => setActive(null),
+              onFocus: () => {
+                setActive(index);
+                setFocusIndex(index);
+              },
+              onBlur: () => setActive(null),
+              onKeyDown: (event: KeyboardEvent) => onKeyDown(event, index),
+            };
+            const segments = (
+              <>
                 {bar.values.map((value, seriesIndex) => (
                   <div
                     key={seriesIndex}
@@ -130,6 +142,22 @@ function StatsCardView({ card, plusBadge }: { card: StatsCard; plusBadge: boolea
                   />
                 ))}
                 {total === 0 && <div className="h-px bg-line" />}
+              </>
+            );
+            return link ? (
+              <Link
+                key={bar.label}
+                {...props}
+                to="/timeline"
+                search={link}
+                aria-label={`${readout}. Open in timeline`}
+                className={cn(props.className, 'cursor-pointer hover:opacity-80')}
+              >
+                {segments}
+              </Link>
+            ) : (
+              <div key={bar.label} {...props} role="img" aria-label={readout}>
+                {segments}
               </div>
             );
           })}
