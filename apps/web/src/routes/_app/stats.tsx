@@ -11,6 +11,7 @@ import {
   type StatsRange,
 } from '@babble/domain';
 import { sampleStatsReport } from '@babble/api/fixtures';
+import { familyHasFeature } from '@babble/config';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
@@ -136,10 +137,12 @@ function StatsPage() {
               growth.data,
               { birthDate: baby.birth_date, sex: baby.sex, timeZone: baby.timezone },
               units,
+              familyHasFeature(babble.config.billingEnabled, family.plan, 'predictions') ? now : undefined,
             )}
             babyName={baby.name}
             timeZone={baby.timezone}
             canLog={canLog}
+            plusBadge={babble.config.billingEnabled}
           />
         </div>
       )}
@@ -150,7 +153,7 @@ function StatsPage() {
 function hasPatterns(state: InsightsState): boolean {
   if (state.locked) return true;
   const report = state.report;
-  return Boolean(report && (report.weekly || report.wake || report.night));
+  return Boolean(report && (report.weekly || report.feeds || report.spacing || report.wake || report.night));
 }
 
 function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyName: string; plusBadges: boolean }) {
@@ -159,13 +162,13 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
     return (
       <div id="stats-section-patterns" className="scroll-mt-6">
         <PlusTeaser feature="insights" title="Patterns">
-          {`See ${babyName}'s wake windows, how night sleep is stretching out, and a weekly summary of what changed.`}
+          {`See ${babyName}'s wake windows, how night sleep is stretching out, how breastfeeds are changing, how far apart feeds are, and a weekly summary of what changed.`}
         </PlusTeaser>
       </div>
     );
   }
   const report = state.report!;
-  const cards = [report.wake, report.night].filter((card) => card !== null);
+  const cards = [report.feeds, report.spacing, report.wake, report.night].filter((card) => card !== null);
   return (
     <section id="stats-section-patterns" className="flex scroll-mt-6 flex-col gap-4" aria-labelledby="stats-patterns">
       <div>

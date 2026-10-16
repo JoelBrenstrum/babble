@@ -1,6 +1,7 @@
 import {
   chartAxis,
   formatShortDate,
+  growthEstimateReadout,
   growthPointReadout,
   readoutEdge,
   type GrowthChart,
@@ -12,6 +13,7 @@ import { useState } from 'react';
 import { Card } from '#/components/ui/card';
 import { ChartTip } from '#/components/ui/chart-tip';
 import { StatusMessage } from '#/components/ui/status';
+import { PlusBadge } from '#/features/plus-dialog';
 import { cn } from '#/lib/cn';
 
 const WIDTH = 320;
@@ -31,11 +33,13 @@ export function GrowthCard({
   babyName,
   timeZone,
   canLog = true,
+  plusBadge = false,
 }: {
   report: GrowthReport;
   babyName: string;
   timeZone: string;
   canLog?: boolean;
+  plusBadge?: boolean;
 }) {
   return (
     <Card className="flex flex-col gap-4 p-5" aria-labelledby="stats-growth">
@@ -70,7 +74,7 @@ export function GrowthCard({
       ) : (
         <div className="grid gap-5 lg:grid-cols-3">
           {report.charts.map((chart) => (
-            <GrowthChartView key={chart.key} chart={chart} timeZone={timeZone} />
+            <GrowthChartView key={chart.key} chart={chart} timeZone={timeZone} plusBadge={plusBadge} />
           ))}
         </div>
       )}
@@ -79,12 +83,17 @@ export function GrowthCard({
           Lines show the WHO 3rd, 15th, 50th, 85th and 97th percentiles, up to 2 years.
         </p>
       )}
+      {report.charts.some((chart) => chart.estimate) && (
+        <p className="text-caption text-ink-3">
+          Today's estimate follows the trend of the last few measurements. It's a guide, not a measurement.
+        </p>
+      )}
     </Card>
   );
 }
 
-function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: string }) {
-  const [active, setActive] = useState<number | null>(null);
+function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; timeZone: string; plusBadge: boolean }) {
+  const [active, setActive] = useState<number | 'estimate' | null>(null);
   const x = (months: number) => PAD.left + (months / chart.xMax) * (WIDTH - PAD.left - PAD.right);
   const y = (value: number) =>
     PAD.top + (1 - (value - chart.yMin) / (chart.yMax - chart.yMin)) * (HEIGHT - PAD.top - PAD.bottom);
@@ -93,7 +102,14 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
       .map((point, order) => `${order ? 'L' : 'M'}${x(point.months).toFixed(1)},${y(point.value).toFixed(1)}`)
       .join(' ');
   const { yTicks, xTicks } = chartAxis(chart);
-  const activePoint = active === null ? null : chart.points[active];
+  const { estimate } = chart;
+  const last = chart.points.at(-1)!;
+  const tip =
+    active === 'estimate' && estimate
+      ? { point: estimate, text: growthEstimateReadout(estimate) }
+      : typeof active === 'number' && chart.points[active]
+        ? { point: chart.points[active], text: growthPointReadout(chart.points[active], timeZone) }
+        : null;
 
   return (
     <figure className="flex flex-col gap-2">
@@ -107,6 +123,18 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
           <span className="block text-caption text-ink-3">{formatShortDate(chart.latest.at, timeZone)}</span>
         </span>
       </figcaption>
+      {estimate && (
+        <div className="flex items-center justify-between gap-2 rounded-tile bg-growth-soft px-3 py-2 text-on-growth">
+          <span className="flex flex-col">
+            <span className="text-caption">Estimate for today</span>
+            <span className="tabular text-label font-bold">
+              {estimate.reading}
+              {estimate.percentile && <span className="font-semibold"> · {estimate.percentile} percentile</span>}
+            </span>
+          </span>
+          {plusBadge && <PlusBadge />}
+        </div>
+      )}
       <div className="relative">
         <svg
           viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
@@ -151,6 +179,40 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
           {chart.points.length > 1 && (
             <path d={path(chart.points)} fill="none" strokeWidth={2} className="stroke-growth" />
           )}
+          {estimate && (
+            <g>
+              <line
+                x1={x(last.months)}
+                y1={y(last.value)}
+                x2={x(estimate.months)}
+                y2={y(estimate.value)}
+                strokeWidth={2}
+                className="stroke-growth [stroke-dasharray:4_3]"
+              />
+              <circle
+                cx={x(estimate.months)}
+                cy={y(estimate.value)}
+                r={active === 'estimate' ? 5.5 : 4}
+                className="pointer-events-none fill-raised stroke-growth"
+                strokeWidth={2}
+              />
+              <circle
+                cx={x(estimate.months)}
+                cy={y(estimate.value)}
+                r={12}
+                tabIndex={0}
+                role="img"
+                aria-label={growthEstimateReadout(estimate)}
+                className="cursor-pointer fill-transparent outline-none focus-visible:stroke-primary"
+                strokeWidth={2}
+                onMouseEnter={() => setActive('estimate')}
+                onMouseLeave={() => setActive(null)}
+                onFocus={() => setActive('estimate')}
+                onBlur={() => setActive(null)}
+                onClick={() => setActive('estimate')}
+              />
+            </g>
+          )}
           {chart.points.map((point, index) => (
             <g key={index}>
               <circle
@@ -178,13 +240,7 @@ function GrowthChartView({ chart, timeZone }: { chart: GrowthChart; timeZone: st
             </g>
           ))}
         </svg>
-        {activePoint && (
-          <PointTip
-            text={growthPointReadout(activePoint, timeZone)}
-            left={x(activePoint.months) / WIDTH}
-            top={y(activePoint.value) / HEIGHT}
-          />
-        )}
+        {tip && <PointTip text={tip.text} left={x(tip.point.months) / WIDTH} top={y(tip.point.value) / HEIGHT} />}
       </div>
     </figure>
   );

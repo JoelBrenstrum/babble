@@ -4,6 +4,10 @@ import { makeEvent } from '../events/test-events';
 import { lastDays } from '../timeline/days';
 import {
   durationChange,
+  feedGaps,
+  feedSpacingCard,
+  feedStats,
+  feedTrendCard,
   insightDays,
   insightsReport,
   insightsSince,
@@ -193,8 +197,136 @@ describe('insightsReport', () => {
     expect(report.weekly?.rows.find((row) => row.label === 'Naps a day')).toMatchObject({ value: '3', change: 'Same' });
   });
 
-  it('covers the fourteen days before today, fetching from the day before', () => {
+  it('covers the fourteen days before today, fetching a week earlier for the feed trend', () => {
     expect(insightDays('2026-10-15')).toEqual(keys);
-    expect(insightsSince('2026-10-15', settings)).toBe('2026-09-30T00:00:00.000Z');
+    expect(insightsSince('2026-10-15', settings)).toBe('2026-09-24T00:00:00.000Z');
+  });
+});
+
+function feed(id: string, start: string, sides: { side: 'left' | 'right'; from: number; to: number }[]) {
+  const at = (minutes: number) => new Date(Date.parse(start) + minutes * 60_000).toISOString();
+  return makeEvent('breast_feed', {
+    id,
+    startedAt: start,
+    endedAt: at(Math.max(...sides.map((side) => side.to))),
+    segments: sides.map((side) => ({ side: side.side, startedAt: at(side.from), endedAt: at(side.to) })),
+  });
+}
+
+describe('feed trend', () => {
+  const now = new Date('2026-10-15T12:00:00Z');
+  const scope = { timeZone: 'UTC', dayStartMinutes: 0, mergeGapMs: 15_000 };
+
+  it('splits each finished breastfeed with real timings into left, right and idle time', () => {
+    const events = [
+      feed('a', '2026-10-10T08:00:00Z', [
+        { side: 'left', from: 0, to: 10 },
+        { side: 'right', from: 12, to: 20 },
+      ]),
+      { ...feed('b', '2026-10-10T09:00:00Z', [{ side: 'left', from: 0, to: 5 }]), source: 'huckleberry_csv' as const },
+      { ...feed('c', '2026-10-10T10:00:00Z', [{ side: 'left', from: 0, to: 5 }]), endedAt: null },
+      { ...feed('d', '2026-10-10T11:00:00Z', [{ side: 'left', from: 0, to: 5 }]), deletedAt: '2026-10-10T12:00:00Z' },
+      { ...feed('e', '2026-10-11T08:00:00Z', [{ side: 'right', from: 0, to: 6 }]), source: 'babble_export' as const },
+    ];
+    expect(feedStats(events, now, scope)).toEqual([
+      { dayKey: '2026-10-10', leftMs: 10 * 60_000, rightMs: 8 * 60_000, idleMs: 2 * 60_000 },
+      { dayKey: '2026-10-11', leftMs: 0, rightMs: 6 * 60_000, idleMs: 0 },
+    ]);
+  });
+
+  it('averages the last 7 days per feed, compares with the week before and charts a rolling average', () => {
+    const stat = (dayKey: string, left: number, right: number, idle: number) => ({
+      dayKey,
+      leftMs: left * 60_000,
+      rightMs: right * 60_000,
+      idleMs: idle * 60_000,
+    });
+    const feeds = [
+      stat('2026-10-02', 10, 10, 0),
+      stat('2026-10-03', 10, 10, 0),
+      stat('2026-10-04', 10, 10, 0),
+      stat('2026-10-12', 12, 8, 2),
+      stat('2026-10-12', 12, 8, 2),
+      stat('2026-10-14', 12, 14, 2),
+    ];
+    const card = feedTrendCard(feeds, keys)!;
+    expect(card.figures).toEqual([
+      { label: 'Per feed', value: '24m' },
+      { label: 'Left', value: '12m' },
+      { label: 'Right', value: '10m' },
+      { label: 'Idle', value: '2m' },
+      { label: 'Feeding a day', value: '33m' },
+      { label: 'On last week', value: '+4m' },
+    ]);
+    expect(card.chart.bars).toHaveLength(14);
+    expect(card.chart.bars.at(-1)).toEqual({ label: '2026-10-14', values: [12, 10, 2] });
+    expect(card.chart.bars.find((bar) => bar.label === '2026-10-11')!.values).toEqual([0, 0, 0]);
+    expect(card.chart.bars.find((bar) => bar.label === '2026-10-05')!.values).toEqual([10, 10, 0]);
+  });
+
+  it('needs at least three feeds in the last week', () => {
+    expect(feedTrendCard([{ dayKey: '2026-10-14', leftMs: 60_000, rightMs: 60_000, idleMs: 0 }], keys)).toBeNull();
+  });
+});
+
+describe('feed spacing', () => {
+  const keys = insightDays('2026-10-15');
+  const gap = (dayKey: string, hours: number, night = false) => ({ dayKey, ms: hours * HOUR, night });
+
+  it('measures start to start between feeds, folds top-ups in and splits day from night', () => {
+    const breast = (id: string, start: string, end: string) =>
+      makeEvent('breast_feed', { id, startedAt: start, endedAt: end });
+    const bottle = (id: string, start: string) => makeEvent('bottle', { id, startedAt: start, endedAt: null });
+    const events = [
+      breast('a', '2026-10-13T08:00:00Z', '2026-10-13T08:30:00Z'),
+      bottle('top-up', '2026-10-13T08:40:00Z'),
+      breast('b', '2026-10-13T11:00:00Z', '2026-10-13T11:20:00Z'),
+      { ...bottle('deleted', '2026-10-13T12:00:00Z'), deletedAt: '2026-10-13T12:05:00Z' },
+      bottle('c', '2026-10-13T14:00:00Z'),
+      breast('d', '2026-10-13T20:00:00Z', '2026-10-13T20:20:00Z'),
+      breast('e', '2026-10-14T01:00:00Z', '2026-10-14T01:20:00Z'),
+      breast('f', '2026-10-14T06:30:00Z', '2026-10-14T06:50:00Z'),
+      makeEvent('sleep', { id: 'nap', startedAt: '2026-10-13T09:00:00Z', endedAt: '2026-10-13T10:00:00Z' }),
+    ];
+    expect(feedGaps(events, settings)).toEqual([
+      gap('2026-10-13', 3),
+      gap('2026-10-13', 3),
+      gap('2026-10-13', 6),
+      gap('2026-10-13', 5, true),
+      gap('2026-10-13', 5.5, true),
+    ]);
+  });
+
+  it('shows the typical daytime and overnight gap, last night and the change on last week', () => {
+    const gaps = [
+      gap('2026-10-05', 2.5),
+      gap('2026-10-05', 2.5),
+      gap('2026-10-05', 2.5),
+      gap('2026-10-12', 3),
+      gap('2026-10-12', 3),
+      gap('2026-10-13', 3),
+      gap('2026-10-13', 4),
+      gap('2026-10-14', 3.5),
+      gap('2026-10-14', 3.5),
+      gap('2026-10-12', 5, true),
+      gap('2026-10-13', 4, true),
+      gap('2026-10-14', 6, true),
+      gap('2026-10-14', 2, true),
+    ];
+    const card = feedSpacingCard(gaps, keys)!;
+    expect(card.figures).toEqual([
+      { label: 'Daytime', value: '3h 15m' },
+      { label: 'On last week', value: '+45m' },
+      { label: 'Overnight', value: '4h 30m' },
+      { label: 'Longest, last night', value: '6h 00m' },
+    ]);
+    expect(card.chart.bars).toHaveLength(14);
+    expect(card.chart.bars.at(-1)).toEqual({ label: '2026-10-14', values: [3.5] });
+    expect(card.chart.bars.find((bar) => bar.label === '2026-10-11')!.values).toEqual([0]);
+    expect(card.chart.bars.find((bar) => bar.label === '2026-10-05')!.values).toEqual([2.5]);
+  });
+
+  it('needs six daytime gaps in the last week', () => {
+    expect(feedSpacingCard([gap('2026-10-14', 3), gap('2026-10-14', 3), gap('2026-10-14', 3, true)], keys)).toBeNull();
   });
 });

@@ -97,12 +97,18 @@ export interface MeasuredPoint extends ChartPoint {
   at: string;
 }
 
+export interface GrowthEstimate extends ChartPoint {
+  reading: string;
+  percentile: string | null;
+}
+
 export interface GrowthChart {
   key: GrowthMeasure;
   label: string;
   unit: string;
   latest: { value: string; percentile: string | null; at: string };
   points: MeasuredPoint[];
+  estimate: GrowthEstimate | null;
   curves: { percentile: number; points: ChartPoint[] }[];
   xMax: number;
   yMin: number;
@@ -125,10 +131,54 @@ function formatBase(measure: GrowthMeasure, value: number, units: Units): string
   return measure === 'weight' ? formatWeight(value * 1000, units) : formatLength(value * 10, units);
 }
 
+export const ESTIMATE_MIN_POINTS = 3;
+const ESTIMATE_RECENT_POINTS = 6;
+const ESTIMATE_MAX_AHEAD_DAYS = 90;
+
+export function linearFit(points: readonly { x: number; y: number }[]): { at: (x: number) => number } | null {
+  const n = points.length;
+  if (n < 2) return null;
+  const meanX = points.reduce((total, point) => total + point.x, 0) / n;
+  const meanY = points.reduce((total, point) => total + point.y, 0) / n;
+  const spread = points.reduce((total, point) => total + (point.x - meanX) ** 2, 0);
+  if (spread === 0) return null;
+  const slope = points.reduce((total, point) => total + (point.x - meanX) * (point.y - meanY), 0) / spread;
+  return { at: (x) => meanY + slope * (x - meanX) };
+}
+
+export function estimateToday(
+  measure: GrowthMeasure,
+  measured: readonly { months: number; value: number }[],
+  sex: BabySex | null,
+  todayMonths: number,
+): { value: number; z: number | null } | null {
+  const recent = measured.slice(-ESTIMATE_RECENT_POINTS);
+  const last = recent.at(-1);
+  if (!last || recent.length < ESTIMATE_MIN_POINTS) return null;
+  const aheadDays = (todayMonths - last.months) * DAYS_PER_MONTH;
+  if (aheadDays < 1 || aheadDays > ESTIMATE_MAX_AHEAD_DAYS) return null;
+
+  const todayLms = sex ? lmsAt(measure, sex, todayMonths) : null;
+  const zPoints = todayLms
+    ? recent.flatMap((point) => {
+        const lms = lmsAt(measure, sex!, point.months);
+        return lms ? [{ x: point.months, y: zScore(point.value, lms) }] : [];
+      })
+    : [];
+  // Growth slows with age, so fitting the percentile position tracks the curve better than a straight line.
+  if (todayLms && zPoints.length === recent.length) {
+    const z = linearFit(zPoints)?.at(todayMonths);
+    return z === undefined ? null : { value: valueAtZ(z, todayLms), z };
+  }
+  const value = linearFit(recent.map((point) => ({ x: point.months, y: point.value })))?.at(todayMonths);
+  return value === undefined || value <= 0 ? null : { value, z: null };
+}
+
 export function growthReport(
   events: readonly BabyEvent[],
   baby: { birthDate: string; sex: BabySex | null; timeZone: string },
   units: Units,
+  estimateAt?: Date,
 ): GrowthReport {
   const growth = events
     .filter((event): event is Extract<BabyEvent, { type: 'growth' }> => event.type === 'growth' && !event.deletedAt)
@@ -146,7 +196,19 @@ export function growthReport(
     if (!latest) continue;
 
     const display = DISPLAY[measure][units];
-    const xMax = Math.max(3, Math.ceil(Math.max(...measured.map((item) => item.months)) + 1));
+    const todayMonths = estimateAt ? ageInMonths(baby.birthDate, estimateAt.toISOString(), baby.timeZone) : null;
+    const estimated = todayMonths === null ? null : estimateToday(measure, measured, baby.sex, todayMonths);
+    const estimate: GrowthEstimate | null =
+      estimated && todayMonths !== null
+        ? {
+            months: todayMonths,
+            value: display.fromBase(estimated.value),
+            reading: formatBase(measure, estimated.value, units),
+            percentile: estimated.z === null ? null : formatPercentile(normalCdf(estimated.z) * 100),
+          }
+        : null;
+    const lastMonths = Math.max(...measured.map((item) => item.months), estimate?.months ?? 0);
+    const xMax = Math.max(3, Math.ceil(lastMonths + 1));
     const curveEnd = Math.min(xMax, WHO_MAX_MONTHS);
     const curves = baby.sex
       ? CURVE_PERCENTILES.map((percentile) => {
@@ -169,7 +231,9 @@ export function growthReport(
       };
     });
     const last = points.at(-1)!;
-    const values = [...points, ...curves.flatMap((curve) => curve.points)].map((point) => point.value);
+    const values = [...points, ...(estimate ? [estimate] : []), ...curves.flatMap((curve) => curve.points)].map(
+      (point) => point.value,
+    );
     const low = Math.min(...values);
     const high = Math.max(...values);
     const pad = Math.max((high - low) * 0.06, 0.1);
@@ -180,6 +244,7 @@ export function growthReport(
       unit: display.unit,
       latest: { value: last.reading, percentile: last.percentile, at: last.at },
       points,
+      estimate,
       curves,
       xMax,
       yMin: Math.max(0, low - pad),
@@ -197,4 +262,9 @@ export function readoutEdge(fraction: number): 'left' | 'center' | 'right' {
 export function growthPointReadout(point: MeasuredPoint, timeZone: string): string {
   const percentile = point.percentile ? ` · ${point.percentile} percentile` : '';
   return `${formatShortDate(point.at, timeZone)} · ${point.reading}${percentile}`;
+}
+
+export function growthEstimateReadout(estimate: GrowthEstimate): string {
+  const percentile = estimate.percentile ? ` · ${estimate.percentile} percentile` : '';
+  return `Estimate for today · ${estimate.reading}${percentile}`;
 }
