@@ -78,8 +78,12 @@ describe('GrowthCard estimate', () => {
     );
     await screen.findByRole('heading', { name: 'Growth' });
     expect(screen.getByText('Estimate for today')).toBeInTheDocument();
+    expect(screen.queryByText(/^Next:/)).not.toBeInTheDocument();
+    const milestone = screen.getByRole('img', { name: /^5 kg around \d+ \w+$/ });
+    expect(screen.getByRole('img', { name: /^6 kg around \d+ \w+$/ })).toBeInTheDocument();
+    fireEvent.mouseEnter(milestone);
     expect(screen.getByText(/^5 kg around \d+ \w+$/)).toBeInTheDocument();
-    expect(screen.getByText(/^· 6 kg around \d+ \w+$/)).toBeInTheDocument();
+    fireEvent.mouseLeave(milestone);
     expect(screen.getByText('Plus')).toBeInTheDocument();
     const point = screen.getByRole('img', { name: /^Estimate for today · \d\.\d+ kg · \d+(st|nd|rd|th) percentile$/ });
     fireEvent.mouseEnter(point);

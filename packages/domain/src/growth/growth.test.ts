@@ -220,11 +220,18 @@ describe('growth estimate for today', () => {
     ];
     const baby = { birthDate: '2026-01-01', sex: 'female' as const, timeZone: 'UTC' };
     expect(growthReport(events, baby, 'metric').charts[0]!.milestones).toEqual([]);
-    const [first, second] = growthReport(events, baby, 'metric', new Date('2026-03-20T10:00:00Z')).charts[0]!
-      .milestones;
+    const chart = growthReport(events, baby, 'metric', new Date('2026-03-20T10:00:00Z')).charts[0]!;
+    const [first, second] = chart.milestones;
+    expect(first!.value).toBe(6);
+    expect(first!.months).toBeGreaterThan(chart.estimate!.months);
+    expect(second!.months).toBeGreaterThan(first!.months);
+    expect(chart.xMax).toBeGreaterThanOrEqual(second!.months);
+    expect(chart.yMax).toBeGreaterThan(7);
     expect(first!.reading).toBe('6 kg');
     expect(second!.reading).toBe('7 kg');
     expect(first!.dayKey > '2026-03-20' && second!.dayKey > first!.dayKey).toBe(true);
-    expect(growthMilestoneText({ reading: '6 kg', dayKey: '2026-11-03' })).toBe('6 kg around 3 Nov');
+    expect(growthMilestoneText({ months: 2, value: 6, reading: '6 kg', dayKey: '2026-11-03' })).toBe(
+      '6 kg around 3 Nov',
+    );
   });
 });

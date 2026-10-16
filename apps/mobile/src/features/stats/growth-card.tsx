@@ -69,8 +69,8 @@ export function GrowthCard({
       )}
       {report.charts.some((chart) => chart.estimate || chart.milestones.length > 0) && (
         <Text className="font-sans text-caption text-ink-3">
-          Today's estimate and the next milestones follow the trend of the last few measurements. They're a guide, not a
-          measurement.
+          Today's estimate and the milestones after it follow the trend of the last few measurements. They're a guide,
+          not a measurement.
         </Text>
       )}
     </Card>
@@ -90,16 +90,23 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
       .map((point, index) => `${index ? 'L' : 'M'}${x(point.months).toFixed(1)},${y(point.value).toFixed(1)}`)
       .join(' ');
   const { yTicks, xTicks } = chartAxis(chart);
-  const [selected, setSelected] = useState<number | 'estimate' | null>(null);
+  const [selected, setSelected] = useState<number | 'estimate' | `milestone-${number}` | null>(null);
   const { estimate } = chart;
-  const milestones = chart.milestones.length ? `Next: ${chart.milestones.map(growthMilestoneText).join(' · ')}` : null;
   const last = chart.points.at(-1)!;
+  const ahead = [...(estimate ? [estimate] : []), ...chart.milestones];
+  const milestone =
+    typeof selected === 'string' && selected.startsWith('milestone-')
+      ? chart.milestones[Number(selected.slice(10))]
+      : undefined;
   const readout =
     selected === 'estimate' && estimate
       ? growthEstimateReadout(estimate)
-      : typeof selected === 'number' && chart.points[selected]
-        ? growthPointReadout(chart.points[selected], timeZone)
-        : null;
+      : milestone
+        ? growthMilestoneText(milestone)
+        : typeof selected === 'number' && chart.points[selected]
+          ? growthPointReadout(chart.points[selected], timeZone)
+          : null;
+  const toggle = (key: NonNullable<typeof selected>) => () => setSelected(selected === key ? null : key);
 
   return (
     <View className="gap-2">
@@ -113,18 +120,13 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
           <Text className="font-sans text-caption text-ink-3">{formatShortDate(chart.latest.at, timeZone)}</Text>
         </View>
       </View>
-      {(estimate || milestones) && (
+      {estimate && (
         <View className="flex-row items-center justify-between gap-2 rounded-tile bg-growth-soft px-3 py-2">
           <View className="flex-1">
-            {estimate && (
-              <>
-                <Text className="font-sans text-caption text-on-growth">Estimate for today</Text>
-                <Text className="font-bold text-label text-on-growth">
-                  {estimate.percentile ? `${estimate.reading} · ${estimate.percentile} percentile` : estimate.reading}
-                </Text>
-              </>
-            )}
-            {milestones && <Text className="font-sans text-caption text-on-growth">{milestones}</Text>}
+            <Text className="font-sans text-caption text-on-growth">Estimate for today</Text>
+            <Text className="font-bold text-label text-on-growth">
+              {estimate.percentile ? `${estimate.reading} · ${estimate.percentile} percentile` : estimate.reading}
+            </Text>
           </View>
           {plusBadge && <PlusBadge />}
         </View>
@@ -179,17 +181,20 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
             strokeWidth={1.5}
           />
         ))}
-        {estimate && (
-          <Line
-            x1={x(last.months)}
-            y1={y(last.value)}
-            x2={x(estimate.months)}
-            y2={y(estimate.value)}
-            stroke={growth}
-            strokeWidth={2}
-            strokeDasharray="4 3"
-          />
+        {ahead.length > 0 && (
+          <Path d={path([last, ...ahead])} fill="none" stroke={growth} strokeWidth={2} strokeDasharray="4 3" />
         )}
+        {chart.milestones.map((point, index) => (
+          <Circle
+            key={point.reading}
+            cx={x(point.months)}
+            cy={y(point.value)}
+            r={selected === `milestone-${index}` ? 5 : 3}
+            fill={raised}
+            stroke={growth}
+            strokeWidth={1.5}
+          />
+        ))}
         {estimate && (
           <Circle
             cx={x(estimate.months)}
@@ -208,9 +213,21 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
             cy={y(estimate.value)}
             r={14}
             fill="transparent"
-            onPress={() => setSelected(selected === 'estimate' ? null : 'estimate')}
+            onPress={toggle('estimate')}
           />
         )}
+        {chart.milestones.map((point, index) => (
+          <Circle
+            key={`hit-${point.reading}`}
+            testID={`growth-milestone-${chart.key}-${index}`}
+            accessibilityLabel={growthMilestoneText(point)}
+            cx={x(point.months)}
+            cy={y(point.value)}
+            r={14}
+            fill="transparent"
+            onPress={toggle(`milestone-${index}`)}
+          />
+        ))}
         {chart.points.map((point, index) => (
           <Circle
             key={`hit${index}`}

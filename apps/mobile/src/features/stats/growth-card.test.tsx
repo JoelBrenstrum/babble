@@ -54,7 +54,9 @@ describe('GrowthCard', () => {
     );
     await render(<GrowthCard report={report} babyName="Olivia" timeZone="UTC" plusBadge />);
     expect(screen.getByText('Estimate for today')).toBeTruthy();
-    expect(screen.getByText(/^Next: 5 kg around \d+ \w+ · 6 kg around \d+ \w+$/)).toBeTruthy();
+    expect(screen.queryByText(/^Next:/)).toBeNull();
+    await fireEvent.press(screen.getByTestId('growth-milestone-weight-0'));
+    expect(screen.getByText(/^5 kg around \d+ \w+$/)).toBeTruthy();
     await fireEvent.press(screen.getByTestId('growth-estimate-weight'));
     expect(screen.getByText(/^Estimate for today · \d\.\d+ kg · \d+(st|nd|rd|th) percentile$/)).toBeTruthy();
   });
