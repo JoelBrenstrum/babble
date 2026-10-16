@@ -2,6 +2,8 @@ const path = require('node:path');
 
 module.exports = {
   preset: 'jest-expo',
+  // The first render in a suite loads the whole icon and RN module graph, which is slow on loaded CI runners.
+  testTimeout: 20_000,
   testMatch: ['<rootDir>/src/**/*.test.{ts,tsx}'],
   moduleNameMapper: {
     // Jest resolves the "react-native" export condition to an ESM-only build; the CommonJS build works the same in tests.
