@@ -1,5 +1,6 @@
 import {
   barAnchor,
+  barLines,
   barReadout,
   chartEnds,
   chartValue,
@@ -42,7 +43,11 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; series: s
     series: ['bg-feed-left', 'bg-feed-right', 'bg-session-downtime'],
   },
   'feed-spacing': { icon: Hourglass, tile: 'bg-bottle-soft text-on-bottle', series: ['bg-bottle'] },
-  'cluster-feeds': { icon: Layers, tile: 'bg-feed-right-soft text-on-feed-right', series: ['bg-feed-right'] },
+  'cluster-feeds': {
+    icon: Layers,
+    tile: 'bg-feed-right-soft text-on-feed-right',
+    series: ['bg-feed-right', 'bg-feed-right/55'],
+  },
 };
 
 const CHART_LABEL: Partial<Record<StatsCard['key'], string>> = {
@@ -163,7 +168,7 @@ function StatsCardView({ card, plusBadge, linkBars }: { card: StatsCard; plusBad
                 {bar.values.map((value, seriesIndex) => (
                   <div
                     key={seriesIndex}
-                    className={cn(look.series[seriesIndex], seriesIndex === top && 'rounded-t-sm')}
+                    className={cn(look.series[seriesIndex % look.series.length], seriesIndex === top && 'rounded-t-sm')}
                     style={{ height: chart.max ? `${(value / chart.max) * 100}%` : 0 }}
                   />
                 ))}
@@ -193,7 +198,9 @@ function StatsCardView({ card, plusBadge, linkBars }: { card: StatsCard; plusBad
               className={cn('bottom-full mb-2 max-w-full', tipPosition(active, chart.bars.length).className)}
               style={tipPosition(active, chart.bars.length).style}
             >
-              {barReadout(chart, chart.bars[active])}
+              {barLines(chart, chart.bars[active]).map((line) => (
+                <div key={line}>{line}</div>
+              ))}
             </ChartTip>
           )}
         </div>
