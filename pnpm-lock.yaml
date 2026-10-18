@@ -280,6 +280,9 @@ importers:
 
   packages/api:
     dependencies:
+      '@babble/config':
+        specifier: workspace:*
+        version: link:../config
       '@babble/domain':
         specifier: workspace:*
         version: link:../domain
