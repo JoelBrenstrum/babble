@@ -1,11 +1,11 @@
 import { summariseDay, summaryOptions, type DaySummary, type SummarySettings } from '../events/day-summary';
 import type { BabyEvent } from '../events/types';
 import { formatDurationShort } from '../format/duration';
-import { countChange, durationChange } from '../stats/insights';
+import { countChange, durationChange } from '../format/change';
 import { DAY_MS } from '../time/constants';
 import { dayKeyFor, dayWindow, formatDayLabel, shiftDay, shiftLocalDays } from '../time/local-time';
 import { bucketByDay, dayLayout, type DayLayout } from './day-layout';
-import { fractionOf, type TimeWindow } from './days';
+import { fractionOf, type TimeWindow } from '../time/windows';
 import type { TimelineBaby } from './timeline-model';
 
 export type ComparisonKey = 'sleep' | 'naps' | 'longest' | 'feeds' | 'nappies';

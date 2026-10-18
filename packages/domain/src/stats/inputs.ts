@@ -1,7 +1,7 @@
+import { mergeGapMsFrom, nightSettingsFrom, type NightSettingsRow } from '../events/baby-settings';
 import type { Units } from '../events/types';
 import { dayKeyFor, dayWindow } from '../time/local-time';
-import { SECOND_MS } from '../time/constants';
-import type { StatsSettings } from './cards';
+import type { StatsSettings } from './settings';
 import { rangeDays, type StatsRange } from './report';
 
 interface StatsBaby {
@@ -27,15 +27,14 @@ export function statsInputs(
 
 export function statsOptions(
   baby: Pick<StatsBaby, 'timezone' | 'day_start_minutes'>,
-  settings: { night_start_minutes: number; night_end_minutes: number; downtime_merge_threshold_sec: number },
+  settings: NightSettingsRow & { downtime_merge_threshold_sec: number },
   units: Units,
 ): StatsSettings {
   return {
     timeZone: baby.timezone,
     dayStartMinutes: baby.day_start_minutes,
-    nightStartMinutes: settings.night_start_minutes,
-    nightEndMinutes: settings.night_end_minutes,
-    mergeGapMs: settings.downtime_merge_threshold_sec * SECOND_MS,
+    ...nightSettingsFrom(settings),
+    mergeGapMs: mergeGapMsFrom(settings),
     units,
   };
 }

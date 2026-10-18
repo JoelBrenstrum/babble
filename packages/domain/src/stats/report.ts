@@ -1,11 +1,11 @@
 import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
 import type { BabyEvent } from '../events/types';
 import { compareIso } from '../time/instants';
-import { dayKeyFor, shiftDay } from '../time/local-time';
+import { dayKeyFor, lastDays, shiftDay } from '../time/local-time';
 import { bucketByDay } from '../timeline/day-layout';
-import { lastDays } from '../timeline/days';
 import { countedDays } from '../timeline/totals';
-import { buildCards, type StatsCard, type StatsSettings } from './cards';
+import { buildCards, type StatsCard } from './cards';
+import type { StatsSettings } from './settings';
 
 export type StatsRange = '7d' | '30d' | 'all';
 
@@ -61,7 +61,7 @@ export function statsReport(
       summariseDay(day.events, day.window, {
         now,
         mergeGapMs: settings.mergeGapMs,
-        night: nightOf(settings, day.dayKey),
+        night: nightOf(day.dayKey, settings),
       }),
     ]),
   );

@@ -1,4 +1,4 @@
-import { overlapMs, type TimeWindow } from '../timeline/days';
+import { overlapMs, type TimeWindow } from '../time/windows';
 import type { SleepStretch } from './types';
 import { byStartedAtAsc } from '../time/instants';
 

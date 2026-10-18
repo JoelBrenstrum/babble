@@ -38,7 +38,7 @@ describe('summariseDay', () => {
   });
 
   const day = { start: new Date('2026-10-06T00:00:00Z'), end: new Date('2026-10-07T00:00:00Z') };
-  const night = { dayKey: '2026-10-06', timeZone: 'UTC', startMinutes: 19 * 60, endMinutes: 7 * 60 };
+  const night = { dayKey: '2026-10-06', timeZone: 'UTC', nightStartMinutes: 19 * 60, nightEndMinutes: 7 * 60 };
 
   it('splits sleep into night and naps', () => {
     const events = [

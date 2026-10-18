@@ -1,36 +1,29 @@
-import { nightIntervals, overlapMs, type TimeWindow } from '../timeline/days';
-import { eventSpan } from '../timeline/day-layout';
+import { nightIntervals, type ZonedNightSettings } from '../time/night';
+import { overlapMs, type TimeWindow } from '../time/windows';
+import { mergeGapMsFrom, nightSettingsFrom, type NightSettingsRow } from './baby-settings';
+import { eventSpan } from './event-span';
 import { hasFood } from './foods';
 import { segmentTotals } from './segments';
 import { summariseSegments } from './session-summary';
 import { asleepIntervals, asleepWithin } from './sleep-stretches';
 import { tracksIdle, type BabyEvent } from './types';
-import { SECOND_MS } from '../time/constants';
 import { compareIso } from '../time/instants';
 
-export interface NightSettings {
+export interface DayNight extends ZonedNightSettings {
   dayKey: string;
-  timeZone: string;
-  startMinutes: number;
-  endMinutes: number;
 }
 
-export function nightOf(
-  settings: { timeZone: string; nightStartMinutes: number; nightEndMinutes: number },
-  dayKey: string,
-): NightSettings {
+export function nightOf(dayKey: string, settings: ZonedNightSettings): DayNight {
   return {
     dayKey,
     timeZone: settings.timeZone,
-    startMinutes: settings.nightStartMinutes,
-    endMinutes: settings.nightEndMinutes,
+    nightStartMinutes: settings.nightStartMinutes,
+    nightEndMinutes: settings.nightEndMinutes,
   };
 }
 
-export interface SummarySettings {
+export interface SummarySettings extends NightSettingsRow {
   downtime_merge_threshold_sec: number;
-  night_start_minutes: number;
-  night_end_minutes: number;
 }
 
 export function summaryOptions(
@@ -38,19 +31,12 @@ export function summaryOptions(
   baby: { timezone: string },
   dayKey: string,
   now: Date,
-): { now: Date; mergeGapMs?: number; night?: NightSettings } {
+): { now: Date; mergeGapMs?: number; night?: DayNight } {
   if (!settings) return { now };
   return {
     now,
-    mergeGapMs: settings.downtime_merge_threshold_sec * SECOND_MS,
-    night: nightOf(
-      {
-        timeZone: baby.timezone,
-        nightStartMinutes: settings.night_start_minutes,
-        nightEndMinutes: settings.night_end_minutes,
-      },
-      dayKey,
-    ),
+    mergeGapMs: mergeGapMsFrom(settings),
+    night: nightOf(dayKey, { timeZone: baby.timezone, ...nightSettingsFrom(settings) }),
   };
 }
 
@@ -83,12 +69,10 @@ export interface DaySummary {
 export function summariseDay(
   events: readonly BabyEvent[],
   window: TimeWindow,
-  options: { now?: Date; night?: NightSettings; mergeGapMs?: number } = {},
+  options: { now?: Date; night?: DayNight; mergeGapMs?: number } = {},
 ): DaySummary {
   const now = options.now && options.now < window.end ? options.now : window.end;
-  const nights = options.night
-    ? nightIntervals(options.night.dayKey, options.night.timeZone, options.night.startMinutes, options.night.endMinutes)
-    : [];
+  const nights = options.night ? nightIntervals(options.night.dayKey, options.night) : [];
   const inNight = (instant: Date) => nights.some((night) => instant >= night.start && instant < night.end);
   const summary: DaySummary = {
     sleepMs: 0,

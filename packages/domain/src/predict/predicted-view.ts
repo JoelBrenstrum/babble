@@ -1,5 +1,5 @@
 import { formatTimeOfDay } from '../time/local-time';
-import { fractionOf, type TimeWindow } from '../timeline/days';
+import { fractionOf, type TimeWindow } from '../time/windows';
 import type { BabyEvent } from '../events/types';
 import { predictDay, type PredictedBlock, type PredictedKind } from './predict-day';
 import { DAY_MS, HOUR_MS } from '../time/constants';

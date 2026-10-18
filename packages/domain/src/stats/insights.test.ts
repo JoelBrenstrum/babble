@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { DaySummary } from '../events/day-summary';
 import { makeEvent } from '../events/test-events';
-import { lastDays } from '../timeline/days';
+import { lastDays } from '../time/local-time';
+import type { InsightSettings } from './settings';
 import { barReadout } from './charts';
 import {
   clusterFeedingCard,
-  durationChange,
   feedClusters,
   feedGaps,
   feedSpacingCard,
@@ -21,7 +21,6 @@ import {
   wakeWindowCard,
   wakeWindows,
   weeklySummary,
-  type InsightSettings,
 } from './insights';
 
 const settings: InsightSettings = {
@@ -105,14 +104,6 @@ describe('median', () => {
     expect(median([3, 1, 2])).toBe(2);
     expect(median([1, 2, 3, 4])).toBe(2.5);
     expect(median([])).toBeNull();
-  });
-});
-
-describe('durationChange', () => {
-  it('signs the difference in hours and minutes', () => {
-    expect(durationChange(5 * HOUR, 4.5 * HOUR)).toBe('+30m');
-    expect(durationChange(4 * HOUR, 5.25 * HOUR)).toBe('−1h 15m');
-    expect(durationChange(HOUR, HOUR + 10_000)).toBe('Same');
   });
 });
 

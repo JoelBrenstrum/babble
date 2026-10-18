@@ -14,7 +14,8 @@ export {
   type ChartUnit,
   type StatsChart,
 } from './charts';
-export { gapsBetween, MAX_GAP_MS, type StatsCard, type StatsSettings } from './cards';
+export { gapsBetween, MAX_GAP_MS, type StatsCard } from './cards';
+export type { StatsSettings } from './settings';
 export {
   isStatsRange,
   rangeDays,

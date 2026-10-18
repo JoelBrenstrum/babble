@@ -25,7 +25,7 @@ const window = dayWindow(todayKey, timezone, 0);
 const layout = dayLayout(events, window, now);
 const summary = summariseDay(events, window, {
   now,
-  night: { dayKey: todayKey, timeZone: timezone, startMinutes: 19 * 60, endMinutes: 7 * 60 },
+  night: { dayKey: todayKey, timeZone: timezone, nightStartMinutes: 19 * 60, nightEndMinutes: 7 * 60 },
 });
 const keys = lastDays(todayKey, 7);
 const week = keys.map((key) =>

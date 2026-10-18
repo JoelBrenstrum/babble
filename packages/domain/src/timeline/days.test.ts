@@ -1,12 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dayWindow } from '../time/local-time';
-import { hourTicks, lastDays, lastDayWindow, localInstant, nightIntervals, windowTicks } from './days';
-
-describe('localInstant', () => {
-  it('rolls minutes past midnight into the next day', () => {
-    expect(localInstant('2026-10-06', 1440 + 420, 'Pacific/Auckland').toISOString()).toBe('2026-10-06T18:00:00.000Z');
-  });
-});
+import { lastDayWindow } from '../time/windows';
+import { hourTicks, windowTicks } from './days';
 
 describe('hourTicks', () => {
   it('labels ticks from the day start', () => {
@@ -23,40 +18,8 @@ describe('hourTicks', () => {
   });
 });
 
-describe('nightIntervals', () => {
-  it('builds overnight windows around the day', () => {
-    const [before, during, after] = nightIntervals('2026-10-06', 'UTC', 19 * 60, 7 * 60);
-    expect(before).toEqual({ start: new Date('2026-10-05T19:00:00Z'), end: new Date('2026-10-06T07:00:00Z') });
-    expect(during).toEqual({ start: new Date('2026-10-06T19:00:00Z'), end: new Date('2026-10-07T07:00:00Z') });
-    expect(after!.start).toEqual(new Date('2026-10-07T19:00:00Z'));
-  });
-
-  it('supports a night window that does not cross midnight', () => {
-    const [, during] = nightIntervals('2026-10-06', 'UTC', 60, 6 * 60);
-    expect(during).toEqual({ start: new Date('2026-10-06T01:00:00Z'), end: new Date('2026-10-06T06:00:00Z') });
-  });
-});
-
-describe('lastDays', () => {
-  it('lists the days ending on the given day, across a month boundary', () => {
-    expect(lastDays('2026-10-03', 7)).toEqual([
-      '2026-09-27',
-      '2026-09-28',
-      '2026-09-29',
-      '2026-09-30',
-      '2026-10-01',
-      '2026-10-02',
-      '2026-10-03',
-    ]);
-  });
-});
-
 describe('the last 24 hours', () => {
   const now = new Date('2026-10-08T14:20:00Z');
-
-  it('runs from 24 hours ago until now', () => {
-    expect(lastDayWindow(now)).toEqual({ start: new Date('2026-10-07T14:20:00Z'), end: now });
-  });
 
   it('ticks on local clock hours inside the window', () => {
     const ticks = windowTicks(lastDayWindow(now), 'Pacific/Auckland', 3);

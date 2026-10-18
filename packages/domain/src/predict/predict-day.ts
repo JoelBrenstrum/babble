@@ -1,6 +1,6 @@
 import { minutesOfDay } from '../time/local-time';
 import type { BabyEvent } from '../events/types';
-import { DAY_MS, MINUTE_MS } from '../time/constants';
+import { DAY_MS, MINUTE_MS, MINUTES_PER_DAY } from '../time/constants';
 
 export type PredictedKind = 'sleep' | 'feed';
 
@@ -133,8 +133,8 @@ function rhythmFrom(history: readonly Episode[], nowMs: number, settings: Requir
 }
 
 function circularMinutes(a: number, b: number): number {
-  const diff = Math.abs(a - b) % 1440;
-  return Math.min(diff, 1440 - diff);
+  const diff = Math.abs(a - b) % MINUTES_PER_DAY;
+  return Math.min(diff, MINUTES_PER_DAY - diff);
 }
 
 export function weightedMedian(values: readonly { value: number; weight: number }[]): number | null {

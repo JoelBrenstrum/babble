@@ -1,7 +1,11 @@
 export * from './events/types';
 export { parseCsv } from './csv/parse-csv';
 export { zonedParts, zonedToUtc, type LocalDateTime, type ZonedParts } from './time/zoned';
-export { DAY_MS, HOUR_MS, MINUTE_MS, SECOND_MS } from './time/constants';
+export { DAY_MS, HOUR_MS, MINUTE_MS, MINUTES_PER_DAY, SECOND_MS } from './time/constants';
+export { isWithinNight, nightIntervals, nightWindow, type NightSettings, type ZonedNightSettings } from './time/night';
+export { fractionOf, lastDayWindow, overlapMs, type TimeWindow } from './time/windows';
+export { mergeGapMsFrom, nightSettingsFrom, type NightSettingsRow } from './events/baby-settings';
+export { countChange, durationChange } from './format/change';
 export { byStartedAtAsc, byStartedAtDesc, compareIso, daysUntil, ms } from './time/instants';
 export {
   HUCKLEBERRY_HEADER,
@@ -19,6 +23,8 @@ export { babyAgeLabel } from './format/baby-age';
 export {
   clockToMinutes,
   DEFAULT_CUSTOM_DAY_START_MIN,
+  DEFAULT_NIGHT_END_MINUTES,
+  DEFAULT_NIGHT_START_MINUTES,
   dateToMinutes,
   minutesToClock,
   minutesToDate,
@@ -29,6 +35,7 @@ export { parseActiveBaby, type ActiveBabySelection } from './device/active-baby'
 export { signInFormState, type SignInFormInput, type SignInFormState, type SignInMode } from './format/sign-in';
 export { clampDurationPart, joinDuration, splitDuration } from './format/duration-input';
 export {
+  nightSettingsOf,
   nightThemeHint,
   parseNightWindow,
   parseThemePreference,
@@ -107,6 +114,7 @@ export {
   formatShortDate,
   formatTimeOfDay,
   fromLocalInputValue,
+  lastDays,
   localInstant,
   parseDayKey,
   shiftDay,
@@ -118,20 +126,12 @@ export {
   summariseDay,
   summariseWeek,
   summaryOptions,
+  type DayNight,
   type DaySummary,
-  type NightSettings,
   type SummarySettings,
   type WeekSummary,
 } from './events/day-summary';
-export {
-  fractionOf,
-  hourTicks,
-  lastDayWindow,
-  nightIntervals,
-  lastDays,
-  windowTicks,
-  type TimeWindow,
-} from './timeline/days';
+export { hourTicks, windowTicks } from './timeline/days';
 export { nightMarkers, type NightMarker } from './timeline/night-markers';
 export {
   filterLayout,
@@ -295,8 +295,8 @@ export {
   type StatsReport,
   type StatsSettings,
 } from './stats/stats';
+export type { InsightSettings, InsightsReportSettings } from './stats/settings';
 export {
-  durationChange,
   INSIGHT_DAYS,
   insightDays,
   clusterFeedingCard,
@@ -306,14 +306,12 @@ export {
   median,
   nightSleepCard,
   nightStats,
-  nightWindow,
   PATTERNS_CAPTION,
   sleepSpans,
   wakeWindowCard,
   wakeWindows,
   weeklySummary,
   type FeedCluster,
-  type InsightSettings,
   type InsightsReport,
   type NightStat,
   type WakeWindow,

@@ -1,20 +1,16 @@
 import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
 import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent } from '../events/types';
+import { countChange, durationChange } from '../format/change';
 import { formatDuration, formatDurationShort } from '../format/duration';
 import { minutesToClock } from '../format/time-of-day';
 import { bucketByDay } from '../timeline/day-layout';
-import { lastDays, localInstant, type TimeWindow } from '../timeline/days';
-import { dayKeyFor, dayWindow, formatTimeOfDay, minutesOfDay, shiftDay } from '../time/local-time';
+import { dayKeyFor, dayWindow, formatTimeOfDay, lastDays, minutesOfDay, shiftDay } from '../time/local-time';
+import { nightWindow } from '../time/night';
+import type { TimeWindow } from '../time/windows';
 import { MAX_GAP_MS, type StatsCard } from './cards';
-import { HOUR_MS, MINUTE_MS } from '../time/constants';
-
-export interface InsightSettings {
-  timeZone: string;
-  dayStartMinutes: number;
-  nightStartMinutes: number;
-  nightEndMinutes: number;
-}
+import type { InsightSettings, InsightsReportSettings } from './settings';
+import { HOUR_MS, MINUTE_MS, MINUTES_PER_DAY } from '../time/constants';
 
 interface Span {
   start: number;
@@ -57,15 +53,6 @@ export function sleepSpans(events: readonly BabyEvent[], now: Date): Span[] {
     else joined.push({ ...span });
   }
   return joined;
-}
-
-export function nightWindow(dayKey: string, settings: InsightSettings): TimeWindow {
-  const endOffset =
-    settings.nightEndMinutes > settings.nightStartMinutes ? settings.nightEndMinutes : settings.nightEndMinutes + 1440;
-  return {
-    start: localInstant(dayKey, settings.nightStartMinutes, settings.timeZone),
-    end: localInstant(dayKey, endOffset, settings.timeZone),
-  };
 }
 
 const inside = (instant: number, window: TimeWindow) =>
@@ -128,18 +115,6 @@ export function median(values: readonly number[]): number | null {
 }
 
 const duration = (ms: number) => formatDuration(ms, { seconds: false });
-
-export function durationChange(current: number, previous: number): string {
-  const delta = Math.round((current - previous) / MINUTE_MS) * MINUTE_MS;
-  if (delta === 0) return 'Same';
-  return `${delta > 0 ? '+' : '−'}${duration(Math.abs(delta))}`;
-}
-
-export function countChange(current: number, previous: number): string {
-  const delta = Math.round((current - previous) * 10) / 10;
-  if (delta === 0) return 'Same';
-  return `${delta > 0 ? '+' : '−'}${Math.abs(delta)}`;
-}
 
 const ORDINALS = ['First of the day', 'Second', 'Third', 'Fourth', 'Fifth'];
 
@@ -363,7 +338,7 @@ export const FEED_TREND_DAYS = 7;
 export function feedStats(
   events: readonly BabyEvent[],
   now: Date,
-  settings: Pick<InsightSettings, 'timeZone' | 'dayStartMinutes'> & { mergeGapMs: number },
+  settings: Pick<InsightsReportSettings, 'timeZone' | 'dayStartMinutes' | 'mergeGapMs'>,
 ): FeedStat[] {
   return events.flatMap((event) => {
     if (event.type !== 'breast_feed' || event.deletedAt || !event.endedAt) return [];
@@ -601,7 +576,9 @@ export function feedClusters(events: readonly BabyEvent[], settings: InsightSett
 
 function usualStart(clusters: readonly FeedCluster[], settings: InsightSettings): string | null {
   const fromDayStart = clusters.map(
-    (cluster) => (minutesOfDay(new Date(cluster.start), settings.timeZone) - settings.dayStartMinutes + 1440) % 1440,
+    (cluster) =>
+      (minutesOfDay(new Date(cluster.start), settings.timeZone) - settings.dayStartMinutes + MINUTES_PER_DAY) %
+      MINUTES_PER_DAY,
   );
   const typical = median(fromDayStart);
   if (typical === null) return null;
@@ -680,7 +657,7 @@ export function insightsReport(
   events: readonly BabyEvent[],
   todayKey: string,
   now: Date,
-  settings: InsightSettings & { mergeGapMs: number },
+  settings: InsightsReportSettings,
 ): InsightsReport {
   const keys = insightDays(todayKey);
   const spans = sleepSpans(events, now);
@@ -694,7 +671,7 @@ export function insightsReport(
       summary: summariseDay(day.events, day.window, {
         now,
         mergeGapMs: settings.mergeGapMs,
-        night: nightOf(settings, day.dayKey),
+        night: nightOf(day.dayKey, settings),
       }),
     }));
   const recent = new Set(keys.slice(-7));

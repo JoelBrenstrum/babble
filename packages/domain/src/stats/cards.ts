@@ -1,27 +1,19 @@
 import type { DaySummary } from '../events/day-summary';
 import { summariseSegments } from '../events/session-summary';
-import type { BabyEvent, EventOfType, PooColour, Units } from '../events/types';
+import type { BabyEvent, EventOfType, PooColour } from '../events/types';
 import { formatDurationShort, formatPerDay } from '../format/duration';
 import { formatVolume } from '../format/units';
 import { HOUR_MS } from '../time/constants';
 import { byStartedAtDesc, ms } from '../time/instants';
-import type { TimeWindow } from '../timeline/days';
+import type { TimeWindow } from '../time/windows';
 import { feedTimeSplit } from '../timeline/totals';
 import { buildChart, type ChartBar, type StatsChart } from './charts';
+import type { StatsSettings } from './settings';
 
 const RECENT_POO_COLOURS = 7;
 
 export const MAX_GAP_MS = 12 * HOUR_MS;
 const hours = formatDurationShort;
-
-export interface StatsSettings {
-  timeZone: string;
-  dayStartMinutes: number;
-  nightStartMinutes: number;
-  nightEndMinutes: number;
-  mergeGapMs: number;
-  units: Units;
-}
 
 export interface StatsCard {
   key: 'sleep' | 'feeds' | 'nappies' | 'pump' | 'wake' | 'night' | 'feed-trend' | 'feed-spacing' | 'cluster-feeds';

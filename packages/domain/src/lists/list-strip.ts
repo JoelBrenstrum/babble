@@ -4,8 +4,8 @@ import type { BabyEvent, PooColour, Units } from '../events/types';
 import { formatDuration, formatDurationShort, formatPerDay } from '../format/duration';
 import { formatVolume, formatVolumeValue, formatWeightChange } from '../format/units';
 import { growthReport, type BabySex } from '../growth/growth';
-import { formatShortDate, formatTimeOfDay, dayWindow, dayKeyFor, shiftDay } from '../time/local-time';
-import { lastDays } from '../timeline/days';
+import { formatShortDate, formatTimeOfDay, dayWindow, dayKeyFor, lastDays, shiftDay } from '../time/local-time';
+import type { InsightSettings } from '../stats/settings';
 import { bucketByDay } from '../timeline/day-layout';
 import { isSessionType, type TrackerKey } from '../trackers';
 import { summariseSleep } from '../events/sleep-stretches';
@@ -21,12 +21,8 @@ export interface StripItem {
   swatch?: PooColour;
 }
 
-export interface StripContext {
+export interface StripContext extends InsightSettings {
   now: Date;
-  timeZone: string;
-  dayStartMinutes: number;
-  nightStartMinutes: number;
-  nightEndMinutes: number;
   units: Units;
   birthDate: string;
   sex: BabySex | null;
@@ -134,7 +130,7 @@ function summaries(events: readonly BabyEvent[], context: StripContext) {
     (day) =>
       summariseDay(day.events, day.window, {
         now: context.now,
-        night: nightOf(context, day.dayKey),
+        night: nightOf(day.dayKey, context),
       }),
   );
   const today = days.at(-1)!;
