@@ -1,14 +1,25 @@
 // @vitest-environment jsdom
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react';
-import type { BabyEvent } from '@babble/domain';
+import { emptyDraft, type BabyEvent } from '@babble/domain';
 import { createElement, type ReactNode } from 'react';
 import { describe, expect, it, vi } from 'vitest';
+import type { BabbleClient } from '../client';
 import { sampleBaby, sampleRunningSleep } from '../fixtures';
 import { queryKeys } from '../queries';
 import { fakeClient } from '../test-utils';
 import { NotifyProvider, type Toast } from './notify';
-import { useDiscardSession, useSaveSleepDetails, useSessionAction } from './use-events';
+import {
+  useDiscardSession,
+  useMergeSessions,
+  useRemoveEntry,
+  useReopenSession,
+  useRestoreEntry,
+  useSaveEvent,
+  useSaveSleepDetails,
+  useSessionAction,
+  useStartSession,
+} from './use-events';
 
 const NOW = new Date();
 const babyId = sampleBaby.id;
@@ -71,5 +82,42 @@ describe('optimistic session hooks', () => {
       await result.current.mutateAsync({ event: sleep, action: { kind: 'end' } });
     });
     expect(queryClient.getQueryData(queryKeys.runningEvents(babyId))).toEqual([]);
+  });
+});
+
+describe('plain event hooks', () => {
+  const failing = () => ({ status: 500, body: { message: 'down' } });
+  const cases: [
+    string,
+    (client: BabbleClient, babyId: string) => { mutateAsync: (variables: never) => Promise<unknown> },
+    unknown,
+  ][] = [
+    ['useSaveEvent', useSaveEvent, { draft: emptyDraft('nappy', NOW) }],
+    ['useRemoveEntry', useRemoveEntry, 'event-1'],
+    ['useRestoreEntry', useRestoreEntry, 'event-1'],
+    ['useReopenSession', useReopenSession, { type: 'sleep', eventId: 'event-1' }],
+    ['useMergeSessions', useMergeSessions, { type: 'sleep', earlierId: 'a', laterId: 'b' }],
+    ['useStartSession', useStartSession, { type: 'sleep' }],
+  ];
+
+  it.each(cases)('%s reports a failure as a toast and refreshes', async (_, useHook, variables) => {
+    const { client, queryClient, toasts, wrapper } = setup(failing);
+    const { result } = renderHook(() => useHook(client, babyId), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync(variables as never).catch(() => undefined);
+    });
+    expect(toasts).toEqual([{ message: 'Something went wrong. Please try again.' }]);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.events(babyId) });
+  });
+
+  it('returns the new session id and stays quiet on success', async () => {
+    const { client, toasts, wrapper } = setup(() => ({ body: 'event-9' }));
+    const { result } = renderHook(() => useStartSession(client, babyId), { wrapper });
+    let id: string | undefined;
+    await act(async () => {
+      id = await result.current.mutateAsync({ type: 'sleep' });
+    });
+    expect(id).toBe('event-9');
+    expect(toasts).toEqual([]);
   });
 });

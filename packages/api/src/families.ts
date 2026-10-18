@@ -1,3 +1,4 @@
+import { signOut } from './auth';
 import type { BabbleClient } from './client';
 import { BabbleError, unwrap, unwrapMaybe, unwrapVoid } from './errors';
 import { normalizeInviteCode } from './invite-code';
@@ -116,16 +117,16 @@ export function withFamilySettings(row: BabySettingsWithFamily): BabySettings {
   };
 }
 
+function selectBabySettings(client: BabbleClient, babyId: string) {
+  return client.from('baby_settings').select(BABY_SETTINGS_WITH_FAMILY).eq('baby_id', babyId);
+}
+
 export async function getBabySettings(client: BabbleClient, babyId: string): Promise<BabySettings> {
-  return withFamilySettings(
-    unwrap(await client.from('baby_settings').select(BABY_SETTINGS_WITH_FAMILY).eq('baby_id', babyId).single()),
-  );
+  return withFamilySettings(unwrap(await selectBabySettings(client, babyId).single()));
 }
 
 export async function findBabySettings(client: BabbleClient, babyId: string): Promise<BabySettings | null> {
-  const row = unwrapMaybe(
-    await client.from('baby_settings').select(BABY_SETTINGS_WITH_FAMILY).eq('baby_id', babyId).maybeSingle(),
-  );
+  const row = unwrapMaybe(await selectBabySettings(client, babyId).maybeSingle());
   return row && withFamilySettings(row);
 }
 
@@ -235,5 +236,5 @@ export async function acceptInvite(
 
 export async function deleteMyAccount(client: BabbleClient): Promise<void> {
   unwrapVoid(await client.rpc('delete_my_account'));
-  await client.auth.signOut({ scope: 'local' });
+  await signOut(client);
 }
