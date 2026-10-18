@@ -6,6 +6,8 @@ import {
   dayWindow,
   insightsReport,
   insightsSince,
+  mergeGapMsFrom,
+  nightSettingsFrom,
   predictAhead,
   predictionSince,
   type InsightsReport,
@@ -26,8 +28,9 @@ function insightsScope(baby: InsightsBaby, settings: BabySettings | undefined) {
   return {
     timeZone: baby.timezone,
     dayStartMinutes: baby.day_start_minutes,
-    nightStartMinutes: settings?.night_start_minutes ?? DEFAULT_NIGHT_START_MINUTES,
-    nightEndMinutes: settings?.night_end_minutes ?? DEFAULT_NIGHT_END_MINUTES,
+    ...(settings
+      ? nightSettingsFrom(settings)
+      : { nightStartMinutes: DEFAULT_NIGHT_START_MINUTES, nightEndMinutes: DEFAULT_NIGHT_END_MINUTES }),
   };
 }
 
@@ -48,7 +51,7 @@ export function useInsights(
   const report = useMemo(
     () =>
       enabled && events && settings
-        ? insightsReport(events, todayKey, now, { ...scope, mergeGapMs: settings.downtime_merge_threshold_sec * 1000 })
+        ? insightsReport(events, todayKey, now, { ...scope, mergeGapMs: mergeGapMsFrom(settings) })
         : null,
     [enabled, events, settings, todayKey, now, scope],
   );

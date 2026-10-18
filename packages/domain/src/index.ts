@@ -1,5 +1,7 @@
 export * from './events/types';
 export { MINUTE_MS } from './time/constants';
+export { mergeGapMsFrom, nightSettingsFrom } from './events/baby-settings';
+export type { NightSettings } from './time/night';
 export { fractionOf } from './time/windows';
 export {
   HuckleberryCsvError,
