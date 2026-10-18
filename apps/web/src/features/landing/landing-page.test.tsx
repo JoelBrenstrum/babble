@@ -43,6 +43,12 @@ describe('LandingPage', () => {
     expect(screen.getAllByRole('heading', { level: 3 })).toHaveLength(FEATURES.length);
   });
 
+  it('points to the Home Assistant guide', async () => {
+    await renderLanding();
+    expect(screen.getByRole('heading', { level: 3, name: 'Home Assistant' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Set up Home Assistant' })).toHaveAttribute('href', '/home-assistant');
+  });
+
   it('shows predictions and patterns, marked Plus only when billing is on', async () => {
     await renderLanding();
     expect(screen.getByRole('heading', { level: 3, name: 'Predicted naps and feeds' })).toBeInTheDocument();
@@ -62,6 +68,7 @@ describe('LandingPage', () => {
     expect(footer.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/sign-in');
     expect(footer.getByRole('link', { name: 'Privacy' })).toHaveAttribute('href', '/privacy');
     expect(footer.getByRole('link', { name: 'Terms' })).toHaveAttribute('href', '/terms');
+    expect(footer.getByRole('link', { name: 'Home Assistant' })).toHaveAttribute('href', '/home-assistant');
     expect(footer.getByRole('link', { name: 'GitHub' })).toHaveAttribute('href', GITHUB_URL);
     expect(screen.getByRole('link', { name: 'privacy policy' })).toHaveAttribute('href', '/privacy');
     expect(screen.getByRole('link', { name: 'terms of use' })).toHaveAttribute('href', '/terms');

@@ -51,6 +51,7 @@ export function deviceLinkUrl(publicUrl: string, code: string): string {
 }
 
 const BROWSERS: [RegExp, string][] = [
+  [/HomeAssistant\//, 'Home Assistant'],
   [/Edg\//, 'Edge'],
   [/OPR\//, 'Opera'],
   [/Firefox\//, 'Firefox'],
