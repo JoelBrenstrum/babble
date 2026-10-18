@@ -1,11 +1,15 @@
 import {
-  chartAxis,
   formatShortDate,
+  growthChartGeometry,
   growthEstimateReadout,
   growthMilestoneText,
   growthPointReadout,
+  growthReadout,
+  milestoneKey,
   readoutEdge,
+  type ChartSize,
   type GrowthChart,
+  type GrowthPointKey,
   type GrowthReport,
 } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
@@ -17,9 +21,7 @@ import { StatusMessage } from '#/components/ui/status';
 import { PlusBadge } from '#/features/plus-dialog';
 import { cn } from '#/lib/cn';
 
-const WIDTH = 320;
-const HEIGHT = 180;
-const PAD = { left: 34, right: 8, top: 8, bottom: 22 };
+const SIZE: ChartSize = { width: 320, height: 180, pad: { left: 34, right: 8, top: 8, bottom: 22 } };
 
 const CURVE_STYLE: Record<number, string> = {
   3: 'stroke-ink-3/50 [stroke-dasharray:3_3]',
@@ -95,31 +97,12 @@ export function GrowthCard({
 }
 
 function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; timeZone: string; plusBadge: boolean }) {
-  const [active, setActive] = useState<number | 'estimate' | `milestone-${number}` | null>(null);
-  const x = (months: number) => PAD.left + (months / chart.xMax) * (WIDTH - PAD.left - PAD.right);
-  const y = (value: number) =>
-    PAD.top + (1 - (value - chart.yMin) / (chart.yMax - chart.yMin)) * (HEIGHT - PAD.top - PAD.bottom);
-  const path = (points: { months: number; value: number }[]) =>
-    points
-      .map((point, order) => `${order ? 'L' : 'M'}${x(point.months).toFixed(1)},${y(point.value).toFixed(1)}`)
-      .join(' ');
-  const { yTicks, xTicks } = chartAxis(chart);
+  const [active, setActive] = useState<GrowthPointKey | null>(null);
+  const geometry = growthChartGeometry(chart, SIZE);
+  const { x, y, width, height, pad } = geometry;
   const { estimate } = chart;
-  const last = chart.points.at(-1)!;
-  const ahead = [...(estimate ? [estimate] : []), ...chart.milestones];
-  const milestone =
-    typeof active === 'string' && active.startsWith('milestone-')
-      ? chart.milestones[Number(active.slice(10))]
-      : undefined;
-  const tip =
-    active === 'estimate' && estimate
-      ? { point: estimate, text: growthEstimateReadout(estimate) }
-      : milestone
-        ? { point: milestone, text: growthMilestoneText(milestone) }
-        : typeof active === 'number' && chart.points[active]
-          ? { point: chart.points[active], text: growthPointReadout(chart.points[active], timeZone) }
-          : null;
-  const hover = (key: NonNullable<typeof active>) => ({
+  const tip = growthReadout(chart, active, timeZone);
+  const hover = (key: GrowthPointKey) => ({
     onMouseEnter: () => setActive(key),
     onMouseLeave: () => setActive(null),
     onFocus: () => setActive(key),
@@ -153,62 +136,57 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
       )}
       <div className="relative">
         <svg
-          viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+          viewBox={`0 0 ${width} ${height}`}
           role="img"
           aria-label={`${chart.label} by age in months, latest ${chart.latest.value}${chart.latest.percentile ? `, ${chart.latest.percentile} percentile` : ''}`}
           className="w-full overflow-visible"
         >
-          {yTicks.map((value) => (
-            <g key={value}>
-              <line x1={PAD.left} x2={WIDTH - PAD.right} y1={y(value)} y2={y(value)} className="stroke-line" />
+          {geometry.yTicks.map((tick) => (
+            <g key={tick.value}>
+              <line x1={pad.left} x2={width - pad.right} y1={tick.y} y2={tick.y} className="stroke-line" />
               <text
-                x={PAD.left - 6}
-                y={y(value)}
+                x={pad.left - 6}
+                y={tick.y}
                 textAnchor="end"
                 dominantBaseline="middle"
                 className="fill-ink-3 text-[10px]"
               >
-                {Math.round(value * 10) / 10}
+                {tick.label}
               </text>
             </g>
           ))}
-          {xTicks.map((months) => (
-            <text key={months} x={x(months)} y={HEIGHT - 6} textAnchor="middle" className="fill-ink-3 text-[10px]">
-              {months}
+          {geometry.xTicks.map((tick) => (
+            <text key={tick.months} x={tick.x} y={height - 6} textAnchor="middle" className="fill-ink-3 text-[10px]">
+              {tick.months}
             </text>
           ))}
-          <text x={WIDTH - PAD.right} y={HEIGHT - 6} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-12}>
+          <text x={width - pad.right} y={height - 6} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-12}>
             months
           </text>
-          <text x={PAD.left - 6} y={PAD.top - 2} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-2}>
+          <text x={pad.left - 6} y={pad.top - 2} textAnchor="end" className="fill-ink-3 text-[10px]" dy={-2}>
             {chart.unit}
           </text>
-          {chart.curves.map((curve) => (
+          {geometry.curves.map((curve) => (
             <path
               key={curve.percentile}
-              d={path(curve.points)}
+              d={curve.d}
               fill="none"
               strokeWidth={1.5}
               className={CURVE_STYLE[curve.percentile]}
             />
           ))}
-          {chart.points.length > 1 && (
-            <path d={path(chart.points)} fill="none" strokeWidth={2} className="stroke-growth" />
+          {geometry.measuredPath && (
+            <path d={geometry.measuredPath} fill="none" strokeWidth={2} className="stroke-growth" />
           )}
-          {ahead.length > 0 && (
-            <path
-              d={path([last, ...ahead])}
-              fill="none"
-              strokeWidth={2}
-              className="stroke-growth [stroke-dasharray:4_3]"
-            />
+          {geometry.aheadPath && (
+            <path d={geometry.aheadPath} fill="none" strokeWidth={2} className="stroke-growth [stroke-dasharray:4_3]" />
           )}
           {chart.milestones.map((point, index) => (
             <g key={point.reading}>
               <circle
                 cx={x(point.months)}
                 cy={y(point.value)}
-                r={active === `milestone-${index}` ? 5 : 3}
+                r={active === milestoneKey(index) ? 5 : 3}
                 className="pointer-events-none fill-raised stroke-growth"
                 strokeWidth={1.5}
               />
@@ -221,7 +199,7 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
                 aria-label={growthMilestoneText(point)}
                 className="cursor-pointer fill-transparent outline-none focus-visible:stroke-primary"
                 strokeWidth={2}
-                {...hover(`milestone-${index}`)}
+                {...hover(milestoneKey(index))}
               />
             </g>
           ))}
@@ -243,11 +221,7 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
                 aria-label={growthEstimateReadout(estimate)}
                 className="cursor-pointer fill-transparent outline-none focus-visible:stroke-primary"
                 strokeWidth={2}
-                onMouseEnter={() => setActive('estimate')}
-                onMouseLeave={() => setActive(null)}
-                onFocus={() => setActive('estimate')}
-                onBlur={() => setActive(null)}
-                onClick={() => setActive('estimate')}
+                {...hover('estimate')}
               />
             </g>
           )}
@@ -269,16 +243,12 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
                 aria-label={growthPointReadout(point, timeZone)}
                 className="cursor-pointer fill-transparent outline-none focus-visible:stroke-primary"
                 strokeWidth={2}
-                onMouseEnter={() => setActive(index)}
-                onMouseLeave={() => setActive(null)}
-                onFocus={() => setActive(index)}
-                onBlur={() => setActive(null)}
-                onClick={() => setActive(index)}
+                {...hover(index)}
               />
             </g>
           ))}
         </svg>
-        {tip && <PointTip text={tip.text} left={x(tip.point.months) / WIDTH} top={y(tip.point.value) / HEIGHT} />}
+        {tip && <PointTip text={tip.text} left={x(tip.point.months) / width} top={y(tip.point.value) / height} />}
       </div>
     </figure>
   );

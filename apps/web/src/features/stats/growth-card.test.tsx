@@ -89,6 +89,16 @@ describe('GrowthCard estimate', () => {
     const point = screen.getByRole('img', { name: /^Estimate for today · \d\.\d+ kg · \d+(st|nd|rd|th) percentile$/ });
     fireEvent.mouseEnter(point);
     expect(screen.getAllByText(/^Estimate for today · /).length).toBeGreaterThan(0);
+    fireEvent.mouseLeave(point);
+    expect(screen.queryByText(/^Estimate for today · /)).not.toBeInTheDocument();
+    fireEvent.focus(point);
+    expect(screen.getAllByText(/^Estimate for today · /).length).toBeGreaterThan(0);
+    fireEvent.blur(point);
+    fireEvent.click(milestone);
+    expect(screen.getByText(/^5 kg around \d+ \w+$/)).toBeInTheDocument();
+    fireEvent.click(point);
+    expect(screen.queryByText(/^5 kg around \d+ \w+$/)).not.toBeInTheDocument();
+    expect(screen.getAllByText(/^Estimate for today · /).length).toBeGreaterThan(0);
   });
 
   it('leaves the estimate out when the report has none', async () => {
