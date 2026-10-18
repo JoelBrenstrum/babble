@@ -28,6 +28,7 @@ import { TrackerIcon } from '@/components/tracker-icon';
 import { EventForm } from '@/features/events/event-form';
 import { useNapPrompt } from '@/features/nap-prompt';
 import { useBabble } from '@/lib/babble';
+import { SIDE_STYLE } from '@/lib/side-style';
 import { useTokenColor } from '@/lib/theme';
 import { useCanLog } from '@/lib/use-can-log';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
@@ -190,14 +191,14 @@ function StartSession({
               accessibilityLabel={side === suggested ? `Start ${side}, next side` : `Start ${side}`}
               disabled={start.isPending}
               onPress={() => begin(side)}
-              className={`h-36 flex-1 items-center justify-center gap-2 rounded-card ${side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
+              className={`h-36 flex-1 items-center justify-center gap-2 rounded-card ${SIDE_STYLE[side].solid}`}
             >
               {side === suggested && (
                 <View className="absolute top-2.5 right-2.5 rounded-full bg-raised px-2.5 py-0.5">
                   <Text className="font-bold text-caption text-ink">Next</Text>
                 </View>
               )}
-              <Text className="font-bold text-timer-md text-ink-on-solid">{side === 'left' ? 'L' : 'R'}</Text>
+              <Text className="font-bold text-timer-md text-ink-on-solid">{SIDE_STYLE[side].letter}</Text>
               <Text className="font-semibold text-label text-ink-on-solid">{`Start ${side}`}</Text>
             </Pressable>
           ))}

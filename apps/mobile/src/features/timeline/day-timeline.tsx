@@ -21,6 +21,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { PooSwatch } from '@/components/poo-swatch';
+import { sideStyle } from '@/lib/side-style';
 import { pct } from './percent';
 
 const DAY_TIMELINE_HEIGHT = 560;
@@ -258,7 +259,7 @@ function Item({
           return (
             <View
               key={index}
-              className={`absolute inset-x-0 ${event.type === 'pump' ? 'bg-pump' : part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
+              className={`absolute inset-x-0 ${event.type === 'pump' ? 'bg-pump' : sideStyle(part.side).solid}`}
               style={{ top: pct(top), height: pct(partHeight), minHeight: 3 }}
             />
           );

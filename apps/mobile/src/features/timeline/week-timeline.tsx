@@ -1,5 +1,6 @@
 import { weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
 import { Pressable, Text, View } from 'react-native';
+import { sideStyle } from '@/lib/side-style';
 import { pct } from './percent';
 
 export function WeekTimeline({
@@ -63,7 +64,7 @@ export function WeekTimeline({
                   item.parts.map((part, index) => (
                     <View
                       key={`${item.event.id}-${index}`}
-                      className={`absolute inset-x-[30%] rounded-full ${part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
+                      className={`absolute inset-x-[30%] rounded-full ${sideStyle(part.side).solid}`}
                       style={{ top: pct(part.startFrac), height: pct(part.endFrac - part.startFrac), minHeight: 3 }}
                     />
                   ))

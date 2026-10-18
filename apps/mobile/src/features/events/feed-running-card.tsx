@@ -13,6 +13,7 @@ import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { useNapPrompt } from '@/features/nap-prompt';
+import { SIDE_STYLE } from '@/lib/side-style';
 import { useRunningCardShell, type RunningCardProps } from './running-card-shell';
 import { useNow, useSessionPrompts } from '@babble/api/react';
 
@@ -76,13 +77,9 @@ export function FeedRunningCard(props: RunningCardProps & { event: FeedEvent }) 
         {(['left', 'right'] as const).map((side) => {
           const active = open?.side === side;
           const ms = side === 'left' ? totals.leftMs : totals.rightMs;
-          const solid = side === 'left' ? 'bg-feed-left' : 'bg-feed-right';
-          const soft =
-            side === 'left'
-              ? 'bg-feed-left-soft border border-feed-left/40'
-              : 'bg-feed-right-soft border border-feed-right/40';
+          const style = SIDE_STYLE[side];
           const state = active ? ' · on' : paused && side === totals.lastSide ? ' · last' : '';
-          const text = active ? 'text-ink-on-solid' : side === 'left' ? 'text-on-feed-left' : 'text-on-feed-right';
+          const text = active ? 'text-ink-on-solid' : style.text;
           return (
             <Pressable
               key={side}
@@ -90,9 +87,9 @@ export function FeedRunningCard(props: RunningCardProps & { event: FeedEvent }) 
               accessibilityLabel={`${SIDE_LABEL[side]}${state.replace(' ·', ',')}`}
               accessibilityState={{ selected: active }}
               onPress={() => void pressSide(side, active)}
-              className={`min-h-tap-lg flex-1 flex-row items-center gap-3 rounded-card px-4 py-3 ${active ? solid : soft}`}
+              className={`min-h-tap-lg flex-1 flex-row items-center gap-3 rounded-card px-4 py-3 ${active ? style.solid : style.soft}`}
             >
-              <Text className={`font-bold text-row-title ${text}`}>{side === 'left' ? 'L' : 'R'}</Text>
+              <Text className={`font-bold text-row-title ${text}`}>{style.letter}</Text>
               <View>
                 <Text className={`font-semibold text-label ${text}`}>{`${SIDE_LABEL[side]}${state}`}</Text>
                 <Text className={`font-sans text-meta ${text}`}>{formatDuration(ms)}</Text>
