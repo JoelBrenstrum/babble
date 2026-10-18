@@ -149,5 +149,5 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
 }
 
 function openTimeline(link: TimelineLink) {
-  router.navigate({ pathname: '/timeline', params: { ...link, at: String(Date.now()) } });
+  router.navigate({ pathname: '/timeline', params: { ...link } });
 }
