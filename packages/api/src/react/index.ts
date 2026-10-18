@@ -19,3 +19,4 @@ export * from './device-name';
 export * from './use-pump-amounts';
 export * from './use-now';
 export * from './use-insights';
+export * from './use-timeline';
