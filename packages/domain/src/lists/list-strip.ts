@@ -169,21 +169,22 @@ function growthItems(events: readonly BabyEvent[], context: StripContext): Strip
       ? { label, value: chart.latest.value, note: `${chart.latest.percentile} percentile` }
       : { label, value: chart.latest.value };
   };
-  const weights = events
-    .filter((event): event is Extract<BabyEvent, { type: 'growth' }> => event.type === 'growth')
-    .filter((event) => event.details.weightG !== null)
-    .sort(byStartedAtDesc);
+  const weights = events.filter(isWeighed).sort(byStartedAtDesc);
   const [latest, previous] = weights;
   const change: StripItem =
     latest && previous
       ? {
           label: 'Change',
-          value: formatWeightChange(latest.details.weightG! - previous.details.weightG!, context.units),
+          value: formatWeightChange(latest.details.weightG - previous.details.weightG, context.units),
           note: daysBetweenNote(previous.startedAt, latest.startedAt, context),
         }
       : { label: 'Change', value: '—' };
   return [measure('weight', 'Weight'), change, measure('length', 'Length')];
 }
+
+type Weighed = Extract<BabyEvent, { type: 'growth' }> & { details: { weightG: number } };
+
+const isWeighed = (event: BabyEvent): event is Weighed => event.type === 'growth' && event.details.weightG !== null;
 
 function daysBetweenNote(from: string, to: string, context: StripContext): string {
   const days = Math.round((calendarDayMs(to, context.timeZone) - calendarDayMs(from, context.timeZone)) / DAY_MS);

@@ -141,7 +141,9 @@ const FALL_ASLEEP: Record<string, FallAsleep> = {
   'long time to fall asleep': 'long_time',
 };
 
-const MOODS = new Set<Mood>(['happy', 'upset']);
+const MOODS: readonly Mood[] = ['happy', 'upset'];
+
+const isMood = (token: string): token is Mood => (MOODS as readonly string[]).includes(token);
 
 export function parseHuckleberryCsv(text: string, options: { timeZone: string }): HuckleberryImport {
   const [header, ...records] = parseCsv(text);
@@ -289,7 +291,7 @@ function mapDiaper({ row, startedAt, notes, warn }: RowContext): MapResult {
   if (mode === 'poo' && rest) quantities.poo = rest;
   if (mode === 'both') {
     for (const [, kind, size] of rest.matchAll(/(pee|poo):\s*(\w+)/g)) {
-      quantities[kind as 'pee' | 'poo'] = size;
+      if (kind === 'pee' || kind === 'poo') quantities[kind] = size;
     }
   }
 
@@ -339,7 +341,7 @@ function mapSleep({ row, startedAt, endedAt, notes, warn }: RowContext): MapResu
   for (const token of splitList(row.startCondition)) {
     const fallAsleep = lookup(FALL_ASLEEP, token);
     if (fallAsleep) fallAsleepValues.push(fallAsleep);
-    else if (MOODS.has(token as Mood)) startMoods.push(token as Mood);
+    else if (isMood(token)) startMoods.push(token);
     else warn(`Unrecognised sleep start condition "${token}"`);
   }
   if (fallAsleepValues.length > 1) {
@@ -357,7 +359,7 @@ function mapSleep({ row, startedAt, endedAt, notes, warn }: RowContext): MapResu
   let wokenByCarer = false;
   for (const token of splitList(row.endCondition)) {
     if (token === 'woke up child') wokenByCarer = true;
-    else if (MOODS.has(token as Mood)) endMoods.push(token as Mood);
+    else if (isMood(token)) endMoods.push(token);
     else warn(`Unrecognised sleep end condition "${token}"`);
   }
 

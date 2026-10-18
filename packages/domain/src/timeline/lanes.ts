@@ -32,6 +32,16 @@ export function toggleLane(show: string | undefined, lane: TimelineLane): string
   return parseTimelineLanes(next.join(',')) ?? (next.length === 0 ? show : undefined);
 }
 
+export function visibleLanes(
+  layout: Pick<DayLayout, 'pumps'>,
+  shown: readonly TimelineLane[],
+): { key: TimelineLane; label: string }[] {
+  const filtered = shown.length < TIMELINE_LANES.length;
+  return TIMELINE_LANES.filter((lane) => lane !== 'pumps' || layout.pumps.length > 0 || filtered)
+    .filter((lane) => shown.includes(lane))
+    .map((lane) => ({ key: lane, label: TIMELINE_LANE_LABELS[lane] }));
+}
+
 export function filterLayout(layout: DayLayout, lanes: readonly TimelineLane[]): DayLayout {
   if (lanes.length === TIMELINE_LANES.length) return layout;
   return {

@@ -1,6 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { DayLayout, TimelineItem } from './day-layout';
-import { filterLayout, parseTimelineLanes, shownLanes, statsBarLink, toggleLane } from './lanes';
+import {
+  filterLayout,
+  parseTimelineLanes,
+  shownLanes,
+  statsBarLink,
+  toggleLane,
+  TIMELINE_LANES,
+  visibleLanes,
+} from './lanes';
 
 describe('parseTimelineLanes', () => {
   it.each([
@@ -18,6 +26,30 @@ describe('shownLanes', () => {
   it('shows every lane when nothing is picked', () => {
     expect(shownLanes(undefined)).toEqual(['sleep', 'feeds', 'nappies', 'pumps']);
     expect(shownLanes('feeds,sleep')).toEqual(['sleep', 'feeds']);
+  });
+});
+
+describe('visibleLanes', () => {
+  const item = {} as TimelineItem;
+
+  it('hides the empty pump lane while every lane is shown', () => {
+    expect(visibleLanes({ pumps: [] }, TIMELINE_LANES)).toEqual([
+      { key: 'sleep', label: 'Sleep' },
+      { key: 'feeds', label: 'Feeds' },
+      { key: 'nappies', label: 'Nappies' },
+    ]);
+    expect(visibleLanes({ pumps: [item] }, TIMELINE_LANES).map((lane) => lane.key)).toEqual(TIMELINE_LANES);
+  });
+
+  it('keeps a chosen pump lane even when it is empty', () => {
+    expect(visibleLanes({ pumps: [] }, ['feeds', 'pumps'])).toEqual([
+      { key: 'feeds', label: 'Feeds' },
+      { key: 'pumps', label: 'Pumps' },
+    ]);
+  });
+
+  it('lists lanes in timeline order whatever order they were picked in', () => {
+    expect(visibleLanes({ pumps: [] }, ['nappies', 'sleep']).map((lane) => lane.key)).toEqual(['sleep', 'nappies']);
   });
 });
 

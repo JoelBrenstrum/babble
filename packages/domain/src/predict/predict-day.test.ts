@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import type { BabyEvent } from '../events/types';
-import { learnRhythm, predictDay, predictDayStatus, weightedMedian } from './predict-day';
+import { learnRhythm, predictDay, weightedMedian } from './predict-day';
 
 const M = 60_000;
 const OPTIONS = { timeZone: 'Pacific/Auckland' };
@@ -190,24 +190,16 @@ describe('predictDay', () => {
   });
 });
 
-describe('predictDayStatus', () => {
+describe('predictDay before it is ready', () => {
   const now = new Date(BASE + 23 * 60 * M + 55 * M);
   const until = new Date(BASE + 30 * 60 * M);
 
-  it('reports that it is still learning when there are too few samples', () => {
-    expect(predictDayStatus(regularCycles(3), now, until, OPTIONS)).toEqual({ status: 'learning' });
+  it('has nothing to say while there are too few samples', () => {
     expect(predictDay(regularCycles(3), now, until, OPTIONS)).toBeNull();
   });
 
-  it('reports that there is nothing to anchor on when nothing has been logged', () => {
-    expect(predictDayStatus([], now, until, { ...OPTIONS, minSamples: 0 })).toEqual({ status: 'no-anchor' });
+  it('has nothing to anchor on when nothing has been logged', () => {
     expect(predictDay([], now, until, { ...OPTIONS, minSamples: 0 })).toBeNull();
-  });
-
-  it('returns the blocks when ready, matching predictDay', () => {
-    const events = regularCycles(8);
-    const result = predictDayStatus(events, now, until, OPTIONS);
-    expect(result).toEqual({ status: 'ready', blocks: predictDay(events, now, until, OPTIONS) });
   });
 
   it('falls back to the defaults for options set to undefined', () => {

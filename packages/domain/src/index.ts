@@ -146,6 +146,7 @@ export {
   toggleLane,
   TIMELINE_LANE_LABELS,
   TIMELINE_LANES,
+  visibleLanes,
   type TimelineLane,
   type TimelineLink,
 } from './timeline/lanes';
@@ -258,11 +259,9 @@ export { importedNote, summariseImport, type ImportSummary } from './huckleberry
 export {
   learnRhythm,
   predictDay,
-  predictDayStatus,
   weightedMedian,
   type PredictedBlock,
   type PredictedKind,
-  type PredictionResult,
   type PredictOptions,
   type Rhythm,
 } from './predict/predict-day';
