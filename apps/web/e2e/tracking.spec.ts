@@ -48,6 +48,30 @@ test('a breastfeed timer switches sides, pauses, resumes and finishes', async ({
   await expect(page.getByRole('button', { name: /start right/i })).not.toContainText('Next');
 });
 
+test('pump amounts are saved while pumping and carried into the finish', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+
+  await page.goto('/track/pump/new');
+  await page.getByRole('button', { name: /start left/i }).click();
+  await expect(page.getByText('Saved as you go, without stopping the timer.')).toBeVisible();
+
+  const saved = page.waitForResponse((response) => response.url().includes('/rpc/save_pump_amounts'));
+  await page.getByRole('textbox', { name: 'Left amount' }).fill('60');
+  await page.getByRole('button', { name: 'Increase right amount by 10' }).click();
+  await page.getByRole('button', { name: 'Increase right amount by 10' }).click();
+  await expect(page.getByText('Total 80 ml')).toBeVisible();
+  expect((await saved).ok()).toBe(true);
+
+  await page.reload();
+  await expect(page.getByRole('textbox', { name: 'Left amount' })).toHaveValue('60');
+  await expect(page.getByRole('textbox', { name: 'Right amount' })).toHaveValue('20');
+
+  await page.getByRole('button', { name: 'Finish' }).click();
+  await expect(page.getByRole('heading', { name: 'How much did you pump?' })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Left amount' })).toHaveValue('60');
+  await expect(page.getByRole('textbox', { name: 'Right amount' })).toHaveValue('20');
+});
+
 test('a nappy can be logged, edited, deleted and restored', async ({ page }, testInfo) => {
   await newFamily(page, testInfo.project.name);
 

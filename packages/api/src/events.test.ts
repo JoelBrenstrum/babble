@@ -13,6 +13,7 @@ import {
   rowToEvent,
   endSession,
   saveEvent,
+  savePumpAmounts,
   saveSleepDetails,
   setSwitchTime,
   startSession,
@@ -219,6 +220,15 @@ describe('event requests', () => {
     });
     await saveSleepDetails(client, 'sleep-1', { notes: 'Went down easily' });
     expect(requests[1]!.body).toEqual({ target_event_id: 'sleep-1', changes: { notes: 'Went down easily' } });
+  });
+
+  it('sends only the pump sides that changed', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await savePumpAmounts(client, 'pump-1', { leftMl: 40 });
+    expect(requests[0]!.url.pathname).toBe('/rest/v1/rpc/save_pump_amounts');
+    expect(requests[0]!.body).toEqual({ target_event_id: 'pump-1', changes: { left_ml: 40 } });
+    await savePumpAmounts(client, 'pump-1', { rightMl: null });
+    expect(requests[1]!.body).toEqual({ target_event_id: 'pump-1', changes: { right_ml: null } });
   });
 
   it('lists events newest first, filtered by type, excluding deleted', async () => {

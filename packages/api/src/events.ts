@@ -8,6 +8,7 @@ import {
   type SessionAction,
   type SessionMerge,
   type Side,
+  type PumpDetails,
   type SleepDetails,
   type TimedSegment,
 } from '@babble/domain';
@@ -171,6 +172,28 @@ export async function saveSleepDetails(client: BabbleClient, eventId: string, ch
     await client.rpc('save_sleep_details', {
       target_event_id: eventId,
       changes: sleepChangesPayload(changes) as Json,
+    }),
+  );
+}
+
+export type PumpAmountChanges = Partial<Pick<PumpDetails, 'leftMl' | 'rightMl'>>;
+
+export function pumpAmountsPayload(changes: PumpAmountChanges): Record<string, number | null> {
+  return {
+    ...('leftMl' in changes ? { left_ml: changes.leftMl ?? null } : {}),
+    ...('rightMl' in changes ? { right_ml: changes.rightMl ?? null } : {}),
+  };
+}
+
+export async function savePumpAmounts(
+  client: BabbleClient,
+  eventId: string,
+  changes: PumpAmountChanges,
+): Promise<void> {
+  unwrapVoid(
+    await client.rpc('save_pump_amounts', {
+      target_event_id: eventId,
+      changes: pumpAmountsPayload(changes) as Json,
     }),
   );
 }

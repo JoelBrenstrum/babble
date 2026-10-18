@@ -10,6 +10,7 @@ import { RunningCard } from '#/features/events/running-card';
 import { KeepAwakeToggle } from '#/features/keep-awake-toggle';
 import { LiveMergeOffer } from '#/features/events/merge-sessions';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
+import { PumpAmountsEditor } from '#/features/events/pump-amounts-editor';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
 import { SleepDetailsEditor } from '#/features/events/sleep-details-editor';
 import { useSessionAction, useTrackingSettings } from '@babble/api/react';
@@ -24,7 +25,7 @@ function SessionPage() {
   const fallback = useQuery({ ...eventQuery(babble.client, baby.id, eventId), enabled: running.isSuccess });
   const now = useNow(1000);
   const navigate = useNavigate();
-  const { mergeGapMs } = useTrackingSettings(babble.client, baby.id);
+  const { mergeGapMs, units } = useTrackingSettings(babble.client, baby.id);
   const action = useSessionAction(babble.client, baby.id);
   const event = running.data?.find((item) => item.id === eventId) ?? fallback.data;
   const earlier = useQuery({
@@ -50,7 +51,16 @@ function SessionPage() {
       </div>
     );
   }
-  if (event.endedAt !== null) return <Navigate to="/events/$eventId" params={{ eventId }} replace />;
+  if (event.endedAt !== null) {
+    return (
+      <Navigate
+        to="/events/$eventId"
+        params={{ eventId }}
+        search={{ finish: event.type === 'pump' ? true : undefined }}
+        replace
+      />
+    );
+  }
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
   const trimTo = canLog ? trimIdleSwitch(event, clock.now()) : null;
@@ -90,6 +100,15 @@ function SessionPage() {
           <Card className="flex flex-col gap-3 p-5">
             <p className="text-meta text-ink-2">Saved as you go, without stopping the timer.</p>
             <SleepDetailsEditor event={event} client={babble.client} babyId={baby.id} />
+          </Card>
+        </section>
+      )}
+      {canLog && event.type === 'pump' && (
+        <section className="flex flex-col gap-2">
+          <SectionLabel>Amounts</SectionLabel>
+          <Card className="flex flex-col gap-3 p-5">
+            <p className="text-meta text-ink-2">Saved as you go, without stopping the timer.</p>
+            <PumpAmountsEditor event={event} client={babble.client} babyId={baby.id} units={units} />
           </Card>
         </section>
       )}

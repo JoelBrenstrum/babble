@@ -753,6 +753,7 @@ export type Database = {
       };
       resume_sleep: { Args: { target_event_id: string }; Returns: undefined };
       save_event: { Args: { event: Json }; Returns: string };
+      save_pump_amounts: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       save_sleep_details: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       server_time: { Args: Record<PropertyKey, never>; Returns: string };
       set_member_role: {

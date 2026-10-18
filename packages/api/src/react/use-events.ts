@@ -22,16 +22,24 @@ import {
   type ReopenTarget,
   runSessionAction,
   saveEvent,
+  savePumpAmounts,
   saveSleepDetails,
   startSession,
   subscribeToBabyEvents,
+  type PumpAmountChanges,
   type SleepChanges,
 } from '../events';
 import { runNapAction, type DataNapAction } from '../nap';
 import { babySettingsQuery, queryKeys, runningEventsQuery } from '../queries';
 import { autoEndStaleSessions } from './auto-end';
 import { useNotify, type Notify } from './notify';
-import { mergeSleepDetails, optimisticRunning, restoreEventCaches, type EventCacheSnapshot } from './optimistic';
+import {
+  mergePumpAmounts,
+  mergeSleepDetails,
+  optimisticRunning,
+  restoreEventCaches,
+  type EventCacheSnapshot,
+} from './optimistic';
 import { refreshEvents } from './refresh';
 import { trackingSettingsFrom, type TrackingSettings } from './tracking-settings';
 
@@ -226,6 +234,17 @@ export function useSaveSleepDetails(client: BabbleClient, babyId: string) {
     target: ({ eventId, changes }) => ({
       eventId,
       produce: (current) => mergeSleepDetails(current, changes),
+    }),
+  });
+}
+
+export function useSavePumpAmounts(client: BabbleClient, babyId: string) {
+  return useOptimisticEventMutation(babyId, {
+    mutationFn: ({ eventId, changes }: { eventId: string; changes: PumpAmountChanges }) =>
+      savePumpAmounts(client, eventId, changes),
+    target: ({ eventId, changes }) => ({
+      eventId,
+      produce: (current) => mergePumpAmounts(current, changes),
     }),
   });
 }

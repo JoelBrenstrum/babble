@@ -1,11 +1,12 @@
 import { QueryClient } from '@tanstack/react-query';
 import type { BabyEvent } from '@babble/domain';
 import { describe, expect, it } from 'vitest';
-import { sampleBaby, sampleRunningFeed, sampleRunningSleep } from '../fixtures';
+import { sampleBaby, sampleEvents, sampleRunningFeed, sampleRunningSleep } from '../fixtures';
 import { queryKeys } from '../queries';
 import {
   applyRunningUpdate,
   findCachedEvent,
+  mergePumpAmounts,
   mergeSleepDetails,
   optimisticRunning,
   patchEventCaches,
@@ -60,6 +61,22 @@ describe('mergeSleepDetails', () => {
   it('ignores non-sleep events', () => {
     const feed = sampleRunningFeed(NOW);
     expect(mergeSleepDetails(feed, { notes: 'x' })).toBe(feed);
+  });
+});
+
+describe('mergePumpAmounts', () => {
+  const pump = sampleEvents(NOW).find((event) => event.type === 'pump')!;
+
+  it('sets one side, keeps the other and drops a recorded total', () => {
+    const recorded = { ...pump, details: { leftMl: 30, rightMl: null, totalMl: 90 } } as BabyEvent;
+    expect(mergePumpAmounts(recorded, { rightMl: 45 })).toMatchObject({
+      details: { leftMl: 30, rightMl: 45, totalMl: null },
+    });
+  });
+
+  it('ignores non-pump events', () => {
+    const feed = sampleRunningFeed(NOW);
+    expect(mergePumpAmounts(feed, { leftMl: 10 })).toBe(feed);
   });
 });
 
