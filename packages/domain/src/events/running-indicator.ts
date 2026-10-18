@@ -1,3 +1,4 @@
+import { capitalise } from '../format/text';
 import { trackerFor, type Tracker } from '../trackers';
 import { sessionNoun } from './session-actions';
 import type { BabyEvent } from './types';
@@ -29,8 +30,4 @@ function runningNoun(type: BabyEvent['type']): string {
 function joinNouns(nouns: string[]): string {
   if (nouns.length <= 1) return nouns.join('');
   return `${nouns.slice(0, -1).join(', ')} and ${nouns.at(-1)}`;
-}
-
-function capitalise(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
 }

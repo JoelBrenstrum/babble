@@ -15,7 +15,8 @@ import type {
 import { addFood } from '../events/foods';
 import { zonedToUtc } from '../time/zoned';
 import { MINUTE_MS } from '../time/constants';
-import { ML_PER_OUNCE } from '../format/units';
+import { capitalise } from '../format/text';
+import { GRAMS_PER_POUND, ML_PER_OUNCE, MM_PER_INCH } from '../format/units';
 
 export const HUCKLEBERRY_HEADER = [
   'Type',
@@ -424,7 +425,7 @@ function mapSolids({ row, startedAt, notes, warn }: RowContext): MapResult {
     .filter(Boolean);
   const foods = items.reduce<string[]>((list, item) => {
     const name = item.replace(/^\d+(\.\d+)?\s+of\s+/i, '');
-    return addFood(list, name.charAt(0).toUpperCase() + name.slice(1));
+    return addFood(list, capitalise(name));
   }, []);
   if (foods.length === 0) return { skip: 'Solids entry has no foods' };
 
@@ -504,7 +505,7 @@ export function parseWeightG(value: string): number | null {
   const unit = match[2]!.toLowerCase();
   if (unit === 'kg') return Math.round(amount * 1000);
   if (unit === 'g') return Math.round(amount);
-  return Math.round(amount * 453.592);
+  return Math.round(amount * GRAMS_PER_POUND);
 }
 
 export function parseLengthMm(value: string): number | null {
@@ -514,7 +515,7 @@ export function parseLengthMm(value: string): number | null {
   const unit = match[2]!.toLowerCase();
   if (unit === 'cm') return Math.round(amount * 10);
   if (unit === 'mm') return Math.round(amount);
-  return Math.round(amount * 25.4);
+  return Math.round(amount * MM_PER_INCH);
 }
 
 // Huckleberry writes newlines in notes as a literal backslash-n.

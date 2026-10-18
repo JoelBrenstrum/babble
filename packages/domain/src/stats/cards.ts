@@ -8,12 +8,12 @@ import { byStartedAtDesc, ms } from '../time/instants';
 import type { TimeWindow } from '../time/windows';
 import { feedTimeSplit } from '../timeline/totals';
 import { buildChart, type ChartBar, type StatsChart } from './charts';
+import { mean } from './maths';
 import type { StatsSettings } from './settings';
 
 const RECENT_POO_COLOURS = 7;
 
 export const MAX_GAP_MS = 12 * HOUR_MS;
-const hours = formatDurationShort;
 
 export interface StatsCard {
   key: 'sleep' | 'feeds' | 'nappies' | 'pump' | 'wake' | 'night' | 'feed-trend' | 'feed-spacing' | 'cluster-feeds';
@@ -68,10 +68,8 @@ export function buildCards({
   settings,
   showPump,
 }: CardInput): StatsCard[] {
-  const days = counted.length;
   const daily = (label: string) => (single ? label : `${label} per day`);
-  const average = (pick: (day: DaySummary) => number) =>
-    days ? counted.reduce((total, day) => total + pick(day), 0) / days : 0;
+  const average = (pick: (day: DaySummary) => number) => mean(counted, pick) ?? 0;
   const span = (event: BabyEvent) => ({
     start: ms(event.startedAt),
     end: event.endedAt ? ms(event.endedAt) : now.getTime(),
@@ -111,11 +109,13 @@ export function buildCards({
       key: 'sleep',
       title: 'Sleep',
       figures: [
-        { label: first, value: hours(average((day) => day.sleepMs)) },
-        { label: 'Night', value: hours(average((day) => day.nightMs)) },
+        { label: first, value: formatDurationShort(average((day) => day.sleepMs)) },
+        { label: 'Night', value: formatDurationShort(average((day) => day.nightMs)) },
         { label: daily('Naps'), value: formatPerDay(average((day) => day.naps)) },
-        { label: 'Longest stretch', value: longest ? hours(longest) : '—' },
-        ...(single ? [] : [{ label: 'Wake window', value: wake.count ? hours(wake.totalMs / wake.count) : '—' }]),
+        { label: 'Longest stretch', value: longest ? formatDurationShort(longest) : '—' },
+        ...(single
+          ? []
+          : [{ label: 'Wake window', value: wake.count ? formatDurationShort(wake.totalMs / wake.count) : '—' }]),
       ],
       chart: buildChart(
         'h',
@@ -128,7 +128,7 @@ export function buildCards({
       title: 'Feeds',
       figures: [
         { label: first, value: formatPerDay(average((day) => day.feeds)) },
-        { label: 'Average gap', value: feedGaps.count ? hours(feedGaps.totalMs / feedGaps.count) : '—' },
+        { label: 'Average gap', value: feedGaps.count ? formatDurationShort(feedGaps.totalMs / feedGaps.count) : '—' },
         {
           label: 'Left / right',
           value: sideTotal
@@ -146,7 +146,10 @@ export function buildCards({
                   idleMs: average((day) => day.idleMs),
                 }),
               },
-              { label: 'Downtime per feed', value: breastFeeds.length ? hours(downtimeMs / breastFeeds.length) : '—' },
+              {
+                label: 'Downtime per feed',
+                value: breastFeeds.length ? formatDurationShort(downtimeMs / breastFeeds.length) : '—',
+              },
             ]),
         {
           label: daily('Bottle'),

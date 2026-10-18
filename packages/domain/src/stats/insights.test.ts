@@ -14,13 +14,13 @@ import {
   insightDays,
   insightsReport,
   insightsSince,
-  median,
   nightSleepCard,
   nightStats,
   sleepSpans,
   wakeWindowCard,
   wakeWindows,
   weeklySummary,
+  weekSplit,
 } from './insights';
 
 const settings: InsightSettings = {
@@ -99,11 +99,17 @@ describe('wakeWindows', () => {
   });
 });
 
-describe('median', () => {
-  it('handles odd, even and empty lists', () => {
-    expect(median([3, 1, 2])).toBe(2);
-    expect(median([1, 2, 3, 4])).toBe(2.5);
-    expect(median([])).toBeNull();
+describe('weekSplit', () => {
+  it('separates the last seven days from the seven before', () => {
+    const { recent, earlier } = weekSplit(lastDays('2026-10-14', 14));
+    expect([...recent]).toEqual(lastDays('2026-10-14', 7));
+    expect([...earlier]).toEqual(lastDays('2026-10-07', 7));
+  });
+
+  it('has no earlier week when fewer than eight days are given', () => {
+    const { recent, earlier } = weekSplit(lastDays('2026-10-14', 5));
+    expect(recent.size).toBe(5);
+    expect(earlier.size).toBe(0);
   });
 });
 

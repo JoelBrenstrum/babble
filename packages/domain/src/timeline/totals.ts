@@ -4,6 +4,7 @@ import { formatDurationShort, formatPerDay } from '../format/duration';
 import { formatVolume } from '../format/units';
 import { MINUTE_MS } from '../time/constants';
 import { formatTimeOfDay, parseDayKey } from '../time/local-time';
+import { mean } from '../stats/maths';
 
 export type TotalKey = 'sleep' | 'feeds' | 'solids' | 'nappies' | 'pump';
 
@@ -14,18 +15,16 @@ export interface TotalCard {
   details: { label: string; value: string }[];
 }
 
-const hours = formatDurationShort;
-
 export function dayTotalCards(summary: DaySummary, units: Units, timeZone: string): TotalCard[] {
   const cards: TotalCard[] = [
     {
       key: 'sleep',
       label: 'Sleep',
-      value: hours(summary.sleepMs),
+      value: formatDurationShort(summary.sleepMs),
       details: [
-        { label: 'Naps', value: summary.naps ? `${summary.naps} · ${hours(summary.napMs)}` : '—' },
-        { label: 'Night', value: summary.nightMs ? hours(summary.nightMs) : '—' },
-        { label: 'Longest', value: summary.longestSleepMs ? hours(summary.longestSleepMs) : '—' },
+        { label: 'Naps', value: summary.naps ? `${summary.naps} · ${formatDurationShort(summary.napMs)}` : '—' },
+        { label: 'Night', value: summary.nightMs ? formatDurationShort(summary.nightMs) : '—' },
+        { label: 'Longest', value: summary.longestSleepMs ? formatDurationShort(summary.longestSleepMs) : '—' },
       ],
     },
     {
@@ -33,9 +32,9 @@ export function dayTotalCards(summary: DaySummary, units: Units, timeZone: strin
       label: 'Feeds',
       value: String(summary.feeds),
       details: [
-        { label: 'Left', value: summary.leftMs ? hours(summary.leftMs) : '—' },
-        { label: 'Right', value: summary.rightMs ? hours(summary.rightMs) : '—' },
-        { label: 'Idle', value: summary.idleMs ? hours(summary.idleMs) : '—' },
+        { label: 'Left', value: summary.leftMs ? formatDurationShort(summary.leftMs) : '—' },
+        { label: 'Right', value: summary.rightMs ? formatDurationShort(summary.rightMs) : '—' },
+        { label: 'Idle', value: summary.idleMs ? formatDurationShort(summary.idleMs) : '—' },
         {
           label: 'Bottle',
           value: summary.bottles ? `${summary.bottles} · ${formatVolume(summary.bottleMl, units)}` : '—',
@@ -81,7 +80,7 @@ export function dayTotalCards(summary: DaySummary, units: Units, timeZone: strin
 
 export function daySummaryStrip(summary: DaySummary): { label: string; value: string }[] {
   return [
-    { label: 'Sleep', value: hours(summary.sleepMs) },
+    { label: 'Sleep', value: formatDurationShort(summary.sleepMs) },
     { label: 'Feeds', value: String(summary.feeds) },
     { label: 'Nappies', value: String(summary.nappies) },
   ];
@@ -96,8 +95,8 @@ export function weekSummaryStrip(week: WeekSummary): { label: string; value: str
     ];
   }
   return [
-    { label: 'Avg sleep', value: hours(week.averageSleepMs) },
-    { label: 'Longest', value: hours(week.longestSleepMs) },
+    { label: 'Avg sleep', value: formatDurationShort(week.averageSleepMs) },
+    { label: 'Longest', value: formatDurationShort(week.longestSleepMs) },
     { label: 'Feeds/day', value: formatPerDay(week.feedsPerDay) },
   ];
 }
@@ -112,16 +111,20 @@ export interface WeekRow {
 export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, units: Units): WeekRow[] {
   const each = (pick: (day: DaySummary) => string) => days.map((day) => (day ? pick(day) : null));
   const counted = days.filter((day): day is DaySummary => day !== null).slice(0, week.days || undefined);
-  const average = (pick: (day: DaySummary) => number) =>
-    counted.length ? counted.reduce((total, day) => total + pick(day), 0) / counted.length : 0;
+  const average = (pick: (day: DaySummary) => number) => mean(counted, pick) ?? 0;
   const ml = (value: number) => (value ? formatVolume(value, units) : '—');
   return [
-    { key: 'sleep', label: 'Sleep', values: each((day) => hours(day.sleepMs)), average: hours(week.averageSleepMs) },
+    {
+      key: 'sleep',
+      label: 'Sleep',
+      values: each((day) => formatDurationShort(day.sleepMs)),
+      average: formatDurationShort(week.averageSleepMs),
+    },
     {
       key: 'longest',
       label: 'Longest stretch',
-      values: each((day) => (day.longestSleepMs ? hours(day.longestSleepMs) : '—')),
-      average: hours(average((day) => day.longestSleepMs)),
+      values: each((day) => (day.longestSleepMs ? formatDurationShort(day.longestSleepMs) : '—')),
+      average: formatDurationShort(average((day) => day.longestSleepMs)),
     },
     { key: 'feeds', label: 'Feeds', values: each((day) => String(day.feeds)), average: formatPerDay(week.feedsPerDay) },
     ...(['left', 'right', 'idle'] as const).map((side) => {
@@ -129,8 +132,8 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
       return {
         key: side,
         label: { left: 'Left', right: 'Right', idle: 'Idle' }[side],
-        values: each((day) => (pick(day) ? hours(pick(day)) : '—')),
-        average: hours(average(pick)),
+        values: each((day) => (pick(day) ? formatDurationShort(pick(day)) : '—')),
+        average: formatDurationShort(average(pick)),
       };
     }),
     {
@@ -150,8 +153,8 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
 
 export function feedTimeSplit(time: Pick<DaySummary, 'leftMs' | 'rightMs' | 'idleMs'>): string {
   if (!time.leftMs && !time.rightMs) return '—';
-  const parts = [`L ${hours(time.leftMs)}`, `R ${hours(time.rightMs)}`];
-  if (time.idleMs >= MINUTE_MS) parts.push(`idle ${hours(time.idleMs)}`);
+  const parts = [`L ${formatDurationShort(time.leftMs)}`, `R ${formatDurationShort(time.rightMs)}`];
+  if (time.idleMs >= MINUTE_MS) parts.push(`idle ${formatDurationShort(time.idleMs)}`);
   return parts.join(' · ');
 }
 

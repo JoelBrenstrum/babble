@@ -1,6 +1,6 @@
 import type { BabyEvent, Units } from '../events/types';
-import { formatLength, formatWeight } from '../format/units';
-import { dayKeyFor, formatShortDate, shiftDay } from '../time/local-time';
+import { formatLength, formatWeight, GRAMS_PER_POUND, MM_PER_INCH } from '../format/units';
+import { calendarDayMs, dayKeyFor, formatShortDate, shiftDay } from '../time/local-time';
 import { WHO_LMS } from './who-lms';
 import { byStartedAtAsc } from '../time/instants';
 import { DAY_MS } from '../time/constants';
@@ -14,7 +14,7 @@ export const WHO_MAX_MONTHS = 24;
 export const CURVE_PERCENTILES = [3, 15, 50, 85, 97] as const;
 
 export function ageInMonths(birthDate: string, iso: string, timeZone: string): number {
-  const measured = Date.parse(`${dayKeyFor(iso, timeZone, 0)}T00:00:00Z`);
+  const measured = calendarDayMs(iso, timeZone);
   const born = Date.parse(`${birthDate}T00:00:00Z`);
   return (measured - born) / DAY_MS / DAYS_PER_MONTH;
 }
@@ -75,13 +75,15 @@ export function formatPercentile(percentile: number): string {
   return `${rounded}${suffix}`;
 }
 
+const inches = (cm: number) => (cm * 10) / MM_PER_INCH;
+
 const DISPLAY: Record<GrowthMeasure, Record<Units, { unit: string; fromBase: (value: number) => number }>> = {
   weight: {
     metric: { unit: 'kg', fromBase: (kg) => kg },
-    imperial: { unit: 'lb', fromBase: (kg) => kg * 2.2046226218 },
+    imperial: { unit: 'lb', fromBase: (kg) => (kg * 1000) / GRAMS_PER_POUND },
   },
-  length: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: (cm) => cm / 2.54 } },
-  head: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: (cm) => cm / 2.54 } },
+  length: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: inches } },
+  head: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: inches } },
 };
 
 const LABEL: Record<GrowthMeasure, string> = { weight: 'Weight', length: 'Length', head: 'Head' };

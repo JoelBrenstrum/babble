@@ -1,4 +1,5 @@
 import type { BabyEvent, GrowthDetails, Units } from '../events/types';
+import { GRAMS_PER_POUND, MM_PER_INCH } from '../format/units';
 import { formatShortDate } from '../time/local-time';
 import { byStartedAtDesc } from '../time/instants';
 
@@ -8,8 +9,8 @@ const MEASURES: Measure[] = ['weightG', 'lengthMm', 'headCircumferenceMm'];
 
 export function growthInputUnit(measure: Measure, units: Units): { label: string; divisor: number } {
   if (measure === 'weightG')
-    return units === 'metric' ? { label: 'kg', divisor: 1000 } : { label: 'lb', divisor: 453.59237 };
-  return units === 'metric' ? { label: 'cm', divisor: 10 } : { label: 'in', divisor: 25.4 };
+    return units === 'metric' ? { label: 'kg', divisor: 1000 } : { label: 'lb', divisor: GRAMS_PER_POUND };
+  return units === 'metric' ? { label: 'cm', divisor: 10 } : { label: 'in', divisor: MM_PER_INCH };
 }
 
 export function toGrowthInput(value: number, measure: Measure, units: Units): string {

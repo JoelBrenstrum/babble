@@ -2,9 +2,19 @@ import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
 import { nextBreastSide } from '../events/feed-rules';
 import type { BabyEvent, PooColour, Units } from '../events/types';
 import { formatDuration, formatDurationShort, formatPerDay } from '../format/duration';
+import { capitalise } from '../format/text';
 import { formatVolume, formatVolumeValue, formatWeightChange } from '../format/units';
 import { growthReport, type BabySex } from '../growth/growth';
-import { formatShortDate, formatTimeOfDay, dayWindow, dayKeyFor, lastDays, shiftDay } from '../time/local-time';
+import {
+  calendarDayMs,
+  formatShortDate,
+  formatTimeOfDay,
+  dayWindow,
+  dayKeyFor,
+  lastDays,
+  shiftDay,
+} from '../time/local-time';
+import { mean } from '../stats/maths';
 import type { InsightSettings } from '../stats/settings';
 import { bucketByDay } from '../timeline/day-layout';
 import { isSessionType, type TrackerKey } from '../trackers';
@@ -117,8 +127,6 @@ export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context
   };
 }
 
-const hours = formatDurationShort;
-
 function summaries(events: readonly BabyEvent[], context: StripContext) {
   const todayKey = dayKeyFor(context.now.toISOString(), context.timeZone, context.dayStartMinutes);
   const firstKey = events.reduce((earliest, event) => {
@@ -135,8 +143,7 @@ function summaries(events: readonly BabyEvent[], context: StripContext) {
   );
   const today = days.at(-1)!;
   const past = days.slice(0, -1);
-  const average = (pick: (day: DaySummary) => number) =>
-    past.length ? past.reduce((total, day) => total + pick(day), 0) / past.length : null;
+  const average = (pick: (day: DaySummary) => number) => mean(past, pick);
   return { today, past, average };
 }
 
@@ -179,8 +186,7 @@ function growthItems(events: readonly BabyEvent[], context: StripContext): Strip
 }
 
 function daysBetweenNote(from: string, to: string, context: StripContext): string {
-  const key = (iso: string) => Date.parse(`${dayKeyFor(iso, context.timeZone, 0)}T00:00:00Z`);
-  const days = Math.round((key(to) - key(from)) / DAY_MS);
+  const days = Math.round((calendarDayMs(to, context.timeZone) - calendarDayMs(from, context.timeZone)) / DAY_MS);
   return days === 0 ? 'same day' : `in ${days} ${days === 1 ? 'day' : 'days'}`;
 }
 
@@ -243,9 +249,9 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
         since,
         todayItem(
           'Today',
-          hours(today.sleepMs),
+          formatDurationShort(today.sleepMs),
           average((day) => day.sleepMs),
-          hours,
+          formatDurationShort,
         ),
         todayItem(
           'Naps',
@@ -293,8 +299,4 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
     case 'custom':
       return [];
   }
-}
-
-function capitalise(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
 }

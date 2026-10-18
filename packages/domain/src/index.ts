@@ -6,6 +6,8 @@ export { isWithinNight, nightIntervals, nightWindow, type NightSettings, type Zo
 export { fractionOf, lastDayWindow, overlapMs, type TimeWindow } from './time/windows';
 export { mergeGapMsFrom, nightSettingsFrom, type NightSettingsRow } from './events/baby-settings';
 export { countChange, durationChange } from './format/change';
+export { capitalise } from './format/text';
+export { mean, median } from './stats/maths';
 export { byStartedAtAsc, byStartedAtDesc, compareIso, daysUntil, ms } from './time/instants';
 export {
   HUCKLEBERRY_HEADER,
@@ -100,8 +102,11 @@ export {
   formatVolumeValue,
   formatWeight,
   formatWeightChange,
+  GRAMS_PER_POUND,
   lengthToMm,
   ML_PER_OUNCE,
+  MM_PER_INCH,
+  mlToVolume,
   volumeToMl,
   volumeUnit,
   weightToGrams,
@@ -303,7 +308,6 @@ export {
   feedClusters,
   insightsReport,
   insightsSince,
-  median,
   nightSleepCard,
   nightStats,
   PATTERNS_CAPTION,
