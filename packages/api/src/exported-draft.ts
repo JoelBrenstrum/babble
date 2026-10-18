@@ -20,9 +20,9 @@ const ENUMS = Constants.public.Enums;
 type Reader<T> = (value: unknown) => T | undefined;
 type Fields<T> = { [K in keyof T]-?: Reader<T[K]> };
 
-const string: Reader<string> = (value) => (typeof value === 'string' ? value : undefined);
-const boolean: Reader<boolean> = (value) => (typeof value === 'boolean' ? value : undefined);
-const number: Reader<number> = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : undefined);
+const readString: Reader<string> = (value) => (typeof value === 'string' ? value : undefined);
+const readBoolean: Reader<boolean> = (value) => (typeof value === 'boolean' ? value : undefined);
+const readNumber: Reader<number> = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : undefined);
 const literal =
   <T extends string>(expected: T): Reader<T> =>
   (value) =>
@@ -31,19 +31,23 @@ const oneOf =
   <T extends string>(values: readonly T[]): Reader<T> =>
   (value) =>
     typeof value === 'string' && (values as readonly string[]).includes(value) ? (value as T) : undefined;
-const nullable =
-  <T>(read: Reader<T>): Reader<T | null> =>
+const absentAs =
+  <T, D extends T>(read: Reader<T>, fallback: D): Reader<T> =>
   (value) =>
-    value === null ? null : read(value);
+    value === undefined ? fallback : read(value);
+const nullable = <T>(read: Reader<T>): Reader<T | null> =>
+  absentAs((value) => (value === null ? null : read(value)), null);
+const flag = absentAs(readBoolean, false);
 const listOf =
   <T>(read: Reader<T>): Reader<T[]> =>
   (value) => {
+    if (value === undefined) return [];
     if (!Array.isArray(value)) return undefined;
     const items: T[] = [];
     for (const item of value) {
-      const read_ = read(item);
-      if (read_ === undefined) return undefined;
-      items.push(read_);
+      const readItem = read(item);
+      if (readItem === undefined) return undefined;
+      items.push(readItem);
     }
     return items;
   };
@@ -59,21 +63,26 @@ const objectOf =
     }
     return result as T;
   };
+const detailsOf = <T extends object>(fields: Fields<T>): Reader<T> => absentAs(objectOf(fields), {} as T);
 
-const stretch = objectOf<Stretch>({ startedAt: string, endedAt: nullable(string) });
-const segment = objectOf<TimedSegment>({ side: oneOf(ENUMS.side), startedAt: string, endedAt: nullable(string) });
-const base = { startedAt: string, endedAt: nullable(string), notes: nullable(string) };
+const stretch = objectOf<Stretch>({ startedAt: readString, endedAt: nullable(readString) });
+const segment = objectOf<TimedSegment>({
+  side: oneOf(ENUMS.side),
+  startedAt: readString,
+  endedAt: nullable(readString),
+});
+const base = { startedAt: readString, endedAt: nullable(readString), notes: nullable(readString) };
 
 const READERS: { [T in EventType]: Reader<DraftOfType<T>> } = {
   sleep: objectOf({
     ...base,
     type: literal('sleep'),
-    details: objectOf<SleepDetails>({
+    details: detailsOf<SleepDetails>({
       locations: listOf(oneOf(ENUMS.sleep_location)),
       fallAsleep: nullable(oneOf(ENUMS.fall_asleep)),
       startMoods: listOf(oneOf(ENUMS.mood)),
       endMoods: listOf(oneOf(ENUMS.mood)),
-      wokenByCarer: boolean,
+      wokenByCarer: flag,
     }),
     segments: listOf(stretch),
   }),
@@ -81,17 +90,17 @@ const READERS: { [T in EventType]: Reader<DraftOfType<T>> } = {
   bottle: objectOf({
     ...base,
     type: literal('bottle'),
-    details: objectOf<BottleDetails>({
-      content: oneOf(ENUMS.bottle_content),
-      amountMl: nullable(number),
-      amountLeftMl: nullable(number),
+    details: detailsOf<BottleDetails>({
+      content: absentAs(oneOf(ENUMS.bottle_content), 'breast_milk'),
+      amountMl: nullable(readNumber),
+      amountLeftMl: nullable(readNumber),
     }),
   }),
   solids: objectOf({
     ...base,
     type: literal('solids'),
-    details: objectOf<SolidsDetails>({
-      foods: listOf(string),
+    details: detailsOf<SolidsDetails>({
+      foods: listOf(readString),
       amount: nullable(oneOf(ENUMS.solids_amount)),
       reaction: nullable(oneOf(ENUMS.solids_reaction)),
     }),
@@ -99,35 +108,39 @@ const READERS: { [T in EventType]: Reader<DraftOfType<T>> } = {
   nappy: objectOf({
     ...base,
     type: literal('nappy'),
-    details: objectOf<Omit<NappyDetails, 'typePending'>>({
-      wet: boolean,
-      dirty: boolean,
+    details: detailsOf<Omit<NappyDetails, 'typePending'>>({
+      wet: flag,
+      dirty: flag,
       wetSize: nullable(oneOf(ENUMS.size)),
       pooSize: nullable(oneOf(ENUMS.size)),
       pooColours: listOf(oneOf(ENUMS.poo_colour)),
       pooTextures: listOf(oneOf(ENUMS.poo_texture)),
-      rash: boolean,
+      rash: flag,
     }),
   }),
   pump: objectOf({
     ...base,
     type: literal('pump'),
     segments: listOf(segment),
-    details: objectOf<PumpDetails>({ leftMl: nullable(number), rightMl: nullable(number), totalMl: nullable(number) }),
+    details: detailsOf<PumpDetails>({
+      leftMl: nullable(readNumber),
+      rightMl: nullable(readNumber),
+      totalMl: nullable(readNumber),
+    }),
   }),
   growth: objectOf({
     ...base,
     type: literal('growth'),
-    details: objectOf<GrowthDetails>({
-      weightG: nullable(number),
-      lengthMm: nullable(number),
-      headCircumferenceMm: nullable(number),
+    details: detailsOf<GrowthDetails>({
+      weightG: nullable(readNumber),
+      lengthMm: nullable(readNumber),
+      headCircumferenceMm: nullable(readNumber),
     }),
   }),
   custom: objectOf({
     ...base,
     type: literal('custom'),
-    details: objectOf<CustomDetails>({ title: string, description: string }),
+    details: objectOf<CustomDetails>({ title: readString, description: absentAs(readString, '') }),
   }),
 };
 
