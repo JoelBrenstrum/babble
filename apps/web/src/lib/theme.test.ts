@@ -1,30 +1,6 @@
+import { themeOverride } from '@babble/domain';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { applyTheme, resolveTheme, THEME_COLORS, themeBootScript } from './theme';
-
-describe('resolveTheme', () => {
-  it.each([
-    ['light', true, 'light'],
-    ['dark', false, 'dark'],
-    ['system', true, 'dark'],
-    ['system', false, 'light'],
-    [null, true, 'dark'],
-    ['garbage', false, 'light'],
-  ] as const)('%s with prefersDark=%s → %s', (preference, prefersDark, expected) => {
-    expect(resolveTheme(preference, prefersDark)).toBe(expected);
-  });
-
-  const night = { timeZone: 'Pacific/Auckland', start: 1140, end: 420 };
-
-  it('is dark inside the night window and light outside it', () => {
-    expect(resolveTheme('night', false, night, new Date('2026-10-09T08:00:00Z'))).toBe('dark');
-    expect(resolveTheme('night', true, night, new Date('2026-10-09T01:00:00Z'))).toBe('light');
-  });
-
-  it('follows the system at night without a window', () => {
-    expect(resolveTheme('night', true, null)).toBe('dark');
-    expect(resolveTheme('night', false, null)).toBe('light');
-  });
-});
+import { applyTheme, THEME_COLORS, themeBootScript } from './theme';
 
 const themeColors = () =>
   [...document.querySelectorAll('meta[name="theme-color"]')].map((tag) => [
@@ -72,10 +48,11 @@ describe('theme colour', () => {
 
 describe('theme boot script', () => {
   const night = { timeZone: 'Pacific/Auckland', start: 1140, end: 420 };
+  const daytime = { timeZone: 'UTC', start: 420, end: 1140 };
+  const empty = { timeZone: 'UTC', start: 600, end: 600 };
 
   beforeEach(() => {
     document.head.innerHTML = '';
-    window.matchMedia = ((query: string) => ({ matches: true, media: query })) as typeof window.matchMedia;
     vi.useFakeTimers();
   });
 
@@ -84,8 +61,9 @@ describe('theme boot script', () => {
     localStorage.clear();
   });
 
-  const boot = () => {
+  const boot = (prefersDark: boolean) => {
     document.head.innerHTML = '';
+    window.matchMedia = ((query: string) => ({ matches: prefersDark, media: query })) as typeof window.matchMedia;
     new Function(themeBootScript)();
     return {
       theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
@@ -93,27 +71,44 @@ describe('theme boot script', () => {
     };
   };
 
-  it.each([
-    '2026-10-09T05:59:00Z',
-    '2026-10-09T06:00:00Z',
-    '2026-10-09T11:00:00Z',
-    '2026-10-09T17:59:00Z',
-    '2026-10-09T18:00:00Z',
-    '2026-10-09T01:00:00Z',
-  ])('agrees with the app at %s', (iso) => {
-    vi.setSystemTime(new Date(iso));
-    localStorage.setItem('babble.theme', 'night');
-    localStorage.setItem('babble.night', JSON.stringify(night));
-    const expected = resolveTheme('night', true, night, new Date(iso));
-    expect(boot()).toEqual({ theme: expected, color: THEME_COLORS[expected] });
-  });
+  const cases: [string | null, { timeZone: string; start: number; end: number } | null, string, boolean][] = [
+    ['night', night, '2026-10-09T05:59:00Z', true],
+    ['night', night, '2026-10-09T06:00:00Z', true],
+    ['night', night, '2026-10-09T11:00:00Z', true],
+    ['night', night, '2026-10-09T17:59:00Z', true],
+    ['night', night, '2026-10-09T18:00:00Z', true],
+    ['night', night, '2026-10-09T01:00:00Z', false],
+    ['night', daytime, '2026-10-09T07:00:00Z', true],
+    ['night', daytime, '2026-10-09T18:59:00Z', false],
+    ['night', daytime, '2026-10-09T19:00:00Z', false],
+    ['night', empty, '2026-10-09T10:00:00Z', true],
+    ['night', null, '2026-10-09T10:00:00Z', true],
+    ['night', null, '2026-10-09T10:00:00Z', false],
+    ['light', night, '2026-10-09T10:00:00Z', true],
+    ['dark', night, '2026-10-09T10:00:00Z', false],
+    ['system', night, '2026-10-09T10:00:00Z', true],
+    ['system', night, '2026-10-09T10:00:00Z', false],
+    [null, null, '2026-10-09T10:00:00Z', true],
+  ];
+
+  it.each(cases)(
+    'agrees with the app for %s with %j at %s (prefers dark: %s)',
+    (preference, window, iso, prefersDark) => {
+      vi.setSystemTime(new Date(iso));
+      if (preference !== null) localStorage.setItem('babble.theme', preference);
+      if (window) localStorage.setItem('babble.night', JSON.stringify(window));
+      const override = themeOverride(preference, window, new Date(iso));
+      const expected = override ?? (prefersDark ? 'dark' : 'light');
+      expect(boot(prefersDark)).toEqual({ theme: expected, color: override ? THEME_COLORS[override] : null });
+    },
+  );
 
   it.each([null, 'not json', '{"start":1140,"end":420}', '{"timeZone":"Nowhere/Else","start":1,"end":2}'])(
     'follows the system without a usable night window (%s)',
     (stored) => {
       localStorage.setItem('babble.theme', 'night');
       if (stored !== null) localStorage.setItem('babble.night', stored);
-      expect(boot()).toEqual({ theme: 'dark', color: null });
+      expect(boot(true)).toEqual({ theme: 'dark', color: null });
     },
   );
 });
