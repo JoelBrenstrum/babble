@@ -14,6 +14,7 @@ const feed: ChairFeed = {
     idle: null,
   },
   summary: { title: 'Fed 13m', sides: 'Left 8m · Right 4m' },
+  asleepSince: null,
   startedLine: 'Started 2:41 pm by Jane',
   startedBy: 'Jane',
 };
@@ -44,7 +45,7 @@ function makeData(overrides: Partial<ChairData> = {}): ChairData {
 
 function makeActions(): ChairActions {
   return {
-    startFeed: vi.fn(async () => undefined),
+    startFeed: vi.fn(async (): Promise<'started' | 'resumed'> => 'started'),
     switchSide: vi.fn(),
     pause: vi.fn(),
     resume: vi.fn(),
@@ -82,6 +83,15 @@ describe('ChairScreen idle', () => {
     expect(screen.getByRole('button', { name: 'Start right' })).not.toHaveTextContent('Next');
     tap('Start right');
     expect(actions.startFeed).toHaveBeenCalledWith('right');
+  });
+
+  it('says when starting a feed resumed the last one', async () => {
+    const actions = makeActions();
+    vi.mocked(actions.startFeed).mockResolvedValueOnce('resumed');
+    render(<ChairScreen data={makeData()} actions={actions} />);
+    tap('Start left');
+    await flush();
+    expect(screen.getByRole('status')).toHaveTextContent('Resumed the last feed');
   });
 
   it('asks about a nappy once the feed has started, when none was logged recently', async () => {
@@ -296,8 +306,20 @@ describe('ChairScreen feeding', () => {
     tap('End feed');
     tap("Olivia's asleep");
     await flush();
-    expect(actions.startNap).toHaveBeenCalled();
+    expect(actions.startNap).toHaveBeenCalledWith(undefined);
     expect(screen.getByRole('status')).toHaveTextContent('Nap started');
+  });
+
+  it('starts the nap from when a paused feed ended', async () => {
+    const actions = makeActions();
+    const asleepSince = { at: '2026-10-06T01:55:00.000Z', label: 'Asleep since 2:55 pm' };
+    const { rerender } = render(<ChairScreen data={makeData({ feed: { ...feed, asleepSince } })} actions={actions} />);
+    tap('End feed');
+    rerender(<ChairScreen data={makeData()} actions={actions} />);
+    expect(screen.getByRole('button', { name: "Olivia's asleep" })).toBeInTheDocument();
+    tap('Asleep since 2:55 pm');
+    await flush();
+    expect(actions.startNap).toHaveBeenCalledWith('2026-10-06T01:55:00.000Z');
   });
 
   it('goes back to the start screen when the baby is not asleep yet', () => {

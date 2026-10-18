@@ -63,8 +63,8 @@ select throws_ok(
 select pg_temp.sign_in_as('54000000-0000-0000-0000-00000000000b');
 select throws_ok(
   $$ select public.merge_sleeps('84000000-0000-0000-0000-000000000002', '84000000-0000-0000-0000-000000000003') $$,
-  'PL007', 'Sleeps can only be merged when the second starts during the first or within 30 minutes of it ending',
-  'sleeps more than 30 minutes apart cannot be merged'
+  'PL007', 'Sleeps can only be merged when the second starts during the first or within 20 minutes of it ending',
+  'sleeps more than 20 minutes apart cannot be merged'
 );
 select throws_ok(
   $$ select public.merge_sleeps('84000000-0000-0000-0000-000000000003', '84000000-0000-0000-0000-000000000005') $$,

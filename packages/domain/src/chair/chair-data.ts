@@ -15,6 +15,7 @@ import type { BabyEvent, BottleContent, EventOfType, Side, Units } from '../even
 import { formatTimeOfDay } from '../time/local-time';
 import type { NightWindow } from '../theme/theme-preference';
 import {
+  chairAsleepSince,
   chairDimmed,
   chairFeedSummary,
   chairFeedView,
@@ -58,6 +59,7 @@ export interface ChairFeed {
   id: string;
   view: ChairFeedView;
   summary: { title: string; sides: string };
+  asleepSince: { at: string; label: string } | null;
   startedLine: string;
   startedBy: string | null;
 }
@@ -125,6 +127,7 @@ export function buildChairData(input: ChairDataInput): {
             id: feed.id,
             view: feedView,
             summary: chairFeedSummary(feed, now, mergeGapMs),
+            asleepSince: chairAsleepSince(feed, now, baby.timezone),
             startedLine: `Started ${formatTimeOfDay(feed.startedAt, baby.timezone)}${startedBy ? ` by ${startedBy}` : ''}`,
             startedBy,
           }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canResumeFeed, feedEndTime, latestFeed, nextBreastSide, staleSessions } from './feed-rules';
+import { canResumeSession, feedEndTime, latestFeed, nextBreastSide, staleSessions } from './feed-rules';
 import { makeEvent } from './test-events';
 
 const NOW = new Date('2026-10-06T12:00:00Z');
@@ -19,18 +19,39 @@ describe('latestFeed', () => {
   });
 });
 
-describe('canResumeFeed', () => {
-  it('allows only the latest finished breastfeed', () => {
-    expect(canResumeFeed(feed, 'feed', [])).toBe(true);
-    expect(canResumeFeed(feed, 'bottle', [])).toBe(false);
-    expect(canResumeFeed(bottle, 'bottle', [])).toBe(false);
-    expect(canResumeFeed({ ...feed, endedAt: null }, 'feed', [])).toBe(false);
+describe('canResumeSession', () => {
+  const soon = new Date('2026-10-06T10:35:00Z');
+  const endedNap = makeEvent('sleep', {
+    id: 'ended-nap',
+    startedAt: '2026-10-06T09:00:00Z',
+    endedAt: '2026-10-06T10:25:00Z',
   });
 
-  it('refuses while another feed is running', () => {
+  it('allows the latest finished breastfeed or sleep within 20 minutes of it ending', () => {
+    expect(canResumeSession(feed, [feed], [], soon)).toBe(true);
+    expect(canResumeSession(feed, [feed], [], new Date('2026-10-06T10:40:00Z'))).toBe(true);
+    expect(canResumeSession(feed, [feed], [], new Date('2026-10-06T10:41:00Z'))).toBe(false);
+    expect(canResumeSession(endedNap, [feed, endedNap], [], soon)).toBe(true);
+    expect(canResumeSession(endedNap, [feed, endedNap], [], new Date('2026-10-06T10:46:00Z'))).toBe(false);
+  });
+
+  it('refuses older entries, bottles, running entries and other kinds', () => {
+    const later = { ...bottle, startedAt: '2026-10-06T10:30:00Z' };
+    expect(canResumeSession(feed, [feed, later], [], soon)).toBe(false);
+    expect(canResumeSession(later, [feed, later], [], soon)).toBe(false);
+    expect(canResumeSession({ ...feed, endedAt: null }, [feed], [], soon)).toBe(false);
+    const newerNap = { ...endedNap, id: 'newer', startedAt: '2026-10-06T10:30:00Z' };
+    expect(canResumeSession(endedNap, [endedNap, newerNap], [], soon)).toBe(false);
+    const pump = makeEvent('pump', { id: 'pump', startedAt: '2026-10-06T10:00:00Z', endedAt: '2026-10-06T10:20:00Z' });
+    expect(canResumeSession(pump, [pump], [], soon)).toBe(false);
+  });
+
+  it('refuses while another of the same kind is running', () => {
     const running = makeEvent('breast_feed', { id: 'other', endedAt: null });
-    expect(canResumeFeed(feed, 'feed', [running])).toBe(false);
-    expect(canResumeFeed(feed, 'feed', [nap])).toBe(true);
+    expect(canResumeSession(feed, [feed], [running], soon)).toBe(false);
+    expect(canResumeSession(feed, [feed], [nap], soon)).toBe(true);
+    expect(canResumeSession(endedNap, [endedNap], [nap], soon)).toBe(false);
+    expect(canResumeSession(endedNap, [endedNap], [running], soon)).toBe(true);
   });
 });
 

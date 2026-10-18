@@ -67,6 +67,7 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await expect(page.getByText(/^Last fed .+ · just now · Right side/)).toBeVisible();
 
   await page.getByRole('button', { name: 'Start right' }).click();
+  await expect(page.getByRole('status')).toContainText('Resumed the last feed');
   await expect(page.getByText('Feeding · Right')).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath('feeding.png') });
   await page.getByRole('button', { name: 'Discard' }).click();

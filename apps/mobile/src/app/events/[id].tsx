@@ -1,14 +1,14 @@
 import { eventQuery, latestEventsQuery, runningEventsQuery, toBabbleError, authorName } from '@babble/api';
-import { useAsyncAction, useResumeFeed, useTrackingSettings } from '@babble/api/react';
+import { useAsyncAction, useReopenSession, useTrackingSettings } from '@babble/api/react';
 import {
-  canResumeFeed,
+  canResumeSession,
   entryAuthorText,
   entryEndedText,
   eventToDraft,
   importedNote,
   isSessionType,
-  latestFeed,
   pumpFinishSummary,
+  resumeCopy,
   trackerFor,
   tracksIdle,
 } from '@babble/domain';
@@ -52,7 +52,7 @@ function EditEventContent({
   const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
   const running = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
   const now = useNow(30_000);
-  const resumeFeed = useResumeFeed(client, baby.id);
+  const resumeSession = useReopenSession(client, baby.id);
   const resume = useAsyncAction();
   const event = useQuery(eventQuery(client, baby.id, id));
   const spinnerColor = useTokenColor('--primary');
@@ -74,6 +74,7 @@ function EditEventContent({
   const note = importedNote(event.data);
   const finishSummary = finish ? pumpFinishSummary(event.data, baby.timezone) : null;
   const memberName = (userId: string | null) => authorName(family, userId);
+  const resumable = logging && canResumeSession(event.data, latest, running, now) ? event.data : null;
   const ended = entryEndedText({
     endedBy: memberName(event.data.endedBy),
     endRecordedAt: event.data.endRecordedAt,
@@ -102,20 +103,19 @@ function EditEventContent({
           <NapBreakdown nap={event.data} now={now} />
         </View>
       )}
-      {logging && canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
+      {resumable && (
         <View className="mb-4 gap-2">
           <Button
             size="lg"
             loading={resume.busy}
             onPress={async () => {
-              if (await resume.run(() => resumeFeed.mutateAsync(id))) router.replace(`/sessions/${id}`);
+              if (await resume.run(() => resumeSession.mutateAsync({ type: resumable.type, eventId: id })))
+                router.replace(`/sessions/${id}`);
             }}
           >
-            Resume feed
+            {resumeCopy(resumable.type).action}
           </Button>
-          <Text className="text-center font-sans text-meta text-ink-2">
-            Resume only appears on the most recent feed.
-          </Text>
+          <Text className="text-center font-sans text-meta text-ink-2">{resumeCopy(resumable.type).hint}</Text>
           {resume.error && <StatusMessage tone="danger">{resume.error}</StatusMessage>}
         </View>
       )}

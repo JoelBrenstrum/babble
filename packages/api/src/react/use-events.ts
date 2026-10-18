@@ -18,7 +18,8 @@ import {
   deleteEvent,
   restoreEvent,
   mergeSessions,
-  resumeFeed,
+  reopenSession,
+  type ReopenTarget,
   runSessionAction,
   saveEvent,
   saveSleepDetails,
@@ -162,10 +163,10 @@ export function useRestoreEntry(client: BabbleClient, babyId: string) {
   });
 }
 
-export function useResumeFeed(client: BabbleClient, babyId: string) {
+export function useReopenSession(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (eventId: string) => resumeFeed(client, eventId),
+    mutationFn: (target: ReopenTarget) => reopenSession(client, target),
     onSettled: () => refreshEvents(queryClient, babyId),
   });
 }
@@ -181,7 +182,8 @@ export function useMergeSessions(client: BabbleClient, babyId: string) {
 export function useStartSession(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ type, side }: { type: SessionType; side?: Side }) => startSession(client, babyId, type, side),
+    mutationFn: ({ type, side, startAt }: { type: SessionType; side?: Side; startAt?: string }) =>
+      startSession(client, babyId, type, side, startAt),
     onSettled: () => refreshEvents(queryClient, babyId),
   });
 }

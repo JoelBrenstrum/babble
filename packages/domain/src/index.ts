@@ -201,7 +201,7 @@ export {
   type SessionRow,
   type SessionSummary,
 } from './events/session-summary';
-export { canResumeFeed, feedEndTime, latestFeed, nextBreastSide, staleSessions } from './events/feed-rules';
+export { canResumeSession, feedEndTime, latestFeed, nextBreastSide, staleSessions } from './events/feed-rules';
 export {
   liveMergeOffer,
   liveMergeText,
@@ -210,6 +210,7 @@ export {
   mergeCandidate,
   mergeCopy,
   mergeGapText,
+  resumeCopy,
   type MergeableType,
   type MergeCopy,
   type SessionMerge,

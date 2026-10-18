@@ -7,6 +7,7 @@ import {
   mergeCandidate,
   mergeCopy,
   mergeGapText,
+  resumeCopy,
   MERGE_WITHIN_MS,
 } from './merge-sessions';
 
@@ -18,17 +19,17 @@ const sleep = (id: string, startedAt: string, endedAt: string | null, overrides 
 describe('mergeCandidate', () => {
   const first = feed('a', '2026-10-06T10:00:00Z', '2026-10-06T10:20:00Z');
 
-  it('offers a merge when the next feed starts within 30 minutes', () => {
+  it('offers a merge when the next feed starts within 20 minutes', () => {
     expect(mergeCandidate(first, feed('b', '2026-10-06T10:32:00Z', '2026-10-06T10:40:00Z'))).toEqual({
       type: 'breast_feed',
       earlierId: 'a',
       laterId: 'b',
       gapMs: 12 * 60_000,
     });
-    expect(mergeCandidate(first, feed('b', '2026-10-06T10:50:00Z', null))?.gapMs).toBe(MERGE_WITHIN_MS);
+    expect(mergeCandidate(first, feed('b', '2026-10-06T10:40:00Z', null))?.gapMs).toBe(MERGE_WITHIN_MS);
   });
 
-  it('offers a merge when the next sleep starts within 30 minutes', () => {
+  it('offers a merge when the next sleep starts within 20 minutes', () => {
     const nap = sleep('a', '2026-10-06T10:00:00Z', '2026-10-06T10:40:00Z');
     expect(mergeCandidate(nap, sleep('b', '2026-10-06T10:45:00Z', null))).toEqual({
       type: 'sleep',
@@ -36,7 +37,7 @@ describe('mergeCandidate', () => {
       laterId: 'b',
       gapMs: 5 * 60_000,
     });
-    expect(mergeCandidate(nap, sleep('b', '2026-10-06T11:11:00Z', null))).toBeNull();
+    expect(mergeCandidate(nap, sleep('b', '2026-10-06T11:01:00Z', null))).toBeNull();
   });
 
   it('offers a merge when the next one starts before the first ended', () => {
@@ -48,7 +49,7 @@ describe('mergeCandidate', () => {
   });
 
   it('refuses feeds too far apart, inside or before the first, running first, bottles, deleted, other babies or mixed types', () => {
-    expect(mergeCandidate(first, feed('b', '2026-10-06T10:51:00Z', null))).toBeNull();
+    expect(mergeCandidate(first, feed('b', '2026-10-06T10:41:00Z', null))).toBeNull();
     expect(mergeCandidate(first, feed('b', '2026-10-06T10:05:00Z', '2026-10-06T10:10:00Z'))).toBeNull();
     expect(mergeCandidate(first, feed('b', '2026-10-06T10:00:00Z', null))).toBeNull();
     expect(mergeCandidate(first, feed('b', '2026-10-06T09:55:00Z', null))).toBeNull();
@@ -118,5 +119,13 @@ describe('merge text', () => {
     expect(mergeCopy('breast_feed').title).toBe('Merge feeds');
     expect(mergeCopy('sleep').title).toBe('Merge sleeps');
     expect(mergeCopy('sleep').confirm).toMatch(/awake/);
+  });
+
+  it('names what is being resumed and for how long', () => {
+    expect(resumeCopy('breast_feed')).toEqual({
+      action: 'Resume feed',
+      hint: 'Resume only appears on the most recent feed, for 20 minutes after it ends.',
+    });
+    expect(resumeCopy('sleep').action).toBe('Resume sleep');
   });
 });

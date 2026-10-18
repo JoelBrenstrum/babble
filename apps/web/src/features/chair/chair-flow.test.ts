@@ -2,7 +2,7 @@ import { CHAIR_ENDED_MS } from '@babble/domain';
 import { describe, expect, it } from 'vitest';
 import { chairErrorMessage, chairFlowReducer, initialChairFlow, type ChairFlowState } from './chair-flow';
 
-const feed = { id: 'feed-1', summary: { title: 'Fed 13m', sides: 'Left 8m · Right 4m' } };
+const feed = { id: 'feed-1', summary: { title: 'Fed 13m', sides: 'Left 8m · Right 4m' }, asleepSince: null };
 
 describe('chairFlowReducer', () => {
   it('opens and closes sheets', () => {
@@ -20,7 +20,7 @@ describe('chairFlowReducer', () => {
 
   it('starts the ended countdown and optionally asks about a nappy', () => {
     const plain = chairFlowReducer(initialChairFlow, { type: 'feed-ended', feed, now: 1000, askNappy: false });
-    expect(plain.ended).toEqual({ id: 'feed-1', ...feed.summary, until: 1000 + CHAIR_ENDED_MS });
+    expect(plain.ended).toEqual({ id: 'feed-1', ...feed.summary, asleepSince: null, until: 1000 + CHAIR_ENDED_MS });
     expect(plain.sheet).toBeNull();
     const asking = chairFlowReducer(initialChairFlow, { type: 'feed-ended', feed, now: 1000, askNappy: true });
     expect(asking.sheet).toBe('nappy-ask');

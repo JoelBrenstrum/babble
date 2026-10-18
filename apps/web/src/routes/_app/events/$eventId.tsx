@@ -6,15 +6,15 @@ import {
   type BabbleClient,
   authorName,
 } from '@babble/api';
-import { useAsyncAction, useResumeFeed, useTrackingSettings } from '@babble/api/react';
+import { useAsyncAction, useReopenSession, useTrackingSettings } from '@babble/api/react';
 import {
-  canResumeFeed,
+  canResumeSession,
   importedNote,
   eventToDraft,
   isSessionType,
-  latestFeed,
   pumpFinishSummary,
   READ_ONLY_NOTE,
+  resumeCopy,
   trackerFor,
   type BabyEvent,
   type Units,
@@ -53,7 +53,7 @@ function EditEvent() {
   const latest = useQuery(latestEventsQuery(babble.client, baby.id)).data ?? [];
   const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
   const now = useNow(30_000);
-  const resume = useResumeFeed(babble.client, baby.id);
+  const resume = useReopenSession(babble.client, baby.id);
   const resuming = useAsyncAction();
   const event = useQuery(eventQuery(babble.client, baby.id, eventId));
 
@@ -73,6 +73,7 @@ function EditEvent() {
   const note = importedNote(event.data);
   const finishSummary = finish ? pumpFinishSummary(event.data, baby.timezone) : null;
   const memberName = (userId: string | null) => authorName(family, userId);
+  const resumable = canLog && canResumeSession(event.data, latest, running, now) ? event.data : null;
   const done = () => {
     if (router.history.length > 1) router.history.back();
     else void navigate({ to: '/track/$type', params: { type: tracker.key } });
@@ -95,22 +96,22 @@ function EditEvent() {
         />
       )}
       {event.data.type === 'sleep' && event.data.segments.length > 0 && <NapBreakdown nap={event.data} now={now} />}
-      {canLog && canResumeFeed(event.data, latestFeed(latest)?.id, running) && (
+      {resumable && (
         <div className="flex flex-col gap-2">
           <Button
             size="lg"
             loading={resuming.busy}
             onClick={() =>
               resuming.run(async () => {
-                await resume.mutateAsync(eventId);
+                await resume.mutateAsync({ type: resumable.type, eventId });
                 await navigate({ to: '/sessions/$eventId', params: { eventId } });
               })
             }
           >
             {!resuming.busy && <Play className="size-5" strokeWidth={2.75} />}
-            Resume feed
+            {resumeCopy(resumable.type).action}
           </Button>
-          <p className="text-center text-meta text-ink-2">Resume only appears on the most recent feed.</p>
+          <p className="text-center text-meta text-ink-2">{resumeCopy(resumable.type).hint}</p>
           {resuming.error && <StatusMessage tone="danger">{resuming.error}</StatusMessage>}
         </div>
       )}

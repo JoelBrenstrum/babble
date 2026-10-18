@@ -133,7 +133,7 @@ export function PausePreview({ now: fixedNow }: { now?: Date }) {
 
 const noop = async () => '';
 const PREVIEW_ACTIONS: ChairActions = {
-  startFeed: noop,
+  startFeed: async () => 'started',
   switchSide: () => undefined,
   pause: () => undefined,
   resume: () => undefined,

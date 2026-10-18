@@ -751,6 +751,7 @@ export type Database = {
         Args: { resume_side?: Database['public']['Enums']['side']; target_event_id: string };
         Returns: undefined;
       };
+      resume_sleep: { Args: { target_event_id: string }; Returns: undefined };
       save_event: { Args: { event: Json }; Returns: string };
       save_sleep_details: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       server_time: { Args: Record<PropertyKey, never>; Returns: string };
