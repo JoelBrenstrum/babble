@@ -1,6 +1,15 @@
 export * from './auto-end';
 export * from './notify';
-export * from './optimistic';
+export {
+  findCachedEvent,
+  mergeSleepDetails,
+  optimisticRunning,
+  patchEventCaches,
+  replaceInRunning,
+  restoreEventCaches,
+  snapshotEventCaches,
+  type EventCacheSnapshot,
+} from './optimistic';
 export * from './refresh';
 export * from './tracking-settings';
 export * from './use-events';
