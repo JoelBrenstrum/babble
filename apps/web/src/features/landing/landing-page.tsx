@@ -217,6 +217,11 @@ export function LandingPage({
                 </Link>
               </li>
               <li>
+                <Link to="/tog" className={linkClass}>
+                  TOG calculator
+                </Link>
+              </li>
+              <li>
                 <Link to="/home-assistant" className={linkClass}>
                   Home Assistant
                 </Link>

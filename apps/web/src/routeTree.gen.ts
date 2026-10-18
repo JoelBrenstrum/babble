@@ -16,6 +16,7 @@ import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TogRouteImport } from './routes/tog'
 import { Route as WelcomeRouteImport } from './routes/welcome'
 import { Route as AppIndexRouteImport } from './routes/_app/index'
 import { Route as AppChairRouteImport } from './routes/_app/chair'
@@ -77,6 +78,11 @@ const SignInRoute = SignInRouteImport.update({
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TogRoute = TogRouteImport.update({
+  id: '/tog',
+  path: '/tog',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WelcomeRoute = WelcomeRouteImport.update({
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
   '/terms': typeof TermsRoute
+  '/tog': typeof TogRoute
   '/welcome': typeof WelcomeRoute
   '/chair': typeof AppChairRoute
   '/import': typeof AppImportRoute
@@ -265,6 +272,7 @@ export interface FileRoutesByTo {
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
   '/terms': typeof TermsRoute
+  '/tog': typeof TogRoute
   '/welcome': typeof WelcomeRoute
   '/chair': typeof AppChairRoute
   '/import': typeof AppImportRoute
@@ -303,6 +311,7 @@ export interface FileRoutesById {
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
   '/terms': typeof TermsRoute
+  '/tog': typeof TogRoute
   '/welcome': typeof WelcomeRoute
   '/_app/chair': typeof AppChairRoute
   '/_app/import': typeof AppImportRoute
@@ -342,6 +351,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sign-in'
     | '/terms'
+    | '/tog'
     | '/welcome'
     | '/chair'
     | '/import'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sign-in'
     | '/terms'
+    | '/tog'
     | '/welcome'
     | '/chair'
     | '/import'
@@ -414,6 +425,7 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/sign-in'
     | '/terms'
+    | '/tog'
     | '/welcome'
     | '/_app/chair'
     | '/_app/import'
@@ -452,6 +464,7 @@ export interface RootRouteChildren {
   PrivacyRoute: typeof PrivacyRoute
   SignInRoute: typeof SignInRoute
   TermsRoute: typeof TermsRoute
+  TogRoute: typeof TogRoute
   WelcomeRoute: typeof WelcomeRoute
   ApiHealthRoute: typeof ApiHealthRoute
   ApiVersionRoute: typeof ApiVersionRoute
@@ -517,6 +530,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tog': {
+      id: '/tog'
+      path: '/tog'
+      fullPath: '/tog'
+      preLoaderRoute: typeof TogRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/welcome': {
@@ -772,6 +792,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacyRoute: PrivacyRoute,
   SignInRoute: SignInRoute,
   TermsRoute: TermsRoute,
+  TogRoute: TogRoute,
   WelcomeRoute: WelcomeRoute,
   ApiHealthRoute: ApiHealthRoute,
   ApiVersionRoute: ApiVersionRoute,
