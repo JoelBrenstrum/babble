@@ -34,10 +34,11 @@ import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm } from '#/features/events/event-form';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
+import { parseBooleanParam } from '#/lib/search-params';
 
 export const Route = createFileRoute('/_app/events/$eventId')({
   validateSearch: (search: Record<string, unknown>): { finish?: boolean } => ({
-    finish: search.finish === true || search.finish === 'true' ? true : undefined,
+    finish: parseBooleanParam(search.finish),
   }),
   component: EditEvent,
 });
