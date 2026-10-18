@@ -387,6 +387,14 @@ export {
   toggleFood,
 } from './events/foods';
 export { chartAxis, niceStep } from './growth/axis';
+export { growthChartGeometry, type ChartPad, type ChartSize, type GrowthGeometry } from './growth/geometry';
+export {
+  growthReadout,
+  milestoneIndex,
+  milestoneKey,
+  type GrowthPointKey,
+  type MilestoneKey,
+} from './growth/selection';
 export { growthInputUnit, growthPlaceholders, toGrowthInput } from './growth/previous';
 export {
   asleepIntervals,
