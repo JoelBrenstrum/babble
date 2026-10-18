@@ -17,7 +17,7 @@ const AVATAR_TONES = [
   ['bg-growth', 'text-ink-on-solid'],
 ] as const;
 
-export function BabyAvatar({ name, index, small = false }: { name: string; index: number; small?: boolean }) {
+function BabyAvatar({ name, index, small = false }: { name: string; index: number; small?: boolean }) {
   const [bg, fg] = AVATAR_TONES[Math.max(0, index) % AVATAR_TONES.length]!;
   return (
     <View className={`items-center justify-center rounded-full ${small ? 'size-9' : 'size-11'} ${bg}`}>

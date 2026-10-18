@@ -23,7 +23,7 @@ import { Pressable, Text, View } from 'react-native';
 import { PooSwatch } from '@/components/poo-swatch';
 import { pct } from './percent';
 
-export const DAY_TIMELINE_HEIGHT = 560;
+const DAY_TIMELINE_HEIGHT = 560;
 const TIP_ROOM_FRAC = 0.15;
 
 function open(item: TimelineItem) {
