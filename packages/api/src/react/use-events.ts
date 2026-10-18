@@ -115,6 +115,7 @@ function useEventMutation<V, R = unknown>(
     mutationFn: (variables: V) => Promise<R>;
     optimistic?: (variables: V) => OptimisticTarget | null;
     onSuccess?: (variables: V, notify: Notify) => void;
+    toastErrors?: boolean;
   },
 ) {
   const queryClient = useQueryClient();
@@ -131,7 +132,7 @@ function useEventMutation<V, R = unknown>(
     onSuccess: (_, variables) => options.onSuccess?.(variables, notify),
     onError: (error, _, context) => {
       if (context) restoreEventCaches(queryClient, babyId, context.eventId, context.snapshot);
-      notify({ message: toBabbleError(error).message });
+      if (options.toastErrors) notify({ message: toBabbleError(error).message });
     },
     onSettled: () => refreshEvents(queryClient, babyId),
   });
@@ -149,6 +150,7 @@ export function useDeleteEvent(client: BabbleClient, babyId: string) {
     mutationFn: (event: BabyEvent) => deleteEvent(client, event.id),
     onSuccess: (event, notify) =>
       notify({ message: 'Entry deleted', action: undoAction(client, queryClient, babyId, event.id) }),
+    toastErrors: true,
   });
 }
 
@@ -184,6 +186,7 @@ export function useSessionAction(client: BabbleClient, babyId: string) {
       fallback: event,
       produce: (current) => applySessionAction(current, action, clock.now()),
     }),
+    toastErrors: true,
   });
 }
 
@@ -203,6 +206,7 @@ export function useDiscardSession(client: BabbleClient, babyId: string) {
         action: undoAction(client, queryClient, babyId, event.id),
       });
     },
+    toastErrors: true,
   });
 }
 
@@ -214,6 +218,7 @@ export function useSaveSleepDetails(client: BabbleClient, babyId: string) {
       eventId,
       produce: (current) => mergeSleepDetails(current, changes),
     }),
+    toastErrors: true,
   });
 }
 
@@ -238,5 +243,6 @@ export function useNapAction(client: BabbleClient, babyId: string) {
             eventId: action.kind === 'end-nap' ? action.napId : action.feedId,
             produce: (current) => applySessionAction(current, { kind: 'end', at: action.at }, clock.now()),
           },
+    toastErrors: true,
   });
 }

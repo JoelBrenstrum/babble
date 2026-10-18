@@ -10,6 +10,7 @@ import { queryKeys } from '../queries';
 import { fakeClient } from '../test-utils';
 import { NotifyProvider, type Toast } from './notify';
 import {
+  useDeleteEvent,
   useDiscardSession,
   useMergeSessions,
   useRemoveEntry,
@@ -100,14 +101,25 @@ describe('plain event hooks', () => {
     ['useStartSession', useStartSession, { type: 'sleep' }],
   ];
 
-  it.each(cases)('%s reports a failure as a toast and refreshes', async (_, useHook, variables) => {
+  it.each(cases)('%s leaves a failure to the caller and still refreshes', async (_, useHook, variables) => {
     const { client, queryClient, toasts, wrapper } = setup(failing);
     const { result } = renderHook(() => useHook(client, babyId), { wrapper });
+    let failed = false;
     await act(async () => {
-      await result.current.mutateAsync(variables as never).catch(() => undefined);
+      await result.current.mutateAsync(variables as never).catch(() => void (failed = true));
+    });
+    expect(failed).toBe(true);
+    expect(toasts).toEqual([]);
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.events(babyId) });
+  });
+
+  it('useDeleteEvent reports a failure as a toast because its callers fire and forget', async () => {
+    const { client, sleep, toasts, wrapper } = setup(failing);
+    const { result } = renderHook(() => useDeleteEvent(client, babyId), { wrapper });
+    await act(async () => {
+      await result.current.mutateAsync(sleep).catch(() => undefined);
     });
     expect(toasts).toEqual([{ message: 'Something went wrong. Please try again.' }]);
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({ queryKey: queryKeys.events(babyId) });
   });
 
   it('returns the new session id and stays quiet on success', async () => {
