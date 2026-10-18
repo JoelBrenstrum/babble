@@ -1,9 +1,10 @@
-import { clock, queryKeys } from '@babble/api';
-import { useTrackingSettings } from '@babble/api/react';
-import type { BabbleClient } from '@babble/api';
 import { promptsForSessionEvent, type BabyEvent, type NapPrompt, type SessionPromptRequest } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
+import type { BabbleClient } from '../client';
+import { clock } from '../clock';
+import { queryKeys } from '../queries';
+import { useTrackingSettings } from './use-events';
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
