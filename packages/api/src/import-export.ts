@@ -1,5 +1,6 @@
-import { isEventType, type EventDraft, type HuckleberryImport } from '@babble/domain';
+import { isEventType, type HuckleberryImport } from '@babble/domain';
 import { EXPORT_FORMAT, EXPORT_VERSION } from './export';
+import { readExportedDraft } from './exported-draft';
 
 export class BabbleExportError extends Error {}
 
@@ -9,21 +10,6 @@ export interface ExportedBaby {
   timezone: string | null;
   result: HuckleberryImport;
 }
-
-const META_KEYS = new Set([
-  'id',
-  'babyId',
-  'createdBy',
-  'createdDevice',
-  'createdAt',
-  'updatedAt',
-  'deletedAt',
-  'source',
-  'sourceRef',
-  'sessionState',
-  'endedBy',
-  'endRecordedAt',
-]);
 
 type Raw = Record<string, unknown>;
 
@@ -76,10 +62,9 @@ export function exportedEvents(events: readonly unknown[]): HuckleberryImport {
     } else if (!event.endedAt) {
       result.skipped.push({ line, type, reason: 'Still running when exported' });
     } else {
-      const draft = Object.fromEntries(
-        Object.entries(event).filter(([key]) => !META_KEYS.has(key)),
-      ) as unknown as EventDraft;
-      result.events.push({ ...draft, sourceRef: id, line });
+      const draft = readExportedDraft(event);
+      if (draft) result.events.push({ ...draft, sourceRef: id, line });
+      else result.skipped.push({ line, type, reason: 'Not in a format babble recognises' });
     }
   });
   return result;

@@ -38,12 +38,14 @@ describe('readBabbleExport', () => {
         { ...first!, deletedAt: now.toISOString() },
         { ...second!, endedAt: null },
         { ...first!, id: 'odd', type: 'teleport' } as never,
+        { ...first!, id: 'broken', segments: [{ side: 'top' }] } as never,
       ]),
     );
     expect(baby!.result.events).toHaveLength(0);
     expect(baby!.result.skipped.map((row) => row.reason).sort()).toEqual([
       'Deleted before the export',
       'Not an entry babble recognises',
+      'Not in a format babble recognises',
       'Still running when exported',
     ]);
   });
