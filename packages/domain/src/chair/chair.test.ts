@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import {
+  chairAsleepSince,
   chairBottleDraft,
   chairDimmed,
   screenOffMinutes,
@@ -271,5 +272,31 @@ describe('screen off', () => {
     expect(tapWakesScreen(30, now, now - 30 * 60_000 + 4_000)).toBe(true);
     expect(tapWakesScreen(30, now, now - 29 * 60_000)).toBe(false);
     expect(tapWakesScreen(undefined, now, now - 120 * 60_000)).toBe(false);
+  });
+});
+
+describe('chairAsleepSince', () => {
+  const pausedAt = (end: string) =>
+    makeEvent('breast_feed', {
+      startedAt: at('11:50'),
+      endedAt: null,
+      segments: [{ side: 'left', startedAt: at('11:50'), endedAt: at(end) }],
+    });
+
+  it('offers the end of a paused feed as the nap start', () => {
+    expect(chairAsleepSince(pausedAt('12:10'), NOW, 'UTC')).toEqual({
+      at: '2026-10-06T12:10:00.000Z',
+      label: 'Asleep since 12:10 pm',
+    });
+  });
+
+  it('offers nothing when the feed is ending now', () => {
+    expect(chairAsleepSince(pausedAt('12:29'), NOW, 'UTC')).toBeNull();
+    const running = makeEvent('breast_feed', {
+      startedAt: at('11:50'),
+      endedAt: null,
+      segments: [{ side: 'left', startedAt: at('11:50'), endedAt: null }],
+    });
+    expect(chairAsleepSince(running, NOW, 'UTC')).toBeNull();
   });
 });

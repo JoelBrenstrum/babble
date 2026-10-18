@@ -1,5 +1,6 @@
 import { MINUTE_MS } from '../time/constants';
 import { byStartedAtAsc, byStartedAtDesc, ms } from '../time/instants';
+import { MERGE_WITHIN_MS, type MergeableType } from './merge-sessions';
 import { hasSegments, lastSegmentEnd, otherSide } from './segments';
 import type { BabyEvent, EventOfType, Side } from './types';
 
@@ -18,15 +19,22 @@ export function nextBreastSide(events: readonly BabyEvent[]): Side | null {
   return lastSegment ? otherSide(lastSegment.side) : null;
 }
 
-export function canResumeFeed(
+export function canResumeSession(
   event: BabyEvent,
-  latestFeedId: string | undefined,
+  latest: readonly BabyEvent[],
   running: readonly BabyEvent[],
-): boolean {
-  if (event.type !== 'breast_feed' || event.endedAt === null || event.deletedAt) return false;
-  if (event.id !== latestFeedId) return false;
-  return !running.some((item) => item.type === 'breast_feed' && item.id !== event.id);
+  now: Date,
+): event is EventOfType<MergeableType> {
+  if (event.type !== 'breast_feed' && event.type !== 'sleep') return false;
+  if (event.endedAt === null || event.deletedAt) return false;
+  if (now.getTime() - ms(event.endedAt) > MERGE_WITHIN_MS) return false;
+  const newest = event.type === 'sleep' ? latestOfType(latest, 'sleep') : latestFeed(latest);
+  if (event.id !== newest?.id) return false;
+  return !running.some((item) => item.type === event.type && item.id !== event.id);
 }
+
+const latestOfType = (events: readonly BabyEvent[], type: BabyEvent['type']) =>
+  events.filter((event) => event.type === type && !event.deletedAt).sort(byStartedAtDesc)[0];
 
 export function staleSessions(running: readonly BabyEvent[], now: Date, autoEndMinutes: number): BabyEvent[] {
   const limit = autoEndMinutes * MINUTE_MS;

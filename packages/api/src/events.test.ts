@@ -9,7 +9,7 @@ import {
   listEvents,
   listEventsBetween,
   mergeSessions,
-  resumeFeed,
+  reopenSession,
   rowToEvent,
   endSession,
   saveEvent,
@@ -289,13 +289,17 @@ describe('event requests', () => {
     ]);
   });
 
-  it('ends a session at a chosen time and resumes a feed', async () => {
+  it('ends a session at a chosen time and resumes a feed or a sleep', async () => {
     const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
     await endSession(client, 'nap-1', '2026-10-06T09:00:00Z');
-    await resumeFeed(client, 'feed-1');
+    await reopenSession(client, { type: 'breast_feed', eventId: 'feed-1' });
+    await reopenSession(client, { type: 'breast_feed', eventId: 'feed-1', side: 'right' });
+    await reopenSession(client, { type: 'sleep', eventId: 'nap-1' });
     expect(requests.map((r) => [r.url.pathname, r.body])).toEqual([
       ['/rest/v1/rpc/end_session', { target_event_id: 'nap-1', end_at: '2026-10-06T09:00:00Z' }],
       ['/rest/v1/rpc/resume_feed', { target_event_id: 'feed-1' }],
+      ['/rest/v1/rpc/resume_feed', { target_event_id: 'feed-1', resume_side: 'right' }],
+      ['/rest/v1/rpc/resume_sleep', { target_event_id: 'nap-1' }],
     ]);
   });
 

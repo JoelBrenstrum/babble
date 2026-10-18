@@ -44,7 +44,8 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
   function startFeed(side: Side) {
     const askNappy = data.nappyAsk.start;
     run(async () => {
-      await actions.startFeed(side);
+      const outcome = await actions.startFeed(side);
+      if (outcome === 'resumed') show('Resumed the last feed');
       if (askNappy) openSheet('nappy-ask');
     });
   }
@@ -71,9 +72,9 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
     });
   }
 
-  function startNap() {
+  function startNap(at?: string) {
     run(async () => {
-      const id = await actions.startNap();
+      const id = await actions.startNap(at);
       show('Nap started', () => actions.undoEntry(id));
     });
   }
@@ -118,9 +119,9 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
     dispatch({ type: 'clear-ended' });
   }
 
-  function asleepAfterFeed() {
+  function asleepAfterFeed(at?: string) {
     dispatch({ type: 'clear-ended' });
-    startNap();
+    startNap(at);
   }
 
   function undoToast() {

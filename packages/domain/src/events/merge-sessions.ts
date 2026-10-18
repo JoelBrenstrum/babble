@@ -3,7 +3,7 @@ import { MINUTE_MS } from '../time/constants';
 import { byStartedAtAsc, ms } from '../time/instants';
 import type { BabyEvent } from './types';
 
-export const MERGE_WITHIN_MS = 30 * MINUTE_MS;
+export const MERGE_WITHIN_MS = 20 * MINUTE_MS;
 
 export type MergeableType = 'breast_feed' | 'sleep';
 
@@ -72,6 +72,14 @@ export function liveMergeText(merge: SessionMerge): string {
   return merge.gapMs < MINUTE_MS
     ? `Started straight after the last ${one}`
     : `Started ${formatDurationShort(merge.gapMs)} after the last ${one}`;
+}
+
+export function resumeCopy(type: MergeableType): { action: string; hint: string } {
+  const { one } = NOUNS[type];
+  return {
+    action: `Resume ${one}`,
+    hint: `Resume only appears on the most recent ${one}, for ${MERGE_WITHIN_MS / MINUTE_MS} minutes after it ends.`,
+  };
 }
 
 export interface MergeCopy {

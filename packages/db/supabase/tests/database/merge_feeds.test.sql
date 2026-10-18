@@ -78,8 +78,8 @@ select throws_ok(
 select pg_temp.sign_in_as('53000000-0000-0000-0000-00000000000a');
 select throws_ok(
   $$ select public.merge_feeds('83000000-0000-0000-0000-000000000002', '83000000-0000-0000-0000-000000000003') $$,
-  'PL007', 'Feeds can only be merged when the second starts during the first or within 30 minutes of it ending',
-  'feeds more than 30 minutes apart cannot be merged'
+  'PL007', 'Feeds can only be merged when the second starts during the first or within 20 minutes of it ending',
+  'feeds more than 20 minutes apart cannot be merged'
 );
 select throws_ok(
   $$ select public.merge_feeds('83000000-0000-0000-0000-000000000002', '83000000-0000-0000-0000-000000000001') $$,

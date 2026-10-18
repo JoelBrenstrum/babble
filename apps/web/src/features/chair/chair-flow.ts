@@ -21,7 +21,7 @@ export type ChairFlowEvent =
   | { type: 'close-sheet' }
   | { type: 'toast'; message: string; undo?: () => Promise<unknown> }
   | { type: 'dismiss-toast' }
-  | { type: 'feed-ended'; feed: Pick<ChairFeed, 'id' | 'summary'>; now: number; askNappy: boolean }
+  | { type: 'feed-ended'; feed: Pick<ChairFeed, 'id' | 'summary' | 'asleepSince'>; now: number; askNappy: boolean }
   | { type: 'clear-ended' }
   | { type: 'tick'; now: number };
 
@@ -44,7 +44,12 @@ export function chairFlowReducer(state: ChairFlowState, event: ChairFlowEvent): 
         ...state,
         now: event.now,
         sheet: event.askNappy ? 'nappy-ask' : state.sheet,
-        ended: { id: event.feed.id, ...event.feed.summary, until: event.now + CHAIR_ENDED_MS },
+        ended: {
+          id: event.feed.id,
+          ...event.feed.summary,
+          asleepSince: event.feed.asleepSince,
+          until: event.now + CHAIR_ENDED_MS,
+        },
       };
     case 'clear-ended':
       return { ...state, ended: null };

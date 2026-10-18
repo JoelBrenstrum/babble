@@ -9,7 +9,7 @@ export type ChairData = ChairViewModel & {
 };
 
 export interface ChairActions {
-  startFeed: (side: Side) => Promise<unknown>;
+  startFeed: (side: Side) => Promise<'started' | 'resumed'>;
   switchSide: (side: Side) => void;
   pause: () => void;
   resume: (side: Side) => void;
@@ -17,7 +17,7 @@ export interface ChairActions {
   resumeFeed: (feedId: string) => Promise<unknown>;
   saveBottle: (amount: number, content: BottleContent) => Promise<string>;
   saveNappy: (type: NappyType) => Promise<string>;
-  startNap: () => Promise<string>;
+  startNap: (at?: string) => Promise<string>;
   endNap: () => Promise<unknown>;
   pauseNap: () => void;
   resumeNap: () => void;

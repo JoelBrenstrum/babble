@@ -10,7 +10,7 @@ import {
 import {
   useRemoveEntry,
   useRestoreEntry,
-  useResumeFeed,
+  useReopenSession,
   useSaveEvent,
   useSessionAction,
   useStartSession,
@@ -19,9 +19,11 @@ import {
 } from '@babble/api/react';
 import {
   buildChairData,
+  canResumeSession,
   CHAIR_IDLE_DIM_MS,
   chairBottleDraft,
   chairNappyDraft,
+  latestFeed,
   memberTones,
   promptsForSessionEvent,
   screenOffMinutes,
@@ -94,7 +96,7 @@ function ChairLive() {
   const session = useSessionAction(client, baby.id);
   const save = useSaveEvent(client, baby.id);
   const remove = useRemoveEntry(client, baby.id);
-  const resume = useResumeFeed(client, baby.id);
+  const resume = useReopenSession(client, baby.id);
   const restore = useRestoreEntry(client, baby.id);
   const showNapPrompt = useNapPrompt();
   const updateReady = useNewRelease();
@@ -133,6 +135,11 @@ function ChairLive() {
 
   const actions: ChairActions = {
     startFeed: async (side) => {
+      const last = latestFeed(latest);
+      if (last && canResumeSession(last, latest, running, clock.now())) {
+        await resume.mutateAsync({ type: 'breast_feed', eventId: last.id, side });
+        return 'resumed';
+      }
       const at = clock.now().toISOString();
       await start.mutateAsync({ type: 'breast_feed', side });
       for (const prompt of promptsForSessionEvent({
@@ -145,6 +152,7 @@ function ChairLive() {
       })) {
         if (prompt.kind !== 'nappy') showNapPrompt(prompt);
       }
+      return 'started';
     },
     switchSide: (side) => feed && session.mutate({ event: feed, action: { kind: 'switch', side } }),
     pause: () => feed && session.mutate({ event: feed, action: { kind: 'pause' } }),
@@ -152,10 +160,10 @@ function ChairLive() {
     endFeed: async () => {
       if (feed) await session.mutateAsync({ event: feed, action: { kind: 'end' } });
     },
-    resumeFeed: (feedId) => resume.mutateAsync(feedId),
+    resumeFeed: (feedId) => resume.mutateAsync({ type: 'breast_feed', eventId: feedId }),
     saveBottle: (amount, content) => save.mutateAsync({ draft: chairBottleDraft(amount, content, units, clock.now()) }),
     saveNappy: (type) => save.mutateAsync({ draft: chairNappyDraft(type, clock.now()) }),
-    startNap: () => start.mutateAsync({ type: 'sleep' }),
+    startNap: (at) => start.mutateAsync({ type: 'sleep', startAt: at }),
     endNap: async () => {
       if (nap) await session.mutateAsync({ event: nap, action: { kind: 'end' } });
     },

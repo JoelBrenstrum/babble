@@ -1,4 +1,6 @@
 import { emptyDraft } from '../events/drafts';
+import { feedEndTime } from '../events/feed-rules';
+import { napPromptContent } from '../events/prompt-content';
 import { withNappyType, type NappyType } from '../events/nappy';
 import { pausedForMs } from '../events/session-context';
 import { lastSegmentEnd, segmentTotals } from '../events/segments';
@@ -105,6 +107,14 @@ export function chairFeedSummary(
     .map(({ side, ms }) => `${SIDE_LABEL[side]} ${formatDuration(ms, { seconds: false })}`);
   if (downtimeMs >= MINUTE_MS) parts.push(`idle ${formatDuration(downtimeMs, { seconds: false })}`);
   return { title: `Fed ${formatDuration(totals.activeMs, { seconds: false })}`, sides: parts.join(' · ') };
+}
+
+export function chairAsleepSince(feed: BreastFeed, now: Date, timeZone: string): { at: string; label: string } | null {
+  const at = feedEndTime(feed, now);
+  const offersEarlier = napPromptContent({ kind: 'start-nap', feedEndedAt: at }, '', timeZone, now).options.some(
+    (option) => option.action?.kind === 'start-nap' && option.action.at,
+  );
+  return offersEarlier ? { at, label: `Asleep since ${formatTimeOfDay(at, timeZone)}` } : null;
 }
 
 export function secondsLeft(untilMs: number, nowMs: number): number {

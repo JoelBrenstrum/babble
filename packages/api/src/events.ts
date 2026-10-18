@@ -4,6 +4,7 @@ import {
   type EventDraft,
   type EventSource,
   type EventType,
+  type MergeableType,
   type SessionAction,
   type SessionMerge,
   type Side,
@@ -446,7 +447,17 @@ export async function mergeSessions(
   unwrapVoid(await client.rpc(merge.type === 'sleep' ? 'merge_sleeps' : 'merge_feeds', args));
 }
 
-export async function resumeFeed(client: BabbleClient, eventId: string, side?: Side): Promise<void> {
+export interface ReopenTarget {
+  type: MergeableType;
+  eventId: string;
+  side?: Side;
+}
+
+export async function reopenSession(client: BabbleClient, { type, eventId, side }: ReopenTarget): Promise<void> {
+  if (type === 'sleep') {
+    unwrapVoid(await client.rpc('resume_sleep', { target_event_id: eventId }));
+    return;
+  }
   unwrapVoid(
     await client.rpc('resume_feed', {
       target_event_id: eventId,

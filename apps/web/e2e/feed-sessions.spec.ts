@@ -102,6 +102,18 @@ test('the latest feed can be resumed', async ({ page }, testInfo) => {
   await expect(page.getByText('Total feeding')).toBeVisible();
 });
 
+test('the latest nap can be resumed', async ({ page }, testInfo) => {
+  await newFamily(page, testInfo.project.name);
+  await page.getByRole('link', { name: 'Log sleep' }).click();
+  await page.getByRole('button', { name: /start sleep now/i }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+  await page.getByRole('button', { name: 'End nap' }).click();
+  await expect(page.getByRole('heading', { name: 'Sleep' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Resume sleep' }).click();
+  await expect(page.getByText('Napping')).toBeVisible();
+});
+
 test('a running feed can be backdated', async ({ page }, testInfo) => {
   await newFamily(page, testInfo.project.name);
   await startFeed(page);
