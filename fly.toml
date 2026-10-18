@@ -8,7 +8,7 @@ dockerfile = "apps/web/Dockerfile"
 
 [env]
 GOOGLE_AUTH_ENABLED = "false"
-BILLING_ENABLED = "false"
+BILLING_ENABLED = "true"
 OPERATOR_NAME = "the Brenstrum family"
 
 [http_service]
