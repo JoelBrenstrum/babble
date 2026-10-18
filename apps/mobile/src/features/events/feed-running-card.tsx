@@ -13,9 +13,9 @@ import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { Button } from '@/components/button';
 import { useNapPrompt } from '@/features/nap-prompt';
-import { useNow } from '@/lib/use-now';
 import { useRunningCardShell, type RunningCardProps } from './running-card-shell';
 import { useSessionPrompts } from './use-session-prompts';
+import { useNow } from '@babble/api/react';
 
 type FeedEvent = Extract<BabyEvent, { type: 'breast_feed' | 'pump' }>;
 

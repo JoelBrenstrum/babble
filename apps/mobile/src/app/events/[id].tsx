@@ -1,5 +1,5 @@
 import { eventQuery, latestEventsQuery, runningEventsQuery, toBabbleError, authorName } from '@babble/api';
-import { useAsyncAction, useReopenSession, useTrackingSettings } from '@babble/api/react';
+import { useAsyncAction, useNow, useReopenSession, useTrackingSettings } from '@babble/api/react';
 import {
   canResumeSession,
   entryAuthorText,
@@ -27,7 +27,6 @@ import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { Button } from '@/components/button';
 import { useCanLog } from '@/lib/use-can-log';
-import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function EditEvent() {

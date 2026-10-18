@@ -28,7 +28,7 @@ import {
 } from '@babble/domain';
 import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
-import { useUnits } from '@babble/api/react';
+import { useNow, usePrediction, useUnits } from '@babble/api/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
 import { useLocalSearchParams } from 'expo-router';
@@ -48,9 +48,7 @@ import { MonthTimeline } from '@/features/timeline/month-timeline';
 import { PlusMask } from '@/features/plus-mask';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
-import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
-import { usePrediction } from '@/lib/use-prediction';
 
 export default function TimelineTab() {
   const ready = useReadyState();
@@ -87,7 +85,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
   });
   const model = timelineModel({ view, date, events: events.data ?? [], settings, baby, now });
 
-  const prediction = usePrediction(baby, family, now);
+  const prediction = usePrediction(client, config.billingEnabled, baby, family, now);
   const predicted =
     model.view === 'day' && dayKey === todayKey
       ? predictedLayout(prediction, model.day.window, now, baby.timezone)

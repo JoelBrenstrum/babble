@@ -27,7 +27,7 @@ import {
 } from '@babble/domain';
 import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
-import { useUnits } from '@babble/api/react';
+import { useNow, usePrediction, useUnits } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
@@ -44,8 +44,6 @@ import { WeekTimeline } from '#/features/timeline/week-timeline';
 import { MonthTimeline } from '#/features/timeline/month-timeline';
 import { PlusMask } from '#/features/plus-mask';
 import { cn } from '#/lib/cn';
-import { useNow } from '#/lib/use-now';
-import { usePrediction } from '#/lib/use-prediction';
 import { useDayComparison, useRollingComparison, useTimelineModel } from '#/lib/use-timeline';
 
 type View = TimelineView;
@@ -84,7 +82,7 @@ function TimelinePage() {
     now,
     enabled: !sampleOnly,
   });
-  const prediction = usePrediction(babble, baby, family, now);
+  const prediction = usePrediction(babble.client, babble.config.billingEnabled, baby, family, now);
   const step = TIMELINE_SPAN[view];
   const showsToday = view === 'day' && range.dayKey === range.todayKey;
   const predicted =

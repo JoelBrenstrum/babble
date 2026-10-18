@@ -6,12 +6,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { WakeProvider } from '@babble/api/react';
 import { ToastProvider } from '@/components/toast';
 import { BabyScope } from '@/features/baby-scope';
 import { ActiveBabyProvider } from '@/lib/active-baby';
 import { BabbleProvider } from '@/lib/babble';
 import { useAppFonts } from '@/lib/fonts';
-import { focusEventListener } from '@/lib/foreground';
+import { focusEventListener, onForeground } from '@/lib/foreground';
 import { ThemePreferenceProvider, ThemeRoot } from '@/lib/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -34,18 +35,22 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
           <BabbleProvider>
-            <ActiveBabyProvider>
-              <ThemePreferenceProvider>
-                <ThemeRoot>
-                  <ToastProvider>
-                    <BabyScope>
-                      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }} />
-                      <StatusBar style="auto" />
-                    </BabyScope>
-                  </ToastProvider>
-                </ThemeRoot>
-              </ThemePreferenceProvider>
-            </ActiveBabyProvider>
+            <WakeProvider onWake={onForeground}>
+              <ActiveBabyProvider>
+                <ThemePreferenceProvider>
+                  <ThemeRoot>
+                    <ToastProvider>
+                      <BabyScope>
+                        <Stack
+                          screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}
+                        />
+                        <StatusBar style="auto" />
+                      </BabyScope>
+                    </ToastProvider>
+                  </ThemeRoot>
+                </ThemePreferenceProvider>
+              </ActiveBabyProvider>
+            </WakeProvider>
           </BabbleProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

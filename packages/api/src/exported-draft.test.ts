@@ -1,5 +1,6 @@
-import { emptyDraft, EVENT_TYPES, type EventDraft } from '@babble/domain';
+import { emptyDraft, type EventDraft } from '@babble/domain';
 import { describe, expect, it } from 'vitest';
+import { Constants } from './database.types';
 import { buildExport } from './export';
 import { readExportedDraft } from './exported-draft';
 import { sampleBaby, sampleEvents } from './fixtures';
@@ -11,7 +12,7 @@ function raw(draft: EventDraft, overrides: Record<string, unknown> = {}): Record
 }
 
 describe('readExportedDraft', () => {
-  it.each(EVENT_TYPES)('reads an empty %s draft back unchanged', (type) => {
+  it.each(Constants.public.Enums.event_type)('reads an empty %s draft back unchanged', (type) => {
     const draft = emptyDraft(type, NOW);
     const expected =
       draft.type === 'nappy' ? { ...draft, details: { ...draft.details, typePending: undefined } } : draft;
