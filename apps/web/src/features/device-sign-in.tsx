@@ -10,9 +10,9 @@ import {
 import { Link } from '@tanstack/react-router';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
+import { PublicHeader } from '#/components/shell/public-header';
 import { Spinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
-import { Wordmark } from '#/components/ui/wordmark';
 import { checkDeviceLink, requestDeviceLink } from '#/lib/device-link';
 
 const RETRY_MS = 10_000;
@@ -118,9 +118,7 @@ export function DeviceSignInView({
   const host = publicUrl.replace(/^https?:\/\//, '');
   return (
     <div className="flex min-h-dvh flex-col bg-bg">
-      <header className="px-6 py-5">
-        <Wordmark className="text-[28px]" />
-      </header>
+      <PublicHeader />
       <main className="mx-auto grid w-full max-w-4xl flex-1 content-center items-center gap-8 px-4 pb-12 md:grid-cols-[1fr_auto] md:gap-12">
         <div className="flex flex-col gap-5">
           <h1 className="text-title font-bold">{title}</h1>

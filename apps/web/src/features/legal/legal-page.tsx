@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Wordmark } from '#/components/ui/wordmark';
+import { PublicHeader } from '#/components/shell/public-header';
 import { LEGAL_UPDATED, type LegalContact } from './legal-contact';
 
 export const linkClass = 'font-semibold text-primary underline underline-offset-4';
@@ -7,11 +7,7 @@ export const linkClass = 'font-semibold text-primary underline underline-offset-
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="min-h-dvh bg-bg">
-      <header className="px-6 py-5">
-        <a href="/" aria-label="babble home">
-          <Wordmark className="text-[28px]" />
-        </a>
-      </header>
+      <PublicHeader homeLink />
       <main className="mx-auto w-full max-w-prose px-4 pb-16 pt-4 sm:pt-10">
         <h1 className="text-title font-bold">{title}</h1>
         <p className="mt-2 text-meta text-ink-3">Last updated {LEGAL_UPDATED}</p>
