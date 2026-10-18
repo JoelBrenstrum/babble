@@ -1,4 +1,4 @@
-import type { BabbleClient } from '@babble/api';
+import { queryKeys, type BabbleClient, type BabySettings } from '@babble/api';
 import { NotifyProvider } from '@babble/api/react';
 import { sampleBaby, sampleFamily, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
 import type { BabyEvent } from '@babble/domain';
@@ -13,10 +13,26 @@ import { RunningCard } from './running-card';
 
 const eq = vi.fn();
 const rpc = vi.fn();
+const select = vi.fn();
 const client = {
-  from: () => ({ update: () => ({ eq }) }),
+  from: (table: string) =>
+    table === 'baby_settings' ? { select: () => ({ eq: () => ({ single: select }) }) } : { update: () => ({ eq }) },
   rpc,
 } as unknown as BabbleClient;
+
+const settings: BabySettings = {
+  baby_id: sampleBaby.id,
+  units: 'metric',
+  night_start_minutes: 1140,
+  night_end_minutes: 420,
+  downtime_merge_threshold_sec: 15,
+  auto_end_paused_session_min: 30,
+  feed_reminder_enabled: false,
+  feed_reminder_interval_min: null,
+  feed_reminder_at_night: true,
+  nappy_prompt: 'feed_start',
+  updated_at: '2026-10-01T00:00:00Z',
+};
 
 function ToastBridge({ children }: { children: React.ReactNode }) {
   const toast = useToast();
@@ -31,17 +47,25 @@ function ToastBridge({ children }: { children: React.ReactNode }) {
   );
 }
 
-function renderCard(startedSecondsAgo: number, sample: (now: Date) => BabyEvent = sampleRunningFeed) {
+function renderCard(
+  startedSecondsAgo: number,
+  sample: (now: Date) => BabyEvent = sampleRunningFeed,
+  nappyPrompt: BabySettings['nappy_prompt'] = 'feed_start',
+) {
   const now = new Date();
   const event = {
     ...sample(now),
     startedAt: new Date(now.getTime() - startedSecondsAgo * 1000).toISOString(),
   } as BabyEvent;
   const onDiscarded = vi.fn();
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity } },
+  });
+  const row = { ...settings, nappy_prompt: nappyPrompt };
+  queryClient.setQueryData(queryKeys.babySettings(event.babyId), row);
+  select.mockResolvedValue({ data: row, error: null });
   render(
-    <QueryClientProvider
-      client={new QueryClient({ defaultOptions: { queries: { gcTime: Infinity }, mutations: { gcTime: Infinity } } })}
-    >
+    <QueryClientProvider client={queryClient}>
       <ToastProvider>
         <ToastBridge>
           <FixtureRouter>
@@ -127,6 +151,14 @@ describe('RunningCard finishing', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
     expect(await screen.findByRole('dialog', { name: 'Is Ada asleep?' })).toBeInTheDocument();
     expect(rpc).toHaveBeenCalledWith('end_session', expect.objectContaining({ target_event_id: expect.any(String) }));
+  });
+
+  it('asks about a nappy after the nap prompt when settings put it at feed end', async () => {
+    renderCard(26 * 60, sampleRunningFeed, 'feed_end');
+    await userEvent.click(await screen.findByRole('button', { name: 'Finish' }));
+    expect(await screen.findByRole('dialog', { name: 'Is Ada asleep?' })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Not now' }));
+    expect(await screen.findByRole('dialog', { name: "Change Ada's nappy?" })).toBeInTheDocument();
   });
 
   it('shows no prompt and swallows the rejection when ending fails', async () => {
