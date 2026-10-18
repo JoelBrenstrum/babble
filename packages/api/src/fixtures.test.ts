@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { describe, expect, it } from 'vitest';
 import { sampleMonthEvents, sampleMonthView, sampleStatsReport } from './fixtures';
 
@@ -9,6 +10,26 @@ describe('sample month', () => {
     expect(events.some((event) => event.type === 'sleep')).toBe(true);
     expect(events.some((event) => event.type === 'breast_feed')).toBe(true);
     expect(events.every((event) => Date.parse(event.endedAt ?? event.startedAt) <= now.getTime())).toBe(true);
+  });
+
+  it('is deterministic for a given now', () => {
+    const events = sampleMonthEvents(now);
+    expect(events).toHaveLength(824);
+    expect(events[0]).toMatchObject({
+      id: 'month-feed-1',
+      type: 'breast_feed',
+      startedAt: '2026-09-13T18:40:00.000Z',
+      endedAt: '2026-09-13T19:04:00.000Z',
+      segments: [
+        { side: 'left', startedAt: '2026-09-13T18:40:00.000Z', endedAt: '2026-09-13T18:50:00.000Z' },
+        { side: 'right', startedAt: '2026-09-13T18:51:00.000Z', endedAt: '2026-09-13T19:04:00.000Z' },
+      ],
+    });
+    expect(events[100]).toMatchObject({ id: 'month-nappy-101', startedAt: '2026-09-16T16:21:28.544Z' });
+    expect(events.at(-1)).toMatchObject({ id: 'month-nappy-825', startedAt: '2026-10-13T01:50:05.023Z' });
+    const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+    expect(digest(events)).toBe('b5f456bd50c65a6547ef81a9cd0cee6dbc877361a4934bccc11c2e9fdf62b47f');
+    expect(digest(sampleStatsReport(now))).toBe('608e40ca0e198e063ed12167719da5533f07ddd31d96e5dee5276a04ba946cab');
   });
 
   it('lays out 30 days with a summary for the locked 30-day timeline', () => {
