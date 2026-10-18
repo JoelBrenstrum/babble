@@ -38,6 +38,41 @@ describe('DayTimeline', () => {
     expect(screen.queryByTestId('timeline-tip')).toBeNull();
   });
 
+  it('heads the lanes with the domain lane labels and hides pumps until there are any', async () => {
+    const now = new Date();
+    const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
+    await render(
+      <DayTimeline
+        layout={dayLayout([], window, now)}
+        ticks={[]}
+        timeZone={sampleBaby.timezone}
+        units="metric"
+        nowFrac={0.5}
+        now={now}
+      />,
+    );
+    for (const label of ['Sleep', 'Feeds', 'Nappies']) expect(screen.getByText(label)).toBeTruthy();
+    expect(screen.queryByText('Pumps')).toBeNull();
+  });
+
+  it('shows only the chosen lanes, pumps included', async () => {
+    const now = new Date();
+    const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
+    await render(
+      <DayTimeline
+        layout={dayLayout([], window, now)}
+        ticks={[]}
+        timeZone={sampleBaby.timezone}
+        units="metric"
+        nowFrac={0.5}
+        now={now}
+        lanes={['sleep', 'pumps']}
+      />,
+    );
+    expect(screen.getByText('Pumps')).toBeTruthy();
+    expect(screen.queryByText('Feeds')).toBeNull();
+  });
+
   it('draws predicted blocks with their likely times', async () => {
     const now = new Date();
     const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };

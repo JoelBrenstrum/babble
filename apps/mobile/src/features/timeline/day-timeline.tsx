@@ -10,6 +10,7 @@ import {
   type DayLayout,
   type TimelineLane,
   TIMELINE_LANES,
+  visibleLanes,
   type FeedDueMarker,
   type NightMarker,
   type PredictedItem,
@@ -56,13 +57,7 @@ export function DayTimeline({
   lanes?: readonly TimelineLane[];
   night?: NightMarker[];
 }) {
-  const filtered = shown.length < TIMELINE_LANES.length;
-  const lanes: { key: keyof DayLayout; label: string }[] = [
-    { key: 'sleep' as const, label: 'Sleep' },
-    { key: 'feeds' as const, label: 'Feeds' },
-    { key: 'nappies' as const, label: 'Nappy' },
-    ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
-  ].filter((lane) => shown.includes(lane.key));
+  const lanes = visibleLanes(layout, shown);
   const [tip, setTip] = useState<TimelineItem | null>(null);
   const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
 
