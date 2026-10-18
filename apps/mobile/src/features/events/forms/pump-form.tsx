@@ -1,4 +1,4 @@
-import { formatVolume, volumeToMl, type DraftOfType, type PumpDetails, type Units } from '@babble/domain';
+import { formatVolume, mlToVolume, volumeToMl, type DraftOfType, type PumpDetails, type Units } from '@babble/domain';
 import { Text } from 'react-native';
 import { Stepper } from '@/components/stepper';
 import { SegmentTimesFields } from './segment-form';
@@ -16,8 +16,7 @@ export function PumpAmountFields({
   onChange: (patch: PumpSidePatch) => void;
 }) {
   const unit = units === 'metric' ? 'ml' : 'oz';
-  const display = (ml: number | null) =>
-    ml === null ? null : units === 'metric' ? ml : Number((ml / 29.5735).toFixed(1));
+  const display = (ml: number | null) => (ml === null ? null : mlToVolume(ml, units));
   const toMl = (value: number | null) => (value === null ? null : volumeToMl(value, units));
 
   return (

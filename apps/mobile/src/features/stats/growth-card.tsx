@@ -1,10 +1,14 @@
 import {
-  chartAxis,
   formatShortDate,
+  growthChartGeometry,
   growthEstimateReadout,
   growthMilestoneText,
   growthPointReadout,
+  growthReadout,
+  milestoneIndex,
+  milestoneKey,
   type GrowthChart,
+  type GrowthPointKey,
   type GrowthReport,
 } from '@babble/domain';
 import { router } from 'expo-router';
@@ -17,9 +21,7 @@ import { PlusBadge } from '@/components/plus';
 import { StatusMessage } from '@/components/status-message';
 import { useTokenColor } from '@/lib/theme';
 
-const WIDTH = 320;
-const HEIGHT = 180;
-const PAD = { left: 34, right: 8, top: 10, bottom: 22 };
+const SIZE = { width: 320, height: 180, pad: { left: 34, right: 8, top: 10, bottom: 22 } };
 
 export function GrowthCard({
   report,
@@ -82,31 +84,15 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
   const muted = useTokenColor('--ink-3');
   const line = useTokenColor('--line');
   const raised = useTokenColor('--raised');
-  const x = (months: number) => PAD.left + (months / chart.xMax) * (WIDTH - PAD.left - PAD.right);
-  const y = (value: number) =>
-    PAD.top + (1 - (value - chart.yMin) / (chart.yMax - chart.yMin)) * (HEIGHT - PAD.top - PAD.bottom);
-  const path = (points: { months: number; value: number }[]) =>
-    points
-      .map((point, index) => `${index ? 'L' : 'M'}${x(point.months).toFixed(1)},${y(point.value).toFixed(1)}`)
-      .join(' ');
-  const { yTicks, xTicks } = chartAxis(chart);
-  const [selected, setSelected] = useState<number | 'estimate' | `milestone-${number}` | null>(null);
+  const { width, height, pad, x, y, curves, measuredPath, aheadPath, yTicks, xTicks } = growthChartGeometry(
+    chart,
+    SIZE,
+  );
+  const [selected, setSelected] = useState<GrowthPointKey | null>(null);
   const { estimate } = chart;
-  const last = chart.points.at(-1)!;
-  const ahead = [...(estimate ? [estimate] : []), ...chart.milestones];
-  const milestone =
-    typeof selected === 'string' && selected.startsWith('milestone-')
-      ? chart.milestones[Number(selected.slice(10))]
-      : undefined;
-  const readout =
-    selected === 'estimate' && estimate
-      ? growthEstimateReadout(estimate)
-      : milestone
-        ? growthMilestoneText(milestone)
-        : typeof selected === 'number' && chart.points[selected]
-          ? growthPointReadout(chart.points[selected], timeZone)
-          : null;
-  const toggle = (key: NonNullable<typeof selected>) => () => setSelected(selected === key ? null : key);
+  const readout = growthReadout(chart, selected, timeZone)?.text ?? null;
+  const selectedMilestone = milestoneIndex(selected);
+  const toggle = (key: GrowthPointKey) => () => setSelected(selected === key ? null : key);
 
   return (
     <View className="gap-2">
@@ -136,30 +122,30 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
       </Text>
       <Svg
         width="100%"
-        height={HEIGHT}
-        viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
+        height={height}
+        viewBox={`0 0 ${width} ${height}`}
         accessibilityLabel={`${chart.label} by age in months`}
       >
-        {yTicks.map((value) => (
-          <Line key={`y${value}`} x1={PAD.left} x2={WIDTH - PAD.right} y1={y(value)} y2={y(value)} stroke={line} />
+        {yTicks.map((tick) => (
+          <Line key={`y${tick.value}`} x1={pad.left} x2={width - pad.right} y1={tick.y} y2={tick.y} stroke={line} />
         ))}
-        {yTicks.map((value) => (
-          <SvgText key={`t${value}`} x={PAD.left - 6} y={y(value) + 3} textAnchor="end" fontSize={10} fill={muted}>
-            {String(Math.round(value * 10) / 10)}
+        {yTicks.map((tick) => (
+          <SvgText key={`t${tick.value}`} x={pad.left - 6} y={tick.y + 3} textAnchor="end" fontSize={10} fill={muted}>
+            {tick.label}
           </SvgText>
         ))}
-        {xTicks.map((months) => (
-          <SvgText key={`x${months}`} x={x(months)} y={HEIGHT - 6} textAnchor="middle" fontSize={10} fill={muted}>
-            {String(months)}
+        {xTicks.map((tick) => (
+          <SvgText key={`x${tick.months}`} x={tick.x} y={height - 6} textAnchor="middle" fontSize={10} fill={muted}>
+            {String(tick.months)}
           </SvgText>
         ))}
-        <SvgText x={PAD.left - 6} y={PAD.top - 2} textAnchor="end" fontSize={10} fill={muted}>
+        <SvgText x={pad.left - 6} y={pad.top - 2} textAnchor="end" fontSize={10} fill={muted}>
           {chart.unit}
         </SvgText>
-        {chart.curves.map((curve) => (
+        {curves.map((curve) => (
           <Path
             key={curve.percentile}
-            d={path(curve.points)}
+            d={curve.d}
             fill="none"
             strokeWidth={1.5}
             stroke={curve.percentile === 50 ? growth : muted}
@@ -169,7 +155,7 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
             strokeDasharray={curve.percentile === 3 || curve.percentile === 97 ? '3 3' : undefined}
           />
         ))}
-        {chart.points.length > 1 && <Path d={path(chart.points)} fill="none" strokeWidth={2} stroke={growth} />}
+        {measuredPath && <Path d={measuredPath} fill="none" strokeWidth={2} stroke={growth} />}
         {chart.points.map((point, index) => (
           <Circle
             key={index}
@@ -181,15 +167,13 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
             strokeWidth={1.5}
           />
         ))}
-        {ahead.length > 0 && (
-          <Path d={path([last, ...ahead])} fill="none" stroke={growth} strokeWidth={2} strokeDasharray="4 3" />
-        )}
+        {aheadPath && <Path d={aheadPath} fill="none" stroke={growth} strokeWidth={2} strokeDasharray="4 3" />}
         {chart.milestones.map((point, index) => (
           <Circle
             key={point.reading}
             cx={x(point.months)}
             cy={y(point.value)}
-            r={selected === `milestone-${index}` ? 5 : 3}
+            r={selectedMilestone === index ? 5 : 3}
             fill={raised}
             stroke={growth}
             strokeWidth={1.5}
@@ -225,7 +209,7 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
             cy={y(point.value)}
             r={14}
             fill="transparent"
-            onPress={toggle(`milestone-${index}`)}
+            onPress={toggle(milestoneKey(index))}
           />
         ))}
         {chart.points.map((point, index) => (
@@ -237,7 +221,7 @@ function GrowthChartView({ chart, timeZone, plusBadge }: { chart: GrowthChart; t
             cy={y(point.value)}
             r={14}
             fill="transparent"
-            onPress={() => setSelected(selected === index ? null : index)}
+            onPress={toggle(index)}
           />
         ))}
       </Svg>
