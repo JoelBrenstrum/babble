@@ -68,6 +68,7 @@ describe('deviceLabel', () => {
     ],
     ['curl/8.0', 'A web browser'],
     [null, 'A web browser'],
+    ['HomeAssistant/2026.10.1 aiohttp/3.12.0 Python/3.13', 'Home Assistant'],
   ])('%s → %s', (agent, expected) => expect(deviceLabel(agent)).toBe(expected));
 });
 
@@ -82,5 +83,6 @@ describe('browserDeviceName', () => {
       'Linux (Chromium)',
     );
     expect(browserDeviceName('curl/8.0')).toBe('Web browser');
+    expect(browserDeviceName('HomeAssistant/2026.10.1 aiohttp/3.12.0 Python/3.13')).toBe('Home Assistant');
   });
 });

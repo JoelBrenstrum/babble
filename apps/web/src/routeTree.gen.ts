@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as DeviceSignInRouteImport } from './routes/device-sign-in'
+import { Route as HomeAssistantRouteImport } from './routes/home-assistant'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as SignInRouteImport } from './routes/sign-in'
@@ -39,6 +40,10 @@ import { Route as ApiDeviceLinkIndexRouteImport } from './routes/api/device-link
 import { Route as ApiDeviceLinkPollRouteImport } from './routes/api/device-link/poll'
 import { Route as AppTrackTypeIndexRouteImport } from './routes/_app/track/$type/index'
 import { Route as AppTrackTypeNewRouteImport } from './routes/_app/track/$type/new'
+import { Route as ApiHaV1ConfigRouteImport } from './routes/api/ha/v1/config'
+import { Route as ApiHaV1BabiesIndexRouteImport } from './routes/api/ha/v1/babies/index'
+import { Route as ApiHaV1BabiesBabyIdStateRouteImport } from './routes/api/ha/v1/babies/$babyId/state'
+import { Route as ApiHaV1BabiesBabyIdActionsActionRouteImport } from './routes/api/ha/v1/babies/$babyId/actions/$action'
 
 const AppRoute = AppRouteImport.update({
   id: '/_app',
@@ -47,6 +52,11 @@ const AppRoute = AppRouteImport.update({
 const DeviceSignInRoute = DeviceSignInRouteImport.update({
   id: '/device-sign-in',
   path: '/device-sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeAssistantRoute = HomeAssistantRouteImport.update({
+  id: '/home-assistant',
+  path: '/home-assistant',
   getParentRoute: () => rootRouteImport,
 } as any)
 const OnboardingRoute = OnboardingRouteImport.update({
@@ -189,10 +199,33 @@ const AppTrackTypeNewRoute = AppTrackTypeNewRouteImport.update({
   path: '/track/$type/new',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiHaV1ConfigRoute = ApiHaV1ConfigRouteImport.update({
+  id: '/api/ha/v1/config',
+  path: '/api/ha/v1/config',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHaV1BabiesIndexRoute = ApiHaV1BabiesIndexRouteImport.update({
+  id: '/api/ha/v1/babies/',
+  path: '/api/ha/v1/babies/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiHaV1BabiesBabyIdStateRoute =
+  ApiHaV1BabiesBabyIdStateRouteImport.update({
+    id: '/api/ha/v1/babies/$babyId/state',
+    path: '/api/ha/v1/babies/$babyId/state',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiHaV1BabiesBabyIdActionsActionRoute =
+  ApiHaV1BabiesBabyIdActionsActionRouteImport.update({
+    id: '/api/ha/v1/babies/$babyId/actions/$action',
+    path: '/api/ha/v1/babies/$babyId/actions/$action',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/device-sign-in': typeof DeviceSignInRoute
+  '/home-assistant': typeof HomeAssistantRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
@@ -219,10 +252,15 @@ export interface FileRoutesByFullPath {
   '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
   '/api/device-link/': typeof ApiDeviceLinkIndexRoute
   '/track/$type/new': typeof AppTrackTypeNewRoute
+  '/api/ha/v1/config': typeof ApiHaV1ConfigRoute
   '/track/$type/': typeof AppTrackTypeIndexRoute
+  '/api/ha/v1/babies/': typeof ApiHaV1BabiesIndexRoute
+  '/api/ha/v1/babies/$babyId/state': typeof ApiHaV1BabiesBabyIdStateRoute
+  '/api/ha/v1/babies/$babyId/actions/$action': typeof ApiHaV1BabiesBabyIdActionsActionRoute
 }
 export interface FileRoutesByTo {
   '/device-sign-in': typeof DeviceSignInRoute
+  '/home-assistant': typeof HomeAssistantRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
@@ -250,12 +288,17 @@ export interface FileRoutesByTo {
   '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
   '/api/device-link': typeof ApiDeviceLinkIndexRoute
   '/track/$type/new': typeof AppTrackTypeNewRoute
+  '/api/ha/v1/config': typeof ApiHaV1ConfigRoute
   '/track/$type': typeof AppTrackTypeIndexRoute
+  '/api/ha/v1/babies': typeof ApiHaV1BabiesIndexRoute
+  '/api/ha/v1/babies/$babyId/state': typeof ApiHaV1BabiesBabyIdStateRoute
+  '/api/ha/v1/babies/$babyId/actions/$action': typeof ApiHaV1BabiesBabyIdActionsActionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/device-sign-in': typeof DeviceSignInRoute
+  '/home-assistant': typeof HomeAssistantRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/sign-in': typeof SignInRoute
@@ -283,13 +326,18 @@ export interface FileRoutesById {
   '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
   '/api/device-link/': typeof ApiDeviceLinkIndexRoute
   '/_app/track/$type/new': typeof AppTrackTypeNewRoute
+  '/api/ha/v1/config': typeof ApiHaV1ConfigRoute
   '/_app/track/$type/': typeof AppTrackTypeIndexRoute
+  '/api/ha/v1/babies/': typeof ApiHaV1BabiesIndexRoute
+  '/api/ha/v1/babies/$babyId/state': typeof ApiHaV1BabiesBabyIdStateRoute
+  '/api/ha/v1/babies/$babyId/actions/$action': typeof ApiHaV1BabiesBabyIdActionsActionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/device-sign-in'
+    | '/home-assistant'
     | '/onboarding'
     | '/privacy'
     | '/sign-in'
@@ -316,10 +364,15 @@ export interface FileRouteTypes {
     | '/api/device-link/poll'
     | '/api/device-link/'
     | '/track/$type/new'
+    | '/api/ha/v1/config'
     | '/track/$type/'
+    | '/api/ha/v1/babies/'
+    | '/api/ha/v1/babies/$babyId/state'
+    | '/api/ha/v1/babies/$babyId/actions/$action'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/device-sign-in'
+    | '/home-assistant'
     | '/onboarding'
     | '/privacy'
     | '/sign-in'
@@ -347,11 +400,16 @@ export interface FileRouteTypes {
     | '/api/device-link/poll'
     | '/api/device-link'
     | '/track/$type/new'
+    | '/api/ha/v1/config'
     | '/track/$type'
+    | '/api/ha/v1/babies'
+    | '/api/ha/v1/babies/$babyId/state'
+    | '/api/ha/v1/babies/$babyId/actions/$action'
   id:
     | '__root__'
     | '/_app'
     | '/device-sign-in'
+    | '/home-assistant'
     | '/onboarding'
     | '/privacy'
     | '/sign-in'
@@ -379,12 +437,17 @@ export interface FileRouteTypes {
     | '/api/device-link/poll'
     | '/api/device-link/'
     | '/_app/track/$type/new'
+    | '/api/ha/v1/config'
     | '/_app/track/$type/'
+    | '/api/ha/v1/babies/'
+    | '/api/ha/v1/babies/$babyId/state'
+    | '/api/ha/v1/babies/$babyId/actions/$action'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   DeviceSignInRoute: typeof DeviceSignInRoute
+  HomeAssistantRoute: typeof HomeAssistantRoute
   OnboardingRoute: typeof OnboardingRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   SignInRoute: typeof SignInRoute
@@ -399,6 +462,10 @@ export interface RootRouteChildren {
   LinkIndexRoute: typeof LinkIndexRoute
   ApiDeviceLinkPollRoute: typeof ApiDeviceLinkPollRoute
   ApiDeviceLinkIndexRoute: typeof ApiDeviceLinkIndexRoute
+  ApiHaV1ConfigRoute: typeof ApiHaV1ConfigRoute
+  ApiHaV1BabiesIndexRoute: typeof ApiHaV1BabiesIndexRoute
+  ApiHaV1BabiesBabyIdStateRoute: typeof ApiHaV1BabiesBabyIdStateRoute
+  ApiHaV1BabiesBabyIdActionsActionRoute: typeof ApiHaV1BabiesBabyIdActionsActionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -415,6 +482,13 @@ declare module '@tanstack/react-router' {
       path: '/device-sign-in'
       fullPath: '/device-sign-in'
       preLoaderRoute: typeof DeviceSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home-assistant': {
+      id: '/home-assistant'
+      path: '/home-assistant'
+      fullPath: '/home-assistant'
+      preLoaderRoute: typeof HomeAssistantRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/onboarding': {
@@ -613,6 +687,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTrackTypeNewRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/ha/v1/config': {
+      id: '/api/ha/v1/config'
+      path: '/api/ha/v1/config'
+      fullPath: '/api/ha/v1/config'
+      preLoaderRoute: typeof ApiHaV1ConfigRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ha/v1/babies/': {
+      id: '/api/ha/v1/babies/'
+      path: '/api/ha/v1/babies'
+      fullPath: '/api/ha/v1/babies/'
+      preLoaderRoute: typeof ApiHaV1BabiesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ha/v1/babies/$babyId/state': {
+      id: '/api/ha/v1/babies/$babyId/state'
+      path: '/api/ha/v1/babies/$babyId/state'
+      fullPath: '/api/ha/v1/babies/$babyId/state'
+      preLoaderRoute: typeof ApiHaV1BabiesBabyIdStateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/ha/v1/babies/$babyId/actions/$action': {
+      id: '/api/ha/v1/babies/$babyId/actions/$action'
+      path: '/api/ha/v1/babies/$babyId/actions/$action'
+      fullPath: '/api/ha/v1/babies/$babyId/actions/$action'
+      preLoaderRoute: typeof ApiHaV1BabiesBabyIdActionsActionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -665,6 +767,7 @@ const OnboardingRouteWithChildren = OnboardingRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   DeviceSignInRoute: DeviceSignInRoute,
+  HomeAssistantRoute: HomeAssistantRoute,
   OnboardingRoute: OnboardingRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   SignInRoute: SignInRoute,
@@ -679,7 +782,21 @@ const rootRouteChildren: RootRouteChildren = {
   LinkIndexRoute: LinkIndexRoute,
   ApiDeviceLinkPollRoute: ApiDeviceLinkPollRoute,
   ApiDeviceLinkIndexRoute: ApiDeviceLinkIndexRoute,
+  ApiHaV1ConfigRoute: ApiHaV1ConfigRoute,
+  ApiHaV1BabiesIndexRoute: ApiHaV1BabiesIndexRoute,
+  ApiHaV1BabiesBabyIdStateRoute: ApiHaV1BabiesBabyIdStateRoute,
+  ApiHaV1BabiesBabyIdActionsActionRoute: ApiHaV1BabiesBabyIdActionsActionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

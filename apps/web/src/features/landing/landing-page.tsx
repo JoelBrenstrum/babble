@@ -112,6 +112,14 @@ export function LandingPage({
                     {billingEnabled && feature.plus && <PlusBadge />}
                   </h3>
                   <p className="mt-1 text-meta text-ink-2">{feature.body}</p>
+                  {feature.link && (
+                    <Link
+                      to={feature.link.to}
+                      className="mt-2 inline-block rounded-button text-meta font-semibold text-primary underline-offset-2 hover:underline"
+                    >
+                      {feature.link.label}
+                    </Link>
+                  )}
                 </div>
               </li>
             ))}
@@ -206,6 +214,11 @@ export function LandingPage({
               <li>
                 <Link to="/sign-in" search={{ invite: undefined }} className={linkClass}>
                   Sign in
+                </Link>
+              </li>
+              <li>
+                <Link to="/home-assistant" className={linkClass}>
+                  Home Assistant
                 </Link>
               </li>
               <li>

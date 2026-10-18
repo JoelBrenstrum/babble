@@ -18,3 +18,4 @@ export * from './import';
 export * from './import-export';
 export * from './export';
 export { oncePerKey } from './once-per-key';
+export * from './home-assistant';

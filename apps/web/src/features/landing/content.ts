@@ -5,6 +5,7 @@ import {
   Droplets,
   FileUp,
   Heart,
+  House,
   Milk,
   Moon,
   MoonStar,
@@ -26,6 +27,7 @@ interface Feature {
   title: string;
   body: string;
   plus?: boolean;
+  link?: { to: '/home-assistant'; label: string };
 }
 
 export const FEATURES: Feature[] = [
@@ -121,6 +123,13 @@ export const FEATURES: Feature[] = [
     tone: 'bg-custom-soft text-on-custom',
     title: 'Bring your history',
     body: 'Import a Huckleberry export, or move between babble servers with your own export, so nothing is lost.',
+  },
+  {
+    icon: House,
+    tone: 'bg-primary-soft text-on-primary-soft',
+    title: 'Home Assistant',
+    body: 'Show naps and the next feed on a home dashboard, and automate around them, like silencing the doorbell while the baby sleeps.',
+    link: { to: '/home-assistant', label: 'Set up Home Assistant' },
   },
   {
     icon: Smartphone,

@@ -486,3 +486,12 @@ export {
   type ChairNap,
   type ChairViewModel,
 } from './chair/chair-data';
+export {
+  homeAssistantSnapshot,
+  type FeedDueSuppressed,
+  type HomeAssistantSnapshot,
+  type SnapshotInput,
+  type SnapshotSettings,
+  type TimerState,
+} from './home-assistant/snapshot';
+export { planHomeAssistantAction, type ActionPlan, type ActionStep } from './home-assistant/actions';
