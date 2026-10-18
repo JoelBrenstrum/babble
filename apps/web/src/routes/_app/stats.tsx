@@ -23,9 +23,10 @@ import { PageSpinner } from '#/components/ui/spinner';
 import { GrowthCard } from '#/features/stats/growth-card';
 import { StatsCards } from '#/features/stats/stats-cards';
 import { WeeklySummaryCard } from '#/features/stats/weekly-summary';
+import { patternCards, patternsOf, type Patterns } from '#/features/stats/patterns';
 import { PlusTeaser } from '#/features/plus-teaser';
 import { PlusMask } from '#/features/plus-mask';
-import { type InsightsState, useInsights, useNow, useSettled, useUnits } from '@babble/api/react';
+import { useInsights, useNow, useSettled, useUnits } from '@babble/api/react';
 
 export const Route = createFileRoute('/_app/stats')({
   validateSearch: (search: Record<string, unknown>): { range?: StatsRange } => ({
@@ -63,8 +64,9 @@ function StatsPage() {
 
   const empty = !sample && events.data?.length === 0;
   const showGrowth = Boolean(growth.data && (growth.data.length > 0 || (events.data?.length ?? 0) > 0));
+  const patterns = patternsOf(insights);
   const sections = [
-    { id: 'patterns', label: 'Patterns', shown: hasPatterns(insights) },
+    { id: 'patterns', label: 'Patterns', shown: patterns !== null },
     { id: 'daily', label: 'Daily stats', shown: true },
     { id: 'growth', label: 'Growth', shown: showGrowth },
   ].filter((section) => section.shown);
@@ -85,7 +87,7 @@ function StatsPage() {
           ))}
         </nav>
       </div>
-      <Insights state={insights} babyName={baby.name} plusBadges={babble.config.billingEnabled} />
+      {patterns && <Insights patterns={patterns} babyName={baby.name} plusBadges={babble.config.billingEnabled} />}
       <section id="stats-section-daily" className="flex scroll-mt-6 flex-col gap-4" aria-labelledby="stats-daily">
         <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
           <div>
@@ -148,17 +150,8 @@ function StatsPage() {
   );
 }
 
-function hasPatterns(state: InsightsState): boolean {
-  if (state.locked) return true;
-  const report = state.report;
-  return Boolean(
-    report && (report.weekly || report.feeds || report.spacing || report.clusters || report.wake || report.night),
-  );
-}
-
-function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyName: string; plusBadges: boolean }) {
-  if (!hasPatterns(state)) return null;
-  if (state.locked) {
+function Insights({ patterns, babyName, plusBadges }: { patterns: Patterns; babyName: string; plusBadges: boolean }) {
+  if (patterns.locked) {
     return (
       <div id="stats-section-patterns" className="scroll-mt-6">
         <PlusTeaser feature="insights" title="Patterns">
@@ -167,10 +160,8 @@ function Insights({ state, babyName, plusBadges }: { state: InsightsState; babyN
       </div>
     );
   }
-  const report = state.report!;
-  const cards = [report.feeds, report.spacing, report.clusters, report.wake, report.night].filter(
-    (card) => card !== null,
-  );
+  const { report } = patterns;
+  const cards = patternCards(report);
   return (
     <section id="stats-section-patterns" className="flex scroll-mt-6 flex-col gap-4" aria-labelledby="stats-patterns">
       <div>
