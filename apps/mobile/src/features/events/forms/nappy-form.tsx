@@ -1,20 +1,14 @@
-import { instantDraft, nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
+import { instantDraft, nappyType, POO_TEXTURE_LABELS, withNappyType, type DraftOfType } from '@babble/domain';
 import { Text } from 'react-native';
 import { CheckRow, MultiChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
 import { Segmented } from '@/components/segmented';
 import { SizeSelector } from '@/components/size-selector';
 import { SwatchPicker } from '@/components/swatch-picker';
+import { labelOptions } from '@/lib/options';
 import { FormSection, type FormProps } from './shared';
 
-const TEXTURES: { value: PooTexture; label: string }[] = [
-  { value: 'runny', label: 'Runny' },
-  { value: 'seedy', label: 'Seedy' },
-  { value: 'pasty', label: 'Pasty' },
-  { value: 'formed', label: 'Formed' },
-  { value: 'mucousy', label: 'Mucousy' },
-  { value: 'solid', label: 'Solid' },
-];
+const TEXTURES = labelOptions(POO_TEXTURE_LABELS, ['runny', 'seedy', 'pasty', 'formed', 'mucousy', 'solid']);
 
 export function NappyForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'nappy'>>) {
   const details = draft.details;

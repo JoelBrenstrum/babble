@@ -1,24 +1,24 @@
-import type { PooColour } from '@babble/domain';
+import { POO_COLOUR_LABELS, type PooColour } from '@babble/domain';
 import { lightVars } from '@babble/tokens';
 import Svg, { Circle, ClipPath, Defs, Polygon } from 'react-native-svg';
+import { labelOptions } from '@/lib/options';
 
-export const POO_COLOURS: { value: PooColour; label: string; token: keyof typeof lightVars }[] = [
-  { value: 'yellow', label: 'Yellow', token: '--poo-yellow' },
-  { value: 'mustard', label: 'Mustard', token: '--poo-mustard' },
-  { value: 'green', label: 'Green', token: '--poo-green' },
-  { value: 'dark_green', label: 'Dark green', token: '--poo-dark-green' },
-  { value: 'brown', label: 'Brown', token: '--poo-brown' },
-  { value: 'orange', label: 'Orange', token: '--poo-orange' },
-  { value: 'black', label: 'Black', token: '--poo-black' },
-  { value: 'red', label: 'Red', token: '--poo-red' },
-  { value: 'white_grey', label: 'White / grey', token: '--poo-white-grey' },
-];
+const TOKENS: Record<PooColour, keyof typeof lightVars> = {
+  yellow: '--poo-yellow',
+  mustard: '--poo-mustard',
+  green: '--poo-green',
+  dark_green: '--poo-dark-green',
+  brown: '--poo-brown',
+  orange: '--poo-orange',
+  black: '--poo-black',
+  red: '--poo-red',
+  white_grey: '--poo-white-grey',
+};
 
-export const CAUTION_COLOURS: readonly PooColour[] = ['red', 'black', 'white_grey'];
+export const POO_COLOURS = labelOptions(POO_COLOUR_LABELS, Object.keys(TOKENS) as PooColour[]);
 
-export function pooColor(colour: PooColour): string {
-  const token = POO_COLOURS.find((c) => c.value === colour)?.token;
-  return token ? `rgb(${lightVars[token].replaceAll(' ', ',')})` : 'transparent';
+function pooColor(colour: PooColour): string {
+  return `rgb(${lightVars[TOKENS[colour]].replaceAll(' ', ',')})`;
 }
 
 export function PooSwatch({ colours, size = 16 }: { colours: readonly PooColour[]; size?: number }) {

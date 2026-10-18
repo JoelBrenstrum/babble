@@ -6,13 +6,11 @@ import {
   MAX_FOOD_LENGTH,
   newFoods,
   recentFoods,
-  SOLIDS_AMOUNT_LABELS,
-  SOLIDS_REACTION_LABELS,
+  SOLIDS_AMOUNT_OPTIONS,
+  SOLIDS_REACTION_OPTIONS,
   toggleFood,
   type BabyEvent,
   type DraftOfType,
-  type SolidsAmount,
-  type SolidsReaction,
 } from '@babble/domain';
 import { Check, Plus } from 'lucide-react-native';
 import { useState } from 'react';
@@ -22,16 +20,6 @@ import { SingleChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
 import { useTokenColor } from '@/lib/theme';
 import { FormSection, type FormProps } from './shared';
-
-const AMOUNTS = (Object.keys(SOLIDS_AMOUNT_LABELS) as SolidsAmount[]).map((value) => ({
-  value,
-  label: SOLIDS_AMOUNT_LABELS[value],
-}));
-
-const REACTIONS = (Object.keys(SOLIDS_REACTION_LABELS) as SolidsReaction[]).map((value) => ({
-  value,
-  label: SOLIDS_REACTION_LABELS[value],
-}));
 
 function FoodChip({ food, selected, onPress }: { food: string; selected: boolean; onPress: () => void }) {
   const checkColor = useTokenColor('--on-solids');
@@ -112,10 +100,15 @@ export function SolidsForm({
           <Text className="font-sans text-meta text-on-solids">{`First try: ${firstTries.join(', ')}`}</Text>
         )}
       </View>
-      <SingleChips label="How much" options={AMOUNTS} value={details.amount} onChange={(amount) => set({ amount })} />
+      <SingleChips
+        label="How much"
+        options={SOLIDS_AMOUNT_OPTIONS}
+        value={details.amount}
+        onChange={(amount) => set({ amount })}
+      />
       <SingleChips
         label="Reaction"
-        options={REACTIONS}
+        options={SOLIDS_REACTION_OPTIONS}
         value={details.reaction}
         onChange={(reaction) => set({ reaction })}
       />

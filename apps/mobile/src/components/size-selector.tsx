@@ -1,12 +1,12 @@
-import type { Size } from '@babble/domain';
+import { SIZE_LABELS, type Size } from '@babble/domain';
 import { Pressable, Text, View } from 'react-native';
 
-const SIZES: { value: Size; label: string; dot: number }[] = [
-  { value: 'tiny', label: 'Tiny', dot: 6 },
-  { value: 'little', label: 'Little', dot: 10 },
-  { value: 'medium', label: 'Medium', dot: 14 },
-  { value: 'large', label: 'Large', dot: 18 },
-  { value: 'massive', label: 'Massive', dot: 22 },
+const SIZES: { value: Size; dot: number }[] = [
+  { value: 'tiny', dot: 6 },
+  { value: 'little', dot: 10 },
+  { value: 'medium', dot: 14 },
+  { value: 'large', dot: 18 },
+  { value: 'massive', dot: 22 },
 ];
 
 export function SizeSelector({
@@ -24,11 +24,12 @@ export function SizeSelector({
       <View accessibilityRole="radiogroup" className="flex-row gap-2">
         {SIZES.map((size) => {
           const selected = value === size.value;
+          const label = SIZE_LABELS[size.value];
           return (
             <Pressable
               key={size.value}
               accessibilityRole="radio"
-              accessibilityLabel={size.label}
+              accessibilityLabel={label}
               accessibilityState={{ checked: selected }}
               onPress={() => onChange(selected ? null : size.value)}
               className={`h-[72px] flex-1 items-center justify-center gap-2 rounded-tile border ${selected ? 'border-primary bg-primary-soft' : 'border-line bg-raised'}`}
@@ -42,7 +43,7 @@ export function SizeSelector({
               <Text
                 className={`text-caption ${selected ? 'font-semibold text-on-primary-soft' : 'font-sans text-ink-2'}`}
               >
-                {size.label}
+                {label}
               </Text>
             </Pressable>
           );

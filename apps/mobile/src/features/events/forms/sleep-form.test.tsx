@@ -37,6 +37,18 @@ describe('SleepForm', () => {
     expect(screen.getByText('1h 12m')).toBeTruthy();
   });
 
+  it('offers the sleep locations and moods by their domain labels', async () => {
+    await render(
+      <SleepForm draft={base} onChange={jest.fn()} errors={{}} timeZone="Pacific/Auckland" units="metric" isNew />,
+    );
+    for (const name of ['Cot', 'Co-sleep', 'Next to carer']) {
+      expect(screen.getByRole('checkbox', { name })).toBeTruthy();
+    }
+    expect(screen.queryByRole('checkbox', { name: 'Bottle' })).toBeNull();
+    expect(screen.getAllByRole('checkbox', { name: 'Happy' })).toHaveLength(2);
+    expect(screen.getAllByRole('checkbox', { name: 'Upset' })).toHaveLength(2);
+  });
+
   it('hides the duration when the end is before the start', async () => {
     const draft = { ...base, startedAt: '2026-10-05T14:10:00Z', endedAt: '2026-10-05T12:58:00Z' };
     await render(
