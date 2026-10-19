@@ -3,7 +3,7 @@ import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent, EventOfType, PooColour } from '../events/types';
 import { formatDurationShort, formatPerDay } from '../format/duration';
 import { formatVolume } from '../format/units';
-import { HOUR_MS } from '../time/constants';
+import { HOUR_MS, MINUTE_MS } from '../time/constants';
 import { byStartedAtDesc, ms } from '../time/instants';
 import type { TimeWindow } from '../time/windows';
 import { feedTimeSplit } from '../timeline/totals';
@@ -16,7 +16,17 @@ const RECENT_POO_COLOURS = 7;
 export const MAX_GAP_MS = 12 * HOUR_MS;
 
 export interface StatsCard {
-  key: 'sleep' | 'feeds' | 'nappies' | 'pump' | 'wake' | 'night' | 'feed-trend' | 'feed-spacing' | 'cluster-feeds';
+  key:
+    | 'sleep'
+    | 'feeds'
+    | 'breast-time'
+    | 'nappies'
+    | 'pump'
+    | 'wake'
+    | 'night'
+    | 'feed-trend'
+    | 'feed-spacing'
+    | 'cluster-feeds';
   title: string;
   figures: { label: string; value: string }[];
   chart: StatsChart;
@@ -54,6 +64,7 @@ export interface CardInput {
   logged: BabyEvent[];
   now: Date;
   settings: StatsSettings;
+  showBreast: boolean;
   showPump: boolean;
 }
 
@@ -66,6 +77,7 @@ export function buildCards({
   logged,
   now,
   settings,
+  showBreast,
   showPump,
 }: CardInput): StatsCard[] {
   const daily = (label: string) => (single ? label : `${label} per day`);
@@ -95,6 +107,7 @@ export function buildCards({
   const leftMs = counted.reduce((total, day) => total + day.leftMs, 0);
   const rightMs = counted.reduce((total, day) => total + day.rightMs, 0);
   const sideTotal = leftMs + rightMs;
+  const breastFeedCount = counted.reduce((total, day) => total + day.feeds - day.bottles, 0);
 
   const longest = counted.reduce((max, day) => Math.max(max, day.longestSleepMs), 0);
   const colours = logged
@@ -139,14 +152,6 @@ export function buildCards({
           ? []
           : [
               {
-                label: 'Breast per day',
-                value: feedTimeSplit({
-                  leftMs: average((day) => day.leftMs),
-                  rightMs: average((day) => day.rightMs),
-                  idleMs: average((day) => day.idleMs),
-                }),
-              },
-              {
                 label: 'Downtime per feed',
                 value: breastFeeds.length ? formatDurationShort(downtimeMs / breastFeeds.length) : '—',
               },
@@ -183,6 +188,30 @@ export function buildCards({
       colours,
     },
   ];
+
+  if (showBreast) {
+    cards.splice(2, 0, {
+      key: 'breast-time',
+      title: 'Time on the breast',
+      figures: [
+        { label: first, value: formatDurationShort(average((day) => day.leftMs + day.rightMs)) },
+        { label: 'Per feed', value: breastFeedCount ? formatDurationShort(sideTotal / breastFeedCount) : '—' },
+        {
+          label: 'Split',
+          value: feedTimeSplit({
+            leftMs: average((day) => day.leftMs),
+            rightMs: average((day) => day.rightMs),
+            idleMs: average((day) => day.idleMs),
+          }),
+        },
+      ],
+      chart: buildChart(
+        'min',
+        ['Left', 'Right'],
+        bars((day) => [day.leftMs / MINUTE_MS, day.rightMs / MINUTE_MS]),
+      ),
+    });
+  }
 
   if (showPump) {
     const pumpLeft = average((day) => day.pumpLeftMl);

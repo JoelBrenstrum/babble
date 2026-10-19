@@ -55,6 +55,7 @@ export function filterLayout(layout: DayLayout, lanes: readonly TimelineLane[]):
 const CARD_LANES: Record<StatsCard['key'], TimelineLane> = {
   sleep: 'sleep',
   feeds: 'feeds',
+  'breast-time': 'feeds',
   'feed-spacing': 'feeds',
   'cluster-feeds': 'feeds',
   'feed-trend': 'feeds',

@@ -212,7 +212,52 @@ describe('statsReport', () => {
   });
 
   it('only shows pumping when there was some', () => {
-    expect(report.cards.map((card) => card.key)).toEqual(['sleep', 'feeds', 'nappies']);
+    expect(report.cards.map((card) => card.key)).toEqual(['sleep', 'feeds', 'breast-time', 'nappies']);
+  });
+
+  it('totals time on the breast per day and per feed', () => {
+    expect(figure('breast-time', 'Per day')).toBe('15m');
+    expect(figure('breast-time', 'Per feed')).toBe('30m');
+    expect(figure('breast-time', 'Split')).toBe('L 7m · R 7m · idle 2m');
+    const chart = report.cards.find((card) => card.key === 'breast-time')!.chart;
+    expect(chart).toMatchObject({ unit: 'min', series: ['Left', 'Right'], max: 30 });
+    expect(chart.bars.map((bar) => bar.values)).toEqual([
+      [15, 15],
+      [0, 0],
+      [0, 0],
+    ]);
+  });
+
+  it('only shows time on the breast when a breastfeed was logged', () => {
+    const bottlesOnly = statsReport(
+      events.filter((event) => event.type !== 'breast_feed'),
+      keys,
+      '2026-10-08',
+      NOW,
+      settings,
+    );
+    expect(bottlesOnly.cards.map((card) => card.key)).toEqual(['sleep', 'feeds', 'nappies']);
+    const todayOnly = statsReport(
+      [
+        makeEvent('breast_feed', {
+          id: 'today',
+          startedAt: '2026-10-08T10:00:00Z',
+          endedAt: '2026-10-08T10:10:00Z',
+          segments: [{ side: 'left', startedAt: '2026-10-08T10:00:00Z', endedAt: '2026-10-08T10:10:00Z' }],
+        }),
+      ],
+      keys,
+      '2026-10-08',
+      NOW,
+      settings,
+    );
+    expect(
+      todayOnly.cards.find((card) => card.key === 'breast-time')!.figures.map((item) => [item.label, item.value]),
+    ).toEqual([
+      ['Today so far', '10m'],
+      ['Per feed', '10m'],
+      ['Split', 'L 10m · R 0m'],
+    ]);
   });
 
   it('averages pumped left and right per day', () => {

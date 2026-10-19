@@ -8,6 +8,7 @@ Built on branch `stage-2`, on web and mobile (pulled ahead of Stages 4 and 6):
 - [x] `statsReport` in `domain/stats`, built on `bucketByDay` and `summariseDay`. Averages use finished days only, from the first day anything was logged, so empty days before tracking began don't lower them. When only today has entries, it says it's showing today so far.
 - [x] **Sleep:** per day, night (uses the night window), naps per day, longest stretch, average wake window (gaps between sleeps under 12h). Chart: night and naps stacked per day.
 - [x] **Feeds:** per day, average gap between feed starts, left/right balance by time, downtime per feed (timed feeds only, since imports have no downtime), bottle per day. Chart: breast and bottle stacked.
+- [x] **Time on the breast** (only when a breastfeed was logged): per day, per feed, left/right/idle split. Chart: left and right minutes stacked per day, so a change in how long feeds take shows up over weeks.
 - [x] **Nappies:** wet and dirty per day, the 14 most recent poo colours. Chart: wet-only and dirty stacked.
 - [x] **Pump** (only when there was pumping): per day, sessions per day, left/right yield. Chart: volume per day.
 - [x] Ranges longer than 31 days chart weekly averages ("weekly avg" on the chart).
