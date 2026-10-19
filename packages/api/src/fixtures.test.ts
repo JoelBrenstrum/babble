@@ -28,7 +28,7 @@ describe('sample month', () => {
     expect(events[100]).toMatchObject({ id: 'month-nappy-101', startedAt: '2026-09-16T16:21:28.544Z' });
     expect(events.at(-1)).toMatchObject({ id: 'month-nappy-825', startedAt: '2026-10-13T01:50:05.023Z' });
     const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-    expect(digest(events)).toBe('b5f456bd50c65a6547ef81a9cd0cee6dbc877361a4934bccc11c2e9fdf62b47f');
+    expect(digest(events)).toBe('a19635aaf2910abcf46127739bc092573f0b976e793725b9777101cb39c5e031');
     expect(digest(sampleStatsReport(now))).toBe('608e40ca0e198e063ed12167719da5533f07ddd31d96e5dee5276a04ba946cab');
   });
 

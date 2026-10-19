@@ -1,5 +1,6 @@
 import {
   isEventType,
+  SLEEP_QUALITIES,
   type BottleDetails,
   type CustomDetails,
   type DraftOfType,
@@ -28,9 +29,9 @@ const literal =
   (value) =>
     value === expected ? expected : undefined;
 const oneOf =
-  <T extends string>(values: readonly T[]): Reader<T> =>
+  <T extends string | number>(values: readonly T[]): Reader<T> =>
   (value) =>
-    typeof value === 'string' && (values as readonly string[]).includes(value) ? (value as T) : undefined;
+    (values as readonly unknown[]).includes(value) ? (value as T) : undefined;
 const absentAs =
   <T, D extends T>(read: Reader<T>, fallback: D): Reader<T> =>
   (value) =>
@@ -83,6 +84,7 @@ const READERS: { [T in EventType]: Reader<DraftOfType<T>> } = {
       startMoods: listOf(oneOf(ENUMS.mood)),
       endMoods: listOf(oneOf(ENUMS.mood)),
       wokenByCarer: flag,
+      quality: nullable(oneOf(SLEEP_QUALITIES)),
     }),
     segments: listOf(stretch),
   }),

@@ -223,13 +223,14 @@ export function useSaveSleepDetails(client: BabbleClient, babyId: string) {
 }
 
 export function useSavePumpAmounts(client: BabbleClient, babyId: string) {
-  return useOptimisticEventMutation(babyId, {
+  return useEventMutation(babyId, {
     mutationFn: ({ eventId, changes }: { eventId: string; changes: PumpAmountChanges }) =>
       savePumpAmounts(client, eventId, changes),
-    target: ({ eventId, changes }) => ({
+    optimistic: ({ eventId, changes }) => ({
       eventId,
       produce: (current) => mergePumpAmounts(current, changes),
     }),
+    toastErrors: true,
   });
 }
 

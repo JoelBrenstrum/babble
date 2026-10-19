@@ -59,6 +59,10 @@ describe('readExportedDraft', () => {
       raw(emptyDraft('sleep', NOW), { details: { ...emptyDraft('sleep', NOW).details, locations: ['moon'] } }),
     ],
     [
+      'a sleep quality off the scale',
+      raw(emptyDraft('sleep', NOW), { details: { ...emptyDraft('sleep', NOW).details, quality: 6 } }),
+    ],
+    [
       'a segment without a side',
       raw(emptyDraft('breast_feed', NOW), { segments: [{ startedAt: NOW.toISOString(), endedAt: null }] }),
     ],
@@ -84,7 +88,14 @@ describe('readExportedDraft', () => {
       startedAt: at,
       endedAt: at,
       notes: 'x',
-      details: { locations: ['cot'], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false },
+      details: {
+        locations: ['cot'],
+        fallAsleep: null,
+        startMoods: [],
+        endMoods: [],
+        wokenByCarer: false,
+        quality: null,
+      },
       segments: [],
     });
     expect(readExportedDraft({ type: 'bottle', startedAt: at, endedAt: at, details: { amountMl: 90 } })).toEqual({
