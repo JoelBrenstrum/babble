@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { requestMagicLink, signInWithPassword, signUpWithPassword } from './auth';
 import { DEV_ACCOUNTS, DEV_PASSWORD } from './dev';
 import { BabbleError } from './errors';
@@ -8,6 +8,7 @@ import {
   checkInvite,
   createFamily,
   createInvite,
+  deleteMyAccount,
   findBabySettings,
   DEFAULT_FAMILY_SETTINGS,
   getBabySettings,
@@ -324,5 +325,14 @@ describe('findBabySettings', () => {
     expect(await findBabySettings(empty.client, 'baby-1')).toBeNull();
     const broken = fakeClient(() => ({ status: 500, body: { message: 'boom' } }));
     await expect(findBabySettings(broken.client, 'baby-1')).rejects.toBeInstanceOf(BabbleError);
+  });
+});
+
+describe('deleteMyAccount', () => {
+  it('still resolves when the local sign-out fails after the account is deleted', async () => {
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    vi.spyOn(client.auth, 'signOut').mockResolvedValue({ error: new Error('network') } as never);
+    await expect(deleteMyAccount(client)).resolves.toBeUndefined();
+    expect(requests[0]!.url.pathname).toBe('/rest/v1/rpc/delete_my_account');
   });
 });

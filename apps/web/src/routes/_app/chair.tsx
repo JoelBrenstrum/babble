@@ -8,9 +8,10 @@ import {
   familyAuthors,
 } from '@babble/api';
 import {
+  useNow,
   useRemoveEntry,
-  useRestoreEntry,
   useReopenSession,
+  useRestoreEntry,
   useSaveEvent,
   useSessionAction,
   useStartSession,
@@ -39,7 +40,6 @@ import { ChairScreen, type ChairActions, type ChairData } from '#/features/chair
 import { useNapPrompt } from '#/features/nap-prompt';
 import { ChairPreview } from '#/features/landing/previews';
 import { PlusTeaser } from '#/features/plus-teaser';
-import { useNow } from '#/lib/use-now';
 import { useSelectBaby } from '#/lib/use-select-baby';
 import { useOnline } from '#/lib/use-online';
 import { useFullscreen } from '#/lib/fullscreen';

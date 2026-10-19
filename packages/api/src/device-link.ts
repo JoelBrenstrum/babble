@@ -1,5 +1,5 @@
 import type { BabbleClient } from './client';
-import { toBabbleError, unwrap, unwrapVoid } from './errors';
+import { unwrap, unwrapVoid } from './errors';
 
 const CODE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
 const CODE_LENGTH = 8;
@@ -101,6 +101,5 @@ export async function approveDeviceLink(client: BabbleClient, code: string): Pro
 }
 
 export async function finishDeviceLink(client: BabbleClient, tokenHash: string): Promise<void> {
-  const { error } = await client.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' });
-  if (error) throw toBabbleError(error);
+  unwrapVoid(await client.auth.verifyOtp({ token_hash: tokenHash, type: 'magiclink' }));
 }

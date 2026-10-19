@@ -1,5 +1,5 @@
 import { clock, latestEventsQuery, runningEventsQuery, authorName } from '@babble/api';
-import { useAsyncAction, useStartSession, useTrackingSettings, useUnits } from '@babble/api/react';
+import { useAsyncAction, useNow, useStartSession, useTrackingSettings, useUnits } from '@babble/api/react';
 import {
   isEventType,
   isSessionType,
@@ -26,7 +26,6 @@ import { StatusMessage } from '#/components/ui/status';
 import { TrackerIcon } from '#/components/ui/tracker-icon';
 import { EventForm } from '#/features/events/event-form';
 import { useNapPrompt } from '#/features/nap-prompt';
-import { useNow } from '#/lib/use-now';
 
 export const Route = createFileRoute('/_app/track/$type/new')({
   validateSearch: (search: Record<string, unknown>): { then?: 'back' } => ({

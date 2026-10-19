@@ -1,4 +1,5 @@
 import type { NappyPromptTiming, Units } from '@babble/domain';
+import { DEFAULT_FAMILY_SETTINGS } from '../families';
 import type { BabySettings } from '../types';
 
 export interface TrackingSettings {
@@ -9,10 +10,11 @@ export interface TrackingSettings {
 }
 
 export function trackingSettingsFrom(settings: BabySettings | undefined): TrackingSettings {
+  const { units, downtime_merge_threshold_sec, auto_end_paused_session_min } = settings ?? DEFAULT_FAMILY_SETTINGS;
   return {
-    units: settings?.units ?? 'metric',
-    mergeGapMs: (settings?.downtime_merge_threshold_sec ?? 15) * 1000,
-    autoEndPausedMinutes: settings?.auto_end_paused_session_min ?? 30,
+    units,
+    mergeGapMs: downtime_merge_threshold_sec * 1000,
+    autoEndPausedMinutes: auto_end_paused_session_min,
     nappyPrompt: settings?.nappy_prompt ?? 'feed_start',
   };
 }

@@ -1,3 +1,5 @@
+import { CARER_LIMIT_MESSAGE } from '@babble/config';
+
 export class BabbleError extends Error {
   constructor(
     message: string,
@@ -39,7 +41,7 @@ const MESSAGES: Record<BabbleErrorCode, string> = {
   rate_limited: 'Too many sign-in emails have been sent recently. Try again later, or sign in with a password.',
   session_conflict: 'Another session of this kind is already running. Finish or discard it first.',
   baby_limit: 'Adding more than one baby to a family needs Babble Plus.',
-  carer_limit: 'A free family can have two carers. Babble Plus allows more.',
+  carer_limit: CARER_LIMIT_MESSAGE,
   last_admin: 'A family needs at least one admin. Make someone else an admin first.',
   merge_invalid: 'These can no longer be merged. They may have changed; refresh and try again.',
   device_link_invalid: 'This code has expired or was already used. Make a new one on the other screen.',

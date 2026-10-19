@@ -14,7 +14,7 @@ import {
   type BabbleClient,
   type FamilyDevice,
 } from '@babble/api';
-import { useAsyncAction } from '@babble/api/react';
+import { useAsyncAction, useNow } from '@babble/api/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { router } from 'expo-router';
@@ -23,7 +23,6 @@ import { Button } from '@/components/button';
 import { Card, SectionLabel } from '@/components/card';
 import { TextField } from '@/components/text-field';
 import { localDeviceName } from '@/lib/device-name';
-import { useNow } from '@/lib/use-now';
 
 export function FamilyDevices({ client, familyId, admin }: { client: BabbleClient; familyId: string; admin: boolean }) {
   const devices = useQuery(familyDevicesQuery(client, familyId)).data;

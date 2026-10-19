@@ -6,7 +6,7 @@ import {
   type BabbleClient,
   authorName,
 } from '@babble/api';
-import { useAsyncAction, useReopenSession, useTrackingSettings } from '@babble/api/react';
+import { useAsyncAction, useNow, useReopenSession, useTrackingSettings } from '@babble/api/react';
 import {
   canResumeSession,
   importedNote,
@@ -34,7 +34,6 @@ import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm } from '#/features/events/event-form';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
-import { useNow } from '#/lib/use-now';
 
 export const Route = createFileRoute('/_app/events/$eventId')({
   validateSearch: (search: Record<string, unknown>): { finish?: boolean } => ({

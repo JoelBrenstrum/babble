@@ -13,6 +13,7 @@
     "typecheck": "tsc"
   },
   "dependencies": {
+    "@babble/config": "workspace:*",
     "@babble/domain": "workspace:*",
     "@supabase/supabase-js": "^2.117.2"
   },

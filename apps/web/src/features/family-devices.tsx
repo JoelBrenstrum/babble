@@ -14,7 +14,7 @@ import {
   type BabbleClient,
   type FamilyDevice,
 } from '@babble/api';
-import { useAsyncAction } from '@babble/api/react';
+import { useAsyncAction, useNow } from '@babble/api/react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { MonitorSmartphone } from 'lucide-react';
@@ -24,7 +24,6 @@ import { Card, SectionLabel } from '#/components/ui/card';
 import { ConfirmPanel } from '#/components/ui/confirm-panel';
 import { TextField } from '#/components/ui/field';
 import { useDeviceName } from '#/features/device-name-context';
-import { useNow } from '#/lib/use-now';
 import { cn } from '#/lib/cn';
 
 export function FamilyDevices({ client, familyId, admin }: { client: BabbleClient; familyId: string; admin: boolean }) {

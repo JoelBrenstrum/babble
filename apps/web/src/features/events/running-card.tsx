@@ -1,5 +1,5 @@
 import { clock, queryKeys, type BabbleClient, type BabySettings, type Author } from '@babble/api';
-import { useDiscardSession, useSessionAction } from '@babble/api/react';
+import { useDiscardSession, useNow, useSessionAction } from '@babble/api/react';
 import {
   discardNeedsConfirmation,
   feedEndTime,
@@ -24,7 +24,6 @@ import { Button } from '#/components/ui/button';
 import { ConfirmPanel } from '#/components/ui/confirm-panel';
 import { cn } from '#/lib/cn';
 import { useNapPrompt } from '#/features/nap-prompt';
-import { useNow } from '#/lib/use-now';
 import { EndTimeButton, EndTimeEditor } from './end-time-editor';
 import { StartTimeButton, StartTimeEditor } from './start-time-editor';
 

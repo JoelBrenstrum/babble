@@ -1,22 +1,14 @@
-import { babySettingsQuery, eventsBetweenQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { babySettingsQuery } from '@babble/api';
 import {
   comparisonToggleLabel,
-  dayComparison,
   daySummaryStrip,
-  feedDueFor,
-  feedDueMarker,
   filterLayout,
-  nightMarkers,
   parseTimelineLanes,
   shownLanes,
-  previous24hWindow,
-  previousDayWindow,
-  rollingComparison,
   dayTotalCards,
   predictedLayout,
   predictionText,
   timelineModel,
-  timelineRange,
   weekSummaryStrip,
   weekTableRows,
   type DayComparison,
@@ -28,8 +20,16 @@ import {
 } from '@babble/domain';
 import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
-import { useUnits } from '@babble/api/react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  useDayComparison,
+  useNow,
+  usePrediction,
+  useRollingComparison,
+  useTimelineMarkers,
+  useTimelineModel,
+  useUnits,
+} from '@babble/api/react';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -48,9 +48,7 @@ import { MonthTimeline } from '@/features/timeline/month-timeline';
 import { PlusMask } from '@/features/plus-mask';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
-import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
-import { usePrediction } from '@/lib/use-prediction';
 
 export default function TimelineTab() {
   const ready = useReadyState();
@@ -76,18 +74,23 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
     setShow(parseTimelineLanes(params.show));
   }, [params.view, params.date, params.show, params.at]);
 
-  const range = timelineRange({ view, date, baby, now });
-  const { dayKey, todayKey, keys, step, previousKey, nextKey, canGoNext, rangeLabel } = range;
   const insightsLocked = !familyHasFeature(config.billingEnabled, family.plan, 'insights');
   const sampleOnly = view === '30d' && insightsLocked;
-  const events = useQuery({
-    ...eventsBetweenQuery(client, baby.id, range.from, range.to),
+  const timeline = useTimelineModel({
+    client,
+    babyId: baby.id,
+    baby,
+    view,
+    date,
+    now,
     enabled: !sampleOnly,
-    placeholderData: view === '24h' ? keepPreviousData : undefined,
+    placeholder: view === '24h' ? 'previous' : 'none',
   });
-  const model = timelineModel({ view, date, events: events.data ?? [], settings, baby, now });
+  const { range, pending } = timeline;
+  const { dayKey, todayKey, keys, step, previousKey, nextKey, canGoNext, rangeLabel } = range;
+  const model = timeline.model ?? timelineModel({ view, date, events: [], settings, baby, now });
 
-  const prediction = usePrediction(baby, family, now);
+  const prediction = usePrediction(client, config.billingEnabled, baby, family, now);
   const predicted =
     model.view === 'day' && dayKey === todayKey
       ? predictedLayout(prediction, model.day.window, now, baby.timezone)
@@ -98,39 +101,35 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
   const [pitching, setPitching] = useState(false);
   const comparing = (view === 'day' || view === '24h') && compare && !insightsLocked;
   const toggleCompare = () => (insightsLocked ? setPitching(true) : setCompare(!compare));
-  const previousWindow =
-    view === '24h'
-      ? previous24hWindow({ start: new Date(range.from), end: new Date(range.to) })
-      : previousDayWindow(dayKey, baby);
-  const previousEvents = useQuery({
-    ...eventsBetweenQuery(client, baby.id, previousWindow.start.toISOString(), previousWindow.end.toISOString()),
-    enabled: comparing,
-    placeholderData: view === '24h' ? keepPreviousData : undefined,
-  }).data;
+  const rolling = useRollingComparison({
+    client,
+    babyId: baby.id,
+    baby,
+    window: model.view === '24h' ? model.window : null,
+    current: model.view === '24h' ? model.summary : null,
+    enabled: comparing && view === '24h',
+    placeholder: 'previous',
+  });
   const comparison =
-    !comparing || !previousEvents
-      ? null
-      : model.view === 'day'
-        ? dayComparison({ dayKey, todayKey, current: model.day.summary, events: previousEvents, settings, baby, now })
-        : model.view === '24h'
-          ? rollingComparison({ window: model.window, current: model.summary, events: previousEvents, settings, baby })
-          : null;
-  const latest = useQuery({ ...latestEventsQuery(client, baby.id), enabled: !insightsLocked }).data;
-  const running = useQuery({ ...runningEventsQuery(client, baby.id), enabled: !insightsLocked }).data;
-  const due = insightsLocked ? null : feedDueFor(latest ?? [], running ?? [], settings, now, baby.timezone);
-  const feedDue = !lanes.includes('feeds')
-    ? null
-    : model.view === 'day'
-      ? feedDueMarker(due, model.day.window, now, baby.timezone)
-      : model.view === '24h'
-        ? feedDueMarker(due, model.window, now, baby.timezone)
-        : null;
-  const night =
-    model.view === 'day'
-      ? nightMarkers(model.day.window, settings, baby.timezone)
-      : model.view === '24h'
-        ? nightMarkers(model.window, settings, baby.timezone)
-        : [];
+    useDayComparison({
+      client,
+      babyId: baby.id,
+      baby,
+      dayKey,
+      todayKey,
+      current: model.view === 'day' ? model.day.summary : null,
+      now,
+      enabled: comparing && view === 'day',
+    }) ?? rolling;
+  const { feedDue, night } = useTimelineMarkers({
+    client,
+    babyId: baby.id,
+    timeZone: baby.timezone,
+    model,
+    now,
+    lanes,
+    enabled: !insightsLocked,
+  });
   const openDay = (key: string) => {
     setDate(key);
     setView('day');
@@ -212,7 +211,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
           >
             <SampleMonth now={now} />
           </PlusMask>
-        ) : events.isPending ? (
+        ) : pending ? (
           <PageSpinner />
         ) : model.view === '24h' ? (
           <>

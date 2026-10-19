@@ -27,6 +27,7 @@ export function useDeviceNameSync(client: BabbleClient, familyId: string, local:
     const sync = deviceNameSync(serverName, local.read());
     if (sync.kind === 'store') local.write(sync.name);
     if (sync.kind === 'upload') {
+      // Best effort: nothing on screen to report to, and the upload is retried on the next mount.
       void renameDevice(client, sessionId, sync.name)
         .then(() => queryClient.invalidateQueries({ queryKey: queryKeys.familyDevices(familyId) }))
         .catch(() => undefined);
