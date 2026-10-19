@@ -48,8 +48,12 @@ export function setupQueryPersistence(
     buster: options.buster ?? RELEASE_ID,
     dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
   });
+  // Restored data is shown straight away but always refetched: it may be seconds or hours old.
+  const restoredStale = restored
+    .then(() => queryClient.invalidateQueries({ refetchType: 'none' }))
+    .catch(() => undefined);
   current = {
-    restored: restored.catch(() => undefined),
+    restored: restoredStale,
     clear: async () => {
       await persister.removeClient();
     },

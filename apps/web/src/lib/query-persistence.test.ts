@@ -100,6 +100,18 @@ describe('setupQueryPersistence', () => {
     expect(second.getQueryData(['release'])).toBeUndefined();
   });
 
+  it('marks restored data stale so it is refetched on first use', async () => {
+    const storage = memoryStorage();
+    const first = client();
+    await setupQueryPersistence(first, { storage, throttleTime: 0, buster: 'r1' }).restored;
+    first.setQueryData(['events', 'b1', 'latest'], [{ id: 'e1' }]);
+    await flush();
+
+    const second = client();
+    await setupQueryPersistence(second, { storage, throttleTime: 0, buster: 'r1' }).restored;
+    expect(second.getQueryState(['events', 'b1', 'latest'])?.isInvalidated).toBe(true);
+  });
+
   it('drops the cache when the release changes', async () => {
     const storage = memoryStorage();
     const first = client();
