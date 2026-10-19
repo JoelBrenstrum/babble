@@ -202,7 +202,13 @@ export {
 export { hasStrip, listStrip, stripKind, stripWindow, type StripItem } from './lists/list-strip';
 export { listDayGroups } from './lists/day-groups';
 export {
+  CAUTION_COLOURS,
+  MOOD_LABELS,
+  POO_COLOUR_LABELS,
+  POO_TEXTURE_LABELS,
   SIDE_LABEL,
+  SIZE_LABELS,
+  SLEEP_LOCATION_LABELS,
   SLEEP_QUALITIES,
   SLEEP_QUALITY_LABELS,
   SOLIDS_AMOUNT_LABELS,
@@ -268,6 +274,7 @@ export {
 export { homeWindow } from './timeline/home-window';
 export {
   TIMELINE_SPAN,
+  TIMELINE_VIEWS,
   timelineModel,
   timelineRange,
   type TimelineBaby,
