@@ -23,7 +23,6 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Navigate, useNavigate, useRouter } from '@tanstack/react-router';
 import { Play } from 'lucide-react';
-import { useState } from 'react';
 import { PageHeader } from '#/components/shell/page-header';
 import { Button } from '#/components/ui/button';
 import { Card } from '#/components/ui/card';
@@ -34,6 +33,7 @@ import { EntryAuthor } from '#/features/events/entry-author';
 import { EventForm } from '#/features/events/event-form';
 import { NapBreakdown } from '#/features/events/nap-breakdown';
 import { SessionBreakdown } from '#/features/events/session-breakdown';
+import { useFormFreshness } from '#/features/events/use-form-freshness';
 import { useNow } from '#/lib/use-now';
 
 export const Route = createFileRoute('/_app/events/$eventId')({
@@ -166,18 +166,14 @@ function EventFormPanel({
   readOnly: boolean;
   onDone: () => void;
 }) {
-  const [loaded, setLoaded] = useState({ updatedAt: event.updatedAt, version: 0 });
-  const changedElsewhere = event.updatedAt !== loaded.updatedAt;
+  const freshness = useFormFreshness(event);
   return (
     <div className="flex flex-col gap-3">
-      {changedElsewhere && (
+      {freshness.changedElsewhere && (
         <StatusMessage tone="info">
           <span className="flex flex-wrap items-center justify-between gap-3">
             This entry was changed on another device.
-            <Button
-              variant="secondary"
-              onClick={() => setLoaded((current) => ({ updatedAt: event.updatedAt, version: current.version + 1 }))}
-            >
+            <Button variant="secondary" onClick={freshness.reload}>
               Reload
             </Button>
           </span>
@@ -185,7 +181,7 @@ function EventFormPanel({
       )}
       <Card className="p-5">
         <EventForm
-          key={loaded.version}
+          key={freshness.version}
           client={client}
           babyId={babyId}
           timeZone={timeZone}
@@ -194,6 +190,7 @@ function EventFormPanel({
           initial={eventToDraft(event)}
           focusAmounts={focusAmounts}
           readOnly={readOnly}
+          onSaved={freshness.markOwnSave}
           onDone={onDone}
         />
       </Card>
