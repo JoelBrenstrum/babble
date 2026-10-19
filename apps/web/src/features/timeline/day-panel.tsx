@@ -13,7 +13,7 @@ import {
   type Units,
 } from '@babble/domain';
 import type { ReactNode } from 'react';
-import { PageSpinner } from '#/components/ui/spinner';
+import { SectionSpinner } from '#/components/ui/spinner';
 import { DayComparisonCard } from './day-comparison';
 import { DayTimeline } from './day-timeline';
 import { DayTotals, SummaryStrip } from './totals';
@@ -84,7 +84,7 @@ export function DayPanel({
                 {comparison === 'loading' ? '…' : comparison.previousLabel}
               </span>
               {comparison === 'loading' ? (
-                <PageSpinner />
+                <SectionSpinner label="Loading comparison" />
               ) : (
                 <DayTimeline
                   layout={comparison.layout}
