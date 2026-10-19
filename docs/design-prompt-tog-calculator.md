@@ -17,13 +17,13 @@ Paste everything below this line into Claude Design (the Babble project).
 >
 > ## The chart behind it (use these exact numbers)
 >
-> | Room temperature | TOG | Under the bag |
-> |---|---|---|
-> | 24 °C and above (75 °F+) | 0.2 | Short-sleeve bodysuit, or just a nappy when it's very warm |
-> | 20–24 °C (68–75 °F) | 1.0 | Short-sleeve bodysuit; long sleeves at the cool end |
-> | 18–24 °C (64–75 °F) | 1.5 | Long-sleeve bodysuit (an "all season" bag that overlaps the two bands either side) |
-> | 16–20 °C (61–68 °F) | 2.5 | Long-sleeve bodysuit, or a sleepsuit |
-> | Below 16 °C (below 61 °F) | 3.5 | Long-sleeve bodysuit and a sleepsuit |
+> | Room temperature          | TOG | Under the bag                                                                      |
+> | ------------------------- | --- | ---------------------------------------------------------------------------------- |
+> | 24 °C and above (75 °F+)  | 0.2 | Short-sleeve bodysuit, or just a nappy when it's very warm                         |
+> | 20–24 °C (68–75 °F)       | 1.0 | Short-sleeve bodysuit; long sleeves at the cool end                                |
+> | 18–24 °C (64–75 °F)       | 1.5 | Long-sleeve bodysuit (an "all season" bag that overlaps the two bands either side) |
+> | 16–20 °C (61–68 °F)       | 2.5 | Long-sleeve bodysuit, or a sleepsuit                                               |
+> | Below 16 °C (below 61 °F) | 3.5 | Long-sleeve bodysuit and a sleepsuit                                               |
 >
 > The 1.5 TOG row only matters in Bag TOG mode. In Room temp mode the scale uses the four main bands, and a result inside 18–24 °C adds a hint: "A 1.5 TOG all-season bag also covers this."
 >
