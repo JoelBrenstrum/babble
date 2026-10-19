@@ -1,0 +1,49 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: GitHub environment holding SUPABASE_DB_URL and FLY_API_TOKEN
+        required: true
+        type: string
+      fly-config:
+        description: Fly config file at the repository root
+        required: true
+        type: string
+      url:
+        description: Public URL of the deployed app
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ inputs.environment }}
+      url: ${{ inputs.url }}
+    concurrency:
+      group: deploy-${{ inputs.environment }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile --filter @babble/db
+      - working-directory: packages/db
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          pnpm exec supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
+          pnpm exec supabase db push --db-url "$SUPABASE_DB_URL"
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+      - run: flyctl deploy --remote-only --config "${{ inputs.fly-config }}"
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      - run: curl -fsS --retry 5 --retry-delay 5 "${{ inputs.url }}/api/health"
