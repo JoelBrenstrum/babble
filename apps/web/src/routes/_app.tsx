@@ -14,6 +14,7 @@ import { createFileRoute, Outlet, redirect, useLocation } from '@tanstack/react-
 import { AppShell } from '#/components/shell/app-shell';
 import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
+import { queryCacheRestored } from '#/lib/query-persistence';
 import { readStorage, storageKeys } from '#/lib/storage';
 import { DeviceNameProvider } from '#/features/device-name-context';
 import { NapPromptProvider } from '#/features/nap-prompt';
@@ -24,6 +25,7 @@ import { useSelectBaby } from '#/lib/use-select-baby';
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context, location }) => {
     const { data } = await context.babble.client.auth.getSession();
+    await queryCacheRestored();
     const families = data.session
       ? await context.queryClient.ensureQueryData(familiesQuery(context.babble.client))
       : [];

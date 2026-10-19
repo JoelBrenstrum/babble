@@ -20,6 +20,7 @@ import { ToastProvider, useToast } from '#/components/ui/toast';
 import { authEffects } from '#/lib/auth-listener';
 import { loadBabble } from '#/lib/babble';
 import { configProblem } from '#/lib/config-problem';
+import { clearPersistedQueries } from '#/lib/query-persistence';
 import { themeBootScript, themeColorMeta } from '#/lib/theme';
 import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { clearAccountStorage } from '#/lib/storage';
@@ -96,6 +97,7 @@ function RootComponent() {
       if (effects.accountChanged) {
         clearAccountStorage();
         queryClient.clear();
+        void clearPersistedQueries();
       }
       userId = nextUserId;
       if (effects.refresh) {
