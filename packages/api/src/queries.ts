@@ -45,10 +45,13 @@ export function pendingInvitesQuery(client: BabbleClient, familyId: string) {
   return { queryKey: queryKeys.pendingInvites(familyId), queryFn: () => listPendingInvites(client, familyId) };
 }
 
+export const EVENT_LIST_LIMIT = 100;
+export const EVENTS_SINCE_LIMIT = 500;
+
 export function eventListQuery(client: BabbleClient, babyId: string, types: EventType[]) {
   return {
     queryKey: queryKeys.eventList(babyId, types),
-    queryFn: () => listEvents(client, babyId, { types, limit: 100 }),
+    queryFn: () => listEvents(client, babyId, { types, limit: EVENT_LIST_LIMIT }),
   };
 }
 
@@ -63,7 +66,7 @@ export function runningEventsQuery(client: BabbleClient, babyId: string) {
 export function eventsSinceQuery(client: BabbleClient, babyId: string, since: string) {
   return {
     queryKey: queryKeys.eventsSince(babyId, since),
-    queryFn: () => listEvents(client, babyId, { since, limit: 500 }),
+    queryFn: () => listEvents(client, babyId, { since, limit: EVENTS_SINCE_LIMIT }),
   };
 }
 

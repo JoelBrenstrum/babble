@@ -505,17 +505,37 @@ let subscriptionCount = 0;
 
 const CHANNEL_FAILURES: readonly string[] = ['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'];
 
+export interface EventChange {
+  id: string | null;
+  updatedAt: string | null;
+  deletedAt: string | null;
+}
+
+export const UNKNOWN_CHANGE: EventChange = { id: null, updatedAt: null, deletedAt: null };
+
+export function eventChangeFrom(payload: { new?: unknown; old?: unknown }): EventChange {
+  const rowOf = (value: unknown) =>
+    value && typeof value === 'object' && 'id' in value ? (value as Record<string, unknown>) : null;
+  const row = rowOf(payload.new) ?? rowOf(payload.old);
+  const text = (value: unknown) => (typeof value === 'string' ? value : null);
+  return { id: text(row?.id), updatedAt: text(row?.updated_at), deletedAt: text(row?.deleted_at) };
+}
+
 export function subscribeToBabyEvents(
   client: BabbleClient,
   babyId: string,
-  onChange: () => void,
-  onFailure: () => void = onChange,
+  onChange: (change: EventChange) => void,
+  onFailure: () => void = () => onChange(UNKNOWN_CHANGE),
 ): () => void {
   subscriptionCount += 1;
   let active = true;
   const channel = client
     .channel(`events:${babyId}:${subscriptionCount}`)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'events', filter: `baby_id=eq.${babyId}` }, onChange)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'events', filter: `baby_id=eq.${babyId}` },
+      (payload) => onChange(eventChangeFrom(payload)),
+    )
     .subscribe((status) => {
       if (active && CHANNEL_FAILURES.includes(status)) onFailure();
     });
