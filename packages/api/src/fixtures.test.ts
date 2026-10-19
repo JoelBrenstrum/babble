@@ -21,6 +21,6 @@ describe('sample month', () => {
   });
 
   it('builds stats cards for the locked all-time view', () => {
-    expect(sampleStatsReport(now).cards.map((card) => card.key)).toEqual(['sleep', 'feeds', 'nappies']);
+    expect(sampleStatsReport(now).cards.map((card) => card.key)).toEqual(['sleep', 'feeds', 'breast-time', 'nappies']);
   });
 });

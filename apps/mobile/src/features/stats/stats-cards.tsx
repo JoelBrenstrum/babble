@@ -17,6 +17,7 @@ import {
   Moon,
   MoonStar,
   Sun,
+  Timer,
   TrendingUp,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -39,6 +40,12 @@ type InkToken =
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkToken; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft', ink: '--on-feed-right', series: ['bg-bottle', 'bg-feed-right'] },
+  'breast-time': {
+    icon: Timer,
+    tile: 'bg-feed-left-soft',
+    ink: '--on-feed-left',
+    series: ['bg-feed-left', 'bg-feed-right'],
+  },
   nappies: {
     icon: Droplets,
     tile: 'bg-nappy-soft',

@@ -19,6 +19,7 @@ import {
   Moon,
   MoonStar,
   Sun,
+  Timer,
   TrendingUp,
   type LucideIcon,
 } from 'lucide-react';
@@ -33,6 +34,11 @@ import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft text-on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft text-on-feed-right', series: ['bg-bottle', 'bg-feed-right'] },
+  'breast-time': {
+    icon: Timer,
+    tile: 'bg-feed-left-soft text-on-feed-left',
+    series: ['bg-feed-left', 'bg-feed-right'],
+  },
   nappies: { icon: Droplets, tile: 'bg-nappy-soft text-on-nappy', series: ['bg-nappy/35', 'bg-nappy/65', 'bg-nappy'] },
   pump: { icon: GlassWater, tile: 'bg-pump-soft text-on-pump', series: ['bg-pump'] },
   wake: { icon: Sun, tile: 'bg-primary-soft text-on-primary-soft', series: ['bg-primary'] },
