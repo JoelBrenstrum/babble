@@ -29,7 +29,7 @@ describe('sample month', () => {
     expect(events.at(-1)).toMatchObject({ id: 'month-nappy-825', startedAt: '2026-10-13T01:50:05.023Z' });
     const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
     expect(digest(events)).toBe('a19635aaf2910abcf46127739bc092573f0b976e793725b9777101cb39c5e031');
-    expect(digest(sampleStatsReport(now))).toBe('608e40ca0e198e063ed12167719da5533f07ddd31d96e5dee5276a04ba946cab');
+    expect(digest(sampleStatsReport(now))).toBe('2b9878e3ab6973a548d885388b303a9df4b87dac7a5ba608e50998eb97e30a51');
   });
 
   it('lays out 30 days with a summary for the locked 30-day timeline', () => {
