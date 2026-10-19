@@ -236,5 +236,6 @@ export async function acceptInvite(
 
 export async function deleteMyAccount(client: BabbleClient): Promise<void> {
   unwrapVoid(await client.rpc('delete_my_account'));
-  await signOut(client);
+  // The account is already gone; a failed local sign-out must not report the deletion as failed.
+  await signOut(client).catch(() => undefined);
 }

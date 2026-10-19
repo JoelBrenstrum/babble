@@ -64,7 +64,8 @@ const objectOf =
     }
     return result as T;
   };
-const detailsOf = <T extends object>(fields: Fields<T>): Reader<T> => absentAs(objectOf(fields), {} as T);
+const detailsOf = <T extends object>(fields: Fields<T>): Reader<T> =>
+  absentAs(objectOf(fields), objectOf(fields)({}) as T);
 
 const stretch = objectOf<Stretch>({ startedAt: readString, endedAt: nullable(readString) });
 const segment = objectOf<TimedSegment>({

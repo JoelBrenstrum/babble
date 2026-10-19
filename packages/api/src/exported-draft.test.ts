@@ -74,6 +74,9 @@ describe('readExportedDraft', () => {
 
   it('fills fields an older export never wrote the way the database would', () => {
     const at = NOW.toISOString();
+    expect(readExportedDraft({ type: 'nappy', startedAt: at, endedAt: at })).toMatchObject({
+      details: { wet: false, dirty: false, pooColours: [], rash: false },
+    });
     expect(readExportedDraft({ type: 'nappy', startedAt: at, endedAt: at, details: { wet: true } })).toEqual({
       type: 'nappy',
       startedAt: at,
