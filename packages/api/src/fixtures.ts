@@ -107,7 +107,14 @@ export function sampleRunningSleep(now: Date): BabyEvent {
     segments: [],
     startedAt: minutesAgo(now, 72),
     endedAt: null,
-    details: { locations: ['bassinet'], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false },
+    details: {
+      locations: ['bassinet'],
+      fallAsleep: null,
+      startMoods: [],
+      endMoods: [],
+      wokenByCarer: false,
+      quality: null,
+    },
   };
 }
 
@@ -135,6 +142,7 @@ export function sampleEvents(now: Date): BabyEvent[] {
         startMoods: ['happy'],
         endMoods: [],
         wokenByCarer: false,
+        quality: 4,
       },
     },
     {

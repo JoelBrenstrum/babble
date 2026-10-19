@@ -2,6 +2,8 @@ import {
   awakePeriods,
   napDurationText,
   newAwakePeriod,
+  SLEEP_QUALITIES,
+  SLEEP_QUALITY_LABELS,
   stretchesWithAwake,
   trimAwakePeriod,
   type AwakePeriod,
@@ -15,6 +17,7 @@ import { Plus } from 'lucide-react';
 import { useMemo } from 'react';
 import { MultiChips, SingleChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
+import { RatingScale } from '#/components/ui/rating-scale';
 import { NapBreakdown } from '../nap-breakdown';
 import { FormSection, type FormProps } from './shared';
 
@@ -74,6 +77,15 @@ export function SleepDetailFields({
           onChange={(endMoods) => onChange({ endMoods })}
         />
       </div>
+      <RatingScale
+        label="Sleep quality"
+        options={SLEEP_QUALITIES}
+        labels={SLEEP_QUALITY_LABELS}
+        value={details.quality}
+        onChange={(quality) => onChange({ quality })}
+        low="Hard to settle, wakeful"
+        high="Deep, settled sleep"
+      />
       <label className="flex min-h-tap items-center gap-3 text-body">
         <input
           type="checkbox"

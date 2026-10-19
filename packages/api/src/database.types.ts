@@ -557,6 +557,7 @@ export type Database = {
           event_id: string;
           fall_asleep: Database['public']['Enums']['fall_asleep'] | null;
           locations: Database['public']['Enums']['sleep_location'][];
+          quality: number | null;
           start_moods: Database['public']['Enums']['mood'][];
           woken_by_carer: boolean;
         };
@@ -565,6 +566,7 @@ export type Database = {
           event_id: string;
           fall_asleep?: Database['public']['Enums']['fall_asleep'] | null;
           locations?: Database['public']['Enums']['sleep_location'][];
+          quality?: number | null;
           start_moods?: Database['public']['Enums']['mood'][];
           woken_by_carer?: boolean;
         };
@@ -573,6 +575,7 @@ export type Database = {
           event_id?: string;
           fall_asleep?: Database['public']['Enums']['fall_asleep'] | null;
           locations?: Database['public']['Enums']['sleep_location'][];
+          quality?: number | null;
           start_moods?: Database['public']['Enums']['mood'][];
           woken_by_carer?: boolean;
         };

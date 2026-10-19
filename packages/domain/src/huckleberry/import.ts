@@ -371,6 +371,7 @@ function mapSleep({ row, startedAt, endedAt, notes, warn }: RowContext): MapResu
       startMoods,
       endMoods,
       wokenByCarer,
+      quality: null,
     },
     segments: [],
   };

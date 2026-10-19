@@ -49,7 +49,7 @@ const NAP = {
   endedAt: null,
   notes: null,
   segments: [],
-  details: { locations: [], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false },
+  details: { locations: [], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false, quality: null },
   createdBy: 'user-1',
   createdDevice: null,
   createdAt: '2026-10-06T11:00:00Z',

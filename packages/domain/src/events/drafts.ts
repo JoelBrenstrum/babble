@@ -9,7 +9,7 @@ export function emptyDraft<T extends EventType>(type: T, now: Date): DraftOfType
     sleep: {
       ...base,
       type: 'sleep',
-      details: { locations: [], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false },
+      details: { locations: [], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false, quality: null },
       segments: [],
     },
     breast_feed: { ...base, type: 'breast_feed', segments: [] },
