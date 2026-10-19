@@ -1,14 +1,7 @@
-import {
-  babySettingsQuery,
-  eventsSinceQuery,
-  isAdmin,
-  latestEventsQuery,
-  runningEventsQuery,
-  familyAuthors,
-} from '@babble/api';
+import { babySettingsQuery, isAdmin, latestEventsQuery, runningEventsQuery, familyAuthors } from '@babble/api';
 import { feedDueFor, feedDueText, homeWindow, predictionText, summariseDay } from '@babble/domain';
 import { canAddBaby } from '@babble/config';
-import { useUnits } from '@babble/api/react';
+import { useEventsInRange, useUnits } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import { Screen } from '@/components/screen';
 import { ReadOnlyRunning } from '@/features/events/read-only-running';
@@ -32,10 +25,15 @@ function HomeContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) {
   const logging = useCanLog();
   const now = useNow(30_000);
   const units = useUnits(client, baby.id);
-  const { window, since } = homeWindow(now, baby);
+  const { window, day, since } = homeWindow(now, baby);
   const running = useQuery(runningEventsQuery(client, baby.id));
   const latest = useQuery(latestEventsQuery(client, baby.id));
-  const recent = useQuery(eventsSinceQuery(client, baby.id, since));
+  const recent = useEventsInRange(client, baby.id, {
+    from: since,
+    to: day.end.toISOString(),
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
+  });
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const due = feedDueFor(latest.data ?? [], running.data ?? [], settings, now, baby.timezone);
   const prediction = usePrediction(baby, family, now);

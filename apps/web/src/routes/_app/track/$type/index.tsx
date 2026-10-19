@@ -1,4 +1,4 @@
-import { babySettingsQuery, eventListQuery, eventsBetweenQuery, familyAuthors } from '@babble/api';
+import { babySettingsQuery, eventListQuery, familyAuthors } from '@babble/api';
 import { hasStrip, listDayGroups, listStrip, mergeableSessions, stripKind, stripWindow } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, useNavigate } from '@tanstack/react-router';
@@ -13,7 +13,7 @@ import { EventRow } from '#/features/events/event-row';
 import { MergeSessionsRow } from '#/features/events/merge-sessions';
 import { SummaryStrip } from '#/features/timeline/totals';
 import { isEventType, listTypesFor, trackerFor } from '@babble/domain';
-import { useUnits } from '@babble/api/react';
+import { useEventsInRange, useUnits } from '@babble/api/react';
 import { useNow } from '#/lib/use-now';
 
 type Filter = 'all' | 'breast' | 'bottle';
@@ -53,8 +53,10 @@ function TrackerList() {
   const merges = canLog ? mergeableSessions(events.data ?? []) : null;
   const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
   const showStrip = hasStrip(kind);
-  const recent = useQuery({
-    ...eventsBetweenQuery(babble.client, baby.id, stripRange.from, stripRange.to),
+  const recent = useEventsInRange(babble.client, baby.id, {
+    ...stripRange,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled: showStrip,
   });
   const strip =

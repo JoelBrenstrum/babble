@@ -1,4 +1,4 @@
-import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
+import { babySettingsQuery, eventListQuery } from '@babble/api';
 import {
   growthReport,
   isStatsRange,
@@ -12,7 +12,7 @@ import {
 } from '@babble/domain';
 import { sampleStatsReport } from '@babble/api/fixtures';
 import { familyHasFeature } from '@babble/config';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { ChartColumn } from 'lucide-react';
@@ -26,7 +26,7 @@ import { WeeklySummaryCard } from '#/features/stats/weekly-summary';
 import { PlusTeaser } from '#/features/plus-teaser';
 import { PlusMask } from '#/features/plus-mask';
 import { useInsights, type InsightsState } from '#/lib/use-insights';
-import { useSettled, useUnits } from '@babble/api/react';
+import { useEventsInRange, useSettled, useUnits } from '@babble/api/react';
 import { useNow } from '#/lib/use-now';
 
 export const Route = createFileRoute('/_app/stats')({
@@ -46,10 +46,13 @@ function StatsPage() {
   const { from, to } = statsInputs(range, baby, now);
   const insights = useInsights(babble, baby, family, now);
   const sampleOnly = range === 'all' && insights.locked;
-  const events = useQuery({
-    ...eventsBetweenQuery(babble.client, baby.id, from, to),
+  const events = useEventsInRange(babble.client, baby.id, {
+    from,
+    to,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled: !sampleOnly,
-    placeholderData: keepPreviousData,
+    keepPrevious: true,
   });
   const loading = events.isPlaceholderData && !sampleOnly;
   const shownRange = useSettled(range, !loading);

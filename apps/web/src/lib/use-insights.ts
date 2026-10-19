@@ -1,4 +1,5 @@
-import { babySettingsQuery, eventsBetweenQuery, type BabyRow, type Family } from '@babble/api';
+import { babySettingsQuery, type BabyRow, type Family } from '@babble/api';
+import { useEventsInRange } from '@babble/api/react';
 import { familyHasFeature } from '@babble/config';
 import { dayKeyFor, dayWindow, insightsReport, insightsSince, type InsightsReport } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
@@ -19,7 +20,13 @@ export function useInsights(babble: Babble, baby: BabyRow, family: Family, now: 
   };
   const from = insightsSince(todayKey, scope);
   const to = dayWindow(todayKey, baby.timezone, baby.day_start_minutes).end.toISOString();
-  const events = useQuery({ ...eventsBetweenQuery(babble.client, baby.id, from, to), enabled }).data;
+  const events = useEventsInRange(babble.client, baby.id, {
+    from,
+    to,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
+    enabled,
+  }).data;
   const report = useMemo(
     () =>
       enabled && events && settings

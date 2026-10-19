@@ -114,6 +114,14 @@ export {
   toLocalInputValue,
 } from './time/local-time';
 export {
+  CHUNK_DAYS,
+  chunkStartKey,
+  eventsWithin,
+  overlapsRange,
+  rangeChunks,
+  type RangeChunk,
+} from './time/range-chunks';
+export {
   nightOf,
   summariseDay,
   summariseWeek,

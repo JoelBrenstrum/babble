@@ -1,4 +1,4 @@
-import { babySettingsQuery, eventsBetweenQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
+import { babySettingsQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
 import {
   comparisonToggleLabel,
   dayComparison,
@@ -28,8 +28,8 @@ import {
 } from '@babble/domain';
 import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
-import { useUnits } from '@babble/api/react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEventsInRange, useUnits } from '@babble/api/react';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -80,10 +80,13 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
   const { dayKey, todayKey, keys, step, previousKey, nextKey, canGoNext, rangeLabel } = range;
   const insightsLocked = !familyHasFeature(config.billingEnabled, family.plan, 'insights');
   const sampleOnly = view === '30d' && insightsLocked;
-  const events = useQuery({
-    ...eventsBetweenQuery(client, baby.id, range.from, range.to),
+  const events = useEventsInRange(client, baby.id, {
+    from: range.from,
+    to: range.to,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled: !sampleOnly,
-    placeholderData: view === '24h' ? keepPreviousData : undefined,
+    keepPrevious: view === '24h',
   });
   const model = timelineModel({ view, date, events: events.data ?? [], settings, baby, now });
 
@@ -102,10 +105,13 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
     view === '24h'
       ? previous24hWindow({ start: new Date(range.from), end: new Date(range.to) })
       : previousDayWindow(dayKey, baby);
-  const previousEvents = useQuery({
-    ...eventsBetweenQuery(client, baby.id, previousWindow.start.toISOString(), previousWindow.end.toISOString()),
+  const previousEvents = useEventsInRange(client, baby.id, {
+    from: previousWindow.start.toISOString(),
+    to: previousWindow.end.toISOString(),
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled: comparing,
-    placeholderData: view === '24h' ? keepPreviousData : undefined,
+    keepPrevious: view === '24h',
   }).data;
   const comparison =
     !comparing || !previousEvents
