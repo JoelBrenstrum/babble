@@ -12,7 +12,7 @@ import {
 } from '@babble/api';
 import { useAsyncAction } from '@babble/api/react';
 import { canAddBaby, planSummary } from '@babble/config';
-import { settingsGroups, settingsLockedNote, type SettingsGroup } from '@babble/domain';
+import { settingsGroups, settingsLockedNote, type SettingsGroup, type SettingsGroupId } from '@babble/domain';
 import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
@@ -54,12 +54,12 @@ export default function SettingsTab() {
   const admin = isAdmin(family, session.user.id);
   const lockedNote = settingsLockedNote(memberRole(family, session.user.id));
   const plan = planSummary(config.billingEnabled, family.plan);
-  const [babyGroup, familyGroup, deviceGroup, accountGroup] = settingsGroups(baby.name, family.name) as [
-    SettingsGroup,
-    SettingsGroup,
-    SettingsGroup,
-    SettingsGroup,
-  ];
+  const groups = settingsGroups(baby.name, family.name);
+  const groupFor = (id: SettingsGroupId) => groups.find((group) => group.id === id)!;
+  const babyGroup = groupFor('baby');
+  const familyGroup = groupFor('family');
+  const deviceGroup = groupFor('device');
+  const accountGroup = groupFor('account');
 
   return (
     <Screen edges={['top']}>
