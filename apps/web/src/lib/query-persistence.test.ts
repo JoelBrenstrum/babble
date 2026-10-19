@@ -1,4 +1,4 @@
-import { QueryClient, type Query } from '@tanstack/react-query';
+import { QueryClient, onlineManager, type Query } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import {
   ensureCurrentData,
@@ -26,15 +26,20 @@ function client() {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 5));
 
 describe('shouldPersistQuery', () => {
-  const query = (key: unknown[], status: string) => ({ queryKey: key, state: { status } }) as unknown as Query;
+  const query = (key: unknown[], status: string, data?: unknown) =>
+    ({ queryKey: key, state: { status, data } }) as unknown as Query;
 
-  it('keeps successful data and skips errors, pending fetches and the release check', () => {
-    expect(shouldPersistQuery(query(['events', 'b1', 'latest'], 'success'))).toBe(true);
+  it('keeps any query that has data, including one whose last refetch failed', () => {
+    expect(shouldPersistQuery(query(['events', 'b1', 'latest'], 'success', []))).toBe(true);
+    expect(shouldPersistQuery(query(['events', 'b1', 'latest'], 'error', []))).toBe(true);
     expect(shouldPersistQuery(query(['events', 'b1', 'latest'], 'error'))).toBe(false);
     expect(shouldPersistQuery(query(['events', 'b1', 'latest'], 'pending'))).toBe(false);
-    expect(shouldPersistQuery(query(['release'], 'success'))).toBe(false);
-    expect(shouldPersistQuery(query(['invite', 'ABC'], 'success'))).toBe(false);
-    expect(shouldPersistQuery(query(['device-link', 'ABC'], 'success'))).toBe(false);
+  });
+
+  it('never keeps the release check, invites or device-link lookups', () => {
+    expect(shouldPersistQuery(query(['release'], 'success', 'r1'))).toBe(false);
+    expect(shouldPersistQuery(query(['invite', 'ABC'], 'success', {}))).toBe(false);
+    expect(shouldPersistQuery(query(['device-link', 'ABC'], 'success', {}))).toBe(false);
   });
 });
 
@@ -56,18 +61,43 @@ describe('ensureCurrentData', () => {
     expect(calls).toBe(1);
   });
 
-  it('falls back to the cached data when the fresh fetch fails', async () => {
+  it('falls back to the cached data when the fresh fetch fails, and tries again next time', async () => {
     resetRevalidation();
     const queryClient = client();
     queryClient.setQueryData(['families'], [{ id: 'cached' }]);
+    let calls = 0;
     const options = {
       queryKey: ['families'],
       queryFn: async () => {
-        throw new Error('offline');
+        calls += 1;
+        if (calls === 1) throw new Error('offline');
+        return [{ id: 'fresh' }];
       },
       retry: false,
     };
     expect(await ensureCurrentData(queryClient, options)).toEqual([{ id: 'cached' }]);
+    expect(await ensureCurrentData(queryClient, options)).toEqual([{ id: 'fresh' }]);
+    expect(await ensureCurrentData(queryClient, options)).toEqual([{ id: 'fresh' }]);
+    expect(calls).toBe(2);
+  });
+
+  it('still answers from the cache while the browser is offline', async () => {
+    resetRevalidation();
+    onlineManager.setOnline(false);
+    try {
+      const queryClient = client();
+      queryClient.setQueryData(['families'], [{ id: 'cached' }]);
+      const options = {
+        queryKey: ['families'],
+        queryFn: async () => {
+          throw new Error('Failed to fetch');
+        },
+        retry: false,
+      };
+      expect(await ensureCurrentData(queryClient, options)).toEqual([{ id: 'cached' }]);
+    } finally {
+      onlineManager.setOnline(true);
+    }
   });
 
   it('throws when the fetch fails and nothing is cached', async () => {

@@ -14,8 +14,9 @@ export interface PersistedStorage {
   removeItem(key: string): Promise<void>;
 }
 
+// A query keeps its last good data through a failed refetch, and that data is still worth restoring.
 export function shouldPersistQuery(query: Query): boolean {
-  return query.state.status === 'success' && !NEVER_PERSISTED.has(String(query.queryKey[0]));
+  return query.state.data !== undefined && !NEVER_PERSISTED.has(String(query.queryKey[0]));
 }
 
 export const idbStorage: PersistedStorage = {
@@ -83,9 +84,11 @@ export async function ensureCurrentData<T>(
 ): Promise<T> {
   const key = JSON.stringify(options.queryKey);
   if (revalidated.has(key)) return queryClient.ensureQueryData(options);
-  revalidated.add(key);
   try {
-    return await queryClient.fetchQuery({ ...options, staleTime: 0 });
+    // networkMode 'always' lets the request fail outright while offline instead of pausing forever.
+    const data = await queryClient.fetchQuery({ ...options, staleTime: 0, networkMode: 'always' });
+    revalidated.add(key);
+    return data;
   } catch (error) {
     const cached = queryClient.getQueryData<T>(options.queryKey);
     if (cached !== undefined) return cached;
