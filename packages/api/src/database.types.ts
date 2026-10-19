@@ -192,6 +192,7 @@ export type Database = {
           end_recorded_at: string | null;
           ended_at: string | null;
           ended_by: string | null;
+          ended_device: string | null;
           id: string;
           notes: string | null;
           source: Database['public']['Enums']['event_source'];
@@ -209,6 +210,7 @@ export type Database = {
           end_recorded_at?: string | null;
           ended_at?: string | null;
           ended_by?: string | null;
+          ended_device?: string | null;
           id?: string;
           notes?: string | null;
           source?: Database['public']['Enums']['event_source'];
@@ -226,6 +228,7 @@ export type Database = {
           end_recorded_at?: string | null;
           ended_at?: string | null;
           ended_by?: string | null;
+          ended_device?: string | null;
           id?: string;
           notes?: string | null;
           source?: Database['public']['Enums']['event_source'];
@@ -727,6 +730,7 @@ export type Database = {
           end_recorded_at: string | null;
           ended_at: string | null;
           ended_by: string | null;
+          ended_device: string | null;
           id: string;
           notes: string | null;
           source: Database['public']['Enums']['event_source'];

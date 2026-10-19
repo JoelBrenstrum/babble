@@ -81,6 +81,7 @@ function meta(id: string, createdBy = 'user-jane') {
     source: 'manual' as const,
     sessionState: null,
     endedBy: null,
+    endedDevice: null,
     endRecordedAt: null,
     notes: null,
   };

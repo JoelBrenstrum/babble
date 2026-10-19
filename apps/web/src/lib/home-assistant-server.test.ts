@@ -58,6 +58,7 @@ const NAP = {
   source: 'manual',
   sessionState: null,
   endedBy: null,
+  endedDevice: null,
   endRecordedAt: null,
 } satisfies BabyEvent;
 

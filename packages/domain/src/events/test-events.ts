@@ -13,6 +13,7 @@ const META: EventMeta = {
   source: 'manual',
   sessionState: null,
   endedBy: null,
+  endedDevice: null,
   endRecordedAt: null,
 };
 

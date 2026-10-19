@@ -147,7 +147,7 @@ Web prompts "Add to Home Screen" on phones once the user is signed in.
 
 ## 5. Feed session detail / edit
 
-- Under the title: "Started by Jane · 6 Oct, 2:02 pm" for entries started from a timer ("Logged by" for entries logged after the fact), then "Ended by John at 2:32 pm": who pressed Stop and when they pressed it, which can differ from the (backdated or edited) end time. Shown on every timed entry: feeds, pumps and naps.
+- Under the title: "Started by Jane · 6 Oct, 2:02 pm" for entries started from a timer ("Logged by" for entries logged after the fact), then "Ended by John on Chair · 6 Oct, 2:32 pm": who pressed Stop, on which device, and when they pressed it, which can differ from the (backdated or edited) end time. Shown on every timed entry: feeds, pumps and naps.
 - The segment list as above, with each row editable (side, duration, downtime). Changes recompute timestamps in order from the session start.
 - Add a segment, delete a segment, edit the start time.
 - **Resume feed** button, shown only on the most recent feed (Stage 2).

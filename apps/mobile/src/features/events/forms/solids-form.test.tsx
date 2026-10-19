@@ -17,6 +17,7 @@ const earlier = {
   source: 'manual',
   sessionState: null,
   endedBy: null,
+  endedDevice: null,
   endRecordedAt: null,
   details: { foods: ['Mango'], amount: null, reaction: null },
 } satisfies BabyEvent;

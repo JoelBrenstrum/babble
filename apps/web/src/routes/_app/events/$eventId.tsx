@@ -125,8 +125,8 @@ function EditEvent() {
         timer={event.data.endRecordedAt !== null}
         ended={{
           endedBy: memberName(event.data.endedBy),
+          device: event.data.endedDevice,
           endRecordedAt: event.data.endRecordedAt,
-          startedAt: event.data.startedAt,
           timeZone: baby.timezone,
         }}
       />

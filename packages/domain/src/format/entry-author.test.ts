@@ -37,24 +37,21 @@ describe('entryAuthorText', () => {
 });
 
 describe('entryEndedText', () => {
-  const ended = { startedAt: '2026-10-05T14:12:00Z', timeZone: 'Pacific/Auckland' };
+  const ended = { timeZone: 'Pacific/Auckland' };
 
-  it('names who pressed stop and when', () => {
+  it('names who pressed stop, where, and when', () => {
     expect(entryEndedText({ ...ended, endedBy: 'John', endRecordedAt: '2026-10-05T15:32:00Z' })).toBe(
-      'Ended by John at 4:32 am',
+      'Ended by John · 6 Oct, 4:32 am',
     );
-  });
-
-  it('adds the date when it ended on another day', () => {
-    expect(entryEndedText({ ...ended, endedBy: 'Jane', endRecordedAt: '2026-10-06T11:05:00Z' })).toBe(
-      'Ended by Jane on 7 Oct at 12:05 am',
+    expect(entryEndedText({ ...ended, endedBy: 'Jane', device: 'Chair', endRecordedAt: '2026-10-06T11:05:00Z' })).toBe(
+      'Ended by Jane on Chair · 7 Oct, 12:05 am',
     );
   });
 
   it('has nothing for entries that were never stopped, and handles members who left', () => {
     expect(entryEndedText({ ...ended, endRecordedAt: null })).toBeNull();
     expect(entryEndedText({ ...ended, endRecordedAt: '2026-10-05T15:32:00Z' })).toBe(
-      'Ended by a former member at 4:32 am',
+      'Ended by a former member · 6 Oct, 4:32 am',
     );
   });
 });

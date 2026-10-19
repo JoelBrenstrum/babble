@@ -22,6 +22,7 @@ const META_KEYS = new Set([
   'sourceRef',
   'sessionState',
   'endedBy',
+  'endedDevice',
   'endRecordedAt',
 ]);
 

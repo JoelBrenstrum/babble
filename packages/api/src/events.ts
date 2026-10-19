@@ -48,6 +48,7 @@ export function rowToEvent(row: EventRow): BabyEvent {
     source: row.source,
     sessionState: row.session?.state ?? null,
     endedBy: row.ended_by,
+    endedDevice: row.ended_device,
     endRecordedAt: row.end_recorded_at,
     startedAt: row.started_at,
     endedAt: row.ended_at,

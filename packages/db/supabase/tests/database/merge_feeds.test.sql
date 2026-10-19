@@ -50,7 +50,7 @@ insert into public.events (id, baby_id, type, started_at, ended_at, notes) value
   ('83000000-0000-0000-0000-000000000006', '73000000-0000-0000-0000-00000000000b', 'breast_feed',
    now() - interval '45 minutes', now() - interval '44 minutes', null);
 select set_config('babble.keep_event_end', 'on', true);
-update public.events set ended_by = '53000000-0000-0000-0000-00000000000b'
+update public.events set ended_by = '53000000-0000-0000-0000-00000000000b', ended_device = 'Phone'
   where id = '83000000-0000-0000-0000-000000000002';
 select set_config('babble.keep_event_end', 'off', true);
 insert into public.timed_segments (event_id, side, started_at, ended_at) values
@@ -109,8 +109,9 @@ select is(
 );
 select ok(
   (select ended_at = now() - interval '150 minutes' and ended_by = '53000000-0000-0000-0000-00000000000b'::uuid
+     and ended_device = 'Phone'
    from public.events where id = '83000000-0000-0000-0000-000000000001'),
-  'the merged feed ends when, and by whom, the later one ended'
+  'the merged feed ends when, by whom and on which device the later one ended'
 );
 select is(
   (select notes from public.events where id = '83000000-0000-0000-0000-000000000001'),
