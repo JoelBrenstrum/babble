@@ -8,9 +8,10 @@ import {
 } from '../events/day-summary';
 import type { BabyEvent } from '../events/types';
 import { MINUTE_MS } from '../time/constants';
-import { dayKeyFor, dayWindow, formatDayLabel, shiftDay } from '../time/local-time';
+import { dayKeyFor, dayWindow, formatDayLabel, lastDays, shiftDay } from '../time/local-time';
 import { bucketByDay, dayLayout, type DayLayout } from './day-layout';
-import { fractionOf, hourTicks, lastDays, lastDayWindow, windowTicks, type TimeWindow } from './days';
+import { fractionOf, lastDayWindow, type TimeWindow } from '../time/windows';
+import { hourTicks, windowTicks } from './days';
 import { countedDays, formatDayRange } from './totals';
 
 export type TimelineView = 'day' | '24h' | '7d' | '30d';

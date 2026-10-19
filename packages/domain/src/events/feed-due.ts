@@ -1,5 +1,7 @@
 import { formatDuration } from '../format/duration';
-import { formatTimeOfDay, isWithinNight } from '../time/local-time';
+import { formatTimeOfDay } from '../time/local-time';
+import { isWithinNight } from '../time/night';
+import { nightSettingsFrom, type NightSettingsRow } from './baby-settings';
 import { latestFeed, nextBreastSide } from './feed-rules';
 import { SIDE_LABEL } from './labels';
 import type { BabyEvent, Side } from './types';
@@ -67,15 +69,13 @@ export function feedReminderPatch(choice: string | null): Partial<FeedReminderSe
   return { feed_reminder_enabled: true, feed_reminder_interval_min: minutes };
 }
 
-export interface NightReminderSettings {
+export interface NightReminderSettings extends NightSettingsRow {
   feed_reminder_at_night: boolean;
-  night_start_minutes: number;
-  night_end_minutes: number;
 }
 
 export function feedRemindersQuiet(settings: NightReminderSettings, at: Date, timeZone: string): boolean {
   if (settings.feed_reminder_at_night) return false;
-  return isWithinNight(at, timeZone, settings.night_start_minutes, settings.night_end_minutes);
+  return isWithinNight(at, { timeZone, ...nightSettingsFrom(settings) });
 }
 
 export function feedDueFor(

@@ -1,4 +1,8 @@
+import { MINUTES_PER_DAY } from '../time/constants';
+
 export const DEFAULT_CUSTOM_DAY_START_MIN = 420;
+export const DEFAULT_NIGHT_START_MINUTES = 1140;
+export const DEFAULT_NIGHT_END_MINUTES = 420;
 
 export function minutesToTimeInputValue(minutes: number): string {
   return minutesToClock(minutes, 'h23');
@@ -15,7 +19,7 @@ export function dateToMinutes(date: Date): number {
 }
 
 export function minutesToClock(minutes: number, hourCycle: 'h12' | 'h23' = 'h12'): string {
-  const normalised = ((minutes % 1440) + 1440) % 1440;
+  const normalised = ((minutes % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY;
   const hours = Math.floor(normalised / 60);
   const mins = String(normalised % 60).padStart(2, '0');
   if (hourCycle === 'h23') return `${String(hours).padStart(2, '0')}:${mins}`;

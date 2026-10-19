@@ -1,6 +1,6 @@
 import { DAY_MS } from '../time/constants';
 import { dayKeyFor, dayWindow } from '../time/local-time';
-import type { TimeWindow } from './days';
+import type { TimeWindow } from '../time/windows';
 
 export function homeWindow(
   now: Date,

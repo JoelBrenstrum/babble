@@ -1,5 +1,5 @@
 import { minutesToClock } from '../format/time-of-day';
-import { isWithinNight } from '../time/local-time';
+import { isWithinNight, type ZonedNightSettings } from '../time/night';
 
 export type ThemePreference = 'system' | 'light' | 'dark' | 'night';
 
@@ -7,6 +7,10 @@ export interface NightWindow {
   timeZone: string;
   start: number;
   end: number;
+}
+
+export function nightSettingsOf(night: NightWindow): ZonedNightSettings {
+  return { timeZone: night.timeZone, nightStartMinutes: night.start, nightEndMinutes: night.end };
 }
 
 export function parseThemePreference(value: string | null): ThemePreference {
@@ -20,7 +24,7 @@ export function themeOverride(
 ): 'light' | 'dark' | null {
   if (preference === 'light' || preference === 'dark') return preference;
   if (preference !== 'night' || !night) return null;
-  return isWithinNight(now, night.timeZone, night.start, night.end) ? 'dark' : 'light';
+  return isWithinNight(now, nightSettingsOf(night)) ? 'dark' : 'light';
 }
 
 export function parseNightWindow(value: string | null): NightWindow | null {

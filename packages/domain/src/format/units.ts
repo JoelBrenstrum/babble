@@ -1,7 +1,7 @@
 import type { Units } from '../events/types';
 
-const GRAMS_PER_POUND = 453.59237;
-const MM_PER_INCH = 25.4;
+export const GRAMS_PER_POUND = 453.59237;
+export const MM_PER_INCH = 25.4;
 export const ML_PER_OUNCE = 29.5735;
 
 export function formatWeight(grams: number, units: Units): string {
@@ -43,6 +43,10 @@ export function formatVolume(ml: number, units: Units): string {
 
 export function volumeToMl(value: number, units: Units): number {
   return Math.round(units === 'metric' ? value : value * ML_PER_OUNCE);
+}
+
+export function mlToVolume(ml: number, units: Units): number {
+  return units === 'metric' ? ml : Number((ml / ML_PER_OUNCE).toFixed(1));
 }
 
 export function weightToGrams(value: number, units: Units): number {

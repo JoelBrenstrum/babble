@@ -1,25 +1,22 @@
 import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
 import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent } from '../events/types';
+import { countChange, durationChange } from '../format/change';
 import { formatDuration, formatDurationShort } from '../format/duration';
 import { minutesToClock } from '../format/time-of-day';
 import { bucketByDay } from '../timeline/day-layout';
-import { lastDays, localInstant, type TimeWindow } from '../timeline/days';
-import { dayKeyFor, dayWindow, formatTimeOfDay, minutesOfDay, shiftDay } from '../time/local-time';
+import { dayKeyFor, dayWindow, formatTimeOfDay, lastDays, minutesOfDay, shiftDay } from '../time/local-time';
+import { nightWindow } from '../time/night';
+import { joinSpans, type Span } from '../time/spans';
+import type { TimeWindow } from '../time/windows';
 import { MAX_GAP_MS, type StatsCard } from './cards';
-import { HOUR_MS, MINUTE_MS } from '../time/constants';
+import { mean, median } from './maths';
+import type { InsightSettings, InsightsReportSettings } from './settings';
+import { HOUR_MS, MINUTE_MS, MINUTES_PER_DAY } from '../time/constants';
 
-export interface InsightSettings {
-  timeZone: string;
-  dayStartMinutes: number;
-  nightStartMinutes: number;
-  nightEndMinutes: number;
-}
-
-interface Span {
-  start: number;
-  end: number;
-}
+const WEEK_DAYS = 7;
+export const INSIGHT_DAYS = 2 * WEEK_DAYS;
+export const FEED_TREND_DAYS = WEEK_DAYS;
 
 export interface NightStat {
   dayKey: string;
@@ -48,23 +45,14 @@ export function sleepSpans(events: readonly BabyEvent[], now: Date): Span[] {
       start: Date.parse(event.startedAt),
       end: event.endedAt ? Date.parse(event.endedAt) : now.getTime(),
     }))
-    .filter((span) => span.end > span.start)
-    .sort((a, b) => a.start - b.start);
-  const joined: Span[] = [];
-  for (const span of spans) {
-    const previous = joined.at(-1);
-    if (previous && span.start - previous.end <= JOIN_GAP_MS) previous.end = Math.max(previous.end, span.end);
-    else joined.push({ ...span });
-  }
-  return joined;
+    .filter((span) => span.end > span.start);
+  return joinSpans(spans, (gap) => gap <= JOIN_GAP_MS);
 }
 
-export function nightWindow(dayKey: string, settings: InsightSettings): TimeWindow {
-  const endOffset =
-    settings.nightEndMinutes > settings.nightStartMinutes ? settings.nightEndMinutes : settings.nightEndMinutes + 1440;
+export function weekSplit(dayKeys: readonly string[]): { recent: Set<string>; earlier: Set<string> } {
   return {
-    start: localInstant(dayKey, settings.nightStartMinutes, settings.timeZone),
-    end: localInstant(dayKey, endOffset, settings.timeZone),
+    recent: new Set(dayKeys.slice(-WEEK_DAYS)),
+    earlier: new Set(dayKeys.slice(-2 * WEEK_DAYS, -WEEK_DAYS)),
   };
 }
 
@@ -83,9 +71,10 @@ export function nightStats(
     const overlapping = spans.filter((span) => span.end > night.start.getTime() && span.start < night.end.getTime());
     if (overlapping.length === 0) return [];
     let wakeUps = 0;
-    for (let index = 1; index < overlapping.length; index += 1) {
-      if (inside(overlapping[index - 1]!.end, night) && inside(overlapping[index]!.start, night)) wakeUps += 1;
-    }
+    overlapping.forEach((span, index) => {
+      const previous = overlapping[index - 1];
+      if (previous && inside(previous.end, night) && inside(span.start, night)) wakeUps += 1;
+    });
     const sleepMs = overlapping.reduce(
       (total, span) => total + Math.min(span.end, night.end.getTime()) - Math.max(span.start, night.start.getTime()),
       0,
@@ -105,47 +94,29 @@ const inAnyNight = (instant: number, settings: InsightSettings) => nightKeyOf(in
 
 export function wakeWindows(spans: readonly Span[], settings: InsightSettings): WakeWindow[] {
   const windows: WakeWindow[] = [];
-  for (let index = 1; index < spans.length; index += 1) {
-    const woke = spans[index - 1]!.end;
-    const slept = spans[index]!.start;
+  spans.forEach((span, index) => {
+    const earlier = spans[index - 1];
+    if (!earlier) return;
+    const woke = earlier.end;
+    const slept = span.start;
     const ms = slept - woke;
-    if (ms <= 0 || ms > MAX_WAKE_MS) continue;
+    if (ms <= 0 || ms > MAX_WAKE_MS) return;
     const sleepsAtNight = inAnyNight(slept, settings);
-    if (inAnyNight(woke, settings) && sleepsAtNight) continue;
+    if (inAnyNight(woke, settings) && sleepsAtNight) return;
     const dayKey = dayKeyFor(new Date(woke).toISOString(), settings.timeZone, settings.dayStartMinutes);
     const previous = windows.at(-1);
     const order = previous && previous.dayKey === dayKey && !previous.beforeBed ? previous.order + 1 : 1;
     windows.push({ dayKey, start: woke, ms, order, beforeBed: sleepsAtNight });
-  }
+  });
   return windows;
-}
-
-export function median(values: readonly number[]): number | null {
-  if (values.length === 0) return null;
-  const sorted = [...values].sort((a, b) => a - b);
-  const middle = Math.floor(sorted.length / 2);
-  return sorted.length % 2 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2;
 }
 
 const duration = (ms: number) => formatDuration(ms, { seconds: false });
 
-export function durationChange(current: number, previous: number): string {
-  const delta = Math.round((current - previous) / MINUTE_MS) * MINUTE_MS;
-  if (delta === 0) return 'Same';
-  return `${delta > 0 ? '+' : '−'}${duration(Math.abs(delta))}`;
-}
-
-export function countChange(current: number, previous: number): string {
-  const delta = Math.round((current - previous) * 10) / 10;
-  if (delta === 0) return 'Same';
-  return `${delta > 0 ? '+' : '−'}${Math.abs(delta)}`;
-}
-
 const ORDINALS = ['First of the day', 'Second', 'Third', 'Fourth', 'Fifth'];
 
 export function wakeWindowCard(windows: readonly WakeWindow[], dayKeys: readonly string[]): StatsCard | null {
-  const recent = new Set(dayKeys.slice(-7));
-  const earlier = new Set(dayKeys.slice(-14, -7));
+  const { recent, earlier } = weekSplit(dayKeys);
   const thisWeek = windows.filter((window) => recent.has(window.dayKey));
   const typical = median(thisWeek.map((window) => window.ms));
   if (typical === null || thisWeek.length < MIN_WINDOWS) return null;
@@ -163,7 +134,7 @@ export function wakeWindowCard(windows: readonly WakeWindow[], dayKeys: readonly
   if (beforeBed !== null && bedtime.length >= MIN_SAMPLES)
     figures.push({ label: 'Before bed', value: duration(beforeBed) });
 
-  const bars = dayKeys.slice(-14).map((dayKey) => ({
+  const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => ({
     label: dayKey,
     values: [Math.round((median(windows.filter((w) => w.dayKey === dayKey).map((w) => w.ms)) ?? 0) / MINUTE_MS)],
   }));
@@ -184,28 +155,25 @@ export function wakeWindowCard(windows: readonly WakeWindow[], dayKeys: readonly
 }
 
 export function nightSleepCard(nights: readonly NightStat[], dayKeys: readonly string[]): StatsCard | null {
-  if (nights.length === 0) return null;
-  const recent = new Set(dayKeys.slice(-7));
-  const earlier = new Set(dayKeys.slice(-14, -7));
+  const latest = nights.at(-1);
+  if (!latest) return null;
+  const { recent, earlier } = weekSplit(dayKeys);
   const thisWeek = nights.filter((night) => recent.has(night.dayKey));
   const lastWeek = nights.filter((night) => earlier.has(night.dayKey));
-  const average = (list: readonly NightStat[], pick: (night: NightStat) => number) =>
-    list.length ? list.reduce((total, night) => total + pick(night), 0) / list.length : null;
-  const longest = average(thisWeek, (night) => night.longestMs);
-  const longestBefore = average(lastWeek, (night) => night.longestMs);
-  const latest = nights.at(-1)!;
+  const longest = mean(thisWeek, (night) => night.longestMs);
+  const longestBefore = mean(lastWeek, (night) => night.longestMs);
 
   const figures = [{ label: 'Longest stretch, last night', value: duration(latest.longestMs) }];
   if (longest !== null) figures.push({ label: 'Longest stretch, average', value: duration(longest) });
   if (longest !== null && longestBefore !== null)
     figures.push({ label: 'On last week', value: durationChange(longest, longestBefore) });
-  const wakeUps = average(thisWeek, (night) => night.wakeUps);
+  const wakeUps = mean(thisWeek, (night) => night.wakeUps);
   if (wakeUps !== null) figures.push({ label: 'Wake-ups a night', value: String(Math.round(wakeUps * 10) / 10) });
-  const sleep = average(thisWeek, (night) => night.sleepMs);
+  const sleep = mean(thisWeek, (night) => night.sleepMs);
   if (sleep !== null) figures.push({ label: 'Night sleep', value: duration(sleep) });
 
   const byKey = new Map(nights.map((night) => [night.dayKey, night]));
-  const bars = dayKeys.slice(-14).map((dayKey) => ({
+  const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => ({
     label: dayKey,
     values: [Math.round(((byKey.get(dayKey)?.longestMs ?? 0) / HOUR_MS) * 10) / 10],
   }));
@@ -253,14 +221,12 @@ export function weeklySummary(
   dayKeys: readonly string[],
 ): WeeklySummary | null {
   if (thisWeek.length === 0) return null;
-  const mean = (list: readonly DaySummary[], pick: (day: DaySummary) => number) =>
-    list.length ? list.reduce((total, day) => total + pick(day), 0) / list.length : null;
-  const recent = new Set(dayKeys.slice(-7));
-  const earlier = new Set(dayKeys.slice(-14, -7));
-  const nightMean = (keys: Set<string>) => {
-    const list = nights.filter((night) => keys.has(night.dayKey));
-    return list.length ? list.reduce((total, night) => total + night.longestMs, 0) / list.length : null;
-  };
+  const { recent, earlier } = weekSplit(dayKeys);
+  const nightMean = (keys: Set<string>) =>
+    mean(
+      nights.filter((night) => keys.has(night.dayKey)),
+      (night) => night.longestMs,
+    );
   const wakeMedian = (keys: Set<string>) => median(windows.filter((w) => keys.has(w.dayKey)).map((w) => w.ms));
 
   const metrics: Metric[] = [
@@ -326,19 +292,19 @@ export function weeklySummary(
 function takeaway(metrics: readonly Metric[], compared: boolean): string {
   if (!compared) return 'Comparisons with last week start once there are two weeks of entries.';
   const sleepMetrics = metrics.filter((metric) => metric.kind === 'duration');
-  let best: { metric: Metric; change: number } | null = null;
+  let best: { metric: Metric; change: number; deltaMs: number } | null = null;
   for (const metric of sleepMetrics) {
     if (metric.current === null || metric.previous === null || metric.previous === 0) continue;
-    const change = (metric.current - metric.previous) / metric.previous;
-    if (Math.abs(change) >= 0.1 && (!best || Math.abs(change) > Math.abs(best.change))) best = { metric, change };
+    const deltaMs = metric.current - metric.previous;
+    const change = deltaMs / metric.previous;
+    if (Math.abs(change) >= 0.1 && (!best || Math.abs(change) > Math.abs(best.change))) {
+      best = { metric, change, deltaMs };
+    }
   }
   if (!best) return 'A steady week: sleep looks much the same as last week.';
-  const { metric } = best;
-  const amount = duration(Math.abs(Math.round((metric.current! - metric.previous!) / MINUTE_MS) * MINUTE_MS));
-  return `${metric.phrase} is ${best.change > 0 ? 'up' : 'down'} ${amount} on last week.`;
+  const amount = duration(Math.abs(Math.round(best.deltaMs / MINUTE_MS) * MINUTE_MS));
+  return `${best.metric.phrase} is ${best.change > 0 ? 'up' : 'down'} ${amount} on last week.`;
 }
-
-export const INSIGHT_DAYS = 14;
 
 export const PATTERNS_CAPTION = `From the last ${INSIGHT_DAYS} finished days. The range below doesn't change these.`;
 
@@ -358,12 +324,10 @@ export interface FeedStat {
   idleMs: number | null;
 }
 
-export const FEED_TREND_DAYS = 7;
-
 export function feedStats(
   events: readonly BabyEvent[],
   now: Date,
-  settings: Pick<InsightSettings, 'timeZone' | 'dayStartMinutes'> & { mergeGapMs: number },
+  settings: Pick<InsightsReportSettings, 'timeZone' | 'dayStartMinutes' | 'mergeGapMs'>,
 ): FeedStat[] {
   return events.flatMap((event) => {
     if (event.type !== 'breast_feed' || event.deletedAt || !event.endedAt) return [];
@@ -391,13 +355,11 @@ interface FeedAverage {
 }
 
 function averageFeed(feeds: readonly FeedStat[]): FeedAverage | null {
-  if (feeds.length === 0) return null;
-  const mean = (pick: (feed: FeedStat) => number) =>
-    feeds.reduce((total, feed) => total + pick(feed), 0) / feeds.length;
-  const leftMs = mean((feed) => feed.leftMs);
-  const rightMs = mean((feed) => feed.rightMs);
+  const leftMs = mean(feeds, (feed) => feed.leftMs);
+  const rightMs = mean(feeds, (feed) => feed.rightMs);
+  if (leftMs === null || rightMs === null) return null;
   const idles = feeds.flatMap((feed) => (feed.idleMs === null ? [] : [feed.idleMs]));
-  const idleMs = idles.length ? idles.reduce((total, idle) => total + idle, 0) / idles.length : 0;
+  const idleMs = mean(idles, (idle) => idle) ?? 0;
   const idleKnown = idles.length === feeds.length ? 'all' : idles.length ? 'some' : 'none';
   return { count: feeds.length, leftMs, rightMs, idleMs, totalMs: leftMs + rightMs + idleMs, idleKnown };
 }
@@ -408,10 +370,11 @@ const feedsWithin = (feeds: readonly FeedStat[], keys: readonly string[]) => {
 };
 
 export function feedTrendCard(feeds: readonly FeedStat[], dayKeys: readonly string[]): StatsCard | null {
-  const recent = feedsWithin(feeds, dayKeys.slice(-FEED_TREND_DAYS));
+  const weeks = weekSplit(dayKeys);
+  const recent = feeds.filter((feed) => weeks.recent.has(feed.dayKey));
   const thisWeek = averageFeed(recent);
   if (!thisWeek || thisWeek.count < MIN_SAMPLES) return null;
-  const earlier = averageFeed(feedsWithin(feeds, dayKeys.slice(-2 * FEED_TREND_DAYS, -FEED_TREND_DAYS)));
+  const earlier = averageFeed(feeds.filter((feed) => weeks.earlier.has(feed.dayKey)));
   const feedingDays = new Set(recent.map((feed) => feed.dayKey)).size;
   const activeMs = recent.reduce((total, feed) => total + feed.leftMs + feed.rightMs, 0);
 
@@ -489,8 +452,7 @@ export function feedGaps(events: readonly BabyEvent[], settings: InsightSettings
 }
 
 export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly string[]): StatsCard | null {
-  const recent = new Set(dayKeys.slice(-7));
-  const earlier = new Set(dayKeys.slice(-14, -7));
+  const { recent, earlier } = weekSplit(dayKeys);
   const sample = (night: boolean, keys: Set<string>) =>
     gaps.filter((gap) => gap.night === night && keys.has(gap.dayKey)).map((gap) => gap.ms);
   const daytime = sample(false, recent);
@@ -498,11 +460,16 @@ export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly stri
   if (typical === null || daytime.length < MIN_WINDOWS) return null;
 
   const figures = [{ label: 'Daytime', value: duration(typical) }];
-  const before = sample(false, earlier);
-  if (before.length >= MIN_SAMPLES)
-    figures.push({ label: 'On last week', value: durationChange(typical, median(before)!) });
-  const overnight = sample(true, recent);
-  if (overnight.length >= MIN_SAMPLES) figures.push({ label: 'Overnight', value: duration(median(overnight)!) });
+  const earlierGaps = sample(false, earlier);
+  const before = median(earlierGaps);
+  if (before !== null && earlierGaps.length >= MIN_SAMPLES) {
+    figures.push({ label: 'On last week', value: durationChange(typical, before) });
+  }
+  const overnightGaps = sample(true, recent);
+  const overnight = median(overnightGaps);
+  if (overnight !== null && overnightGaps.length >= MIN_SAMPLES) {
+    figures.push({ label: 'Overnight', value: duration(overnight) });
+  }
   const lastNight = sample(true, new Set(dayKeys.slice(-1)));
   if (lastNight.length > 0) figures.push({ label: 'Longest, last night', value: duration(Math.max(...lastNight)) });
 
@@ -544,33 +511,18 @@ export const CLUSTER_SPLIT_IDLE_MS = 10 * MINUTE_MS;
 function activeParts(event: BabyEvent): Span[] {
   const whole = { start: Date.parse(event.startedAt), end: Date.parse(event.endedAt ?? event.startedAt) };
   if (event.type !== 'breast_feed' || event.segments.length === 0) return [whole];
-  const segments = event.segments
-    .map((segment) => ({
-      start: Date.parse(segment.startedAt),
-      end: segment.endedAt ? Date.parse(segment.endedAt) : whole.end,
-    }))
-    .sort((a, b) => a.start - b.start);
-  const parts: Span[] = [];
-  for (const segment of segments) {
-    const last = parts.at(-1);
-    if (last && segment.start - last.end < CLUSTER_SPLIT_IDLE_MS) last.end = Math.max(last.end, segment.end);
-    else parts.push({ ...segment });
-  }
-  return parts;
+  const segments = event.segments.map((segment) => ({
+    start: Date.parse(segment.startedAt),
+    end: segment.endedAt ? Date.parse(segment.endedAt) : whole.end,
+  }));
+  return joinSpans(segments, (gap) => gap < CLUSTER_SPLIT_IDLE_MS);
 }
 
 function joinedFeeds(events: readonly BabyEvent[]): Span[] {
   const feeds = events
     .filter((event) => (event.type === 'breast_feed' || event.type === 'bottle') && !event.deletedAt)
-    .flatMap(activeParts)
-    .sort((a, b) => a.start - b.start);
-  const joined: Span[] = [];
-  for (const feed of feeds) {
-    const last = joined.at(-1);
-    if (last && feed.start - last.end <= SAME_FEED_MS) last.end = Math.max(last.end, feed.end);
-    else joined.push({ ...feed });
-  }
-  return joined;
+    .flatMap(activeParts);
+  return joinSpans(feeds, (gap) => gap <= SAME_FEED_MS);
 }
 
 const dayKeyOf = (instant: number, settings: InsightSettings) =>
@@ -601,7 +553,9 @@ export function feedClusters(events: readonly BabyEvent[], settings: InsightSett
 
 function usualStart(clusters: readonly FeedCluster[], settings: InsightSettings): string | null {
   const fromDayStart = clusters.map(
-    (cluster) => (minutesOfDay(new Date(cluster.start), settings.timeZone) - settings.dayStartMinutes + 1440) % 1440,
+    (cluster) =>
+      (minutesOfDay(new Date(cluster.start), settings.timeZone) - settings.dayStartMinutes + MINUTES_PER_DAY) %
+      MINUTES_PER_DAY,
   );
   const typical = median(fromDayStart);
   if (typical === null) return null;
@@ -618,8 +572,7 @@ export function clusterFeedingCard(
   dayKeys: readonly string[],
   settings: InsightSettings,
 ): StatsCard | null {
-  const recent = new Set(dayKeys.slice(-7));
-  const earlier = new Set(dayKeys.slice(-14, -7));
+  const { recent, earlier } = weekSplit(dayKeys);
   const feeds = joinedFeeds(events).map((feed) => dayKeyOf(feed.start, settings));
   if (feeds.filter((dayKey) => recent.has(dayKey)).length < MIN_WINDOWS) return null;
 
@@ -680,7 +633,7 @@ export function insightsReport(
   events: readonly BabyEvent[],
   todayKey: string,
   now: Date,
-  settings: InsightSettings & { mergeGapMs: number },
+  settings: InsightsReportSettings,
 ): InsightsReport {
   const keys = insightDays(todayKey);
   const spans = sleepSpans(events, now);
@@ -694,10 +647,10 @@ export function insightsReport(
       summary: summariseDay(day.events, day.window, {
         now,
         mergeGapMs: settings.mergeGapMs,
-        night: nightOf(settings, day.dayKey),
+        night: nightOf(day.dayKey, settings),
       }),
     }));
-  const recent = new Set(keys.slice(-7));
+  const { recent } = weekSplit(keys);
   const thisWeek = summaries.filter((day) => recent.has(day.dayKey)).map((day) => day.summary);
   const lastWeek = summaries.filter((day) => !recent.has(day.dayKey)).map((day) => day.summary);
   return {

@@ -1,6 +1,7 @@
 import type { BabyEvent, Side } from '../events/types';
 import { dayWindow } from '../time/local-time';
-import { fractionOf, type TimeWindow } from './days';
+import { fractionOf, type TimeWindow } from '../time/windows';
+import { eventSpan, isInstantType } from '../events/event-span';
 import { byStartedAtAsc } from '../time/instants';
 
 export interface TimelineItem {
@@ -32,15 +33,6 @@ const LANE: Partial<Record<BabyEvent['type'], keyof DayLayout>> = {
 
 export const MARKER_GAP_FRAC = 0.035;
 
-const INSTANT_TYPES = new Set<BabyEvent['type']>(['bottle', 'solids', 'nappy']);
-
-export function eventSpan(event: BabyEvent, now: Date): TimeWindow {
-  const start = new Date(event.startedAt);
-  if (INSTANT_TYPES.has(event.type)) return { start, end: start };
-  const end = event.endedAt ? new Date(event.endedAt) : now;
-  return { start, end: end < start ? start : end };
-}
-
 export function overlapsWindow(event: BabyEvent, window: TimeWindow, now: Date): boolean {
   if (event.deletedAt) return false;
   const span = eventSpan(event, now);
@@ -59,7 +51,7 @@ export function dayLayout(events: readonly BabyEvent[], window: TimeWindow, now:
     const span = eventSpan(event, now);
     const startFrac = fractionOf(window, span.start.getTime());
     let column = 0;
-    if (INSTANT_TYPES.has(event.type)) {
+    if (isInstantType(event.type)) {
       const columns = lastMarker[lane];
       while (columns[column] !== undefined && startFrac - columns[column]! < MARKER_GAP_FRAC) column += 1;
       columns[column] = startFrac;
@@ -74,7 +66,7 @@ export function dayLayout(events: readonly BabyEvent[], window: TimeWindow, now:
       event,
       startFrac,
       endFrac: fractionOf(window, span.end.getTime()),
-      running: event.endedAt === null && !INSTANT_TYPES.has(event.type),
+      running: event.endedAt === null && !isInstantType(event.type),
       continuesBefore: span.start < window.start,
       continuesAfter: span.end > window.end,
       column,

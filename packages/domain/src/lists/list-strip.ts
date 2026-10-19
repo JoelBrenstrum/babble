@@ -2,10 +2,20 @@ import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
 import { nextBreastSide } from '../events/feed-rules';
 import type { BabyEvent, PooColour, Units } from '../events/types';
 import { formatDuration, formatDurationShort, formatPerDay } from '../format/duration';
+import { capitalise } from '../format/text';
 import { formatVolume, formatVolumeValue, formatWeightChange } from '../format/units';
 import { growthReport, type BabySex } from '../growth/growth';
-import { formatShortDate, formatTimeOfDay, dayWindow, dayKeyFor, shiftDay } from '../time/local-time';
-import { lastDays } from '../timeline/days';
+import {
+  calendarDayMs,
+  formatShortDate,
+  formatTimeOfDay,
+  dayWindow,
+  dayKeyFor,
+  lastDays,
+  shiftDay,
+} from '../time/local-time';
+import { mean } from '../stats/maths';
+import type { InsightSettings } from '../stats/settings';
 import { bucketByDay } from '../timeline/day-layout';
 import { isSessionType, type TrackerKey } from '../trackers';
 import { summariseSleep } from '../events/sleep-stretches';
@@ -21,12 +31,8 @@ export interface StripItem {
   swatch?: PooColour;
 }
 
-export interface StripContext {
+export interface StripContext extends InsightSettings {
   now: Date;
-  timeZone: string;
-  dayStartMinutes: number;
-  nightStartMinutes: number;
-  nightEndMinutes: number;
   units: Units;
   birthDate: string;
   sex: BabySex | null;
@@ -121,8 +127,6 @@ export function sinceItem(kind: StripKind, events: readonly BabyEvent[], context
   };
 }
 
-const hours = formatDurationShort;
-
 function summaries(events: readonly BabyEvent[], context: StripContext) {
   const todayKey = dayKeyFor(context.now.toISOString(), context.timeZone, context.dayStartMinutes);
   const firstKey = events.reduce((earliest, event) => {
@@ -134,13 +138,12 @@ function summaries(events: readonly BabyEvent[], context: StripContext) {
     (day) =>
       summariseDay(day.events, day.window, {
         now: context.now,
-        night: nightOf(context, day.dayKey),
+        night: nightOf(day.dayKey, context),
       }),
   );
   const today = days.at(-1)!;
   const past = days.slice(0, -1);
-  const average = (pick: (day: DaySummary) => number) =>
-    past.length ? past.reduce((total, day) => total + pick(day), 0) / past.length : null;
+  const average = (pick: (day: DaySummary) => number) => mean(past, pick);
   return { today, past, average };
 }
 
@@ -166,25 +169,25 @@ function growthItems(events: readonly BabyEvent[], context: StripContext): Strip
       ? { label, value: chart.latest.value, note: `${chart.latest.percentile} percentile` }
       : { label, value: chart.latest.value };
   };
-  const weights = events
-    .filter((event): event is Extract<BabyEvent, { type: 'growth' }> => event.type === 'growth')
-    .filter((event) => event.details.weightG !== null)
-    .sort(byStartedAtDesc);
+  const weights = events.filter(isWeighed).sort(byStartedAtDesc);
   const [latest, previous] = weights;
   const change: StripItem =
     latest && previous
       ? {
           label: 'Change',
-          value: formatWeightChange(latest.details.weightG! - previous.details.weightG!, context.units),
+          value: formatWeightChange(latest.details.weightG - previous.details.weightG, context.units),
           note: daysBetweenNote(previous.startedAt, latest.startedAt, context),
         }
       : { label: 'Change', value: '—' };
   return [measure('weight', 'Weight'), change, measure('length', 'Length')];
 }
 
+type Weighed = Extract<BabyEvent, { type: 'growth' }> & { details: { weightG: number } };
+
+const isWeighed = (event: BabyEvent): event is Weighed => event.type === 'growth' && event.details.weightG !== null;
+
 function daysBetweenNote(from: string, to: string, context: StripContext): string {
-  const key = (iso: string) => Date.parse(`${dayKeyFor(iso, context.timeZone, 0)}T00:00:00Z`);
-  const days = Math.round((key(to) - key(from)) / DAY_MS);
+  const days = Math.round((calendarDayMs(to, context.timeZone) - calendarDayMs(from, context.timeZone)) / DAY_MS);
   return days === 0 ? 'same day' : `in ${days} ${days === 1 ? 'day' : 'days'}`;
 }
 
@@ -247,9 +250,9 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
         since,
         todayItem(
           'Today',
-          hours(today.sleepMs),
+          formatDurationShort(today.sleepMs),
           average((day) => day.sleepMs),
-          hours,
+          formatDurationShort,
         ),
         todayItem(
           'Naps',
@@ -297,8 +300,4 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
     case 'custom':
       return [];
   }
-}
-
-function capitalise(text: string): string {
-  return text.charAt(0).toUpperCase() + text.slice(1);
 }

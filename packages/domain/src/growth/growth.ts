@@ -1,6 +1,6 @@
 import type { BabyEvent, Units } from '../events/types';
-import { formatLength, formatWeight } from '../format/units';
-import { dayKeyFor, formatShortDate, shiftDay } from '../time/local-time';
+import { formatLength, formatWeight, GRAMS_PER_POUND, MM_PER_INCH } from '../format/units';
+import { calendarDayMs, dayKeyFor, formatShortDate, shiftDay } from '../time/local-time';
 import { WHO_LMS } from './who-lms';
 import { byStartedAtAsc } from '../time/instants';
 import { DAY_MS } from '../time/constants';
@@ -8,13 +8,19 @@ import { DAY_MS } from '../time/constants';
 export type BabySex = 'female' | 'male';
 export type GrowthMeasure = keyof typeof WHO_LMS;
 type Lms = readonly [number, number, number];
+type GrowthEvent = Extract<BabyEvent, { type: 'growth' }>;
+
+interface Display {
+  unit: string;
+  fromBase: (value: number) => number;
+}
 
 const DAYS_PER_MONTH = 365.25 / 12;
 export const WHO_MAX_MONTHS = 24;
 export const CURVE_PERCENTILES = [3, 15, 50, 85, 97] as const;
 
 export function ageInMonths(birthDate: string, iso: string, timeZone: string): number {
-  const measured = Date.parse(`${dayKeyFor(iso, timeZone, 0)}T00:00:00Z`);
+  const measured = calendarDayMs(iso, timeZone);
   const born = Date.parse(`${birthDate}T00:00:00Z`);
   return (measured - born) / DAY_MS / DAYS_PER_MONTH;
 }
@@ -75,13 +81,15 @@ export function formatPercentile(percentile: number): string {
   return `${rounded}${suffix}`;
 }
 
-const DISPLAY: Record<GrowthMeasure, Record<Units, { unit: string; fromBase: (value: number) => number }>> = {
+const inches = (cm: number) => (cm * 10) / MM_PER_INCH;
+
+const DISPLAY: Record<GrowthMeasure, Record<Units, Display>> = {
   weight: {
     metric: { unit: 'kg', fromBase: (kg) => kg },
-    imperial: { unit: 'lb', fromBase: (kg) => kg * 2.2046226218 },
+    imperial: { unit: 'lb', fromBase: (kg) => (kg * 1000) / GRAMS_PER_POUND },
   },
-  length: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: (cm) => cm / 2.54 } },
-  head: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: (cm) => cm / 2.54 } },
+  length: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: inches } },
+  head: { metric: { unit: 'cm', fromBase: (cm) => cm }, imperial: { unit: 'in', fromBase: inches } },
 };
 
 const LABEL: Record<GrowthMeasure, string> = { weight: 'Weight', length: 'Length', head: 'Head' };
@@ -126,7 +134,7 @@ export interface GrowthReport {
   charts: GrowthChart[];
 }
 
-function baseValue(measure: GrowthMeasure, event: Extract<BabyEvent, { type: 'growth' }>): number | null {
+function baseValue(measure: GrowthMeasure, event: GrowthEvent): number | null {
   const { weightG, lengthMm, headCircumferenceMm } = event.details;
   if (measure === 'weight') return weightG === null ? null : weightG / 1000;
   if (measure === 'length') return lengthMm === null ? null : lengthMm / 10;
@@ -257,6 +265,150 @@ export function nextMilestones(
   return found;
 }
 
+interface Measurement {
+  event: GrowthEvent;
+  value: number;
+  months: number;
+}
+
+interface Today {
+  months: number;
+  dayKey: string;
+}
+
+const MIN_X_MAX_MONTHS = 3;
+const X_MARGIN_MONTHS = 1;
+const CURVE_STEP_MONTHS = 0.5;
+const Y_PAD_FRACTION = 0.06;
+const Y_PAD_MIN = 0.1;
+
+function measurementsFor(
+  measure: GrowthMeasure,
+  growth: readonly GrowthEvent[],
+  baby: { birthDate: string; timeZone: string },
+): Measurement[] {
+  return growth.flatMap((event) => {
+    const value = baseValue(measure, event);
+    return value === null
+      ? []
+      : [{ event, value, months: ageInMonths(baby.birthDate, event.startedAt, baby.timeZone) }];
+  });
+}
+
+function estimateFor(
+  measure: GrowthMeasure,
+  measured: readonly Measurement[],
+  sex: BabySex | null,
+  today: Today | null,
+  units: Units,
+  display: Display,
+): GrowthEstimate | null {
+  if (!today) return null;
+  const estimated = estimateToday(measure, measured, sex, today.months);
+  if (!estimated) return null;
+  return {
+    months: today.months,
+    value: display.fromBase(estimated.value),
+    reading: formatBase(measure, estimated.value, units),
+    percentile: estimated.z === null ? null : formatPercentile(normalCdf(estimated.z) * 100),
+  };
+}
+
+function milestonesFor(
+  measure: GrowthMeasure,
+  measured: readonly Measurement[],
+  sex: BabySex | null,
+  today: Today | null,
+  units: Units,
+  display: Display,
+): GrowthMilestone[] {
+  if (!today) return [];
+  return nextMilestones(measure, measured, sex, today.months, units).map(({ target, days }) => ({
+    months: today.months + days / DAYS_PER_MONTH,
+    value: target,
+    reading: `${target} ${display.unit}`,
+    dayKey: shiftDay(today.dayKey, days),
+  }));
+}
+
+function percentileCurves(
+  measure: GrowthMeasure,
+  sex: BabySex,
+  display: Display,
+  untilMonths: number,
+): GrowthChart['curves'] {
+  return CURVE_PERCENTILES.map((percentile) => {
+    const z = zForPercentile(percentile);
+    const points: ChartPoint[] = [];
+    for (let months = 0; months <= untilMonths + 1e-9; months += CURVE_STEP_MONTHS) {
+      const lms = lmsAt(measure, sex, months);
+      if (lms) points.push({ months, value: display.fromBase(valueAtZ(z, lms)) });
+    }
+    return { percentile, points };
+  });
+}
+
+function measuredPoints(
+  measure: GrowthMeasure,
+  measured: readonly Measurement[],
+  sex: BabySex | null,
+  units: Units,
+  display: Display,
+): MeasuredPoint[] {
+  return measured.map((item) => {
+    const lms = sex ? lmsAt(measure, sex, item.months) : null;
+    return {
+      months: item.months,
+      value: display.fromBase(item.value),
+      reading: formatBase(measure, item.value, units),
+      percentile: lms ? formatPercentile(normalCdf(zScore(item.value, lms)) * 100) : null,
+      at: item.event.startedAt,
+    };
+  });
+}
+
+export function valueBounds(values: readonly number[]): { yMin: number; yMax: number } {
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const pad = Math.max((high - low) * Y_PAD_FRACTION, Y_PAD_MIN);
+  return { yMin: Math.max(0, low - pad), yMax: high + pad };
+}
+
+function chartFor(
+  measure: GrowthMeasure,
+  growth: readonly GrowthEvent[],
+  baby: { birthDate: string; sex: BabySex | null; timeZone: string },
+  units: Units,
+  today: Today | null,
+): GrowthChart | null {
+  const measured = measurementsFor(measure, growth, baby);
+  const display = DISPLAY[measure][units];
+  const points = measuredPoints(measure, measured, baby.sex, units, display);
+  const last = points.at(-1);
+  if (!last) return null;
+
+  const estimate = estimateFor(measure, measured, baby.sex, today, units, display);
+  const milestones = milestonesFor(measure, measured, baby.sex, today, units, display);
+  const ahead = [...(estimate ? [estimate] : []), ...milestones];
+  const lastMonths = Math.max(...points.map((point) => point.months), ...ahead.map((point) => point.months));
+  const xMax = Math.max(MIN_X_MAX_MONTHS, Math.ceil(lastMonths + X_MARGIN_MONTHS));
+  const curves = baby.sex ? percentileCurves(measure, baby.sex, display, Math.min(xMax, WHO_MAX_MONTHS)) : [];
+  const values = [...points, ...ahead, ...curves.flatMap((curve) => curve.points)].map((point) => point.value);
+
+  return {
+    key: measure,
+    label: LABEL[measure],
+    unit: display.unit,
+    latest: { value: last.reading, percentile: last.percentile, at: last.at },
+    points,
+    estimate,
+    milestones,
+    curves,
+    xMax,
+    ...valueBounds(values),
+  };
+}
+
 export function growthReport(
   events: readonly BabyEvent[],
   baby: { birthDate: string; sex: BabySex | null; timeZone: string },
@@ -264,94 +416,18 @@ export function growthReport(
   estimateAt?: Date,
 ): GrowthReport {
   const growth = events
-    .filter((event): event is Extract<BabyEvent, { type: 'growth' }> => event.type === 'growth' && !event.deletedAt)
+    .filter((event): event is GrowthEvent => event.type === 'growth' && !event.deletedAt)
     .sort(byStartedAtAsc);
-
-  const charts: GrowthChart[] = [];
-  for (const measure of ['weight', 'length', 'head'] as const) {
-    const measured = growth.flatMap((event) => {
-      const value = baseValue(measure, event);
-      return value === null
-        ? []
-        : [{ event, value, months: ageInMonths(baby.birthDate, event.startedAt, baby.timeZone) }];
-    });
-    const latest = measured.at(-1);
-    if (!latest) continue;
-
-    const display = DISPLAY[measure][units];
-    const todayMonths = estimateAt ? ageInMonths(baby.birthDate, estimateAt.toISOString(), baby.timeZone) : null;
-    const estimated = todayMonths === null ? null : estimateToday(measure, measured, baby.sex, todayMonths);
-    const estimate: GrowthEstimate | null =
-      estimated && todayMonths !== null
-        ? {
-            months: todayMonths,
-            value: display.fromBase(estimated.value),
-            reading: formatBase(measure, estimated.value, units),
-            percentile: estimated.z === null ? null : formatPercentile(normalCdf(estimated.z) * 100),
-          }
-        : null;
-    const todayKey = estimateAt ? dayKeyFor(estimateAt.toISOString(), baby.timeZone, 0) : null;
-    const milestones: GrowthMilestone[] =
-      todayMonths === null || todayKey === null
-        ? []
-        : nextMilestones(measure, measured, baby.sex, todayMonths, units).map(({ target, days }) => ({
-            months: todayMonths + days / DAYS_PER_MONTH,
-            value: target,
-            reading: `${target} ${display.unit}`,
-            dayKey: shiftDay(todayKey, days),
-          }));
-    const lastMonths = Math.max(
-      ...measured.map((item) => item.months),
-      estimate?.months ?? 0,
-      ...milestones.map((milestone) => milestone.months),
-    );
-    const xMax = Math.max(3, Math.ceil(lastMonths + 1));
-    const curveEnd = Math.min(xMax, WHO_MAX_MONTHS);
-    const curves = baby.sex
-      ? CURVE_PERCENTILES.map((percentile) => {
-          const z = zForPercentile(percentile);
-          const points: ChartPoint[] = [];
-          for (let months = 0; months <= curveEnd + 1e-9; months += 0.5) {
-            points.push({ months, value: display.fromBase(valueAtZ(z, lmsAt(measure, baby.sex!, months)!)) });
-          }
-          return { percentile, points };
-        })
-      : [];
-    const points: MeasuredPoint[] = measured.map((item) => {
-      const lms = baby.sex ? lmsAt(measure, baby.sex, item.months) : null;
-      return {
-        months: item.months,
-        value: display.fromBase(item.value),
-        reading: formatBase(measure, item.value, units),
-        percentile: lms ? formatPercentile(normalCdf(zScore(item.value, lms)) * 100) : null,
-        at: item.event.startedAt,
-      };
-    });
-    const last = points.at(-1)!;
-    const values = [
-      ...points,
-      ...(estimate ? [estimate] : []),
-      ...milestones,
-      ...curves.flatMap((curve) => curve.points),
-    ].map((point) => point.value);
-    const low = Math.min(...values);
-    const high = Math.max(...values);
-    const pad = Math.max((high - low) * 0.06, 0.1);
-
-    charts.push({
-      key: measure,
-      label: LABEL[measure],
-      unit: display.unit,
-      latest: { value: last.reading, percentile: last.percentile, at: last.at },
-      points,
-      estimate,
-      milestones,
-      curves,
-      xMax,
-      yMin: Math.max(0, low - pad),
-      yMax: high + pad,
-    });
-  }
+  const today: Today | null = estimateAt
+    ? {
+        months: ageInMonths(baby.birthDate, estimateAt.toISOString(), baby.timeZone),
+        dayKey: dayKeyFor(estimateAt.toISOString(), baby.timeZone, 0),
+      }
+    : null;
+  const charts = (['weight', 'length', 'head'] as const).flatMap((measure) => {
+    const chart = chartFor(measure, growth, baby, units, today);
+    return chart ? [chart] : [];
+  });
   return { needsSex: baby.sex === null && charts.length > 0, charts };
 }
 

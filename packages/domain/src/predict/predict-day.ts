@@ -1,6 +1,6 @@
 import { minutesOfDay } from '../time/local-time';
 import type { BabyEvent } from '../events/types';
-import { DAY_MS, MINUTE_MS } from '../time/constants';
+import { DAY_MS, MINUTE_MS, MINUTES_PER_DAY } from '../time/constants';
 
 export type PredictedKind = 'sleep' | 'feed';
 
@@ -51,8 +51,6 @@ const DEFAULTS = {
   mergeGapMinutes: 15,
   minSamples: 6,
 };
-
-const ANY_VALUE = -1;
 
 function resolveOptions(options: PredictOptions): Required<PredictOptions> {
   return {
@@ -133,8 +131,8 @@ function rhythmFrom(history: readonly Episode[], nowMs: number, settings: Requir
 }
 
 function circularMinutes(a: number, b: number): number {
-  const diff = Math.abs(a - b) % 1440;
-  return Math.min(diff, 1440 - diff);
+  const diff = Math.abs(a - b) % MINUTES_PER_DAY;
+  return Math.min(diff, MINUTES_PER_DAY - diff);
 }
 
 export function weightedMedian(values: readonly { value: number; weight: number }[]): number | null {
@@ -154,27 +152,23 @@ function estimate(
   at: number,
   now: number,
   settings: Required<PredictOptions>,
-  above = 0,
+  above?: number,
 ): number | null {
   const minute = minutesOfDay(new Date(at), settings.timeZone);
   const weighted = samples
-    .filter((s) => s.value > above)
+    .filter((s) => above === undefined || s.value > above)
     .map((s) => {
-      const hours = circularMinutes(s.minuteOfDay, minute);
+      const minutesApart = circularMinutes(s.minuteOfDay, minute);
       const age = Math.max(0, now - s.at) / DAY_MS;
       return {
         value: s.value,
         weight:
-          Math.exp(-(hours * hours) / (2 * settings.hourSpreadMinutes ** 2)) * 0.5 ** (age / settings.halfLifeDays),
+          Math.exp(-(minutesApart * minutesApart) / (2 * settings.hourSpreadMinutes ** 2)) *
+          0.5 ** (age / settings.halfLifeDays),
       };
     });
   return weightedMedian(weighted);
 }
-
-export type PredictionResult =
-  | { status: 'ready'; blocks: PredictedBlock[] }
-  | { status: 'learning' }
-  | { status: 'no-anchor' };
 
 export function predictDay(
   events: readonly BabyEvent[],
@@ -182,23 +176,11 @@ export function predictDay(
   until: Date,
   options: PredictOptions,
 ): PredictedBlock[] | null {
-  const result = predictDayStatus(events, now, until, options);
-  return result.status === 'ready' ? result.blocks : null;
-}
-
-export function predictDayStatus(
-  events: readonly BabyEvent[],
-  now: Date,
-  until: Date,
-  options: PredictOptions,
-): PredictionResult {
   const settings = resolveOptions(options);
   const nowMs = now.getTime();
   const history = episodes(events, nowMs, settings.mergeGapMinutes * MINUTE_MS);
   const rhythm = rhythmFrom(history, nowMs, settings);
-  if (Object.values(rhythm).some((samples: Sample[]) => samples.length < settings.minSamples)) {
-    return { status: 'learning' };
-  }
+  if (Object.values(rhythm).some((samples: Sample[]) => samples.length < settings.minSamples)) return null;
 
   const blocks: PredictedBlock[] = [];
   const push = (kind: PredictedKind, start: number, end: number, continuesRunning = false) =>
@@ -214,7 +196,7 @@ export function predictDayStatus(
     return start + (value ?? elapsed + OVERRUN_MS);
   };
   const length = (samples: Sample[], at: number, above = 0) => estimate(samples, at, nowMs, settings, above) ?? 0;
-  const wakeToFeed = (wake: number) => length(rhythm.wakeToFeed, wake, ANY_VALUE);
+  const wakeToFeed = (wake: number) => estimate(rhythm.wakeToFeed, wake, nowMs, settings) ?? 0;
   const notBeforeNow = (time: number) => Math.max(time, nowMs);
   const feedAfterSleep = (sleep: Episode, feedBefore: Episode | undefined) => {
     const wake = sleep.end!;
@@ -247,7 +229,7 @@ export function predictDayStatus(
   } else if (lastSleep) {
     next = { kind: 'feed', at: notBeforeNow(feedAfterSleep(lastSleep, lastFeed)) };
   } else {
-    return { status: 'no-anchor' };
+    return null;
   }
 
   const limit = until.getTime();
@@ -263,5 +245,5 @@ export function predictDayStatus(
       next = { kind: 'feed', at: wake + wakeToFeed(wake) };
     }
   }
-  return { status: 'ready', blocks: blocks.filter((block) => Date.parse(block.startedAt) < limit) };
+  return blocks.filter((block) => Date.parse(block.startedAt) < limit);
 }

@@ -9,9 +9,10 @@ import type { BabyEvent, BottleContent, EventDraft, EventOfType, Side, Units } f
 import { SIDE_LABEL } from '../events/labels';
 import { formatAgo, formatDuration, formatTimer } from '../format/duration';
 import { formatVolume, ML_PER_OUNCE, volumeToMl } from '../format/units';
-import { formatTimeOfDay, isWithinNight } from '../time/local-time';
+import { formatTimeOfDay } from '../time/local-time';
+import { isWithinNight } from '../time/night';
 import { nappyKind } from '../timeline/totals';
-import type { NightWindow } from '../theme/theme-preference';
+import { nightSettingsOf, type NightWindow } from '../theme/theme-preference';
 import { byStartedAtDesc } from '../time/instants';
 import { MINUTE_MS } from '../time/constants';
 
@@ -171,7 +172,7 @@ export function chairNappyDraft(type: NappyType, now: Date): EventDraft {
 }
 
 export function chairIsNight(night: NightWindow | null, now: Date): boolean {
-  return night !== null && isWithinNight(now, night.timeZone, night.start, night.end);
+  return night !== null && isWithinNight(now, nightSettingsOf(night));
 }
 
 export function chairDimmed(night: NightWindow | null, now: Date, lastTouchAt: number): boolean {

@@ -6,6 +6,7 @@ import {
   formatShortDate,
   formatTimeOfDay,
   fromLocalInputValue,
+  lastDays,
   localInstant,
   minutesOfDay,
   parseDayKey,
@@ -116,5 +117,19 @@ describe('local instants', () => {
   it('shifts by calendar days, not 24 hours, across a changeover', () => {
     expect(shiftLocalDays('2026-09-26T23:30:15.250Z', -1, 'Pacific/Auckland')).toBe('2026-09-26T00:30:15.250Z');
     expect(shiftLocalDays('2026-10-06T12:00:00Z', -1, 'UTC')).toBe('2026-10-05T12:00:00.000Z');
+  });
+});
+
+describe('lastDays', () => {
+  it('lists the days ending on the given day, across a month boundary', () => {
+    expect(lastDays('2026-10-03', 7)).toEqual([
+      '2026-09-27',
+      '2026-09-28',
+      '2026-09-29',
+      '2026-09-30',
+      '2026-10-01',
+      '2026-10-02',
+      '2026-10-03',
+    ]);
   });
 });

@@ -21,14 +21,6 @@ export function minutesOfDay(instant: Date, timeZone: string): number {
   return p.hour * 60 + p.minute;
 }
 
-export function isWithinNight(instant: Date, timeZone: string, startMinutes: number, endMinutes: number): boolean {
-  const minutes = minutesOfDay(instant, timeZone);
-  if (startMinutes === endMinutes) return false;
-  return startMinutes < endMinutes
-    ? minutes >= startMinutes && minutes < endMinutes
-    : minutes >= startMinutes || minutes < endMinutes;
-}
-
 export function toLocalInputValue(iso: string, timeZone: string): string {
   const p = zonedParts(new Date(iso), timeZone);
   return `${partsOf(p)}T${pad2(p.hour)}:${pad2(p.minute)}`;
@@ -81,6 +73,14 @@ export function dayKeyFor(iso: string, timeZone: string, dayStartMinutes: number
   const local = zonedParts(new Date(iso), timeZone);
   const key = partsOf(local);
   return local.hour * 60 + local.minute < dayStartMinutes ? shiftDay(key, -1) : key;
+}
+
+export function calendarDayMs(iso: string, timeZone: string): number {
+  return Date.parse(`${dayKeyFor(iso, timeZone, 0)}T00:00:00Z`);
+}
+
+export function lastDays(endKey: string, count: number): string[] {
+  return Array.from({ length: count }, (_, index) => shiftDay(endKey, index - count + 1));
 }
 
 export function dayWindow(dayKey: string, timeZone: string, dayStartMinutes: number): { start: Date; end: Date } {

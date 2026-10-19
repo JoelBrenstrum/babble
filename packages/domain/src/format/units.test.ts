@@ -7,6 +7,7 @@ import {
   formatWeightChange,
   ML_PER_OUNCE,
   lengthToMm,
+  mlToVolume,
   volumeToMl,
   volumeUnit,
   weightToGrams,
@@ -33,6 +34,12 @@ describe('volume', () => {
   it('round-trips ounces', () => {
     expect(volumeToMl(1, 'imperial')).toBe(Math.round(ML_PER_OUNCE));
     expect(volumeToMl(4.5, 'imperial')).toBe(133);
+  });
+
+  it('converts millilitres back to the entry unit', () => {
+    expect(mlToVolume(150, 'metric')).toBe(150);
+    expect(mlToVolume(133, 'imperial')).toBe(4.5);
+    expect(mlToVolume(volumeToMl(3, 'imperial'), 'imperial')).toBe(3);
   });
 });
 

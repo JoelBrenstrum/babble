@@ -34,7 +34,7 @@ import {
 import type { ChairData } from '#/features/chair/chair-screen';
 
 const { timezone, day_start_minutes: dayStart } = sampleBaby;
-const NIGHT = { startMinutes: 19 * 60, endMinutes: 7 * 60 };
+const NIGHT = { nightStartMinutes: 19 * 60, nightEndMinutes: 7 * 60 };
 const TIMELINE_ANCHOR_HOURS = 12.5;
 
 const MINUTE = 60_000;
@@ -166,8 +166,7 @@ export function monthPreview(now: Date) {
   const insights = insightsReport(events, todayKey, now, {
     timeZone: timezone,
     dayStartMinutes: dayStart,
-    nightStartMinutes: NIGHT.startMinutes,
-    nightEndMinutes: NIGHT.endMinutes,
+    ...NIGHT,
     mergeGapMs: 15_000,
   });
   return { days, ticks, todayKey, insights };
