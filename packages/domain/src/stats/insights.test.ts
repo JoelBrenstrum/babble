@@ -341,6 +341,21 @@ describe('feed spacing', () => {
     ]);
   });
 
+  it('files a gap by where most of it falls, so a long evening gap counts as overnight', () => {
+    const bottle = (id: string, start: string) => makeEvent('bottle', { id, startedAt: start, endedAt: null });
+    const events = [
+      bottle('tea-time', '2026-10-13T18:30:00Z'),
+      bottle('late', '2026-10-13T23:30:00Z'),
+      bottle('dawn', '2026-10-14T06:30:00Z'),
+      bottle('mid-morning', '2026-10-14T10:30:00Z'),
+    ];
+    expect(feedGaps(events, settings)).toEqual([
+      gap('2026-10-13', 5, true),
+      gap('2026-10-13', 7, true),
+      gap('2026-10-14', 4),
+    ]);
+  });
+
   it('shows the typical daytime and overnight gap, last night and the change on last week', () => {
     const gaps = [
       gap('2026-10-05', 2.5),
