@@ -10,9 +10,9 @@ describe('possessive', () => {
 });
 
 describe('settingsGroups', () => {
-  it('orders baby, family, device then account, naming the baby and family', () => {
+  it('orders baby, family, device, tools then account, naming the baby and family', () => {
     const groups = settingsGroups('Olivia', 'The Smiths');
-    expect(groups.map((group) => group.id)).toEqual(['baby', 'family', 'device', 'account']);
+    expect(groups.map((group) => group.id)).toEqual(['baby', 'family', 'device', 'tools', 'account']);
     expect(groups[0]).toMatchObject({ nav: 'Olivia', title: "Olivia's settings" });
     expect(groups[0]!.description).toContain('Olivia');
     expect(groups[1]!.description).toContain('The Smiths');

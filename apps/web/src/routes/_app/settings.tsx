@@ -105,6 +105,14 @@ function SettingsPage() {
         <InstallSection />
       </SettingsGroupSection>
 
+      <SettingsGroupSection groups={groups} id="tools">
+        <CardLink
+          to="/tog"
+          title="TOG calculator"
+          description="Room temperature in, sleeping bag TOG out, or the other way round"
+        />
+      </SettingsGroupSection>
+
       <SettingsGroupSection groups={groups} id="account">
         <AccountSection client={babble.client} email={session.user.email ?? ''} />
         <AboutSection />
