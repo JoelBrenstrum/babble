@@ -1,6 +1,6 @@
 import { applySessionAction, type BabyEvent, type SessionAction } from '@babble/domain';
 import type { QueryClient } from '@tanstack/react-query';
-import type { SleepChanges } from '../events';
+import type { PumpAmountChanges, SleepChanges } from '../events';
 import { queryKeys } from '../queries';
 
 export interface EventCacheSnapshot {
@@ -29,6 +29,11 @@ export function mergeSleepDetails(event: BabyEvent, changes: SleepChanges): Baby
     details: { ...event.details, ...details },
     ...('notes' in changes ? { notes: notes ?? null } : {}),
   };
+}
+
+export function mergePumpAmounts(event: BabyEvent, changes: PumpAmountChanges): BabyEvent {
+  if (event.type !== 'pump') return event;
+  return { ...event, details: { ...event.details, ...changes, totalMl: null } };
 }
 
 export function findCachedEvent(queryClient: QueryClient, babyId: string, eventId: string): BabyEvent | undefined {

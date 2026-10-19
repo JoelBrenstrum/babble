@@ -13,6 +13,7 @@ import { RunningCard } from '@/features/events/running-card';
 import { KeepAwakeToggle } from '@/features/keep-awake-toggle';
 import { LiveMergeOffer } from '@/features/events/merge-sessions';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
+import { PumpAmountsEditor } from '@/features/events/pump-amounts-editor';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
 import { useBabble } from '@/lib/babble';
@@ -92,6 +93,15 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
             <Card className="gap-3 p-5">
               <Text className="font-sans text-meta text-ink-2">Saved as you go, without stopping the timer.</Text>
               <SleepDetailsEditor event={event} client={client} babyId={baby.id} />
+            </Card>
+          </View>
+        )}
+        {logging && event.type === 'pump' && (
+          <View className="gap-2">
+            <SectionLabel>Amounts</SectionLabel>
+            <Card className="gap-3 p-5">
+              <Text className="font-sans text-meta text-ink-2">Saved as you go, without stopping the timer.</Text>
+              <PumpAmountsEditor event={event} client={client} babyId={baby.id} units={units} />
             </Card>
           </View>
         )}
