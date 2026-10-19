@@ -1,4 +1,4 @@
-export type SettingsGroupId = 'baby' | 'family' | 'device' | 'account';
+export type SettingsGroupId = 'baby' | 'family' | 'device' | 'tools' | 'account';
 
 export interface SettingsGroup {
   id: SettingsGroupId;
@@ -26,6 +26,7 @@ export function settingsGroups(babyName: string, familyName: string): SettingsGr
       description: `Shared by everyone in ${familyName}, for every baby.`,
     },
     { id: 'device', nav: 'This device', title: 'This device', description: 'Only changes this device.' },
+    { id: 'tools', nav: 'Tools', title: 'Tools', description: 'Handy extras that work without signing in.' },
     { id: 'account', nav: 'Account', title: 'Account', description: 'Your sign-in, wherever you use babble.' },
   ];
 }
