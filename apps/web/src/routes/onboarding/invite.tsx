@@ -4,11 +4,12 @@ import { useCallback } from 'react';
 import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
 import { InvitePanel } from '#/features/invite-panel';
+import { ensureCurrentData } from '#/lib/query-persistence';
 import { readStorage, storageKeys } from '#/lib/storage';
 
 export const Route = createFileRoute('/onboarding/invite')({
   beforeLoad: async ({ context }) => {
-    const families = await context.queryClient.ensureQueryData(familiesQuery(context.babble.client));
+    const families = await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client));
     const state = resolveOnboarding({
       signedIn: true,
       families,

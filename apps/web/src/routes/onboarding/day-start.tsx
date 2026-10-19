@@ -6,11 +6,12 @@ import { CenteredPage } from '#/components/shell/centered-page';
 import { Button } from '#/components/ui/button';
 import { StatusMessage } from '#/components/ui/status';
 import { DayStartPicker } from '#/features/day-start-picker';
+import { ensureCurrentData } from '#/lib/query-persistence';
 import { readStorage, storageKeys } from '#/lib/storage';
 
 export const Route = createFileRoute('/onboarding/day-start')({
   beforeLoad: async ({ context }) => {
-    const families = await context.queryClient.ensureQueryData(familiesQuery(context.babble.client));
+    const families = await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client));
     const state = resolveOnboarding({
       signedIn: true,
       families,

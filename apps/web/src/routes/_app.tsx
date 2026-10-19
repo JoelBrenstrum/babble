@@ -14,7 +14,7 @@ import { createFileRoute, Outlet, redirect, useLocation } from '@tanstack/react-
 import { AppShell } from '#/components/shell/app-shell';
 import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
-import { queryCacheRestored } from '#/lib/query-persistence';
+import { ensureCurrentData, queryCacheRestored } from '#/lib/query-persistence';
 import { readStorage, storageKeys } from '#/lib/storage';
 import { DeviceNameProvider } from '#/features/device-name-context';
 import { NapPromptProvider } from '#/features/nap-prompt';
@@ -27,7 +27,7 @@ export const Route = createFileRoute('/_app')({
     const { data } = await context.babble.client.auth.getSession();
     await queryCacheRestored();
     const families = data.session
-      ? await context.queryClient.ensureQueryData(familiesQuery(context.babble.client))
+      ? await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client))
       : [];
     const state = resolveOnboarding({
       signedIn: Boolean(data.session),

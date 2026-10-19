@@ -9,6 +9,7 @@ import { Button } from '#/components/ui/button';
 import { SelectField, TextField } from '#/components/ui/field';
 import { StatusMessage } from '#/components/ui/status';
 import { SexField } from '#/features/sex-field';
+import { ensureCurrentData } from '#/lib/query-persistence';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 import { detectTimeZone, listTimeZones } from '#/lib/timezones';
 
@@ -17,7 +18,7 @@ export const Route = createFileRoute('/onboarding/baby')({
     mode: search.mode === 'add' ? 'add' : undefined,
   }),
   beforeLoad: async ({ context, search }) => {
-    const families = await context.queryClient.ensureQueryData(familiesQuery(context.babble.client));
+    const families = await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client));
     const state = resolveOnboarding({
       signedIn: true,
       families,

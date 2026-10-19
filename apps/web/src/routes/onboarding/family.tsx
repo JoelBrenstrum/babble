@@ -7,11 +7,12 @@ import { Button } from '#/components/ui/button';
 import { TextField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
 import { StatusMessage } from '#/components/ui/status';
+import { ensureCurrentData } from '#/lib/query-persistence';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 
 export const Route = createFileRoute('/onboarding/family')({
   beforeLoad: async ({ context }) => {
-    const families = await context.queryClient.ensureQueryData(familiesQuery(context.babble.client));
+    const families = await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client));
     if (families.length > 0) throw redirect({ to: '/' });
   },
   component: FamilyStep,

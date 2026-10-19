@@ -1,7 +1,9 @@
 import { QueryClient, type Query } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import {
+  ensureCurrentData,
   PERSIST_MAX_AGE_MS,
+  resetRevalidation,
   setupQueryPersistence,
   shouldPersistQuery,
   type PersistedStorage,
@@ -32,6 +34,53 @@ describe('shouldPersistQuery', () => {
     expect(shouldPersistQuery(query(['events', 'b1', 'latest'], 'pending'))).toBe(false);
     expect(shouldPersistQuery(query(['release'], 'success'))).toBe(false);
     expect(shouldPersistQuery(query(['invite', 'ABC'], 'success'))).toBe(false);
+    expect(shouldPersistQuery(query(['device-link', 'ABC'], 'success'))).toBe(false);
+  });
+});
+
+describe('ensureCurrentData', () => {
+  it('fetches fresh data the first time even when the cache has some, then reuses the cache', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    queryClient.setQueryData(['families'], [{ id: 'stale' }]);
+    let calls = 0;
+    const options = {
+      queryKey: ['families'],
+      queryFn: async () => {
+        calls += 1;
+        return [{ id: 'fresh' }];
+      },
+    };
+    expect(await ensureCurrentData(queryClient, options)).toEqual([{ id: 'fresh' }]);
+    expect(await ensureCurrentData(queryClient, options)).toEqual([{ id: 'fresh' }]);
+    expect(calls).toBe(1);
+  });
+
+  it('falls back to the cached data when the fresh fetch fails', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    queryClient.setQueryData(['families'], [{ id: 'cached' }]);
+    const options = {
+      queryKey: ['families'],
+      queryFn: async () => {
+        throw new Error('offline');
+      },
+      retry: false,
+    };
+    expect(await ensureCurrentData(queryClient, options)).toEqual([{ id: 'cached' }]);
+  });
+
+  it('throws when the fetch fails and nothing is cached', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    const options = {
+      queryKey: ['families'],
+      queryFn: async (): Promise<string[]> => {
+        throw new Error('offline');
+      },
+      retry: false,
+    };
+    await expect(ensureCurrentData(queryClient, options)).rejects.toThrow('offline');
   });
 });
 

@@ -6,7 +6,7 @@ import { RELEASE_ID } from './release';
 
 export const PERSIST_MAX_AGE_MS = 24 * 60 * 60_000;
 const STORAGE_KEY = 'babble.queryCache';
-const NEVER_PERSISTED = new Set(['release', 'invite']);
+const NEVER_PERSISTED = new Set(['release', 'invite', 'device-link']);
 
 export interface PersistedStorage {
   getItem(key: string): Promise<string | null | undefined>;
@@ -63,4 +63,28 @@ export function queryCacheRestored(): Promise<void> {
 
 export function clearPersistedQueries(): Promise<void> {
   return current.clear();
+}
+
+const revalidated = new Set<string>();
+
+export function resetRevalidation(): void {
+  revalidated.clear();
+}
+
+// Restored data may be hours old, so the first read of a query in a page load goes to the network,
+// falling back to the cache only when that fails. Later reads behave like ensureQueryData.
+export async function ensureCurrentData<T>(
+  queryClient: QueryClient,
+  options: { queryKey: readonly unknown[]; queryFn: () => Promise<T>; staleTime?: number; retry?: boolean | number },
+): Promise<T> {
+  const key = JSON.stringify(options.queryKey);
+  if (revalidated.has(key)) return queryClient.ensureQueryData(options);
+  revalidated.add(key);
+  try {
+    return await queryClient.fetchQuery({ ...options, staleTime: 0 });
+  } catch (error) {
+    const cached = queryClient.getQueryData<T>(options.queryKey);
+    if (cached !== undefined) return cached;
+    throw error;
+  }
 }
