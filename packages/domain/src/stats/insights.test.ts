@@ -339,6 +339,30 @@ describe('feed spacing', () => {
     ]);
   });
 
+  it('files a gap by where most of it falls, so a long evening gap counts as overnight', () => {
+    const bottle = (id: string, start: string) => makeEvent('bottle', { id, startedAt: start, endedAt: null });
+    const events = [
+      bottle('tea-time', '2026-10-13T18:30:00Z'),
+      bottle('late', '2026-10-13T23:30:00Z'),
+      bottle('dawn', '2026-10-14T06:30:00Z'),
+      bottle('mid-morning', '2026-10-14T10:30:00Z'),
+    ];
+    const at = (iso: string) => Date.parse(`${iso}:00Z`);
+    expect(feedGaps(events, settings)).toEqual([
+      gap('2026-10-13', 5, true, at('2026-10-13T18:30')),
+      gap('2026-10-13', 7, true, at('2026-10-13T23:30')),
+      gap('2026-10-14', 4, false, at('2026-10-14T06:30')),
+    ]);
+  });
+
+  it('keeps a gap split evenly across a night edge as daytime', () => {
+    const bottle = (id: string, start: string) => makeEvent('bottle', { id, startedAt: start, endedAt: null });
+    const evening = [bottle('a', '2026-10-13T15:00:00Z'), bottle('b', '2026-10-13T23:00:00Z')];
+    const morning = [bottle('c', '2026-10-14T03:00:00Z'), bottle('d', '2026-10-14T11:00:00Z')];
+    expect(feedGaps(evening, settings)).toEqual([gap('2026-10-13', 8, false, Date.parse('2026-10-13T15:00:00Z'))]);
+    expect(feedGaps(morning, settings)).toEqual([gap('2026-10-14', 8, false, Date.parse('2026-10-14T03:00:00Z'))]);
+  });
+
   it('shows the typical daytime and overnight gap, last night and the change on last week', () => {
     const gaps = [
       gap('2026-10-05', 2.5),

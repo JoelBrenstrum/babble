@@ -59,6 +59,9 @@ export function weekSplit(dayKeys: readonly string[]): { recent: Set<string>; ea
 const inside = (instant: number, window: TimeWindow) =>
   instant >= window.start.getTime() && instant <= window.end.getTime();
 
+const strictlyInside = (instant: number, window: TimeWindow) =>
+  instant > window.start.getTime() && instant < window.end.getTime();
+
 export function nightStats(
   spans: readonly Span[],
   dayKeys: readonly string[],
@@ -84,10 +87,10 @@ export function nightStats(
   });
 }
 
-function nightKeyOf(instant: number, settings: InsightSettings): string | null {
+function nightKeyOf(instant: number, settings: InsightSettings, within = inside): string | null {
   const key = dayKeyFor(new Date(instant).toISOString(), settings.timeZone, 0);
   const keys = [shiftDay(key, -1), key];
-  return keys.find((dayKey) => inside(instant, nightWindow(dayKey, settings))) ?? null;
+  return keys.find((dayKey) => within(instant, nightWindow(dayKey, settings))) ?? null;
 }
 
 const inAnyNight = (instant: number, settings: InsightSettings) => nightKeyOf(instant, settings) !== null;
@@ -442,9 +445,10 @@ export function feedGaps(events: readonly BabyEvent[], settings: InsightSettings
     }
     const ms = feed.start - previous.start;
     if (ms < MAX_GAP_MS) {
-      const nightKey = nightKeyOf(previous.start, settings);
-      const dayKey =
-        nightKey ?? dayKeyFor(new Date(previous.start).toISOString(), settings.timeZone, settings.dayStartMinutes);
+      // A gap is overnight when most of it falls in the night, so a midpoint exactly on the edge stays daytime.
+      const middle = previous.start + ms / 2;
+      const nightKey = nightKeyOf(middle, settings, strictlyInside);
+      const dayKey = nightKey ?? dayKeyFor(new Date(middle).toISOString(), settings.timeZone, settings.dayStartMinutes);
       gaps.push({ dayKey, start: previous.start, ms, night: nightKey !== null });
     }
     previous = feed;
@@ -481,7 +485,7 @@ export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly stri
   return {
     key: 'feed-spacing',
     title: 'Feed spacing',
-    note: 'Gaps run from the start of one feed to the start of the next. A top-up within 20 minutes counts as the same feed.',
+    note: 'Gaps run from the start of one feed to the start of the next, and count as overnight when most of the gap is in the night. A top-up within 20 minutes counts as the same feed.',
     plus: true,
     figures,
     chart: {
