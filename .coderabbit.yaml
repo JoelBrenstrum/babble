@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: en-NZ
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  review_status: true
+  poem: false
+  collapse_walkthrough: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - main
+  path_filters:
+    - '!**/routeTree.gen.ts'
+    - '!packages/api/src/database.types.ts'
+    - '!pnpm-lock.yaml'
+    - '!docs/design/**'
+    - '!apps/web/public/**'
+  path_instructions:
+    - path: packages/domain/**
+      instructions: >-
+        This package is pure TypeScript with no React, Supabase, Expo or TanStack imports. Flag any framework or
+        I/O dependency. Expect every new or changed function to have a unit test beside it.
+    - path: packages/db/supabase/migrations/**
+      instructions: >-
+        Migrations are applied to production automatically on merge and are never edited after merging. Check that
+        new migrations are additive, that functions touched here keep `security invoker` and `set search_path = ''`
+        unless there is a stated reason, that column-level grants to `authenticated` are updated for new columns,
+        and that row level security still holds. Point out anything that needs a pgTAP test under tests/database.
+    - path: apps/web/src/routes/**
+      instructions: >-
+        Route guards run on every navigation. Flag anything that makes a network request per navigation when a
+        cached query would do, and anything that reads browser-only APIs during server rendering.
+    - path: apps/**
+      instructions: >-
+        Web and mobile build the same screens from shared packages. Logic belongs in packages/domain or
+        packages/api; flag business rules, date maths or data shaping implemented inside a screen or component.
+    - path: '**/*.test.{ts,tsx}'
+      instructions: >-
+        Tests should describe behaviour, not implementation. Flag tests that only assert on mocks being called.
+chat:
+  auto_reply: true
