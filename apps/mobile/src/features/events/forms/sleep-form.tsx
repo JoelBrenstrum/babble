@@ -2,6 +2,8 @@ import {
   awakePeriods,
   napDurationText,
   newAwakePeriod,
+  SLEEP_QUALITIES,
+  SLEEP_QUALITY_LABELS,
   stretchesWithAwake,
   trimAwakePeriod,
   type AwakePeriod,
@@ -16,6 +18,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { CheckRow, MultiChips, SingleChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
+import { RatingScale } from '@/components/rating-scale';
 import { useTokenColor } from '@/lib/theme';
 import { NapBreakdown } from '../nap-breakdown';
 import { FormSection, type FormProps } from './shared';
@@ -73,6 +76,15 @@ export function SleepDetailFields({
         options={MOODS}
         value={details.endMoods}
         onChange={(endMoods) => onChange({ endMoods })}
+      />
+      <RatingScale
+        label="Sleep quality"
+        options={SLEEP_QUALITIES}
+        labels={SLEEP_QUALITY_LABELS}
+        value={details.quality}
+        onChange={(quality) => onChange({ quality })}
+        low="Hard to settle, wakeful"
+        high="Deep, settled sleep"
       />
       <CheckRow
         label="Woken by a carer"

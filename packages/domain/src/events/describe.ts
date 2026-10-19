@@ -176,7 +176,7 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
     }
     case 'sleep': {
       const sleep = summariseSleep(event, now);
-      const { locations, startMoods, endMoods } = event.details;
+      const { locations, startMoods, endMoods, quality } = event.details;
       const parts: DescriptionPart[] = [];
       if (sleep.wakeUps > 0) {
         parts.push(
@@ -187,6 +187,7 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
       for (const location of locations) parts.push({ text: SLEEP_LOCATION_LABELS[location], tone: 'sleep' });
       const mood = sleepMood(startMoods, endMoods);
       if (mood) parts.push({ text: mood, tone: 'neutral' });
+      if (quality !== null) parts.push({ text: `Slept ${quality}/5`, tone: 'sleep' });
       return describe({ title: 'Sleep', parts, duration: formatDuration(sleep.asleepMs, { seconds: false }) });
     }
     case 'bottle': {

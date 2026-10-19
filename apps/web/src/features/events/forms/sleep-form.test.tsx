@@ -1,5 +1,5 @@
 import { emptyDraft, type DraftOfType } from '@babble/domain';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it } from 'vitest';
 import { SleepForm } from './sleep-form';
@@ -24,6 +24,24 @@ describe('SleepForm', () => {
 
     fireEvent.change(screen.getByLabelText('Woke up'), { target: { value: '2026-10-06T01:00' } });
     expect(screen.queryByText('Duration')).not.toBeInTheDocument();
+  });
+
+  it('rates sleep quality from 1 to 5 and clears it on a second tap', () => {
+    render(<Harness />);
+    const group = screen.getByRole('radiogroup', { name: 'Sleep quality' });
+    expect(within(group).getAllByRole('radio')).toHaveLength(5);
+    expect(screen.queryByText('Settled')).toBeNull();
+
+    fireEvent.click(within(group).getByRole('radio', { name: '4: Settled' }));
+    expect(within(group).getByRole('radio', { name: '4: Settled' })).toBeChecked();
+    expect(screen.getByText('Settled')).toBeInTheDocument();
+
+    fireEvent.click(within(group).getByRole('radio', { name: '1: Hard to settle, wakeful' }));
+    expect(within(group).getByRole('radio', { name: '4: Settled' })).not.toBeChecked();
+    expect(within(group).getByRole('radio', { name: '1: Hard to settle, wakeful' })).toBeChecked();
+
+    fireEvent.click(within(group).getByRole('radio', { name: '1: Hard to settle, wakeful' }));
+    expect(within(group).getByRole('radio', { name: '1: Hard to settle, wakeful' })).not.toBeChecked();
   });
 
   it('adds wake-ups, trims them a minute at a time and removes them', () => {

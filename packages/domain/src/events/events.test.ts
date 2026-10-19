@@ -368,14 +368,16 @@ describe('describeEvent for naps', () => {
         startMoods: ['upset'],
         endMoods: ['happy'],
         wokenByCarer: false,
+        quality: 4,
       },
     });
     expect(describeEvent(nap, NOW, 'metric').parts).toEqual([
       { text: 'Car', tone: 'sleep' },
       { text: 'Swing', tone: 'sleep' },
       { text: 'Upset → happy', tone: 'neutral' },
+      { text: 'Slept 4/5', tone: 'sleep' },
     ]);
-    const happy = { ...nap, details: { ...nap.details, locations: [], startMoods: [] } } as typeof nap;
+    const happy = { ...nap, details: { ...nap.details, locations: [], startMoods: [], quality: null } } as typeof nap;
     expect(describeEvent(happy, NOW, 'metric').parts).toEqual([{ text: 'Happy', tone: 'neutral' }]);
     expect(summariseLatest(nap, NOW, 'metric')).toBe('1h 00m');
   });

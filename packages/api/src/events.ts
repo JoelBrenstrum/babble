@@ -9,6 +9,7 @@ import {
   type SessionMerge,
   type Side,
   type SleepDetails,
+  type SleepQuality,
   type TimedSegment,
 } from '@babble/domain';
 import type { BabbleClient } from './client';
@@ -68,6 +69,7 @@ export function rowToEvent(row: EventRow): BabyEvent {
           startMoods: row.sleep?.start_moods ?? [],
           endMoods: row.sleep?.end_moods ?? [],
           wokenByCarer: row.sleep?.woken_by_carer ?? false,
+          quality: (row.sleep?.quality ?? null) as SleepQuality | null,
         },
         segments: stretches,
       };
@@ -144,6 +146,7 @@ export function sleepDetailsPayload(details: SleepDetails) {
     start_moods: details.startMoods,
     end_moods: details.endMoods,
     woken_by_carer: details.wokenByCarer,
+    quality: details.quality,
   };
 }
 
@@ -155,6 +158,7 @@ const SLEEP_CHANGE_KEYS = {
   startMoods: 'start_moods',
   endMoods: 'end_moods',
   wokenByCarer: 'woken_by_carer',
+  quality: 'quality',
   notes: 'notes',
 } as const;
 

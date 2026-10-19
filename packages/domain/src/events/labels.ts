@@ -1,4 +1,24 @@
-import type { Mood, PooColour, PooTexture, Side, Size, SleepLocation, SolidsAmount, SolidsReaction } from './types';
+import type {
+  Mood,
+  PooColour,
+  PooTexture,
+  Side,
+  Size,
+  SleepLocation,
+  SleepQuality,
+  SolidsAmount,
+  SolidsReaction,
+} from './types';
+
+export const SLEEP_QUALITIES: readonly SleepQuality[] = [1, 2, 3, 4, 5];
+
+export const SLEEP_QUALITY_LABELS: Record<SleepQuality, string> = {
+  1: 'Hard to settle, wakeful',
+  2: 'Restless',
+  3: 'Mixed',
+  4: 'Settled',
+  5: 'Deep and settled',
+};
 
 export const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
 

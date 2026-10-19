@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(7);
+select plan(10);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -61,6 +61,21 @@ select is(
   (select notes from public.events where id = '80000000-0000-0000-0000-00000000000a'),
   'settled quickly',
   'notes are left alone unless sent'
+);
+select lives_ok(
+  $$ select public.save_sleep_details('80000000-0000-0000-0000-00000000000a', '{"quality": 4}') $$,
+  'the carer can rate the sleep'
+);
+select is(
+  (select quality from public.sleep_details where event_id = '80000000-0000-0000-0000-00000000000a'),
+  4::smallint,
+  'the rating is stored'
+);
+select throws_ok(
+  $$ select public.save_sleep_details('80000000-0000-0000-0000-00000000000a', '{"quality": 6}') $$,
+  '23514',
+  null,
+  'ratings outside 1 to 5 are rejected'
 );
 
 select pg_temp.sign_in_as('50000000-0000-0000-0000-00000000000b');

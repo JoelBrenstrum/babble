@@ -188,6 +188,7 @@ describe('parseHuckleberryCsv', () => {
         startMoods: [],
         endMoods: [],
         wokenByCarer: false,
+        quality: null,
       });
     });
 
@@ -209,6 +210,7 @@ describe('parseHuckleberryCsv', () => {
         startMoods: ['upset', 'happy'],
         endMoods: ['upset', 'happy'],
         wokenByCarer: true,
+        quality: null,
       });
       expect(warnings).toEqual([{ line: 2, message: 'Multiple fall-asleep times recorded; kept "10_to_20_min"' }]);
     });

@@ -58,12 +58,15 @@ export interface TimedSegment extends Stretch {
 
 export type SleepStretch = Stretch;
 
+export type SleepQuality = 1 | 2 | 3 | 4 | 5;
+
 export interface SleepDetails {
   locations: SleepLocation[];
   fallAsleep: FallAsleep | null;
   startMoods: Mood[];
   endMoods: Mood[];
   wokenByCarer: boolean;
+  quality: SleepQuality | null;
 }
 
 export interface BottleDetails {
