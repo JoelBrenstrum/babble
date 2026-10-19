@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>body{margin:0}a{color:rgb(var(--on-primary-soft));text-underline-offset:3px}a:hover{color:rgb(var(--primary))}[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="width:{{ W }};container-type:inline-size;position:relative;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif">
+  <header style="display:flex;align-items:center;gap:16px;padding:20px clamp(20px, 5cqi, 64px)">
+    <a href="#" style="font-family:Caprasimo, serif;font-size:30px;line-height:1;color:rgb(var(--primary));text-decoration:none">babble</a>
+    <span style="flex:1"></span>
+    <a href="#" style="height:44px;padding:0 18px;border-radius:999px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;font-size:15px;font-weight:600;color:rgb(var(--ink));text-decoration:none" style-hover="background:rgb(var(--surface))">Sign in</a>
+  </header>
+
+  <main style="display:flex;flex-direction:column;gap:clamp(40px, 6cqi, 80px);padding:clamp(24px, 4cqi, 56px) clamp(20px, 5cqi, 64px) clamp(48px, 6cqi, 96px)">
+    <section style="display:flex;flex-direction:column;gap:14px;max-width:760px">
+      <span style="align-self:flex-start;display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-radius:999px;background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep));font-size:14px;font-weight:700"><i class="icon-moon" style="font-size:15px"></i>Free tool · no sign-in</span>
+      <h1 style="margin:0;font-family:Caprasimo, serif;font-weight:400;font-size:clamp(44px, 6.4cqi, 80px);line-height:1.02;letter-spacing:-0.01em">TOG calculator</h1>
+      <p style="margin:0;font-size:clamp(17px, 1.6cqi, 20px);line-height:1.5;color:rgb(var(--ink-2));text-wrap:pretty">A TOG is the warmth rating of a baby sleeping bag, from 0.2 for a thin summer bag to 3.5 for a thick winter one. Find the bag for the room, or the room for the bag you have.</p>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:20px;padding:clamp(16px, 2.4cqi, 32px);border-radius:28px;background:rgb(var(--surface))">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:16px;background:rgb(var(--bg));max-width:560px">
+        <sc-for list="{{ modes }}" as="m" hint-placeholder-count="2"><div onClick="{{ m.pick }}" style="min-height:48px;padding:6px 10px;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;font-size:15px;font-weight:{{ m.w }};background:{{ m.bg }};color:{{ m.c }};box-shadow:{{ m.s }};cursor:pointer"><i class="{{ m.icon }}" style="font-size:17px"></i>{{ m.label }}</div></sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr));gap:20px;align-items:stretch">
+        <div style="position:relative;display:flex;flex-direction:column;gap:16px;padding:20px;border-radius:20px;background:rgb(var(--raised));border:1px solid rgb(var(--line));box-shadow:var(--shadow-raised)">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span style="flex:1;font-size:16px;font-weight:700">{{ inLabel }}</span>
+            <sc-if value="{{ isRoom }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:2px;padding:3px;border-radius:12px;background:rgb(var(--surface))">
+                <sc-for list="{{ units }}" as="u" hint-placeholder-count="2"><div onClick="{{ u.pick }}" style="height:38px;min-width:52px;border-radius:9px;display:grid;place-items:center;font-size:14px;font-weight:{{ u.w }};background:{{ u.bg }};color:{{ u.c }};box-shadow:{{ u.s }};cursor:pointer">{{ u.label }}</div></sc-for>
+              </div>
+            </sc-if>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div onClick="{{ dec }}" style="width:56px;height:56px;flex:none;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;cursor:pointer" style-hover="background:rgb(var(--sleep-soft))"><i class="icon-minus" style="font-size:22px"></i></div>
+            <div onClick="{{ openPad }}" style="flex:1;min-width:0;height:72px;border-radius:16px;border:{{ valBorder }};box-sizing:border-box;display:flex;align-items:baseline;justify-content:center;gap:6px;padding-top:12px;cursor:pointer" style-hover="background:rgb(var(--surface))">
+              <span style="font-size:44px;font-weight:600;line-height:1;font-variant-numeric:tabular-nums">{{ valText }}</span><span style="font-size:20px;font-weight:600;color:rgb(var(--ink-2))">{{ valUnit }}</span>
+            </div>
+            <div onClick="{{ inc }}" style="width:56px;height:56px;flex:none;border-radius:50%;background:rgb(var(--surface));display:grid;place-items:center;cursor:pointer" style-hover="background:rgb(var(--sleep-soft))"><i class="icon-plus" style="font-size:22px"></i></div>
+          </div>
+          <span style="font-size:13px;color:rgb(var(--ink-3));text-align:center">{{ stepHint }}</span>
+          <sc-if value="{{ isBag }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <span style="font-size:14px;color:rgb(var(--ink-2))">Common ratings</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                <sc-for list="{{ togChips }}" as="t" hint-placeholder-count="8"><div onClick="{{ t.pick }}" style="height:44px;min-width:56px;padding:0 12px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;font-variant-numeric:tabular-nums;background:{{ t.bg }};color:{{ t.c }};border:1.5px solid {{ t.border }};box-sizing:border-box;cursor:pointer">{{ t.label }}</div></sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ padOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;left:12px;right:12px;top:120px;z-index:3;display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:20px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));box-shadow:var(--shadow-toast)">
+              <div style="display:flex;align-items:baseline;justify-content:space-between"><span style="font-size:16px;font-weight:700">{{ inLabel }}</span><span style="font-size:32px;font-weight:600;font-variant-numeric:tabular-nums">{{ typed }}<span style="font-size:16px;color:rgb(var(--ink-2));margin-left:4px">{{ valUnit }}</span></span></div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+                <sc-for list="{{ keys }}" as="k" hint-placeholder-count="12"><div onClick="{{ k.press }}" style="height:52px;border-radius:14px;background:rgb(var(--surface));display:grid;place-items:center;font-size:22px;font-weight:600;cursor:pointer" style-active="background:rgb(var(--sleep-soft))"><i class="{{ k.icon }}" style="font-size:20px"></i>{{ k.t }}</div></sc-for>
+              </div>
+              <div style="display:flex;gap:8px">
+                <div onClick="{{ closePad }}" style="flex:1;height:48px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft));cursor:pointer" style-hover="background:rgb(var(--primary-soft))">Cancel</div>
+                <div onClick="{{ donePad }}" style="flex:1;height:48px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;cursor:pointer">Done</div>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:14px;padding:20px;border-radius:20px;background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep))">
+          <span style="font-size:14px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase">{{ res.kicker }}</span>
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <span style="font-size:clamp(40px, 4.4cqi, 56px);font-weight:700;line-height:1.05;font-variant-numeric:tabular-nums;color:rgb(var(--ink))">{{ res.head }}</span>
+            <span style="font-size:16px;font-weight:600">{{ res.sub }}</span>
+            <span style="font-size:14px;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums">{{ res.other }}</span>
+          </div>
+          <sc-for list="{{ res.hints }}" as="h" hint-placeholder-count="1">
+            <div style="display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:12px;background:rgb(var(--raised) / 0.7);color:rgb(var(--ink))"><i class="{{ h.icon }}" style="font-size:17px;color:rgb(var(--sleep));margin-top:2px"></i><span style="font-size:15px;line-height:1.45">{{ h.text }}</span></div>
+          </sc-for>
+          <div style="display:flex;gap:12px;align-items:flex-start;padding-top:12px;border-top:1px solid rgb(var(--sleep) / 0.3)">
+            <span style="width:40px;height:40px;flex:none;border-radius:50%;background:rgb(var(--raised));color:rgb(var(--sleep));display:grid;place-items:center"><i class="icon-shirt" style="font-size:19px"></i></span>
+            <div style="display:flex;flex-direction:column;gap:2px"><span style="font-size:14px;font-weight:700">Under the bag</span><span style="font-size:16px;line-height:1.4;color:rgb(var(--ink))">{{ res.layers }}</span></div>
+          </div>
+          <sc-if value="{{ res.hasOutside }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;gap:8px;padding-top:12px;border-top:1px solid rgb(var(--sleep) / 0.3)">
+              <span style="font-size:14px;font-weight:700">If the room is outside this</span>
+              <sc-for list="{{ res.outside }}" as="o" hint-placeholder-count="2"><div style="display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.45;color:rgb(var(--ink))"><i class="{{ o.icon }}" style="font-size:17px;color:rgb(var(--sleep));margin-top:2px"></i><span><b>{{ o.when }}</b> {{ o.what }}</span></div></sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="position:relative;height:30px">
+          <sc-if value="{{ marker.show }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;bottom:0;left:{{ marker.left }};transform:translateX(-50%);display:flex;flex-direction:column;align-items:center">
+              <span style="height:22px;padding:0 8px;border-radius:999px;background:rgb(var(--ink));color:rgb(var(--bg));display:flex;align-items:center;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap">{{ marker.label }}</span>
+              <span style="width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid rgb(var(--ink))"></span>
+            </div>
+          </sc-if>
+        </div>
+        <div style="position:relative;display:flex;height:48px;border-radius:999px;overflow:hidden">
+          <sc-for list="{{ scale }}" as="b" hint-placeholder-count="4"><div style="flex:{{ b.flex }};background:{{ b.bg }};color:{{ b.c }};display:grid;place-items:center;font-size:14px;font-weight:700;font-variant-numeric:tabular-nums;box-shadow:{{ b.ring }}">{{ b.label }}</div></sc-for>
+
+          <sc-if value="{{ bracket.show }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;top:3px;bottom:3px;left:{{ bracket.left }};width:{{ bracket.width }};border-radius:999px;border:3px solid rgb(var(--ink));box-sizing:border-box"></span></sc-if>
+        </div>
+        <div style="position:relative;height:18px;font-size:13px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums">
+          <sc-for list="{{ ticks }}" as="tk" hint-placeholder-count="3"><span style="position:absolute;left:{{ tk.left }};transform:translateX(-50%)">{{ tk.label }}</span></sc-for>
+        </div>
+      </div>
+    </section>
+
+    <section style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="margin:0;font-size:clamp(24px, 2.4cqi, 32px);font-weight:700">The chart</h2>
+      <div style="border-radius:20px;background:rgb(var(--raised));border:1px solid rgb(var(--line));overflow:hidden">
+        <sc-for list="{{ rows }}" as="r" hint-placeholder-count="5">
+          <div style="display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;padding:14px 18px;border-top:{{ r.divider }};background:{{ r.bg }}">
+            <span style="flex:1 1 200px;font-size:16px;font-weight:600;font-variant-numeric:tabular-nums">{{ r.temp }}<span style="font-weight:400;color:rgb(var(--ink-3));margin-left:8px">{{ r.tempF }}</span></span>
+            <span style="flex:none;width:84px;height:32px;border-radius:999px;background:{{ r.pillBg }};color:{{ r.pillC }};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums">{{ r.tog }}</span>
+            <span style="flex:2 1 280px;font-size:15px;line-height:1.45;color:rgb(var(--ink-2))">{{ r.layers }}</span>
+          </div>
+        </sc-for>
+      </div>
+      <span style="font-size:14px;color:rgb(var(--ink-3))">Brands rate their bags slightly differently. If the label has its own temperature guide, follow that.</span>
+    </section>
+
+    <section style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr));gap:28px;align-items:center;padding:clamp(20px, 3cqi, 40px);border-radius:28px;background:rgb(var(--surface))">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <h2 style="margin:0;font-family:Caprasimo, serif;font-weight:400;font-size:clamp(30px, 3.4cqi, 44px);line-height:1.1">Keep track of every nap</h2>
+        <p style="margin:0;font-size:17px;line-height:1.5;color:rgb(var(--ink-2))">babble logs sleep, feeds and nappies, and shares them with everyone who looks after your baby.</p>
+        <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px">
+          <a href="#" style="height:52px;padding:0 22px;border-radius:999px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;text-decoration:none">Try babble<i class="icon-arrow-right" style="font-size:18px"></i></a>
+          <a href="#" style="height:52px;padding:0 20px;border-radius:999px;display:flex;align-items:center;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft));text-decoration:none" style-hover="background:rgb(var(--primary-soft))">Sign in</a>
+        </div>
+      </div>
+      <div style="justify-self:center;width:100%;max-width:360px;padding:12px;border-radius:32px;background:rgb(var(--bg));border:1px solid rgb(var(--line));box-shadow:var(--shadow-toast)">
+        <div style="display:flex;flex-direction:column;gap:10px;padding:16px;border-radius:20px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+          <div style="display:flex;align-items:center;gap:8px"><span style="display:flex;align-items:center;gap:8px;padding:5px 12px 5px 11px;border-radius:999px;background:rgb(var(--sleep-soft));color:rgb(var(--on-sleep));font-size:14px;font-weight:600"><span style="width:8px;height:8px;border-radius:50%;background:rgb(var(--sleep))"></span>Napping</span><span style="margin-left:auto;font-size:13px;color:rgb(var(--ink-2))">Started by Jane</span></div>
+          <div style="font-size:44px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.03em">28<span style="font-size:20px;font-weight:600;color:rgb(var(--ink-2));margin:0 8px 0 3px;letter-spacing:0">m</span>14<span style="font-size:20px;font-weight:600;color:rgb(var(--ink-2));margin-left:3px;letter-spacing:0">s</span></div>
+          <div style="display:flex;gap:8px"><div style="flex:1;height:44px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:600"><i class="icon-pause" style="font-size:16px"></i>Pause nap</div><div style="flex:1;height:44px;border-radius:14px;background:rgb(var(--sleep));color:rgb(var(--ink-on-solid));display:flex;align-items:center;justify-content:center;gap:6px;font-size:15px;font-weight:600"><i class="icon-moon" style="font-size:16px"></i>End nap</div></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer style="display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:28px clamp(20px, 5cqi, 64px) 36px;border-top:1px solid rgb(var(--line))">
+    <span style="font-family:Caprasimo, serif;font-size:22px;color:rgb(var(--primary))">babble</span>
+    <span style="flex:1"></span>
+    <div style="display:flex;flex-wrap:wrap;gap:18px;font-size:14px"><a href="#">TOG calculator</a><a href="#">Sign in</a><a href="#">Privacy</a></div>
+    <span style="font-size:14px;color:rgb(var(--ink-3))">© 2026 babble</span>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:900},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;room&quot;,&quot;room-edge&quot;,&quot;room-cold&quot;,&quot;room-f&quot;,&quot;keypad&quot;,&quot;bag&quot;,&quot;bag-between&quot;,&quot;bag-clamp&quot;,&quot;bag-f&quot;],&quot;default&quot;:&quot;room&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;phone&quot;,&quot;desktop&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const TOGS = [0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0];
+const BANDS = [
+  { tog: 3.5, lo: -Infinity, hi: 16, layers: 'Long-sleeve bodysuit and a sleepsuit' },
+  { tog: 2.5, lo: 16, hi: 20, layers: 'Long-sleeve bodysuit, or a sleepsuit' },
+  { tog: 1.0, lo: 20, hi: 24, layers: 'Short-sleeve bodysuit; long sleeves at the cool end' },
+  { tog: 0.2, lo: 24, hi: Infinity, layers: "Short-sleeve bodysuit, or just a nappy when it's very warm" }
+];
+const CHART = { 0.2: [24, Infinity], 1.0: [20, 24], 1.5: [18, 24], 2.5: [16, 20], 3.5: [-Infinity, 16] };
+const LAYERS = { 0.2: BANDS[3].layers, 1.0: BANDS[2].layers, 1.5: 'Long-sleeve bodysuit', 2.5: BANDS[1].layers, 3.5: BANDS[0].layers };
+const FMAP = { 16: 61, 18: 64, 20: 68, 24: 75 };
+const INITS = {
+  room: { mode: 'room', unit: 'c', temp: 22, tog: 2.5 },
+  'room-edge': { mode: 'room', unit: 'c', temp: 20, tog: 2.5 },
+  'room-cold': { mode: 'room', unit: 'c', temp: 15, tog: 2.5 },
+  'room-f': { mode: 'room', unit: 'f', temp: 72, tog: 2.5 },
+  keypad: { mode: 'room', unit: 'c', temp: 22, tog: 2.5, pad: true, typed: '19.5' },
+  bag: { mode: 'bag', unit: 'c', temp: 22, tog: 2.5 },
+  'bag-between': { mode: 'bag', unit: 'c', temp: 22, tog: 2.0 },
+  'bag-clamp': { mode: 'bag', unit: 'c', temp: 22, tog: 4.0 },
+  'bag-f': { mode: 'bag', unit: 'f', temp: 72, tog: 1.0 }
+};
+class Component extends DCLogic {
+  state = { pad: false, typed: '', ...(INITS[this.props.screen] || INITS.room) };
+  componentDidUpdate(prev) {
+    if (prev.screen !== this.props.screen) this.setState({ pad: false, typed: '', ...(INITS[this.props.screen] || INITS.room) });
+  }
+  renderVals() {
+    const S = this.state;
+    const c = n => `rgb(var(--${n}))`;
+    const ca = (n, a) => `rgb(var(--${n}) / ${a})`;
+    const isRoom = S.mode === 'room';
+    const F = S.unit === 'f';
+    const fmtN = x => String(Math.round(x * 2) / 2);
+    const toF = x => FMAP[x] ?? Math.round(x * 9 / 5 + 32);
+    const t = (x, f) => f ? `${toF(x)}` : fmtN(x);
+    const u = f => f ? '°F' : '°C';
+    const range = (lo, hi, f) => lo === -Infinity ? `Below ${t(hi, f)} ${u(f)}` : hi === Infinity ? `${t(lo, f)} ${u(f)} and above` : `${t(lo, f)}–${t(hi, f)} ${u(f)}`;
+    const ft = x => x.toFixed(1);
+    const seg = (on) => ({ w: on ? 700 : 500, bg: on ? c('raised') : 'transparent', c: on ? c('ink') : c('ink-2'), s: on ? 'var(--shadow-raised)' : 'none' });
+    const set = o => () => this.setState(o);
+
+    const modes = [['room', 'Room temp → TOG', 'icon-thermometer'], ['bag', 'Bag TOG → room temp', 'icon-moon']].map(([m, label, icon]) => ({ label, icon, ...seg(S.mode === m), pick: set({ mode: m, pad: false }) }));
+    const units = [['c', '°C'], ['f', '°F']].map(([k, label]) => ({ label, ...seg(S.unit === k), pick: () => {
+      if (S.unit === k) return;
+      const temp = k === 'f' ? Math.round(S.temp * 9 / 5 + 32) : Math.round((S.temp - 32) * 5 / 9 * 2) / 2;
+      this.setState({ unit: k, temp });
+    } }));
+
+    const tempC = F ? (S.temp - 32) * 5 / 9 : S.temp;
+    const lim = F ? [50, 86, 1] : [10, 30, 0.5];
+    const stepTog = d => { const i = TOGS.indexOf(S.tog); const j = Math.max(0, Math.min(TOGS.length - 1, (i < 0 ? 4 : i) + d)); this.setState({ tog: TOGS[j] }); };
+    const dec = () => isRoom ? this.setState({ temp: Math.max(lim[0], S.temp - lim[2]) }) : stepTog(-1);
+    const inc = () => isRoom ? this.setState({ temp: Math.min(lim[1], S.temp + lim[2]) }) : stepTog(1);
+
+    let res;
+    const outside = [];
+    let marker = { show: false, left: '0%' }, bracket = { show: false, left: '0%', width: '0%' };
+    const X = x => Math.max(0, Math.min(100, (x - 12) / 16 * 100));
+    let activeTog = null, activeRows = [];
+    if (isRoom) {
+      const band = BANDS.find(b => tempC >= b.lo && tempC < b.hi);
+      const edge = [16, 20, 24].find(e => Math.abs(tempC - e) < 1);
+      const disp = `${F ? S.temp : fmtN(S.temp)} ${u(F)}`;
+      const otherDisp = F ? `${fmtN(tempC)} °C` : `${Math.round(tempC * 9 / 5 + 32)} °F`;
+      const hints = [];
+      if (edge !== undefined) {
+        const lighter = BANDS.find(b => b.lo === edge), heavier = BANDS.find(b => b.hi === edge);
+        hints.push({ icon: 'icon-arrow-left-right', text: `${disp} sits between two bands. Go ${ft(heavier.tog)} if the room cools overnight.` });
+        res = { kicker: 'Use a bag of', head: `${ft(lighter.tog)}–${ft(heavier.tog)} TOG`, sub: `On the line between ${range(heavier.lo, heavier.hi, F)} and ${range(lighter.lo, lighter.hi, F).replace(/^Below/, 'below')}`, layers: heavier.layers };
+        activeRows = [lighter.tog, heavier.tog];
+      } else {
+        res = { kicker: 'Use a bag of', head: `${ft(band.tog)} TOG`, sub: `For a room of ${range(band.lo, band.hi, F).replace(/^Below/, 'below')}`, layers: band.layers };
+        activeRows = [band.tog];
+      }
+      if (tempC >= 18 && tempC <= 24) { hints.push({ icon: 'icon-layers', text: 'A 1.5 TOG all-season bag also covers this.' }); }
+      res.other = `${disp} is ${otherDisp}`;
+      res.hints = hints;
+      marker = { show: true, left: Math.max(4, Math.min(96, X(tempC))) + '%', label: disp };
+    } else {
+      const clamp = S.tog > 3.5, tg = Math.min(S.tog, 3.5);
+      const hints = [];
+      let lo, hi, layers, between = false;
+      if (CHART[tg]) { [lo, hi] = CHART[tg]; layers = LAYERS[tg]; activeRows = [tg]; }
+      else {
+        between = true;
+        const keys = Object.keys(CHART).map(Number).sort((a, b) => a - b);
+        const a = keys.filter(k => k < tg).pop(), b = keys.find(k => k > tg);
+        const fr = (tg - a) / (b - a);
+        const num = v => v === Infinity ? 27 : v === -Infinity ? 12 : v;
+        const [alo, ahi] = CHART[a].map(num), [blo, bhi] = CHART[b].map(num);
+        lo = Math.round(alo + (blo - alo) * fr); hi = Math.round(ahi + (bhi - ahi) * fr);
+        layers = LAYERS[a]; activeRows = [a, b];
+        hints.push({ icon: 'icon-tag', text: "Brands rate in-between bags differently. Check the label's own guide." });
+      }
+      if (clamp) hints.push({ icon: 'icon-info', text: 'This chart stops at 3.5 TOG, so it is read as a 3.5 TOG bag.' });
+      res = { kicker: `A ${ft(S.tog)} TOG bag suits`, head: range(lo, hi, F), sub: between ? 'Estimated between two chart ratings' : (tg === 1.5 ? 'An all-season bag across two bands' : 'Room temperature'), layers, hints, other: range(lo, hi, !F) };
+      const mainTogs = BANDS.map(b => b.tog);
+      const lighter = mainTogs.filter(x => x < tg).sort((a, b) => b - a)[0];
+      const heavier = mainTogs.filter(x => x > tg).sort((a, b) => a - b)[0];
+      if (hi !== Infinity && lighter !== undefined) outside.push({ icon: 'icon-sun', when: `Warmer than ${t(hi, F)} ${u(F)}:`, what: `use a ${ft(lighter)} TOG bag, or fewer layers underneath.` });
+      if (hi === Infinity) outside.push({ icon: 'icon-sun', when: 'Very warm:', what: 'just a nappy under it.' });
+      if (lo !== -Infinity && heavier !== undefined) outside.push({ icon: 'icon-snowflake', when: `Cooler than ${t(lo, F)} ${u(F)}:`, what: `use a ${ft(heavier)} TOG bag, or add a layer underneath.` });
+      const L = X(lo === -Infinity ? 12 : lo), R = X(hi === Infinity ? 28 : hi);
+      bracket = { show: true, left: L + '%', width: (R - L) + '%' };
+    }
+    res.hasOutside = outside.length > 0;
+    res.outside = outside;
+
+    const scale = [[3.5, 4, 'sleep', 1], [2.5, 4, 'sleep', 0.72], [1.0, 4, 'sleep', 0.42], [0.2, 4, 'sleep', 0.2]].map(([tg, flex, k, a]) => {
+      const on = activeRows.includes(tg);
+      return { flex, label: `${ft(tg)}`, bg: ca(k, a), c: a > 0.6 ? c('ink-on-solid') : c('on-sleep'), ring: on && isRoom ? `inset 0 0 0 3px ${c('raised')}` : 'none' };
+    });
+    const ticks = [16, 20, 24].map(x => ({ left: X(x) + '%', label: `${t(x, F)}°` }));
+
+    const rowDefs = [
+      [0.2, '24 °C and above', '75 °F+', BANDS[3].layers],
+      [1.0, '20–24 °C', '68–75 °F', BANDS[2].layers],
+      [1.5, '18–24 °C', '64–75 °F', 'Long-sleeve bodysuit (an "all season" bag that overlaps the two bands either side)'],
+      [2.5, '16–20 °C', '61–68 °F', BANDS[1].layers],
+      [3.5, 'Below 16 °C', 'below 61 °F', BANDS[0].layers]
+    ];
+    const rows = rowDefs.map(([tg, temp, tempF, layers], i) => {
+      const on = activeRows.includes(tg);
+      return { tog: `${ft(tg)} TOG`, temp, tempF, layers, divider: i ? `1px solid ${c('line')}` : 'none', bg: on ? c('sleep-soft') : 'transparent', pillBg: on ? c('sleep') : c('surface'), pillC: on ? c('ink-on-solid') : c('ink') };
+    });
+
+    const typed = S.typed;
+    const press = k => () => {
+      let v = this.state.typed;
+      if (k === 'del') v = v.slice(0, -1);
+      else if (k === '.') { if (!v.includes('.')) v = (v || '0') + '.'; }
+      else if (v.length < 4) v = v + k;
+      this.setState({ typed: v });
+    };
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del'].map(k => ({ t: k === 'del' ? '' : k, icon: k === 'del' ? 'icon-delete' : '', press: press(k) }));
+    const donePad = () => {
+      const n = parseFloat(this.state.typed);
+      if (isNaN(n)) return this.setState({ pad: false });
+      if (isRoom) this.setState({ pad: false, temp: Math.max(lim[0], Math.min(lim[1], F ? Math.round(n) : Math.round(n * 2) / 2)) });
+      else this.setState({ pad: false, tog: Math.max(0.1, Math.min(5, Math.round(n * 10) / 10)) });
+    };
+
+    return {
+      W: this.props.size === 'desktop' ? '1280px' : '390px',
+      modes, units, isRoom, isBag: !isRoom,
+      inLabel: isRoom ? 'Room temperature' : 'Bag TOG',
+      valText: isRoom ? (F ? String(S.temp) : fmtN(S.temp)) : ft(S.tog), valUnit: isRoom ? u(F) : 'TOG',
+      valBorder: S.pad ? `2px solid ${c('primary')}` : `1px solid ${c('line')}`,
+      stepHint: isRoom ? (F ? 'Steps of 1 °F · tap the number to type it' : 'Steps of 0.5 °C · tap the number to type it') : 'Tap the number to type it',
+      dec, inc, openPad: () => this.setState({ pad: true, typed: '' }), closePad: set({ pad: false }), donePad,
+      padOpen: S.pad, typed: typed || '–', keys,
+      togChips: [0.2, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5].map(v => { const on = S.tog === v; return { label: ft(v), pick: set({ tog: v }), bg: on ? c('sleep') : c('raised'), c: on ? c('ink-on-solid') : c('ink'), border: on ? c('sleep') : c('line') }; }),
+      res, scale, ticks, marker, bracket, rows
+    };
+  }
+}
+</script>
+</body>
+</html>

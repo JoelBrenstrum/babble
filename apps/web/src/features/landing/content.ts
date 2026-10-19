@@ -13,6 +13,7 @@ import {
   Smartphone,
   Sparkles,
   Tablet,
+  Thermometer,
   TrendingUp,
   Users,
   Wand,
@@ -27,7 +28,7 @@ interface Feature {
   title: string;
   body: string;
   plus?: boolean;
-  link?: { to: '/home-assistant'; label: string };
+  link?: { to: '/home-assistant' | '/tog'; label: string };
 }
 
 export const FEATURES: Feature[] = [
@@ -130,6 +131,13 @@ export const FEATURES: Feature[] = [
     title: 'Home Assistant',
     body: 'Show naps and the next feed on a home dashboard, and automate around them, like silencing the doorbell while the baby sleeps.',
     link: { to: '/home-assistant', label: 'Set up Home Assistant' },
+  },
+  {
+    icon: Thermometer,
+    tone: 'bg-sleep-soft text-on-sleep',
+    title: 'TOG calculator',
+    body: 'Room temperature in, sleeping bag TOG out, or the other way round. Works without an account.',
+    link: { to: '/tog', label: 'Open the TOG calculator' },
   },
   {
     icon: Smartphone,
