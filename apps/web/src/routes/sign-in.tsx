@@ -13,6 +13,7 @@ import { CheckEmail } from '#/features/check-email';
 import { DevSignIn } from '#/features/dev-sign-in';
 import { AgreementNote } from '#/features/legal/legal-links';
 import { SignInForm } from '#/features/sign-in-form';
+import { ensureCurrentData } from '#/lib/query-persistence';
 import { readStorage, storageKeys, writeStorage } from '#/lib/storage';
 
 export const Route = createFileRoute('/sign-in')({
@@ -23,7 +24,7 @@ export const Route = createFileRoute('/sign-in')({
     const { data } = await context.babble.client.auth.getSession();
     if (data.session) throw redirect({ to: '/' });
   },
-  loader: ({ context }) => context.queryClient.ensureQueryData(instanceSettingsQuery(context.babble.client)),
+  loader: ({ context }) => ensureCurrentData(context.queryClient, instanceSettingsQuery(context.babble.client)),
   component: SignInPage,
 });
 
