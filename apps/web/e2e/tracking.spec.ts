@@ -195,7 +195,7 @@ test('a nap can be ended earlier, and the entry shows who ended it', async ({ pa
 
   await expect(page.getByRole('heading', { name: 'Sleep' })).toBeVisible();
   await expect(page.getByText(/Started by John on .+ · /)).toBeVisible();
-  await expect(page.getByText(/^Ended by John at /)).toBeVisible();
+  await expect(page.getByText(/^Ended by John on .+ · /)).toBeVisible();
 });
 
 test('a nap can be paused and resumed, and shows its wake-ups', async ({ page }, testInfo) => {

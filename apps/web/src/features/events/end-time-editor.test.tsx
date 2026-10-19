@@ -13,6 +13,7 @@ const feed = {
   source: 'manual',
   sessionState: 'running',
   endedBy: null,
+  endedDevice: null,
   endRecordedAt: null,
   type: 'breast_feed',
   startedAt: '2026-10-11T10:30:00Z',

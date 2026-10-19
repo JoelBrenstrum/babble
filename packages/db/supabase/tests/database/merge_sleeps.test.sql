@@ -53,6 +53,11 @@ insert into public.timed_segments (event_id, side, started_at, ended_at) values
 insert into public.session_details (event_id, state) values
   ('84000000-0000-0000-0000-000000000003', 'ended'),
   ('84000000-0000-0000-0000-000000000004', 'running');
+select set_config('babble.keep_event_end', 'on', true);
+update public.events
+set ended_by = '54000000-0000-0000-0000-00000000000b', ended_device = 'Phone', end_recorded_at = now() - interval '175 minutes'
+where id = '84000000-0000-0000-0000-000000000002';
+select set_config('babble.keep_event_end', 'off', true);
 
 select pg_temp.sign_in_as('54000000-0000-0000-0000-00000000000c');
 select throws_ok(
@@ -95,9 +100,13 @@ select results_eq(
             (now() - interval '200 minutes', now() - interval '3 hours') $$,
   'the merged sleep keeps each stretch asleep, so the gaps read as awake'
 );
-select is(
-  (select ended_at from public.events where id = '84000000-0000-0000-0000-000000000001'),
-  now() - interval '3 hours', 'the merged sleep ends when the later one ended'
+select ok(
+  (select ended_at = now() - interval '3 hours'
+     and ended_by = '54000000-0000-0000-0000-00000000000b'::uuid
+     and ended_device = 'Phone'
+     and end_recorded_at = now() - interval '175 minutes'
+   from public.events where id = '84000000-0000-0000-0000-000000000001'),
+  'the merged sleep ends when the later one ended, by whoever ended it and on that device'
 );
 select is(
   (select notes from public.events where id = '84000000-0000-0000-0000-000000000001'),
