@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>body{margin:0;background:#e8e4d9;font-family:Figtree,system-ui,sans-serif}a{color:#56633f;text-underline-offset:3px}a:hover{color:#3d472b}[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div data-theme="light" style="background:rgb(var(--surface));color:rgb(var(--ink));padding:64px 72px 96px;display:flex;flex-direction:column;gap:56px;min-width:3600px;box-sizing:border-box">
+  <header style="display:flex;flex-direction:column;gap:12px;max-width:1000px">
+    <div style="font-family:Caprasimo, serif;font-size:56px;line-height:1;color:rgb(var(--primary))">babble</div>
+    <div style="font-size:28px;font-weight:700">TOG calculator · public page</div>
+    <div style="font-size:17px;color:rgb(var(--ink-2));line-height:1.55">No sign-in. Works both ways: room temperature to TOG, and bag TOG to room temperature. The page is interactive: switch mode, step the value, tap the number for the keypad, or change °C / °F. Each row shows phone (390) and desktop (1280) in light and dark.</div>
+  </header>
+  <sc-for list="{{ rows }}" as="r" hint-placeholder-count="3">
+    <section style="display:flex;flex-direction:column;gap:20px">
+      <div style="display:flex;align-items:baseline;gap:14px"><span style="font:700 13px ui-monospace,Menlo,monospace;color:rgb(var(--sleep))">{{ r.n }}</span><span style="font-size:22px;font-weight:700">{{ r.title }}</span><span style="font-size:15px;color:rgb(var(--ink-2))">{{ r.note }}</span></div>
+      <div style="display:flex;gap:40px;align-items:flex-start">
+        <sc-for list="{{ r.frames }}" as="f" hint-placeholder-count="4">
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:13px;font-weight:600;color:rgb(var(--ink-2))">{{ f.label }}</span>
+            <div data-theme="{{ f.theme }}" style="border-radius:20px;overflow:hidden;box-shadow:0 0 0 1px rgb(0 0 0 / 0.08), 0 18px 40px rgba(20,22,18,.18)">
+              <dc-import name="Web Tools" screen="{{ r.screen }}" size="{{ f.size }}" hint-size="{{ f.hint }}"></dc-import>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </section>
+  </sc-for>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  renderVals() {
+    const F = (theme, size) => ({ theme, size, hint: size === 'phone' ? '390px,2400px' : '1280px,1900px', label: `${theme === 'dark' ? 'Dark' : 'Light'} · ${size === 'phone' ? '390' : '1280'}` });
+    const all = [F('light', 'phone'), F('dark', 'phone'), F('light', 'desktop'), F('dark', 'desktop')];
+    const defs = [
+      ['room', 'Room temp → TOG', '22 °C: 1.0 TOG, with the 1.5 all-season hint.'],
+      ['room-edge', 'Near a band edge', '20 °C: 1.0–2.5 TOG; layers follow the heavier band.'],
+      ['room-f', 'In °F', '72 °F, with °C in the meta line.'],
+      ['keypad', 'Keypad', 'Tap the number to type it.'],
+      ['bag', 'Bag TOG → room temp', '2.5 TOG: 16–20 °C, with what to do outside that range.'],
+      ['bag-between', 'In-between rating', '2.0 TOG: an estimated range.'],
+      ['bag-clamp', 'Above 3.5', '4.0 TOG is read as 3.5.']
+    ];
+    return { rows: defs.map(([screen, title, note], i) => ({ screen, title, note, frames: all, n: 'T' + String(i + 1).padStart(2, '0') })) };
+  }
+}
+</script>
+</body>
+</html>

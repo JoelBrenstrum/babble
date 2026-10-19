@@ -33,6 +33,13 @@ describe('TogPage', () => {
     expect(screen.getByRole('img', { name: /running nap/ })).toBeInTheDocument();
   });
 
+  it('says it is a guide only and takes no responsibility', async () => {
+    await renderPage();
+    expect(screen.getByRole('heading', { level: 2, name: 'A guide, not advice' })).toBeInTheDocument();
+    expect(screen.getByText(/babble takes no responsibility/)).toBeInTheDocument();
+    expect(screen.getByText('A guide only. Check your baby, and use your own judgement.')).toBeInTheDocument();
+  });
+
   it('offers to open babble when signed in', async () => {
     await renderPage(true);
     expect(screen.getAllByRole('link', { name: 'Open babble' }).length).toBeGreaterThan(1);

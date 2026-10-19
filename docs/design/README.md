@@ -18,6 +18,8 @@ Exported from Claude Design on 2026-10-09. Direction: **"Sage"** (design system 
 | `Web Auth.dc.html` | The same auth screens at desktop width |
 | `Phone Account.dc.html` | Sign-in, onboarding, invite, settings, delete account, PWA install |
 | `Web.dc.html` | Desktop and tablet web: home, feeds split view, add dialog, timeline, import, settings |
+| `Web Tools.dc.html` | The public TOG calculator page (`/tog`). `screen` prop: `room`, `room-edge`, `room-cold`, `room-f`, `keypad`, `bag`, `bag-between`, `bag-clamp`, `bag-f`; `size`: `phone`, `desktop` |
+| `TOG Calculator.dc.html` | Index of the TOG calculator states, each at phone and desktop in light and dark |
 | `Screen.dc.html` | Phone screens. `screen` prop: `home`, `timer`, `nappy`, `feeds`, `day`, `week` (Timeline) |
 | `Phone.dc.html` | Home + breastfeed timer in a phone frame |
 | `Chair Mode.dc.html` | Chair mode for a wall-mounted touchscreen: idle, feeding, paused, ended, quick bottle and nappy, night dim, offline, signed out, at 800×480, 1280×720 and portrait |

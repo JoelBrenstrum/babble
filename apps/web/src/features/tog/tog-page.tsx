@@ -1,6 +1,6 @@
 import { sampleBaby, sampleFamily, sampleRunningSleep } from '@babble/api/fixtures';
 import { Link } from '@tanstack/react-router';
-import { ArrowRight, Moon } from 'lucide-react';
+import { ArrowRight, Moon, ShieldAlert } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { buttonClassName } from '#/components/ui/button';
 import { Wordmark } from '#/components/ui/wordmark';
@@ -70,6 +70,27 @@ export function TogPage({ signedIn, now }: { signedIn: boolean; now?: Date }) {
 
         <Section className="flex flex-col gap-12 sm:gap-20">
           <TogCalculator />
+        </Section>
+
+        <Section>
+          <aside
+            aria-labelledby="tog-disclaimer-heading"
+            className="flex gap-4 rounded-card border border-line bg-raised p-5 sm:p-6"
+          >
+            <ShieldAlert aria-hidden className="mt-0.5 size-5 shrink-0 text-caution" strokeWidth={2.75} />
+            <div className="flex flex-col gap-2">
+              <h2 id="tog-disclaimer-heading" className="text-row-title font-bold">
+                A guide, not advice
+              </h2>
+              <p className="text-body text-ink-2">
+                This calculator is a general guide built from published TOG charts. It is not medical or safety advice,
+                and babble takes no responsibility for how it is used or for any outcome. Every baby, bag and room is
+                different, so use your own judgement: check your baby's chest or the back of their neck rather than the
+                chart, follow the safe sleep guidance of your midwife, doctor or national health authority, and if
+                something doesn't seem right, stop and ask a professional.
+              </p>
+            </div>
+          </aside>
         </Section>
 
         <Section>

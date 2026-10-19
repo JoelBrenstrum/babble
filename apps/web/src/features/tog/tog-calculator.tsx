@@ -181,6 +181,7 @@ function ResultCard({ result }: { result: TogResult }) {
         <div className="flex flex-col gap-0.5">
           <span className="text-label font-bold">Under the bag</span>
           <span className="text-body leading-[1.4] text-ink">{result.layers}</span>
+          <span className="text-meta text-ink-3">A guide only. Check your baby, and use your own judgement.</span>
         </div>
       </div>
       {result.outside.length > 0 && (
