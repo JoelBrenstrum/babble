@@ -25,9 +25,7 @@ import { StatsCards } from '#/features/stats/stats-cards';
 import { WeeklySummaryCard } from '#/features/stats/weekly-summary';
 import { PlusTeaser } from '#/features/plus-teaser';
 import { PlusMask } from '#/features/plus-mask';
-import { useInsights, type InsightsState } from '#/lib/use-insights';
-import { useSettled, useUnits } from '@babble/api/react';
-import { useNow } from '#/lib/use-now';
+import { type InsightsState, useInsights, useNow, useSettled, useUnits } from '@babble/api/react';
 
 export const Route = createFileRoute('/_app/stats')({
   validateSearch: (search: Record<string, unknown>): { range?: StatsRange } => ({
@@ -44,7 +42,7 @@ function StatsPage() {
   const units = useUnits(babble.client, baby.id);
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
   const { from, to } = statsInputs(range, baby, now);
-  const insights = useInsights(babble, baby, family, now);
+  const insights = useInsights(babble.client, babble.config.billingEnabled, baby, family, now);
   const sampleOnly = range === 'all' && insights.locked;
   const events = useQuery({
     ...eventsBetweenQuery(babble.client, baby.id, from, to),

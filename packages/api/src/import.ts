@@ -1,4 +1,4 @@
-import type { EventDraft, EventSource, ImportedEvent } from '@babble/domain';
+import type { EventSource, ImportedEvent } from '@babble/domain';
 import type { BabbleClient } from './client';
 import { unwrap } from './errors';
 import { draftToPayload } from './events';
@@ -9,7 +9,7 @@ export type ImportSource = Exclude<EventSource, 'manual'>;
 
 export function importPayload(event: ImportedEvent, babyId: string, source: ImportSource = 'huckleberry_csv') {
   const { sourceRef, line: _line, ...draft } = event;
-  return draftToPayload(draft as EventDraft, { babyId, source, sourceRef });
+  return draftToPayload(draft, { babyId, source, sourceRef });
 }
 
 export async function importEvents(

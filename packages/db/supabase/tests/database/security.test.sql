@@ -22,6 +22,19 @@ as $$
   values (user_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', email, metadata, now(), now());
 $$;
 
+create function pg_temp.rows_changed(statement text)
+returns bigint
+language plpgsql
+as $$
+declare
+  changed bigint;
+begin
+  execute statement;
+  get diagnostics changed = row_count;
+  return changed;
+end;
+$$;
+
 update private.instance_settings set signup_mode = 'open';
 select pg_temp.create_user('10000000-0000-0000-0000-00000000000a', 'owner@security.test');
 select pg_temp.create_user('10000000-0000-0000-0000-00000000000b', 'carer@security.test');
@@ -49,10 +62,6 @@ select throws_ok(
   null,
   'a caregiver cannot move a baby to another family'
 );
-select lives_ok(
-  $$ update public.babies set name = 'Liv', sex = 'female' where id = '30000000-0000-0000-0000-00000000000a' $$,
-  'a caregiver can still edit the baby''s details'
-);
 select throws_ok(
   $$ insert into public.babies (id, family_id, name, birth_date, timezone, created_at)
      values (gen_random_uuid(), '20000000-0000-0000-0000-00000000000a', 'Twin', '2026-09-26', 'UTC', now()) $$,
@@ -65,10 +74,6 @@ select throws_ok(
   '42501',
   null,
   'baby settings cannot be moved to another baby'
-);
-select lives_ok(
-  $$ update public.baby_settings set feed_reminder_enabled = true where baby_id = '30000000-0000-0000-0000-00000000000a' $$,
-  'baby settings can still be changed'
 );
 select throws_ok(
   $$ update public.nappy_details set event_id = '40000000-0000-0000-0000-00000000000b' $$,
@@ -95,14 +100,27 @@ select lives_ok(
 
 reset role;
 
+select pg_temp.sign_in_as('10000000-0000-0000-0000-00000000000a');
+select is(
+  pg_temp.rows_changed($$ update public.babies set name = 'Liv', sex = 'female' where id = '30000000-0000-0000-0000-00000000000a' $$),
+  1::bigint,
+  'an admin can still edit the baby''s details'
+);
+select is(
+  pg_temp.rows_changed($$ update public.baby_settings set feed_reminder_enabled = true where baby_id = '30000000-0000-0000-0000-00000000000a' $$),
+  1::bigint,
+  'an admin can still change baby settings'
+);
+reset role;
+
 select ok(
   not has_function_privilege('authenticated', 'private.valid_invite(text)', 'execute')
     and not has_function_privilege('anon', 'private.generate_invite_code()', 'execute'),
   'internal functions are not callable by clients'
 );
 select ok(
-  has_function_privilege('authenticated', 'private.can_edit_family(uuid)', 'execute'),
-  'the helpers used by row security stay callable'
+  has_function_privilege('authenticated', 'private.my_editor_baby_ids()', 'execute'),
+  'the set helpers used by row security stay callable'
 );
 
 update private.instance_settings set signup_mode = 'invite_only';

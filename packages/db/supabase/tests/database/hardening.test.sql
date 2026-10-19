@@ -185,13 +185,18 @@ select throws_ok(
      values ('a3000000-0000-0000-0000-00000000000a', 'ABCDE-FGHJK', 'a2000000-0000-0000-0000-00000000000b') $$,
   '42501', null, 'invites cannot be inserted directly'
 );
-select throws_ok($$ select private.baby_family_id('a4000000-0000-0000-0000-00000000000b') $$, '42501', null, 'baby ids cannot be mapped to families');
+select is(
+  (select count(*)::int from pg_proc
+   where pronamespace = 'private'::regnamespace and proname in ('is_family_member', 'can_edit_family', 'baby_family_id')),
+  0,
+  'membership helpers no policy or function uses any more are gone'
+);
 select throws_ok($$ select private.event_family_id('a5000000-0000-0000-0000-000000000009') $$, '42501', null, 'event ids cannot be mapped to families');
 select is(
   (select array_agg(p.proname order by p.proname) from pg_proc p
    where p.pronamespace = 'private'::regnamespace and has_function_privilege('authenticated', p.oid, 'execute')
      and p.proname not in (
-       'has_family_role', 'is_family_member', 'can_edit_family', 'my_family_ids', 'my_editor_family_ids',
+       'has_family_role', 'my_family_ids', 'my_editor_family_ids',
        'my_owner_family_ids', 'my_owner_baby_ids', 'my_baby_ids', 'my_editor_baby_ids', 'text_array', 'valid_foods',
        'lock_running_session', 'save_sleep_details', 'save_bottle_details', 'save_nappy_details',
        'save_pump_details', 'save_growth_details', 'save_solids_details', 'save_custom_details', 'save_segments'

@@ -12,7 +12,7 @@ import {
 } from '@babble/domain';
 import { sampleStatsReport } from '@babble/api/fixtures';
 import { familyHasFeature } from '@babble/config';
-import { useSettled, useUnits } from '@babble/api/react';
+import { type InsightsState, useInsights, useNow, useSettled, useUnits } from '@babble/api/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { ChartColumn } from 'lucide-react-native';
@@ -27,9 +27,7 @@ import { StatsCards } from '@/features/stats/stats-cards';
 import { WeeklySummaryCard } from '@/features/stats/weekly-summary';
 import { PlusTeaser } from '@/features/plus-teaser';
 import { PlusMask } from '@/features/plus-mask';
-import { useInsights, type InsightsState } from '@/lib/use-insights';
 import { useBabble } from '@/lib/babble';
-import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function StatsTab() {
@@ -45,7 +43,7 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const [range, setRange] = useState<StatsRange>('7d');
   const { from, to } = statsInputs(range, baby, now);
-  const insights = useInsights(baby, family, now);
+  const insights = useInsights(client, config.billingEnabled, baby, family, now);
   const sampleOnly = range === 'all' && insights.locked;
   const events = useQuery({
     ...eventsBetweenQuery(client, baby.id, from, to),

@@ -1,13 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { DEFAULT_FAMILY_SETTINGS } from '../families';
 import type { BabySettings } from '../types';
 import { trackingSettingsFrom } from './tracking-settings';
 
 describe('trackingSettingsFrom', () => {
   it('falls back to defaults before settings load', () => {
     expect(trackingSettingsFrom(undefined)).toEqual({
-      units: 'metric',
-      mergeGapMs: 15_000,
-      autoEndPausedMinutes: 30,
+      units: DEFAULT_FAMILY_SETTINGS.units,
+      mergeGapMs: DEFAULT_FAMILY_SETTINGS.downtime_merge_threshold_sec * 1000,
+      autoEndPausedMinutes: DEFAULT_FAMILY_SETTINGS.auto_end_paused_session_min,
       nappyPrompt: 'feed_start',
     });
   });

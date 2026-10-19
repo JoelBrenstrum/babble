@@ -3,8 +3,8 @@ import { Moon, Pause, Play } from 'lucide-react-native';
 import { View, Text } from 'react-native';
 import { Button } from '@/components/button';
 import { useTokenColor } from '@/lib/theme';
-import { useNow } from '@/lib/use-now';
 import { useRunningCardShell, type RunningCardProps } from './running-card-shell';
+import { useNow } from '@babble/api/react';
 
 export function SleepRunningCard(props: RunningCardProps & { event: Extract<BabyEvent, { type: 'sleep' }> }) {
   const { event } = props;

@@ -17,7 +17,13 @@ export const queryKeys = {
   latestEvents: (babyId: string) => ['events', babyId, 'latest'] as const,
   runningEvents: (babyId: string) => ['events', babyId, 'running'] as const,
   eventsSince: (babyId: string, since: string) => ['events', babyId, 'since', since] as const,
+  eventsBetweenAny: (babyId: string) => ['events', babyId, 'between'] as const,
   eventsBetween: (babyId: string, from: string, to: string) => ['events', babyId, 'between', from, to] as const,
+  eventsBetweenRange: (queryKey: readonly unknown[]): { from: string; to: string } | null => {
+    const [scope, , kind, from, to] = queryKey;
+    if (scope !== 'events' || kind !== 'between' || typeof from !== 'string' || typeof to !== 'string') return null;
+    return { from, to };
+  },
   event: (babyId: string, id: string) => ['events', babyId, 'event', id] as const,
 };
 

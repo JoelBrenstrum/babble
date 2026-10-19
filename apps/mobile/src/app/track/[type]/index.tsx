@@ -1,4 +1,4 @@
-import { useUnits } from '@babble/api/react';
+import { useNow, useUnits } from '@babble/api/react';
 import { babySettingsQuery, eventListQuery, eventsBetweenQuery, familyAuthors } from '@babble/api';
 import {
   hasStrip,
@@ -30,7 +30,6 @@ import { SummaryStrip } from '@/features/timeline/totals';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useCanLog } from '@/lib/use-can-log';
-import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 type Filter = 'all' | 'breast' | 'bottle';

@@ -3,6 +3,7 @@ export {
   ALL_FEATURES,
   canAddBaby,
   canInviteCarer,
+  CARER_LIMIT_MESSAGE,
   entitlements,
   familyEntitlements,
   familyHasFeature,

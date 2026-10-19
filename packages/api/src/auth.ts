@@ -1,5 +1,5 @@
 import type { BabbleClient } from './client';
-import { BabbleError, toBabbleError, unwrapVoid } from './errors';
+import { BabbleError, toBabbleError, unwrap, unwrapVoid } from './errors';
 import { normalizeInviteCode } from './invite-code';
 
 export function inviteMetadata(inviteCode: string | undefined): { data?: { invite_code: string } } {
@@ -27,12 +27,13 @@ export async function signInWithGoogle(
   client: BabbleClient,
   options: { redirectTo: string; skipBrowserRedirect?: boolean },
 ): Promise<string | null> {
-  const { data, error } = await client.auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo: options.redirectTo, skipBrowserRedirect: options.skipBrowserRedirect ?? false },
-  });
-  if (error) throw toBabbleError(error);
-  return data.url;
+  const { url } = unwrap<{ url: string | null }>(
+    await client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: options.redirectTo, skipBrowserRedirect: options.skipBrowserRedirect ?? false },
+    }),
+  );
+  return url;
 }
 
 export interface AuthRedirect {
@@ -134,7 +135,7 @@ export async function exchangeAuthCode(client: BabbleClient, code: string): Prom
 }
 
 export async function signOut(client: BabbleClient): Promise<void> {
-  await client.auth.signOut({ scope: 'local' });
+  unwrapVoid(await client.auth.signOut({ scope: 'local' }));
 }
 
 export function accountChanged(previousUserId: string | null | undefined, nextUserId: string | null): boolean {
@@ -155,11 +156,12 @@ export async function signUpWithPassword(
   options: { email: string; password: string; redirectTo: string; inviteCode?: string },
 ): Promise<{ needsConfirmation: boolean }> {
   if (options.password.length < MIN_PASSWORD_LENGTH) throw toBabbleError({ code: 'weak_password' });
-  const { data, error } = await client.auth.signUp({
-    email: options.email.trim(),
-    password: options.password,
-    options: { emailRedirectTo: options.redirectTo, ...inviteMetadata(options.inviteCode) },
-  });
-  unwrapVoid({ error });
-  return { needsConfirmation: !data.session };
+  const { session } = unwrap(
+    await client.auth.signUp({
+      email: options.email.trim(),
+      password: options.password,
+      options: { emailRedirectTo: options.redirectTo, ...inviteMetadata(options.inviteCode) },
+    }),
+  );
+  return { needsConfirmation: !session };
 }

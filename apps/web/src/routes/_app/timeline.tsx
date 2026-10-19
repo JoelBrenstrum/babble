@@ -1,10 +1,6 @@
-import { babySettingsQuery, latestEventsQuery, runningEventsQuery } from '@babble/api';
 import {
   comparisonToggleLabel,
-  feedDueFor,
-  feedDueMarker,
   filterLayout,
-  nightMarkers,
   parseTimelineLanes,
   shownLanes,
   daySummaryStrip,
@@ -27,8 +23,15 @@ import {
 } from '@babble/domain';
 import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
-import { useUnits } from '@babble/api/react';
-import { useQuery } from '@tanstack/react-query';
+import {
+  useDayComparison,
+  useNow,
+  usePrediction,
+  useRollingComparison,
+  useTimelineMarkers,
+  useTimelineModel,
+  useUnits,
+} from '@babble/api/react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
 import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
 import { useMemo, useState, type ReactNode } from 'react';
@@ -44,9 +47,6 @@ import { WeekTimeline } from '#/features/timeline/week-timeline';
 import { MonthTimeline } from '#/features/timeline/month-timeline';
 import { PlusMask } from '#/features/plus-mask';
 import { cn } from '#/lib/cn';
-import { useNow } from '#/lib/use-now';
-import { usePrediction } from '#/lib/use-prediction';
-import { useDayComparison, useRollingComparison, useTimelineModel } from '#/lib/use-timeline';
 
 type View = TimelineView;
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
@@ -84,7 +84,7 @@ function TimelinePage() {
     now,
     enabled: !sampleOnly,
   });
-  const prediction = usePrediction(babble, baby, family, now);
+  const prediction = usePrediction(babble.client, babble.config.billingEnabled, baby, family, now);
   const step = TIMELINE_SPAN[view];
   const showsToday = view === 'day' && range.dayKey === range.todayKey;
   const predicted =
@@ -92,23 +92,15 @@ function TimelinePage() {
   const predictionLine = showsToday ? predictionText(prediction, baby.timezone) : null;
   const plus = babble.config.billingEnabled;
   const [pitching, setPitching] = useState(false);
-  const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
-  const latest = useQuery({ ...latestEventsQuery(babble.client, baby.id), enabled: !insightsLocked }).data;
-  const running = useQuery({ ...runningEventsQuery(babble.client, baby.id), enabled: !insightsLocked }).data;
-  const due = insightsLocked ? null : feedDueFor(latest ?? [], running ?? [], settings, now, baby.timezone);
-  const feedDue = !lanes.includes('feeds')
-    ? null
-    : model?.view === 'day'
-      ? feedDueMarker(due, model.day.window, now, baby.timezone)
-      : model?.view === '24h'
-        ? feedDueMarker(due, model.window, now, baby.timezone)
-        : null;
-  const night =
-    model?.view === 'day'
-      ? nightMarkers(model.day.window, settings, baby.timezone)
-      : model?.view === '24h'
-        ? nightMarkers(model.window, settings, baby.timezone)
-        : [];
+  const { feedDue, night } = useTimelineMarkers({
+    client: babble.client,
+    babyId: baby.id,
+    timeZone: baby.timezone,
+    model,
+    now,
+    lanes,
+    enabled: !insightsLocked,
+  });
   const comparing = (view === 'day' || view === '24h') && Boolean(compare) && !insightsLocked;
   const toggleCompare = () =>
     insightsLocked

@@ -13,28 +13,21 @@ import {
   type SleepQuality,
   type TimedSegment,
 } from '@babble/domain';
+import type { QueryData } from '@supabase/supabase-js';
 import type { BabbleClient } from './client';
-import type { Database, Json } from './database.types';
+import type { Json } from './database.types';
 import { unwrap, unwrapVoid } from './errors';
 import { paginate } from './paginate';
 import { clock } from './clock';
 
-type Tables = Database['public']['Tables'];
-
 export const EVENT_SELECT =
   '*, sleep:sleep_details(*), bottle:bottle_details(*), solids:solids_details(*), nappy:nappy_details(*), pump:pump_details(*), growth:growth_details(*), custom:custom_details(*), session:session_details(*), segments:timed_segments(*)';
 
-export type EventRow = Tables['events']['Row'] & {
-  sleep: Tables['sleep_details']['Row'] | null;
-  bottle: Tables['bottle_details']['Row'] | null;
-  solids: Tables['solids_details']['Row'] | null;
-  nappy: Tables['nappy_details']['Row'] | null;
-  pump: Tables['pump_details']['Row'] | null;
-  growth: Tables['growth_details']['Row'] | null;
-  custom: Tables['custom_details']['Row'] | null;
-  session: Tables['session_details']['Row'] | null;
-  segments: Tables['timed_segments']['Row'][];
-};
+function selectEvents(client: BabbleClient) {
+  return client.from('events').select(EVENT_SELECT);
+}
+
+export type EventRow = QueryData<ReturnType<typeof selectEvents>>[number];
 
 export function rowToEvent(row: EventRow): BabyEvent {
   const meta = {
@@ -320,7 +313,7 @@ export async function listEvents(
   babyId: string,
   options: ListEventsOptions = {},
 ): Promise<BabyEvent[]> {
-  let query = client.from('events').select(EVENT_SELECT).eq('baby_id', babyId);
+  let query = selectEvents(client).eq('baby_id', babyId);
   if (!options.includeDeleted) query = query.is('deleted_at', null);
   if (options.types?.length) query = query.in('type', options.types);
   if (options.before) query = query.lt('started_at', options.before);
@@ -333,8 +326,7 @@ export async function listEvents(
     await query
       .order('started_at', { ascending: false })
       .order('id', { ascending: false })
-      .range(offset, offset + limit - 1)
-      .overrideTypes<EventRow[], { merge: false }>(),
+      .range(offset, offset + limit - 1),
   );
   return rowsToEvents(rows);
 }
@@ -353,12 +345,6 @@ export function listAllEventPages(
   );
 }
 
-export const LONGEST_SESSION_MS = 24 * 3_600_000;
-
-export function eventRangeBounds(from: string, to: string): { since: string; before: string } {
-  return { since: new Date(Date.parse(from) - LONGEST_SESSION_MS).toISOString(), before: to };
-}
-
 export function listEventsBetween(
   client: BabbleClient,
   babyId: string,
@@ -369,32 +355,18 @@ export function listEventsBetween(
 }
 
 export async function getEvent(client: BabbleClient, id: string): Promise<BabyEvent> {
-  const row = unwrap(
-    await client.from('events').select(EVENT_SELECT).eq('id', id).single().overrideTypes<EventRow, { merge: false }>(),
-  );
+  const row = unwrap(await selectEvents(client).eq('id', id).single());
   return rowToEvent(row);
 }
 
 export async function latestEvents(client: BabbleClient, babyId: string): Promise<BabyEvent[]> {
-  const rows = unwrap(
-    await client
-      .rpc('latest_events', { target_baby_id: babyId })
-      .select(EVENT_SELECT)
-      .overrideTypes<EventRow[], { merge: false }>(),
-  );
+  const rows = unwrap(await client.rpc('latest_events', { target_baby_id: babyId }).select(EVENT_SELECT));
   return rowsToEvents(rows);
 }
 
 export async function runningEvents(client: BabbleClient, babyId: string): Promise<BabyEvent[]> {
   const rows = unwrap(
-    await client
-      .from('events')
-      .select(EVENT_SELECT)
-      .eq('baby_id', babyId)
-      .is('ended_at', null)
-      .is('deleted_at', null)
-      .order('started_at')
-      .overrideTypes<EventRow[], { merge: false }>(),
+    await selectEvents(client).eq('baby_id', babyId).is('ended_at', null).is('deleted_at', null).order('started_at'),
   );
   return rowsToEvents(rows);
 }

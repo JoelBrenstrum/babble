@@ -1,5 +1,5 @@
 import { clock, latestEventsQuery, runningEventsQuery, familyAuthors, type Author } from '@babble/api';
-import { useAsyncAction, useStartSession, useUnits } from '@babble/api/react';
+import { useAsyncAction, useNow, useSessionPrompts, useStartSession, useUnits } from '@babble/api/react';
 import {
   nextBreastSide,
   pastDraft,
@@ -27,11 +27,9 @@ import { StatusMessage } from '@/components/status-message';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventForm } from '@/features/events/event-form';
 import { useNapPrompt } from '@/features/nap-prompt';
-import { useSessionPrompts } from '@/features/events/use-session-prompts';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useCanLog } from '@/lib/use-can-log';
-import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function NewEntry() {

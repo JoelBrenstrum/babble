@@ -1,5 +1,5 @@
 import { formatAgo } from '@babble/domain';
-import { decodeBase64Url } from './auth';
+import { decodeBase64Url, signOut } from './auth';
 import type { BabbleClient } from './client';
 import { browserDeviceName } from './device-link';
 import { MAX_DEVICE_NAME } from './device-name';
@@ -39,8 +39,9 @@ export async function signOutDevice(client: BabbleClient, sessionId: string): Pr
 }
 
 export async function signOutThisDevice(client: BabbleClient, sessionId: string): Promise<void> {
+  // Best effort: the session may already be revoked, and this device must sign out regardless.
   await signOutDevice(client, sessionId).catch(() => undefined);
-  await client.auth.signOut({ scope: 'local' });
+  await signOut(client);
 }
 
 export const DEVICES_SHOWN = 8;

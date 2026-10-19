@@ -13,8 +13,7 @@ import { EventRow } from '#/features/events/event-row';
 import { MergeSessionsRow } from '#/features/events/merge-sessions';
 import { SummaryStrip } from '#/features/timeline/totals';
 import { isEventType, listTypesFor, trackerFor } from '@babble/domain';
-import { useUnits } from '@babble/api/react';
-import { useNow } from '#/lib/use-now';
+import { useNow, useUnits } from '@babble/api/react';
 
 type Filter = 'all' | 'breast' | 'bottle';
 

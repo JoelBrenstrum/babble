@@ -1,4 +1,4 @@
-import { useSessionAction, useTrackingSettings } from '@babble/api/react';
+import { useNow, useSessionAction, useTrackingSettings } from '@babble/api/react';
 import { clock, eventListQuery, eventQuery, runningEventsQuery, familyAuthors } from '@babble/api';
 import { formatTimeOfDay, liveMergeOffer, READ_ONLY_NOTE, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
@@ -19,7 +19,6 @@ import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
 import { useBabble } from '@/lib/babble';
 import { useTokenColor } from '@/lib/theme';
 import { useCanLog } from '@/lib/use-can-log';
-import { useNow } from '@/lib/use-now';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function SessionScreen() {

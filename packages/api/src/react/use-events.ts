@@ -103,24 +103,27 @@ interface OptimisticContext {
   snapshot: EventCacheSnapshot;
 }
 
-function useOptimisticEventMutation<V>(
+interface OptimisticTarget {
+  eventId: string;
+  fallback?: BabyEvent;
+  produce: (current: BabyEvent) => BabyEvent;
+}
+
+function useEventMutation<V, R = unknown>(
   babyId: string,
   options: {
-    mutationFn: (variables: V) => Promise<unknown>;
-    target: (variables: V) => {
-      eventId: string;
-      fallback?: BabyEvent;
-      produce: (current: BabyEvent) => BabyEvent;
-    } | null;
+    mutationFn: (variables: V) => Promise<R>;
+    optimistic?: (variables: V) => OptimisticTarget | null;
     onSuccess?: (variables: V, notify: Notify) => void;
+    toastErrors?: boolean;
   },
 ) {
   const queryClient = useQueryClient();
   const notify = useNotify();
-  return useMutation<unknown, Error, V, OptimisticContext | undefined>({
+  return useMutation<R, Error, V, OptimisticContext | undefined>({
     mutationFn: options.mutationFn,
     onMutate: async (variables) => {
-      const target = options.target(variables);
+      const target = options.optimistic?.(variables);
       if (!target) return undefined;
       const { eventId, fallback, produce } = target;
       const snapshot = await optimisticRunning(queryClient, babyId, eventId, produce, fallback);
@@ -129,90 +132,69 @@ function useOptimisticEventMutation<V>(
     onSuccess: (_, variables) => options.onSuccess?.(variables, notify),
     onError: (error, _, context) => {
       if (context) restoreEventCaches(queryClient, babyId, context.eventId, context.snapshot);
-      notify({ message: toBabbleError(error).message });
+      if (options.toastErrors) notify({ message: toBabbleError(error).message });
     },
     onSettled: () => refreshEvents(queryClient, babyId),
   });
 }
 
 export function useSaveEvent(client: BabbleClient, babyId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEventMutation(babyId, {
     mutationFn: ({ draft, id }: { draft: EventDraft; id?: string }) => saveEvent(client, babyId, draft, id),
-    onSettled: () => refreshEvents(queryClient, babyId),
   });
 }
 
 export function useDeleteEvent(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
-  const notify = useNotify();
-  return useMutation({
+  return useEventMutation(babyId, {
     mutationFn: (event: BabyEvent) => deleteEvent(client, event.id),
-    onSuccess: (_, event) =>
+    onSuccess: (event, notify) =>
       notify({ message: 'Entry deleted', action: undoAction(client, queryClient, babyId, event.id) }),
-    onError: (error) => notify({ message: toBabbleError(error).message }),
-    onSettled: () => refreshEvents(queryClient, babyId),
+    toastErrors: true,
   });
 }
 
 export function useRemoveEntry(client: BabbleClient, babyId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (eventId: string) => deleteEvent(client, eventId),
-    onSettled: () => refreshEvents(queryClient, babyId),
-  });
+  return useEventMutation(babyId, { mutationFn: (eventId: string) => deleteEvent(client, eventId) });
 }
 
 export function useRestoreEntry(client: BabbleClient, babyId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (eventId: string) => restoreEvent(client, eventId),
-    onSettled: () => refreshEvents(queryClient, babyId),
-  });
+  return useEventMutation(babyId, { mutationFn: (eventId: string) => restoreEvent(client, eventId) });
 }
 
 export function useReopenSession(client: BabbleClient, babyId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (target: ReopenTarget) => reopenSession(client, target),
-    onSettled: () => refreshEvents(queryClient, babyId),
-  });
+  return useEventMutation(babyId, { mutationFn: (target: ReopenTarget) => reopenSession(client, target) });
 }
 
 export function useMergeSessions(client: BabbleClient, babyId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (merge: SessionMerge) => mergeSessions(client, merge),
-    onSettled: () => refreshEvents(queryClient, babyId),
-  });
+  return useEventMutation(babyId, { mutationFn: (merge: SessionMerge) => mergeSessions(client, merge) });
 }
 
 export function useStartSession(client: BabbleClient, babyId: string) {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEventMutation(babyId, {
     mutationFn: ({ type, side, startAt }: { type: SessionType; side?: Side; startAt?: string }) =>
       startSession(client, babyId, type, side, startAt),
-    onSettled: () => refreshEvents(queryClient, babyId),
   });
 }
 
 export function useSessionAction(client: BabbleClient, babyId: string) {
-  return useOptimisticEventMutation(babyId, {
+  return useEventMutation(babyId, {
     mutationFn: ({ event, action }: { event: BabyEvent; action: SessionAction }) =>
       runSessionAction(client, event.id, action),
-    target: ({ event, action }) => ({
+    optimistic: ({ event, action }) => ({
       eventId: event.id,
       fallback: event,
       produce: (current) => applySessionAction(current, action, clock.now()),
     }),
+    toastErrors: true,
   });
 }
 
 export function useDiscardSession(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
-  return useOptimisticEventMutation(babyId, {
+  return useEventMutation(babyId, {
     mutationFn: (event: BabyEvent) => deleteEvent(client, event.id),
-    target: (event) => ({
+    optimistic: (event) => ({
       eventId: event.id,
       fallback: event,
       produce: (current) => ({ ...current, deletedAt: clock.now().toISOString() }),
@@ -224,40 +206,44 @@ export function useDiscardSession(client: BabbleClient, babyId: string) {
         action: undoAction(client, queryClient, babyId, event.id),
       });
     },
+    toastErrors: true,
   });
 }
 
 export function useSaveSleepDetails(client: BabbleClient, babyId: string) {
-  return useOptimisticEventMutation(babyId, {
+  return useEventMutation(babyId, {
     mutationFn: ({ eventId, changes }: { eventId: string; changes: SleepChanges }) =>
       saveSleepDetails(client, eventId, changes),
-    target: ({ eventId, changes }) => ({
+    optimistic: ({ eventId, changes }) => ({
       eventId,
       produce: (current) => mergeSleepDetails(current, changes),
     }),
+    toastErrors: true,
   });
 }
 
 export function useSavePumpAmounts(client: BabbleClient, babyId: string) {
-  return useOptimisticEventMutation(babyId, {
+  return useEventMutation(babyId, {
     mutationFn: ({ eventId, changes }: { eventId: string; changes: PumpAmountChanges }) =>
       savePumpAmounts(client, eventId, changes),
-    target: ({ eventId, changes }) => ({
+    optimistic: ({ eventId, changes }) => ({
       eventId,
       produce: (current) => mergePumpAmounts(current, changes),
     }),
+    toastErrors: true,
   });
 }
 
 export function useNapAction(client: BabbleClient, babyId: string) {
-  return useOptimisticEventMutation(babyId, {
+  return useEventMutation(babyId, {
     mutationFn: (action: DataNapAction) => runNapAction(client, babyId, action),
-    target: (action) =>
+    optimistic: (action) =>
       action.kind === 'start-nap'
         ? null
         : {
             eventId: action.kind === 'end-nap' ? action.napId : action.feedId,
             produce: (current) => applySessionAction(current, { kind: 'end', at: action.at }, clock.now()),
           },
+    toastErrors: true,
   });
 }
