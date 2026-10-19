@@ -2,15 +2,12 @@ name: Deploy staging
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [labeled, synchronize]
 
 permissions:
   contents: read
 
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'deploy-staging')
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging
