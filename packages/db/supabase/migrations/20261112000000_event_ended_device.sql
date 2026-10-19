@@ -15,9 +15,7 @@ as $$
     )
   );
 $$;
--- The end-recording trigger runs as the signed-in user, and the function only reveals that user's own device.
-revoke all on function private.request_device_name() from public, anon;
-grant execute on function private.request_device_name() to authenticated;
+revoke all on function private.request_device_name() from public, anon, authenticated;
 
 create or replace function private.set_event_device()
 returns trigger
@@ -33,10 +31,11 @@ begin
 end;
 $$;
 
+-- Definer, like set_event_device, because request_device_name() is not granted to signed-in users.
 create or replace function private.record_event_end()
 returns trigger
 language plpgsql
-security invoker
+security definer
 set search_path = ''
 as $$
 begin
