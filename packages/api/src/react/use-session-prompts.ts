@@ -4,7 +4,8 @@ import { useCallback } from 'react';
 import type { BabbleClient } from '../client';
 import { clock } from '../clock';
 import { queryKeys } from '../queries';
-import { useTrackingSettings } from './use-events';
+import type { BabySettings } from '../types';
+import { trackingSettingsFrom } from './tracking-settings';
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 
@@ -12,18 +13,19 @@ export type SessionPromptInput = DistributiveOmit<SessionPromptRequest, 'running
   at?: string;
 };
 
-export function useSessionPrompts(client: BabbleClient, babyId: string): (input: SessionPromptInput) => NapPrompt[] {
+export function useSessionPrompts(_client: BabbleClient, babyId: string): (input: SessionPromptInput) => NapPrompt[] {
   const queryClient = useQueryClient();
-  const { nappyPrompt } = useTrackingSettings(client, babyId);
   return useCallback(
-    (input) =>
-      promptsForSessionEvent({
+    (input) => {
+      const settings = queryClient.getQueryData<BabySettings>(queryKeys.babySettings(babyId));
+      return promptsForSessionEvent({
         ...input,
         at: input.at ?? clock.now().toISOString(),
         running: queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(babyId)) ?? [],
         latest: queryClient.getQueryData<BabyEvent[]>(queryKeys.latestEvents(babyId)) ?? [],
-        nappyTiming: nappyPrompt,
-      } as SessionPromptRequest),
-    [queryClient, babyId, nappyPrompt],
+        nappyTiming: trackingSettingsFrom(settings).nappyPrompt,
+      } as SessionPromptRequest);
+    },
+    [queryClient, babyId],
   );
 }
