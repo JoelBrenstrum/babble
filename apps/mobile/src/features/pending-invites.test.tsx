@@ -64,6 +64,6 @@ describe('PendingInvites', () => {
     await act(async () => buttons.find((button) => button.text === 'Revoke')!.onPress!());
     await waitFor(() => expect(screen.queryByText('K7Q4M-D2XPA')).toBeNull());
     expect(mockRevokeInvite).toHaveBeenCalledWith(fixtureClient, 'invite-1');
-    expect(screen.getByText('Members')).toBeTruthy();
+    expect(await screen.findByText('Members')).toBeTruthy();
   });
 });
