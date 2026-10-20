@@ -43,7 +43,10 @@ jobs:
           pnpm exec supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
           pnpm exec supabase db push --db-url "$SUPABASE_DB_URL"
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      - run: flyctl deploy --remote-only --config "${{ inputs.fly-config }}"
+      - run: flyctl deploy --remote-only --config "$FLY_CONFIG"
         env:
+          FLY_CONFIG: ${{ inputs.fly-config }}
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-      - run: curl -fsS --retry 5 --retry-delay 5 "${{ inputs.url }}/api/health"
+      - run: curl -fsS --max-time 20 --retry 5 --retry-delay 5 "$URL/api/health"
+        env:
+          URL: ${{ inputs.url }}
