@@ -76,8 +76,8 @@ function EditEventContent({
   const resumable = logging && canResumeSession(event.data, latest, running, now) ? event.data : null;
   const ended = entryEndedText({
     endedBy: memberName(event.data.endedBy),
+    device: event.data.endedDevice,
     endRecordedAt: event.data.endRecordedAt,
-    startedAt: event.data.startedAt,
     timeZone: baby.timezone,
   });
   return (

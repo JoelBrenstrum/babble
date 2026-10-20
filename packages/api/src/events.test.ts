@@ -36,6 +36,7 @@ function row(overrides: Partial<EventRow>): EventRow {
     created_by: 'user-1',
     created_device: null,
     ended_by: null,
+    ended_device: null,
     end_recorded_at: null,
     source: 'manual',
     source_ref: null,
@@ -86,8 +87,10 @@ describe('rowToEvent', () => {
   });
 
   it('maps who ended an entry and when they pressed stop', () => {
-    const event = rowToEvent(row({ type: 'sleep', ended_by: 'user-2', end_recorded_at: '2026-10-06T09:30:00Z' }));
-    expect(event).toMatchObject({ endedBy: 'user-2', endRecordedAt: '2026-10-06T09:30:00Z' });
+    const event = rowToEvent(
+      row({ type: 'sleep', ended_by: 'user-2', ended_device: 'Chair', end_recorded_at: '2026-10-06T09:30:00Z' }),
+    );
+    expect(event).toMatchObject({ endedBy: 'user-2', endedDevice: 'Chair', endRecordedAt: '2026-10-06T09:30:00Z' });
   });
 
   it('maps a paused nap into stretches of sleep without sides', () => {

@@ -1,0 +1,30 @@
+# Test environment, deployed by .github/workflows/deploy-staging.yml: fly deploy --remote-only --config fly.staging.toml
+# Set secrets first: fly secrets set -a babble-staging SUPABASE_URL=... SUPABASE_ANON_KEY=... PUBLIC_URL=https://babble-staging.fly.dev
+app = "babble-staging"
+primary_region = "syd"
+
+[build]
+dockerfile = "apps/web/Dockerfile"
+
+[env]
+GOOGLE_AUTH_ENABLED = "false"
+BILLING_ENABLED = "true"
+OPERATOR_NAME = "the Brenstrum family"
+
+[http_service]
+internal_port = 3000
+force_https = true
+auto_stop_machines = "stop"
+auto_start_machines = true
+min_machines_running = 0
+
+[[http_service.checks]]
+grace_period = "10s"
+interval = "30s"
+method = "GET"
+path = "/api/health"
+timeout = "5s"
+
+[[vm]]
+memory = "256mb"
+cpus = 1

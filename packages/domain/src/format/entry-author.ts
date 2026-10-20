@@ -20,13 +20,11 @@ export function entryAuthorText(options: {
 
 export function entryEndedText(options: {
   endedBy?: string;
+  device?: string | null;
   endRecordedAt: string | null;
-  startedAt: string;
   timeZone: string;
 }): string | null {
   if (!options.endRecordedAt) return null;
-  const time = formatTimeOfDay(options.endRecordedAt, options.timeZone);
-  const date = formatShortDate(options.endRecordedAt, options.timeZone);
-  const day = date === formatShortDate(options.startedAt, options.timeZone) ? '' : ` on ${date}`;
-  return `Ended by ${options.endedBy ?? 'a former member'}${day} at ${time}`;
+  const when = `${formatShortDate(options.endRecordedAt, options.timeZone)}, ${formatTimeOfDay(options.endRecordedAt, options.timeZone)}`;
+  return `Ended by ${options.endedBy ?? 'a former member'}${options.device ? ` on ${options.device}` : ''} · ${when}`;
 }

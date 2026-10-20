@@ -15,6 +15,7 @@ function weighIn(id: string, at: string, weightG: number): BabyEvent {
     source: 'manual',
     sessionState: null,
     endedBy: null,
+    endedDevice: null,
     endRecordedAt: null,
     type: 'growth',
     startedAt: at,

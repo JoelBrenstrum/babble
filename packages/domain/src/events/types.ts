@@ -146,6 +146,7 @@ export interface EventMeta {
   source: EventSource;
   sessionState: SessionState | null;
   endedBy: string | null;
+  endedDevice: string | null;
   endRecordedAt: string | null;
 }
 
