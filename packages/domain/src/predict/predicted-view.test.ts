@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PredictedBlock } from './predict-day';
-import { predictedLayout, predictionSince, predictionText } from './predicted-view';
+import { predictedItemTip, predictedLayout, predictionSince, predictionText } from './predicted-view';
 
 const TZ = 'Pacific/Auckland';
 const NOW = new Date('2026-10-13T00:30:00Z');
@@ -101,5 +101,56 @@ describe('predictedLayout', () => {
     );
     expect(layout.sleep[0]!.endFrac).toBe(1);
     expect(layout.feeds).toEqual([]);
+  });
+
+  it('draws the likely range as a band and explains it in the tip', () => {
+    const layout = predictedLayout(
+      [
+        block('sleep', '2026-10-13T00:00:00Z', '2026-10-13T01:12:00Z', true, {
+          endWindow: { from: '2026-10-13T01:00:00Z', to: '2026-10-13T01:30:00Z' },
+        }),
+        block('sleep', '2026-10-13T04:00:00Z', '2026-10-13T05:00:00Z', false, {
+          startWindow: { from: '2026-10-13T03:00:00Z', to: '2026-10-13T04:30:00Z' },
+        }),
+        block('feed', '2026-10-13T17:30:00Z', '2026-10-13T18:00:00Z', false, {
+          startWindow: { from: '2026-10-13T17:00:00Z', to: '2026-10-13T19:00:00Z' },
+        }),
+      ],
+      window,
+      now,
+      TZ,
+    );
+    expect(layout.sleep.map((item) => item.band)).toEqual([
+      { startFrac: 7 / 24, endFrac: 7.5 / 24 },
+      { startFrac: 9 / 24, endFrac: 10.5 / 24 },
+    ]);
+    expect(layout.feeds[0]!.band).toEqual({ startFrac: 23 / 24, endFrac: 1 });
+    expect(layout.sleep[0]!.tip).toEqual({
+      title: 'Sleep still going',
+      lines: ['Likely ends around 2:12 pm', 'Could end 2:00 pm – 2:30 pm', 'Estimated from recent days'],
+    });
+    expect(layout.sleep[1]!.tip).toEqual({
+      title: 'Likely sleep',
+      lines: ['5:00 pm – 6:00 pm · 1h 00m', 'Could start 4:00 pm – 5:30 pm', 'Estimated from recent days'],
+    });
+  });
+
+  it('leaves out the band and range line when the window is narrow or missing', () => {
+    const plain = block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z');
+    expect(predictedItemTip(plain, TZ)).toEqual({
+      title: 'Likely feed',
+      lines: ['2:20 pm – 3:00 pm · 40m', 'Estimated from recent days'],
+    });
+    const layout = predictedLayout(
+      [
+        block('sleep', '2026-10-13T04:00:00Z', '2026-10-13T05:00:00Z', false, {
+          startWindow: { from: '2026-10-13T03:58:00Z', to: '2026-10-13T04:03:00Z' },
+        }),
+      ],
+      window,
+      now,
+      TZ,
+    );
+    expect(layout.sleep[0]!.band).toBeNull();
   });
 });

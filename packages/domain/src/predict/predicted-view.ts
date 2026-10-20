@@ -1,4 +1,6 @@
+import { formatDuration } from '../format/duration';
 import { formatTimeOfDay } from '../time/local-time';
+import type { TimelineTip } from '../timeline/item-label';
 import { fractionOf, type TimeWindow } from '../time/windows';
 import type { BabyEvent } from '../events/types';
 import { ageInMonths } from '../growth/growth';
@@ -16,7 +18,11 @@ export interface PredictedItem {
   endFrac: number;
   opacity: number;
   label: string;
+  band: { startFrac: number; endFrac: number } | null;
+  tip: TimelineTip;
 }
+
+const ESTIMATE_NOTE = 'Estimated from recent days';
 
 export interface PredictionBaby {
   timeZone: string;
@@ -66,6 +72,45 @@ function blockLabel(block: PredictedBlock, timeZone: string): string {
   return `${block.kind === 'sleep' ? 'Likely asleep' : 'Likely feeding'} ${range}`;
 }
 
+function uncertainWindow(block: PredictedBlock): PredictedWindow | undefined {
+  const window = block.continuesRunning ? block.endWindow : block.startWindow;
+  return narrow(window) ? undefined : window;
+}
+
+export function predictedItemTip(block: PredictedBlock, timeZone: string): TimelineTip {
+  const noun = block.kind === 'sleep' ? 'sleep' : 'feed';
+  const window = uncertainWindow(block);
+  const spanText = (w: PredictedWindow) => `${formatTimeOfDay(w.from, timeZone)} – ${formatTimeOfDay(w.to, timeZone)}`;
+  if (block.continuesRunning) {
+    return {
+      title: `${noun[0]!.toUpperCase()}${noun.slice(1)} still going`,
+      lines: [
+        `Likely ends around ${formatTimeOfDay(block.endedAt, timeZone)}`,
+        ...(window ? [`Could end ${spanText(window)}`] : []),
+        ESTIMATE_NOTE,
+      ],
+    };
+  }
+  const length = formatDuration(Date.parse(block.endedAt) - Date.parse(block.startedAt), { seconds: false });
+  return {
+    title: `Likely ${noun}`,
+    lines: [
+      `${formatTimeOfDay(block.startedAt, timeZone)} – ${formatTimeOfDay(block.endedAt, timeZone)} · ${length}`,
+      ...(window ? [`Could start ${spanText(window)}`] : []),
+      ESTIMATE_NOTE,
+    ],
+  };
+}
+
+function bandOf(block: PredictedBlock, window: TimeWindow): PredictedItem['band'] {
+  const uncertain = uncertainWindow(block);
+  if (!uncertain) return null;
+  const clamp = (frac: number) => Math.min(1, Math.max(0, frac));
+  const startFrac = clamp(fractionOf(window, Date.parse(uncertain.from)));
+  const endFrac = clamp(fractionOf(window, Date.parse(uncertain.to)));
+  return endFrac > startFrac ? { startFrac, endFrac } : null;
+}
+
 export function predictedLayout(
   blocks: readonly PredictedBlock[] | null,
   window: TimeWindow,
@@ -84,6 +129,8 @@ export function predictedLayout(
       endFrac: fractionOf(window, end),
       opacity: 1 - (1 - FADED_OPACITY) * ahead,
       label: blockLabel(block, timeZone),
+      band: bandOf(block, window),
+      tip: predictedItemTip(block, timeZone),
     });
   }
   return layout;

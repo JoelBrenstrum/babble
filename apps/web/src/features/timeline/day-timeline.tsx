@@ -11,13 +11,13 @@ import {
   summariseSleep,
   timelineItemLabel,
   timelineItemTip,
-  type BabyEvent,
   type DayLayout,
   type FeedDueMarker,
   type NightMarker,
   type PredictedItem,
   type TimelineItem,
   type TimelineLane,
+  type TimelineTip,
   type Units,
   TIMELINE_LANES,
 } from '@babble/domain';
@@ -29,9 +29,10 @@ import { cn } from '#/lib/cn';
 import { TimelineItemLink } from './timeline-item-link';
 
 const TIP_ROOM_PX = 72;
+const BAND_OPACITY = 0.55;
 
 interface TipAnchor {
-  event: BabyEvent;
+  content: () => TimelineTip;
   left: number;
   right: number;
   top: number;
@@ -129,12 +130,12 @@ export function DayTimeline({
       document.removeEventListener('scroll', close, true);
     };
   }, [tip]);
-  const showTip = (event: BabyEvent) => (target: HTMLElement | null) => {
+  const showTip = (content: () => TimelineTip) => (target: HTMLElement | null) => {
     const box = grid.current?.getBoundingClientRect();
     if (!target || !box) return setTip(null);
     const rect = target.getBoundingClientRect();
     setTip({
-      event,
+      content,
       left: rect.left - box.left,
       right: rect.right - box.left,
       top: rect.top - box.top,
@@ -142,7 +143,7 @@ export function DayTimeline({
       width: box.width,
     });
   };
-  const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
+  const tipContent = tip?.content() ?? null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -227,11 +228,11 @@ export function DayTimeline({
                 label={timelineItemLabel(item, timeZone, units)}
                 units={units}
                 now={now}
-                onTip={showTip(item.event)}
+                onTip={showTip(() => timelineItemTip(item.event, now, timeZone, units))}
               />
             ))}
             {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
-              <Predicted key={item.startFrac} item={item} />
+              <Predicted key={item.startFrac} item={item} onTip={showTip(() => item.tip)} />
             ))}
           </div>
         ))}
@@ -250,19 +251,43 @@ export function DayTimeline({
   );
 }
 
-function Predicted({ item }: { item: PredictedItem }) {
+function Predicted({ item, onTip }: { item: PredictedItem; onTip: (target: HTMLElement | null) => void }) {
+  const soft = item.kind === 'sleep' ? 'bg-sleep-soft' : 'bg-feed-left-soft';
   return (
-    <div
-      role="img"
-      aria-label={item.label}
-      title={item.label}
-      data-testid="predicted-block"
-      className={cn(
-        'absolute inset-x-0 min-h-1 rounded-md border-2 border-dashed',
-        item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft',
+    <>
+      {item.band && (
+        <div
+          aria-hidden
+          data-testid="predicted-band"
+          className={cn('absolute inset-x-0 rounded-md', soft)}
+          style={{
+            top: formatFraction(item.band.startFrac),
+            height: formatFraction(item.band.endFrac - item.band.startFrac),
+            opacity: item.opacity * BAND_OPACITY,
+          }}
+        />
       )}
-      style={{ top: formatFraction(item.startFrac), height: formatFraction(itemSpanFrac(item)), opacity: item.opacity }}
-    />
+      <button
+        type="button"
+        aria-label={item.label}
+        data-testid="predicted-block"
+        className={cn(
+          'absolute inset-x-0 min-h-1 rounded-md border-2 border-dashed outline-none focus-visible:ring-2 focus-visible:ring-primary',
+          item.kind === 'sleep' ? 'border-sleep' : 'border-feed-left',
+          soft,
+        )}
+        style={{
+          top: formatFraction(item.startFrac),
+          height: formatFraction(itemSpanFrac(item)),
+          opacity: item.opacity,
+        }}
+        onMouseEnter={(mouse) => onTip(mouse.currentTarget)}
+        onMouseLeave={() => onTip(null)}
+        onFocus={(focus) => onTip(focus.currentTarget)}
+        onBlur={() => onTip(null)}
+        onClick={(click) => onTip(click.currentTarget)}
+      />
+    </>
   );
 }
 

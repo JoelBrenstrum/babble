@@ -162,6 +162,7 @@ export {
   predictAhead,
   predictedLayout,
   predictionSince,
+  predictedItemTip,
   predictionText,
   type PredictedItem,
 } from './predict/predicted-view';
@@ -270,6 +271,7 @@ export {
   showsItemLabel,
   timelineItemLabel,
   timelineItemTip,
+  type TimelineTip,
 } from './timeline/item-label';
 export { homeWindow } from './timeline/home-window';
 export {

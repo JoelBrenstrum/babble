@@ -13,6 +13,7 @@ import {
   type FeedDueMarker,
   type NightMarker,
   type PredictedItem,
+  type TimelineTip,
   type TimelineItem,
   type Units,
   summariseSleep,
@@ -25,6 +26,13 @@ import { pct } from './percent';
 
 export const DAY_TIMELINE_HEIGHT = 560;
 const TIP_ROOM_FRAC = 0.15;
+const BAND_OPACITY = 0.55;
+
+interface TipAnchor {
+  startFrac: number;
+  endFrac: number;
+  content: () => TimelineTip;
+}
 
 function open(item: TimelineItem) {
   router.push(item.running ? `/sessions/${item.event.id}` : `/events/${item.event.id}`);
@@ -62,8 +70,8 @@ export function DayTimeline({
     { key: 'nappies' as const, label: 'Nappy' },
     ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
   ].filter((lane) => shown.includes(lane.key));
-  const [tip, setTip] = useState<TimelineItem | null>(null);
-  const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
+  const [tip, setTip] = useState<TipAnchor | null>(null);
+  const tipContent = tip?.content() ?? null;
 
   return (
     <View className="gap-2">
@@ -140,11 +148,11 @@ export function DayTimeline({
                 label={timelineItemLabel(item, timeZone, units)}
                 units={units}
                 now={now}
-                onTip={() => setTip(item)}
+                onTip={() => setTip({ ...item, content: () => timelineItemTip(item.event, now, timeZone, units) })}
               />
             ))}
             {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
-              <Predicted key={item.startFrac} item={item} />
+              <Predicted key={item.startFrac} item={item} onTip={() => setTip({ ...item, content: () => item.tip })} />
             ))}
           </View>
         ))}
@@ -174,20 +182,35 @@ export function DayTimeline({
   );
 }
 
-function Predicted({ item }: { item: PredictedItem }) {
+function Predicted({ item, onTip }: { item: PredictedItem; onTip: () => void }) {
+  const soft = item.kind === 'sleep' ? 'bg-sleep-soft' : 'bg-feed-left-soft';
   return (
-    <View
-      accessible
-      accessibilityLabel={item.label}
-      testID="predicted-block"
-      className={`absolute inset-x-0 rounded-md border-2 border-dashed ${item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft'}`}
-      style={{
-        top: pct(item.startFrac),
-        height: pct(item.endFrac - item.startFrac),
-        minHeight: 4,
-        opacity: item.opacity,
-      }}
-    />
+    <>
+      {item.band && (
+        <View
+          testID="predicted-band"
+          className={`absolute inset-x-0 rounded-md ${soft}`}
+          style={{
+            top: pct(item.band.startFrac),
+            height: pct(item.band.endFrac - item.band.startFrac),
+            opacity: item.opacity * BAND_OPACITY,
+          }}
+        />
+      )}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={item.label}
+        testID="predicted-block"
+        onPress={onTip}
+        className={`absolute inset-x-0 rounded-md border-2 border-dashed ${item.kind === 'sleep' ? 'border-sleep' : 'border-feed-left'} ${soft}`}
+        style={{
+          top: pct(item.startFrac),
+          height: pct(item.endFrac - item.startFrac),
+          minHeight: 4,
+          opacity: item.opacity,
+        }}
+      />
+    </>
   );
 }
 

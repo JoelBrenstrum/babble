@@ -43,7 +43,15 @@ describe('DayTimeline', () => {
     const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
     const predicted = {
       sleep: [
-        { kind: 'sleep' as const, startFrac: 0.55, endFrac: 0.6, opacity: 0.8, label: 'Likely asleep 2:10 pm–3:20 pm' },
+        {
+          kind: 'sleep' as const,
+          startFrac: 0.55,
+          endFrac: 0.6,
+          opacity: 0.8,
+          label: 'Likely asleep 2:10 pm–3:20 pm',
+          band: { startFrac: 0.54, endFrac: 0.57 },
+          tip: { title: 'Likely sleep', lines: ['2:10 pm – 3:20 pm · 1h 10m', 'Could start 2:00 pm – 2:30 pm'] },
+        },
       ],
       feeds: [],
     };
@@ -60,6 +68,11 @@ describe('DayTimeline', () => {
       />,
     );
     expect(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm')).toBeTruthy();
+    expect(screen.getByTestId('predicted-band')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm'));
+    expect(screen.getByText('Could start 2:00 pm – 2:30 pm')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('timeline-tip'));
+    expect(screen.queryByTestId('timeline-tip')).toBeNull();
   });
 
   it('marks when the next feed is due', async () => {
