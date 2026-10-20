@@ -191,7 +191,7 @@ function estimate(
   at: number,
   now: number,
   settings: Required<PredictOptions>,
-  above = 0,
+  above: number,
 ): Quantiles | null {
   const minute = minutesOfDay(new Date(at), settings.timeZone);
   const weighted = samples
@@ -214,13 +214,7 @@ function estimate(
           high: weightedQuantile(weighted, 0.75)!,
         }
       : null;
-  const floor = above > 0 ? above + OVERRUN_MS : 0;
-  const clamped = prior && {
-    low: Math.max(prior.low, floor),
-    mid: Math.max(prior.mid, floor),
-    high: Math.max(prior.high, floor),
-  };
-  return blendWithPrior(observed, clamped, weight);
+  return blendWithPrior(observed, prior, weight);
 }
 
 export type PredictionResult =
@@ -270,7 +264,7 @@ export function predictDayStatus(
     const block: PredictedBlock = {
       kind,
       startedAt: iso(start),
-      endedAt: iso(Math.max(end, start + MIN_BLOCK_MS)),
+      endedAt: iso(extra.continuesRunning ? end : Math.max(end, start + MIN_BLOCK_MS)),
       continuesRunning: extra.continuesRunning ?? false,
     };
     if (extra.startWindow) block.startWindow = extra.startWindow;
@@ -278,17 +272,21 @@ export function predictDayStatus(
     blocks.push(block);
   };
 
-  const quantiles = (key: RhythmKey, at: number, above = key === 'wakeToFeed' ? ANY_VALUE : 0) =>
-    estimate(rhythm[key], key === 'feedToSleep' ? null : (priors?.[key] ?? null), at, nowMs, settings, above);
+  const quantiles = (key: RhythmKey, at: number) =>
+    estimate(
+      rhythm[key],
+      key === 'feedToSleep' ? null : (priors?.[key] ?? null),
+      at,
+      nowMs,
+      settings,
+      key === 'wakeToFeed' ? ANY_VALUE : 0,
+    );
   const windowAt = (anchor: number, q: Quantiles | null): PredictedWindow | undefined =>
     q ? { from: iso(anchor + q.low), to: iso(anchor + q.high) } : undefined;
   const length = (key: RhythmKey, at: number) => quantiles(key, at)?.mid ?? 0;
   const sinceAnchor = (key: RhythmKey, anchor: number): { at: number; window: PredictedWindow | undefined } | null => {
     const typical = quantiles(key, anchor);
-    if (!typical) return null;
-    const elapsed = nowMs - anchor;
-    const conditional = elapsed > 0 ? quantiles(key, anchor, elapsed) : typical;
-    return { at: anchor + (conditional?.mid ?? elapsed + OVERRUN_MS), window: windowAt(anchor, typical) };
+    return typical ? { at: anchor + typical.mid, window: windowAt(anchor, typical) } : null;
   };
   const notBeforeNow = (time: number) => Math.max(time, nowMs);
 
@@ -335,13 +333,13 @@ export function predictDayStatus(
     const rest = sinceAnchor('sleepLength', runningSleep.start);
     const wake = rest?.at ?? nowMs + OVERRUN_MS;
     push('sleep', nowMs, wake, { continuesRunning: true, endWindow: rest?.window });
-    lastWake = wake;
-    next = feedAfter(wake);
+    lastWake = Math.max(wake, nowMs);
+    next = feedAfter(lastWake);
   } else if (runningFeed) {
     const rest = sinceAnchor('feedLength', runningFeed.start);
     const end = rest?.at ?? nowMs + OVERRUN_MS;
     push('feed', nowMs, end, { continuesRunning: true, endWindow: rest?.window });
-    next = sleepAfter(lastWake, { start: runningFeed.start, end });
+    next = sleepAfter(lastWake, { start: runningFeed.start, end: Math.max(end, nowMs) });
   } else if (lastFeed && (!lastSleep || lastFeed.start > lastSleep.start)) {
     next = sleepAfter(lastWake, { start: lastFeed.start, end: lastFeed.end! });
   } else if (lastSleep) {

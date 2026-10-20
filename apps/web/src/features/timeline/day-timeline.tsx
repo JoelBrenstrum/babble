@@ -2,6 +2,7 @@ import {
   formatDuration,
   formatFraction,
   formatVolume,
+  itemSpanFrac,
   markerShiftPercent,
   nappyKind,
   partSpan,
@@ -28,7 +29,6 @@ import { cn } from '#/lib/cn';
 import { TimelineItemLink } from './timeline-item-link';
 
 const TIP_ROOM_PX = 72;
-const MIN_SPAN_FRAC = 1e-6;
 
 interface TipAnchor {
   content: () => TimelineTip;
@@ -254,26 +254,7 @@ export function DayTimeline({
   );
 }
 
-function predictedSpan(item: PredictedItem) {
-  const { band } = item;
-  const top = band && !item.continuesRunning ? Math.min(band.startFrac, item.startFrac) : item.startFrac;
-  const bottom = band && item.continuesRunning ? Math.max(band.endFrac, item.endFrac) : item.endFrac;
-  const height = Math.max(bottom - top, MIN_SPAN_FRAC);
-  const fade = band ? Math.min(1, (band.endFrac - band.startFrac) / height) : 0;
-  return { top, height, fade };
-}
-
-function fadeMask(fade: number, continuesRunning: boolean): string | undefined {
-  if (fade <= 0) return undefined;
-  const stop = `${(fade * 100).toFixed(2)}%`;
-  return continuesRunning
-    ? `linear-gradient(to top, transparent, black ${stop})`
-    : `linear-gradient(to bottom, transparent, black ${stop})`;
-}
-
 function Predicted({ item, onTip }: { item: PredictedItem; onTip: (target: HTMLElement | null) => void }) {
-  const { top, height, fade } = predictedSpan(item);
-  const mask = fadeMask(fade, item.continuesRunning);
   return (
     <button
       type="button"
@@ -283,13 +264,7 @@ function Predicted({ item, onTip }: { item: PredictedItem; onTip: (target: HTMLE
         'absolute inset-x-0 min-h-1 rounded-md border-2 border-dashed outline-none focus-visible:ring-2 focus-visible:ring-primary',
         item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft',
       )}
-      style={{
-        top: formatFraction(top),
-        height: formatFraction(height),
-        opacity: item.opacity,
-        maskImage: mask,
-        WebkitMaskImage: mask,
-      }}
+      style={{ top: formatFraction(item.startFrac), height: formatFraction(itemSpanFrac(item)), opacity: item.opacity }}
       onMouseEnter={(mouse) => onTip(mouse.currentTarget)}
       onMouseLeave={() => onTip(null)}
       onFocus={(focus) => onTip(focus.currentTarget)}

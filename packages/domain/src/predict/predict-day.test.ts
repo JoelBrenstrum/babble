@@ -211,13 +211,32 @@ describe('predictDay', () => {
     ]);
   });
 
-  it('expects an overdue sleep shortly after now rather than in the past', () => {
+  it('expects an overdue sleep now rather than in the past', () => {
     const events = regularCycles(8).filter((event) => event.id !== 'sleep-7');
     const now = new Date(BASE + 21 * 60 * M + 120 * M);
     expect(simplify(predictDay(events, now, new Date(BASE + 23 * 60 * M + 30 * M), OPTIONS))?.[0]).toEqual([
       'sleep',
-      '23:10',
-      '01:10',
+      '23:00',
+      '01:00',
+      false,
+    ]);
+  });
+
+  it('keeps the expected wake-up fixed while a sleep runs on past it', () => {
+    const events = [
+      ...regularCycles(8),
+      makeEvent('sleep', { id: 'long', startedAt: iso(BASE + 25 * 60 * M), endedAt: null, segments: [] }),
+    ];
+    const until = new Date(BASE + 30 * 60 * M);
+    const early = predictDay(events, new Date(BASE + 25 * 60 * M + 30 * M), until, OPTIONS)![0]!;
+    const late = predictDay(events, new Date(BASE + 25 * 60 * M + 150 * M), until, OPTIONS)![0]!;
+    expect(early.endedAt).toBe(iso(BASE + 27 * 60 * M));
+    expect(late.endedAt).toBe(iso(BASE + 27 * 60 * M));
+    expect(late.continuesRunning).toBe(true);
+    expect(simplify(predictDay(events, new Date(BASE + 25 * 60 * M + 150 * M), until, OPTIONS))?.[1]).toEqual([
+      'feed',
+      '03:40',
+      '04:20',
       false,
     ]);
   });

@@ -60,6 +60,13 @@ describe('predictionText', () => {
     );
   });
 
+  it('stays honest when a running nap outlasts its estimate', () => {
+    const endWindow = { from: '2026-10-13T01:00:00Z', to: '2026-10-13T01:40:00Z' };
+    const blocks = [block('sleep', '2026-10-13T00:00:00Z', '2026-10-13T01:20:00Z', true, { endWindow })];
+    expect(predictionText(blocks, new Date('2026-10-13T01:30:00Z'), TZ)).toBe('Likely awake by 2:40 pm');
+    expect(predictionText(blocks, new Date('2026-10-13T01:45:00Z'), TZ)).toBe('Sleeping longer than usual');
+  });
+
   it('says nothing without a prediction', () => {
     expect(predictionText(null, NOW, TZ)).toBeNull();
     expect(predictionText([], NOW, TZ)).toBeNull();
@@ -103,7 +110,7 @@ describe('predictedLayout', () => {
     expect(layout.feeds).toEqual([]);
   });
 
-  it('draws the likely range as a band and explains it in the tip', () => {
+  it('explains each block in its tip, including the range it could fall in', () => {
     const layout = predictedLayout(
       [
         block('sleep', '2026-10-13T00:00:00Z', '2026-10-13T01:12:00Z', true, {
@@ -112,19 +119,11 @@ describe('predictedLayout', () => {
         block('sleep', '2026-10-13T04:00:00Z', '2026-10-13T05:00:00Z', false, {
           startWindow: { from: '2026-10-13T03:00:00Z', to: '2026-10-13T04:30:00Z' },
         }),
-        block('feed', '2026-10-13T17:30:00Z', '2026-10-13T18:00:00Z', false, {
-          startWindow: { from: '2026-10-13T17:00:00Z', to: '2026-10-13T19:00:00Z' },
-        }),
       ],
       window,
       now,
       TZ,
     );
-    expect(layout.sleep.map((item) => item.band)).toEqual([
-      { startFrac: 7 / 24, endFrac: 7.5 / 24 },
-      { startFrac: 9 / 24, endFrac: 10.5 / 24 },
-    ]);
-    expect(layout.feeds[0]!.band).toEqual({ startFrac: 23 / 24, endFrac: 1 });
     expect(layout.sleep[0]!.tip).toEqual({
       title: 'Sleep still going',
       lines: ['Likely ends around 2:12 pm', 'Could end 2:00 pm – 2:30 pm', 'Estimated from recent days'],
@@ -135,40 +134,24 @@ describe('predictedLayout', () => {
     });
   });
 
-  it('starts the band at now so it never covers what has already happened', () => {
-    const layout = predictedLayout(
-      [
-        block('sleep', '2026-10-13T00:00:00Z', '2026-10-13T01:12:00Z', true, {
-          endWindow: { from: '2026-10-12T23:30:00Z', to: '2026-10-13T01:30:00Z' },
-        }),
-        block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z', false, {
-          startWindow: { from: '2026-10-12T22:00:00Z', to: '2026-10-12T23:00:00Z' },
-        }),
-      ],
-      window,
-      now,
-      TZ,
-    );
-    expect(layout.sleep[0]!.band).toEqual({ startFrac: 0.25, endFrac: 7.5 / 24 });
-    expect(layout.feeds[0]!.band).toBeNull();
+  it('draws a sleep that has outlasted its estimate as an empty block and says so', () => {
+    const running = block('sleep', '2026-10-13T00:00:00Z', '2026-10-12T23:40:00Z', true, {
+      endWindow: { from: '2026-10-12T23:20:00Z', to: '2026-10-12T23:50:00Z' },
+    });
+    const layout = predictedLayout([running], window, now, TZ);
+    expect(layout.sleep[0]).toMatchObject({ startFrac: 0.25, endFrac: 0.25 });
+    expect(predictedItemTip(running, now, TZ).lines[0]).toBe('Longer than usual');
   });
 
-  it('leaves out the band and range line when the window is narrow or missing', () => {
+  it('leaves out the range line when the window is narrow or missing', () => {
     const plain = block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z');
-    expect(predictedItemTip(plain, TZ)).toEqual({
+    expect(predictedItemTip(plain, now, TZ)).toEqual({
       title: 'Likely feed',
       lines: ['2:20 pm – 3:00 pm · 40m', 'Estimated from recent days'],
     });
-    const layout = predictedLayout(
-      [
-        block('sleep', '2026-10-13T04:00:00Z', '2026-10-13T05:00:00Z', false, {
-          startWindow: { from: '2026-10-13T03:58:00Z', to: '2026-10-13T04:03:00Z' },
-        }),
-      ],
-      window,
-      now,
-      TZ,
-    );
-    expect(layout.sleep[0]!.band).toBeNull();
+    const close = block('sleep', '2026-10-13T04:00:00Z', '2026-10-13T05:00:00Z', false, {
+      startWindow: { from: '2026-10-13T03:58:00Z', to: '2026-10-13T04:03:00Z' },
+    });
+    expect(predictedItemTip(close, now, TZ).lines).not.toContainEqual(expect.stringMatching(/^Could/));
   });
 });

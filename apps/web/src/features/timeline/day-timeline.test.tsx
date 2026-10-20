@@ -98,12 +98,10 @@ describe('DayTimeline', () => {
             sleep: [
               {
                 kind: 'sleep',
-                continuesRunning: false,
                 startFrac: 0.55,
                 endFrac: 0.6,
                 opacity: 0.8,
                 label: 'Likely asleep 2:10 pm–3:20 pm',
-                band: { startFrac: 0.54, endFrac: 0.57 },
                 tip,
               },
             ],
@@ -113,8 +111,6 @@ describe('DayTimeline', () => {
       </FixtureRouter>,
     );
     const block = await screen.findByRole('button', { name: 'Likely asleep 2:10 pm–3:20 pm' });
-    expect(block.style.top).toBe('54%');
-    expect(block.style.maskImage).toContain('transparent, black 50.00%');
     fireEvent.mouseEnter(block);
     expect(screen.getByText('Could start 2:00 pm – 2:30 pm')).toBeInTheDocument();
     fireEvent.mouseLeave(block);

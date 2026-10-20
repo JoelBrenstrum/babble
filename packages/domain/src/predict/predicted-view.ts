@@ -14,12 +14,10 @@ const NARROW_WINDOW_MS = 10 * MINUTE_MS;
 
 export interface PredictedItem {
   kind: PredictedKind;
-  continuesRunning: boolean;
   startFrac: number;
   endFrac: number;
   opacity: number;
   label: string;
-  band: { startFrac: number; endFrac: number } | null;
   tip: TimelineTip;
 }
 
@@ -53,16 +51,21 @@ function span(window: PredictedWindow, timeZone: string): string {
 export function predictionText(blocks: readonly PredictedBlock[] | null, now: Date, timeZone: string): string | null {
   const first = blocks?.[0];
   if (!first) return null;
+  const nowMs = now.getTime();
   if (first.kind === 'sleep' && first.continuesRunning) {
-    return narrow(first.endWindow)
-      ? `Likely awake around ${formatTimeOfDay(first.endedAt, timeZone)}`
-      : `Likely awake ${span(first.endWindow, timeZone)}`;
+    const window = first.endWindow;
+    if (Date.parse(first.endedAt) > nowMs) {
+      return narrow(window)
+        ? `Likely awake around ${formatTimeOfDay(first.endedAt, timeZone)}`
+        : `Likely awake ${span(window, timeZone)}`;
+    }
+    if (window && nowMs <= Date.parse(window.to)) return `Likely awake by ${formatTimeOfDay(window.to, timeZone)}`;
+    return 'Sleeping longer than usual';
   }
   const sleep = blocks.find((block) => block.kind === 'sleep' && !block.continuesRunning);
   if (!sleep) return null;
   const window = sleep.startWindow;
   if (narrow(window)) return `Likely asleep around ${formatTimeOfDay(sleep.startedAt, timeZone)}`;
-  const nowMs = now.getTime();
   if (nowMs < Date.parse(window.from)) return `Next sleep likely ${span(window, timeZone)}`;
   if (nowMs <= Date.parse(window.to)) return `Sleep window open until ${formatTimeOfDay(window.to, timeZone)}`;
   return 'Past the usual sleep window, likely ready now';
@@ -78,15 +81,16 @@ function uncertainWindow(block: PredictedBlock): PredictedWindow | undefined {
   return narrow(window) ? undefined : window;
 }
 
-export function predictedItemTip(block: PredictedBlock, timeZone: string): TimelineTip {
+export function predictedItemTip(block: PredictedBlock, now: Date, timeZone: string): TimelineTip {
   const noun = block.kind === 'sleep' ? 'sleep' : 'feed';
   const window = uncertainWindow(block);
   const spanText = (w: PredictedWindow) => `${formatTimeOfDay(w.from, timeZone)} – ${formatTimeOfDay(w.to, timeZone)}`;
   if (block.continuesRunning) {
+    const overdue = Date.parse(block.endedAt) <= now.getTime();
     return {
       title: `${noun[0]!.toUpperCase()}${noun.slice(1)} still going`,
       lines: [
-        `Likely ends around ${formatTimeOfDay(block.endedAt, timeZone)}`,
+        overdue ? 'Longer than usual' : `Likely ends around ${formatTimeOfDay(block.endedAt, timeZone)}`,
         ...(window ? [`Could end ${spanText(window)}`] : []),
         ESTIMATE_NOTE,
       ],
@@ -103,15 +107,6 @@ export function predictedItemTip(block: PredictedBlock, timeZone: string): Timel
   };
 }
 
-function bandOf(block: PredictedBlock, window: TimeWindow, nowMs: number): PredictedItem['band'] {
-  const uncertain = uncertainWindow(block);
-  if (!uncertain) return null;
-  const clamp = (frac: number) => Math.min(1, Math.max(0, frac));
-  const startFrac = clamp(fractionOf(window, Math.max(nowMs, Date.parse(uncertain.from))));
-  const endFrac = clamp(fractionOf(window, Date.parse(uncertain.to)));
-  return endFrac > startFrac ? { startFrac, endFrac } : null;
-}
-
 export function predictedLayout(
   blocks: readonly PredictedBlock[] | null,
   window: TimeWindow,
@@ -121,18 +116,16 @@ export function predictedLayout(
   const layout: { sleep: PredictedItem[]; feeds: PredictedItem[] } = { sleep: [], feeds: [] };
   for (const block of blocks ?? []) {
     const start = Date.parse(block.startedAt);
-    const end = Date.parse(block.endedAt);
+    const end = Math.max(start, Date.parse(block.endedAt));
     if (end <= window.start.getTime() || start >= window.end.getTime()) continue;
     const ahead = Math.min(1, Math.max(0, start - now.getTime()) / PREDICTION_HORIZON_MS);
     (block.kind === 'sleep' ? layout.sleep : layout.feeds).push({
       kind: block.kind,
-      continuesRunning: block.continuesRunning,
       startFrac: fractionOf(window, start),
       endFrac: fractionOf(window, end),
       opacity: 1 - (1 - FADED_OPACITY) * ahead,
       label: blockLabel(block, timeZone),
-      band: bandOf(block, window, now.getTime()),
-      tip: predictedItemTip(block, timeZone),
+      tip: predictedItemTip(block, now, timeZone),
     });
   }
   return layout;
