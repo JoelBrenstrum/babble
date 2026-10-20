@@ -51,7 +51,7 @@ export function DayTimeline({
   night = [],
 }: {
   layout: DayLayout;
-  ticks: { frac: number; label: string }[];
+  ticks: { frac: number; label: string; minor?: boolean }[];
   timeZone: string;
   units: Units;
   nowFrac: number | null;
@@ -85,19 +85,27 @@ export function DayTimeline({
       )}
       <View className="flex-row gap-2" style={{ height: DAY_TIMELINE_HEIGHT }}>
         <View className="w-7">
-          {ticks.map((tick, index) => (
-            <Text
-              key={index}
-              className="absolute left-0 font-sans text-caption text-ink-3"
-              style={{ top: pct(tick.frac), transform: [{ translateY: -7 }] }}
-            >
-              {tick.label}
-            </Text>
-          ))}
+          {ticks.map(
+            (tick, index) =>
+              !tick.minor && (
+                <Text
+                  key={index}
+                  className="absolute left-0 font-sans text-caption text-ink-3"
+                  style={{ top: pct(tick.frac), transform: [{ translateY: -7 }] }}
+                >
+                  {tick.label}
+                </Text>
+              ),
+          )}
         </View>
         <View className="absolute bottom-0 left-9 right-0 top-0" pointerEvents="none">
           {ticks.map((tick, index) => (
-            <View key={index} className="absolute inset-x-0 border-t border-line" style={{ top: pct(tick.frac) }} />
+            <View
+              key={index}
+              testID={tick.minor ? 'hour-line' : undefined}
+              className={`absolute inset-x-0 border-t border-line ${tick.minor ? 'opacity-40' : ''}`}
+              style={{ top: pct(tick.frac) }}
+            />
           ))}
           {night.map((marker) => (
             <View

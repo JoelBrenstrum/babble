@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { dayWindow } from '../time/local-time';
 import { lastDayWindow } from '../time/windows';
-import { hourTicks, windowTicks } from './days';
+import { hourTicks, windowTicks, withMinorHours } from './days';
 
 describe('hourTicks', () => {
   it('labels ticks from the day start', () => {
@@ -50,5 +50,15 @@ describe('ticks on a daylight saving changeover day', () => {
 
   it('agrees with hourTicks', () => {
     expect(hourTicks('2026-09-26', zone, 360, 6)).toEqual(windowTicks(dayWindow('2026-09-26', zone, 360), zone, 6));
+  });
+});
+
+describe('withMinorHours', () => {
+  it('fills the hours between labelled ticks with unlabelled minor ticks', () => {
+    const ticks = withMinorHours(hourTicks('2026-10-06', 'UTC', 0, 6), hourTicks('2026-10-06', 'UTC', 0, 1));
+    expect(ticks).toHaveLength(25);
+    expect(ticks.filter((tick) => tick.minor).map((tick) => tick.label)).not.toContain('06');
+    expect(ticks.filter((tick) => !tick.minor).map((tick) => tick.label)).toEqual(['00', '06', '12', '18', '00']);
+    expect(ticks.map((tick) => tick.frac)).toEqual([...ticks].map((tick) => tick.frac).sort((a, b) => a - b));
   });
 });

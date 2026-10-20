@@ -55,6 +55,30 @@ describe('DayTimeline', () => {
     expect(screen.queryByText(/so far$/)).not.toBeInTheDocument();
   });
 
+  it('draws minor hours as unlabelled lines', async () => {
+    const nap = { ...sampleRunningSleep(now), startedAt: new Date(now.getTime() - 72 * 60_000).toISOString() };
+    render(
+      <FixtureRouter>
+        <DayTimeline
+          layout={dayLayout([nap], window, now)}
+          ticks={[
+            { frac: 0, label: '00' },
+            { frac: 1 / 24, label: '01', minor: true },
+            { frac: 2 / 24, label: '02', minor: true },
+            { frac: 3 / 24, label: '03' },
+          ]}
+          timeZone={timeZone}
+          units="metric"
+          now={now}
+          nowFrac={null}
+        />
+      </FixtureRouter>,
+    );
+    expect(await screen.findByText('03')).toBeInTheDocument();
+    expect(screen.queryByText('01')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('hour-line')).toHaveLength(2);
+  });
+
   it('explains a predicted block and shades its likely range', async () => {
     const nap = { ...sampleRunningSleep(now), startedAt: new Date(now.getTime() - 72 * 60_000).toISOString() };
     const tip = {

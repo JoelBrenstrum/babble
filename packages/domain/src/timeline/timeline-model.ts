@@ -11,7 +11,7 @@ import { MINUTE_MS } from '../time/constants';
 import { dayKeyFor, dayWindow, formatDayLabel, lastDays, shiftDay } from '../time/local-time';
 import { bucketByDay, dayLayout, type DayLayout } from './day-layout';
 import { fractionOf, lastDayWindow, type TimeWindow } from '../time/windows';
-import { hourTicks, windowTicks } from './days';
+import { hourTicks, windowTicks, withMinorHours } from './days';
 import { countedDays, formatDayRange } from './totals';
 
 export type TimelineView = 'day' | '24h' | '7d' | '30d';
@@ -51,6 +51,7 @@ export interface TimelineDay {
 export interface TimelineTick {
   frac: number;
   label: string;
+  minor?: boolean;
 }
 
 export function timelineRange(input: {
@@ -140,7 +141,7 @@ export function timelineModel(input: {
       window,
       summary: summariseDay(events, window, summaryOptions(settings, baby, todayKey, now)),
       layout: dayLayout(events, window, now),
-      ticks: windowTicks(window, baby.timezone, 3),
+      ticks: withMinorHours(windowTicks(window, baby.timezone, 3), windowTicks(window, baby.timezone, 1)),
       nowFrac: 1,
     };
   }
@@ -158,7 +159,10 @@ export function timelineModel(input: {
         summary: summariseDay(dayEvents, window, summaryOptions(settings, baby, dayKey, now)),
         layout: dayLayout(dayEvents, window, now),
       },
-      ticks: hourTicks(dayKey, baby.timezone, baby.day_start_minutes, 3),
+      ticks: withMinorHours(
+        hourTicks(dayKey, baby.timezone, baby.day_start_minutes, 3),
+        hourTicks(dayKey, baby.timezone, baby.day_start_minutes, 1),
+      ),
       nowFrac: dayKey === todayKey ? fractionOf(window, now.getTime()) : null,
     };
   }

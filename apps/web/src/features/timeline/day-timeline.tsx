@@ -96,7 +96,7 @@ export function DayTimeline({
   night = [],
 }: {
   layout: DayLayout;
-  ticks: { frac: number; label: string }[];
+  ticks: { frac: number; label: string; minor?: boolean }[];
   timeZone: string;
   units: Units;
   now: Date;
@@ -157,21 +157,25 @@ export function DayTimeline({
       </div>
       <div ref={grid} className="relative grid h-[36rem] gap-2 md:h-[46rem]" style={columns} data-testid="day-timeline">
         <div className="relative">
-          {ticks.map((tick, index) => (
-            <span
-              key={index}
-              className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
-              style={{ top: formatFraction(tick.frac) }}
-            >
-              {tick.label}
-            </span>
-          ))}
+          {ticks.map(
+            (tick, index) =>
+              !tick.minor && (
+                <span
+                  key={index}
+                  className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
+                  style={{ top: formatFraction(tick.frac) }}
+                >
+                  {tick.label}
+                </span>
+              ),
+          )}
         </div>
         <div className="pointer-events-none absolute inset-y-0 left-[2.75rem] right-0">
           {ticks.map((tick, index) => (
             <div
               key={index}
-              className="absolute inset-x-0 border-t border-line"
+              data-testid={tick.minor ? 'hour-line' : undefined}
+              className={cn('absolute inset-x-0 border-t border-line', tick.minor && 'opacity-40')}
               style={{ top: formatFraction(tick.frac) }}
             />
           ))}
