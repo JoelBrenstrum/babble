@@ -96,7 +96,8 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
       ? predictedLayout(prediction, model.day.window, now, baby.timezone)
       : null;
   const showsPrediction = Boolean(predicted && (predicted.sleep.length || predicted.feeds.length));
-  const predictionLine = model.view === 'day' && dayKey === todayKey ? predictionText(prediction, baby.timezone) : null;
+  const predictionLine =
+    model.view === 'day' && dayKey === todayKey ? predictionText(prediction, now, baby.timezone) : null;
   const [compare, setCompare] = useState(false);
   const [pitching, setPitching] = useState(false);
   const comparing = (view === 'day' || view === '24h') && compare && !insightsLocked;

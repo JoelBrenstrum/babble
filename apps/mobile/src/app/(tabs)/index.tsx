@@ -50,7 +50,7 @@ function HomeContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) {
         running={running.data ?? []}
         latest={latest.data ?? []}
         feedDue={due ? feedDueText(due, now, baby.timezone) : null}
-        prediction={predictionText(prediction, baby.timezone)}
+        prediction={predictionText(prediction, now, baby.timezone)}
         predictionPlus={config.billingEnabled}
         addBabyLocked={!canAddBaby(config.billingEnabled, family.plan, family.babies.length)}
         canAddBaby={session ? isAdmin(family, session.user.id) : false}

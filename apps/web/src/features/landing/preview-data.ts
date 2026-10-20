@@ -52,7 +52,7 @@ export function homePreview(now: Date) {
     running: [running],
     latest: [running, ...events],
     summary,
-    prediction: predictionText(predicted, timezone),
+    prediction: predictionText(predicted, now, timezone),
   };
 }
 
@@ -89,7 +89,7 @@ export function timelinePreview(now: Date) {
     nowFrac: fractionOf(window, at.getTime()),
     totals: dayTotalCards(summary, 'metric', timezone),
     predicted: predictedLayout(predicted, window, at, timezone),
-    prediction: predictionText(predicted, timezone),
+    prediction: predictionText(predicted, at, timezone),
   };
 }
 

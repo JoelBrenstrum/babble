@@ -157,7 +157,7 @@ export {
   type FeedDueMarker,
 } from './events/feed-due';
 export { importedNote, summariseImport } from './huckleberry/summary';
-export { type PredictedBlock } from './predict/predict-day';
+export { type PredictedBlock, type PredictedWindow } from './predict/predict-day';
 export {
   predictAhead,
   predictedLayout,

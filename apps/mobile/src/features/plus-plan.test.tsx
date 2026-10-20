@@ -6,7 +6,7 @@ describe('PlusPlan', () => {
   it('shows an active plus plan and what it includes', async () => {
     await render(<PlusPlan summary={planSummary(true, 'plus')!} />);
     expect(screen.getByText('Active')).toBeTruthy();
-    expect(screen.getByText('Predicted sleeps and feeds on Home and the Timeline')).toBeTruthy();
+    expect(screen.getByText('Sleep windows and predicted feeds on Home and the Timeline')).toBeTruthy();
   });
 
   it('tells a free family what plus adds', async () => {

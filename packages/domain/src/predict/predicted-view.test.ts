@@ -3,12 +3,14 @@ import type { PredictedBlock } from './predict-day';
 import { predictedLayout, predictionSince, predictionText } from './predicted-view';
 
 const TZ = 'Pacific/Auckland';
-const block = (kind: PredictedBlock['kind'], startedAt: string, endedAt: string, continuesRunning = false) => ({
-  kind,
-  startedAt,
-  endedAt,
-  continuesRunning,
-});
+const NOW = new Date('2026-10-13T00:30:00Z');
+const block = (
+  kind: PredictedBlock['kind'],
+  startedAt: string,
+  endedAt: string,
+  continuesRunning = false,
+  windows: Pick<PredictedBlock, 'startWindow' | 'endWindow'> = {},
+): PredictedBlock => ({ kind, startedAt, endedAt, continuesRunning, ...windows });
 
 describe('predictionSince', () => {
   it('looks back seven days from the start of the hour so the query stays cached', () => {
@@ -19,7 +21,7 @@ describe('predictionSince', () => {
 describe('predictionText', () => {
   it('says when a running nap will likely end', () => {
     const blocks = [block('sleep', '2026-10-13T00:00:00Z', '2026-10-13T01:20:00Z', true)];
-    expect(predictionText(blocks, TZ)).toBe('Likely awake around 2:20 pm');
+    expect(predictionText(blocks, NOW, TZ)).toBe('Likely awake around 2:20 pm');
   });
 
   it('says when the next nap will likely start', () => {
@@ -27,12 +29,40 @@ describe('predictionText', () => {
       block('feed', '2026-10-13T00:00:00Z', '2026-10-13T00:40:00Z', true),
       block('sleep', '2026-10-13T00:50:00Z', '2026-10-13T02:00:00Z'),
     ];
-    expect(predictionText(blocks, TZ)).toBe('Likely asleep around 1:50 pm');
+    expect(predictionText(blocks, NOW, TZ)).toBe('Likely asleep around 1:50 pm');
+  });
+
+  it('gives a wake-up range when the running nap has a wide one', () => {
+    const blocks = [
+      block('sleep', '2026-10-13T00:00:00Z', '2026-10-13T01:20:00Z', true, {
+        endWindow: { from: '2026-10-13T01:00:00Z', to: '2026-10-13T01:40:00Z' },
+      }),
+    ];
+    expect(predictionText(blocks, NOW, TZ)).toBe('Likely awake 2:00 pm–2:40 pm');
+  });
+
+  it('rounds a narrow range down to a single time', () => {
+    const blocks = [
+      block('sleep', '2026-10-13T00:50:00Z', '2026-10-13T02:00:00Z', false, {
+        startWindow: { from: '2026-10-13T00:48:00Z', to: '2026-10-13T00:55:00Z' },
+      }),
+    ];
+    expect(predictionText(blocks, NOW, TZ)).toBe('Likely asleep around 1:50 pm');
+  });
+
+  it('describes the sleep window relative to now', () => {
+    const startWindow = { from: '2026-10-13T00:40:00Z', to: '2026-10-13T01:05:00Z' };
+    const blocks = [block('sleep', '2026-10-13T00:50:00Z', '2026-10-13T02:00:00Z', false, { startWindow })];
+    expect(predictionText(blocks, new Date('2026-10-13T00:30:00Z'), TZ)).toBe('Next sleep likely 1:40 pm–2:05 pm');
+    expect(predictionText(blocks, new Date('2026-10-13T00:50:00Z'), TZ)).toBe('Sleep window open until 2:05 pm');
+    expect(predictionText(blocks, new Date('2026-10-13T01:10:00Z'), TZ)).toBe(
+      'Past the usual sleep window, likely ready now',
+    );
   });
 
   it('says nothing without a prediction', () => {
-    expect(predictionText(null, TZ)).toBeNull();
-    expect(predictionText([], TZ)).toBeNull();
+    expect(predictionText(null, NOW, TZ)).toBeNull();
+    expect(predictionText([], NOW, TZ)).toBeNull();
   });
 });
 

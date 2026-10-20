@@ -1,12 +1,14 @@
 import { formatTimeOfDay } from '../time/local-time';
 import { fractionOf, type TimeWindow } from '../time/windows';
 import type { BabyEvent } from '../events/types';
-import { predictDay, type PredictedBlock, type PredictedKind } from './predict-day';
-import { DAY_MS, HOUR_MS } from '../time/constants';
+import { ageInMonths } from '../growth/growth';
+import { predictDay, type PredictedBlock, type PredictedKind, type PredictedWindow } from './predict-day';
+import { DAY_MS, HOUR_MS, MINUTE_MS } from '../time/constants';
 
 export const PREDICTION_HORIZON_MS = 4 * HOUR_MS;
 const LOOKBACK_MS = 7 * DAY_MS;
 const FADED_OPACITY = 0.35;
+const NARROW_WINDOW_MS = 10 * MINUTE_MS;
 
 export interface PredictedItem {
   kind: PredictedKind;
@@ -16,22 +18,47 @@ export interface PredictedItem {
   label: string;
 }
 
+export interface PredictionBaby {
+  timeZone: string;
+  birthDate?: string | null;
+}
+
 export function predictionSince(now: Date): string {
   return `${new Date(now.getTime() - LOOKBACK_MS).toISOString().slice(0, 13)}:00:00Z`;
 }
 
-export function predictAhead(events: readonly BabyEvent[], now: Date, timeZone: string): PredictedBlock[] | null {
-  return predictDay(events, now, new Date(now.getTime() + PREDICTION_HORIZON_MS), { timeZone });
+export function predictAhead(events: readonly BabyEvent[], now: Date, baby: PredictionBaby): PredictedBlock[] | null {
+  const ageMonths = baby.birthDate ? ageInMonths(baby.birthDate, now.toISOString(), baby.timeZone) : null;
+  return predictDay(events, now, new Date(now.getTime() + PREDICTION_HORIZON_MS), {
+    timeZone: baby.timeZone,
+    ageMonths,
+  });
 }
 
-export function predictionText(blocks: readonly PredictedBlock[] | null, timeZone: string): string | null {
+function narrow(window: PredictedWindow | undefined): window is undefined {
+  return !window || Date.parse(window.to) - Date.parse(window.from) < NARROW_WINDOW_MS;
+}
+
+function span(window: PredictedWindow, timeZone: string): string {
+  return `${formatTimeOfDay(window.from, timeZone)}–${formatTimeOfDay(window.to, timeZone)}`;
+}
+
+export function predictionText(blocks: readonly PredictedBlock[] | null, now: Date, timeZone: string): string | null {
   const first = blocks?.[0];
   if (!first) return null;
   if (first.kind === 'sleep' && first.continuesRunning) {
-    return `Likely awake around ${formatTimeOfDay(first.endedAt, timeZone)}`;
+    return narrow(first.endWindow)
+      ? `Likely awake around ${formatTimeOfDay(first.endedAt, timeZone)}`
+      : `Likely awake ${span(first.endWindow, timeZone)}`;
   }
   const sleep = blocks.find((block) => block.kind === 'sleep' && !block.continuesRunning);
-  return sleep ? `Likely asleep around ${formatTimeOfDay(sleep.startedAt, timeZone)}` : null;
+  if (!sleep) return null;
+  const window = sleep.startWindow;
+  if (narrow(window)) return `Likely asleep around ${formatTimeOfDay(sleep.startedAt, timeZone)}`;
+  const nowMs = now.getTime();
+  if (nowMs < Date.parse(window.from)) return `Next sleep likely ${span(window, timeZone)}`;
+  if (nowMs <= Date.parse(window.to)) return `Sleep window open until ${formatTimeOfDay(window.to, timeZone)}`;
+  return 'Past the usual sleep window, likely ready now';
 }
 
 function blockLabel(block: PredictedBlock, timeZone: string): string {

@@ -32,7 +32,7 @@ function HomePage() {
         running={running.data ?? []}
         latest={latest.data ?? []}
         feedDue={due ? feedDueText(due, now, baby.timezone) : null}
-        prediction={predictionText(prediction, baby.timezone)}
+        prediction={predictionText(prediction, now, baby.timezone)}
         predictionPlus={babble.config.billingEnabled}
         summary={recent.data ? summariseDay(recent.data, dayToNow) : null}
         canLog={canLog}
