@@ -1,0 +1,30 @@
+name: Deploy staging
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  approve:
+    runs-on: ubuntu-latest
+    environment: staging-approval
+    concurrency:
+      group: approve-staging-${{ github.event.number || 'manual' }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - run: echo "Approved for staging"
+
+  deploy:
+    needs: approve
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: staging
+      fly-config: fly.staging.toml
+      url: https://babble-staging.fly.dev
+    secrets: inherit
