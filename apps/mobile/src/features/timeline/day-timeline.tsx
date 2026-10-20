@@ -189,40 +189,52 @@ export function DayTimeline({
   );
 }
 
+const FADE_STEPS = 6;
+const MIN_SPAN_FRAC = 1e-6;
+
+function predictedSpan(item: PredictedItem) {
+  const { band } = item;
+  const top = band && !item.continuesRunning ? Math.min(band.startFrac, item.startFrac) : item.startFrac;
+  const bottom = band && item.continuesRunning ? Math.max(band.endFrac, item.endFrac) : item.endFrac;
+  const fadeFrac = band ? Math.min(bottom - top, band.endFrac - band.startFrac) : 0;
+  return { top, bottom, fadeFrac };
+}
+
 function Predicted({ item, onTip }: { item: PredictedItem; onTip: () => void }) {
+  const { top, bottom, fadeFrac } = predictedSpan(item);
+  const span = Math.max(bottom - top, MIN_SPAN_FRAC);
+  const within = (frac: number) => pct(frac / span);
+  const running = item.continuesRunning;
+  const fadeStart = running ? span - fadeFrac : 0;
   const soft = item.kind === 'sleep' ? 'bg-sleep-soft' : 'bg-feed-left-soft';
-  const tone = item.kind === 'sleep' ? 'bg-sleep' : 'bg-feed-left';
+  const edge = item.kind === 'sleep' ? 'border-sleep' : 'border-feed-left';
+  const corners = fadeFrac > 0 ? (running ? 'rounded-t-md border-b-0' : 'rounded-b-md border-t-0') : 'rounded-md';
   return (
-    <>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={item.label}
-        testID="predicted-block"
-        onPress={onTip}
-        className={`absolute inset-x-0 rounded-md border-2 border-dashed ${item.kind === 'sleep' ? 'border-sleep' : 'border-feed-left'} ${soft}`}
-        style={{
-          top: pct(item.startFrac),
-          height: pct(item.endFrac - item.startFrac),
-          minHeight: 4,
-          opacity: item.opacity,
-        }}
-      />
-      {item.band && (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={item.label}
+      testID="predicted-block"
+      onPress={onTip}
+      className="absolute inset-x-0"
+      style={{ top: pct(top), height: pct(span), minHeight: 4, opacity: item.opacity }}
+    >
+      {Array.from({ length: fadeFrac > 0 ? FADE_STEPS : 0 }, (_, index) => (
         <View
-          testID="predicted-band"
-          pointerEvents="none"
-          className={`absolute right-1 z-10 w-0.5 ${tone}`}
+          key={index}
+          testID="predicted-fade"
+          className={`absolute inset-x-0 ${soft}`}
           style={{
-            top: pct(item.band.startFrac),
-            height: pct(item.band.endFrac - item.band.startFrac),
-            opacity: item.opacity,
+            top: within(fadeStart + (fadeFrac * index) / FADE_STEPS),
+            height: within(fadeFrac / FADE_STEPS),
+            opacity: (running ? FADE_STEPS - index : index + 1) / (FADE_STEPS + 1),
           }}
-        >
-          <View className={`absolute top-0 h-0.5 w-2 ${tone}`} style={{ left: -3 }} />
-          <View className={`absolute bottom-0 h-0.5 w-2 ${tone}`} style={{ left: -3 }} />
-        </View>
-      )}
-    </>
+        />
+      ))}
+      <View
+        className={`absolute inset-x-0 border-2 border-dashed ${edge} ${soft} ${corners}`}
+        style={{ top: within(running ? 0 : fadeFrac), height: within(span - fadeFrac), minHeight: 4 }}
+      />
+    </Pressable>
   );
 }
 

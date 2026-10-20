@@ -14,6 +14,7 @@ const NARROW_WINDOW_MS = 10 * MINUTE_MS;
 
 export interface PredictedItem {
   kind: PredictedKind;
+  continuesRunning: boolean;
   startFrac: number;
   endFrac: number;
   opacity: number;
@@ -125,6 +126,7 @@ export function predictedLayout(
     const ahead = Math.min(1, Math.max(0, start - now.getTime()) / PREDICTION_HORIZON_MS);
     (block.kind === 'sleep' ? layout.sleep : layout.feeds).push({
       kind: block.kind,
+      continuesRunning: block.continuesRunning,
       startFrac: fractionOf(window, start),
       endFrac: fractionOf(window, end),
       opacity: 1 - (1 - FADED_OPACITY) * ahead,

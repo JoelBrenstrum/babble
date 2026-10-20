@@ -45,6 +45,7 @@ describe('DayTimeline', () => {
       sleep: [
         {
           kind: 'sleep' as const,
+          continuesRunning: false,
           startFrac: 0.55,
           endFrac: 0.6,
           opacity: 0.8,
@@ -68,7 +69,7 @@ describe('DayTimeline', () => {
       />,
     );
     expect(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm')).toBeTruthy();
-    expect(screen.getByTestId('predicted-band')).toBeTruthy();
+    expect(screen.getAllByTestId('predicted-fade')).toHaveLength(6);
     await fireEvent.press(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm'));
     expect(screen.getByText('Could start 2:00 pm – 2:30 pm')).toBeTruthy();
     await fireEvent.press(screen.getByTestId('timeline-tip'));
