@@ -34,7 +34,7 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
   await expect(page.getByRole('heading', { name: 'Patterns' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Daily stats' })).toBeVisible();
   const sections = page.getByRole('navigation', { name: 'Stats sections' });
-  await expect(sections.getByRole('link')).toHaveText(['Patterns', 'Daily stats', 'Growth']);
+  await expect(sections.getByRole('link')).toHaveText(['Daily stats', 'Growth', 'Patterns']);
   await sections.getByRole('link', { name: 'Growth' }).click();
   await expect(page).toHaveURL(/#stats-section-growth$/);
 

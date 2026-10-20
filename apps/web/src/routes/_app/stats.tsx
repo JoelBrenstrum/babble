@@ -66,9 +66,9 @@ function StatsPage() {
   const showGrowth = Boolean(growth.data && (growth.data.length > 0 || (events.data?.length ?? 0) > 0));
   const patterns = patternsOf(insights);
   const sections = [
-    { id: 'patterns', label: 'Patterns', shown: patterns !== null },
     { id: 'daily', label: 'Daily stats', shown: true },
     { id: 'growth', label: 'Growth', shown: showGrowth },
+    { id: 'patterns', label: 'Patterns', shown: patterns !== null },
   ].filter((section) => section.shown);
 
   return (
@@ -87,7 +87,6 @@ function StatsPage() {
           ))}
         </nav>
       </div>
-      {patterns && <Insights patterns={patterns} babyName={baby.name} plusBadges={babble.config.billingEnabled} />}
       <section id="stats-section-daily" className="flex scroll-mt-6 flex-col gap-4" aria-labelledby="stats-daily">
         <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
           <div>
@@ -146,6 +145,7 @@ function StatsPage() {
           />
         </div>
       )}
+      {patterns && <Insights patterns={patterns} babyName={baby.name} plusBadges={babble.config.billingEnabled} />}
     </div>
   );
 }

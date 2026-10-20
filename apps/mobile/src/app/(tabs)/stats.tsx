@@ -68,7 +68,6 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
     <Screen edges={['top']}>
       <View className="gap-8">
         <Text className="font-bold text-title text-ink">Stats</Text>
-        <Insights state={insights} babyName={baby.name} plusBadges={config.billingEnabled} />
         <View className="gap-4">
           <View className="gap-1">
             <Text accessibilityRole="header" className="font-bold text-heading text-ink">
@@ -113,6 +112,7 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
             plusBadge={config.billingEnabled}
           />
         )}
+        <Insights state={insights} babyName={baby.name} plusBadges={config.billingEnabled} />
       </View>
     </Screen>
   );
