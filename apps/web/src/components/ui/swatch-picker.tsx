@@ -1,7 +1,7 @@
 import type { PooColour } from '@babble/domain';
 import { Stethoscope } from 'lucide-react';
 import { cn } from '#/lib/cn';
-import { CAUTION_COLOURS, POO_COLOURS, swatchBackground } from './poo-swatch';
+import { CAUTION_COLOURS, POO_COLOURS, pooColour, swatchBackground } from './poo-swatch';
 
 export function SwatchPicker({
   value,
@@ -12,7 +12,7 @@ export function SwatchPicker({
 }) {
   const full = value.length >= 2;
   const caution = value.some((colour) => CAUTION_COLOURS.includes(colour));
-  const summary = value.map((colour) => POO_COLOURS.find((c) => c.value === colour)!.label).join(' + ');
+  const summary = value.map((colour) => pooColour(colour).label).join(' + ');
 
   return (
     <fieldset className="flex flex-col gap-3">

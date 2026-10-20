@@ -1,12 +1,11 @@
-import { clock, queryKeys, type BabbleClient, type BabySettings, type Author } from '@babble/api';
-import { useDiscardSession, useNow, useSessionAction } from '@babble/api/react';
+import { clock, type BabbleClient, type Author } from '@babble/api';
+import { useDiscardSession, useNow, useSessionAction, useSessionPrompts } from '@babble/api/react';
 import {
   discardNeedsConfirmation,
   feedEndTime,
   formatDuration,
   formatTimer,
   pausedForMs,
-  promptsForSessionEvent,
   segmentTotals,
   SIDE_LABEL,
   sessionNoun,
@@ -15,7 +14,6 @@ import {
   type EventOfType,
   type Side,
 } from '@babble/domain';
-import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { Moon, Pause, Play, Square, Trash2 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
@@ -237,7 +235,7 @@ function FeedRunningCard({
     onDiscarded,
   });
   const showNapPrompt = useNapPrompt();
-  const queryClient = useQueryClient();
+  const promptsFor = useSessionPrompts(client, event.babyId);
   const navigate = useNavigate();
 
   const totals = segmentTotals(event.segments, now);
@@ -246,16 +244,8 @@ function FeedRunningCard({
   const currentMs = open ? now.getTime() - Date.parse(open.startedAt) : 0;
   const title = event.type === 'pump' ? 'Pumping' : 'Feeding';
 
-  const cached = () => ({
-    running: queryClient.getQueryData<BabyEvent[]>(queryKeys.runningEvents(event.babyId)) ?? [],
-    latest: queryClient.getQueryData<BabyEvent[]>(queryKeys.latestEvents(event.babyId)) ?? [],
-    nappyTiming:
-      queryClient.getQueryData<BabySettings>(queryKeys.babySettings(event.babyId))?.nappy_prompt ?? 'feed_start',
-  });
-
   async function pressSide(side: Side, active: boolean) {
-    const context = cached();
-    const at = clock.now().toISOString();
+    const prompts = active ? [] : promptsFor({ kind: 'side', event, side });
     try {
       await action.mutateAsync({
         event,
@@ -264,12 +254,11 @@ function FeedRunningCard({
     } catch {
       return;
     }
-    if (!active) promptsForSessionEvent({ kind: 'side', event, side, at, ...context }).forEach(showNapPrompt);
+    prompts.forEach(showNapPrompt);
   }
 
   async function finish(at?: string) {
-    const context = cached();
-    const endedAt = at ?? feedEndTime(event, clock.now());
+    const prompts = promptsFor({ kind: 'end', event, at: at ?? feedEndTime(event, clock.now()) });
     try {
       await action.mutateAsync({ event, action: { kind: 'end', at } });
     } catch {
@@ -279,7 +268,7 @@ function FeedRunningCard({
       void navigate({ to: '/events/$eventId', params: { eventId: event.id }, search: { finish: true } });
       return;
     }
-    promptsForSessionEvent({ kind: 'end', event, at: endedAt, ...context }).forEach(showNapPrompt);
+    prompts.forEach(showNapPrompt);
   }
 
   return (

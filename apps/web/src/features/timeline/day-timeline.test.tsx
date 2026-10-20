@@ -40,8 +40,8 @@ describe('DayTimeline', () => {
 
   it('only draws the lanes it is asked to', async () => {
     renderTimeline(now, now, ['nappies', 'pumps']);
-    expect(await screen.findByText('Nappy')).toBeInTheDocument();
-    expect(screen.getByText('Pump')).toBeInTheDocument();
+    expect(await screen.findByText('Nappies')).toBeInTheDocument();
+    expect(screen.getByText('Pumps')).toBeInTheDocument();
     expect(screen.queryByText('Sleep')).not.toBeInTheDocument();
     expect(screen.queryByText('1h 12m')).not.toBeInTheDocument();
   });

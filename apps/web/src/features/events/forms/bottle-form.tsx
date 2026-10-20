@@ -1,4 +1,11 @@
-import { formatVolume, instantDraft, volumeToMl, type BottleContent, type DraftOfType } from '@babble/domain';
+import {
+  formatVolume,
+  instantDraft,
+  mlToVolume,
+  volumeToMl,
+  type BottleContent,
+  type DraftOfType,
+} from '@babble/domain';
 import { DateTimeField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
 import { Stepper } from '#/components/ui/stepper';
@@ -16,8 +23,7 @@ export function BottleForm({ draft, onChange, errors, timeZone, units }: FormPro
   const set = (patch: Partial<typeof details>) => onChange({ ...draft, details: { ...details, ...patch } });
   const unit = units === 'metric' ? 'ml' : 'oz';
   const step = units === 'metric' ? 10 : 0.5;
-  const display = (ml: number | null) =>
-    ml === null ? null : units === 'metric' ? ml : Number((ml / 29.5735).toFixed(1));
+  const display = (ml: number | null) => (ml === null ? null : mlToVolume(ml, units));
   const drank = details.amountMl !== null ? details.amountMl - (details.amountLeftMl ?? 0) : null;
 
   return (

@@ -3,15 +3,6 @@ import { readStorage, storageKeys } from './storage';
 
 export type { ThemePreference };
 
-export function resolveTheme(
-  preference: string | null,
-  prefersDark: boolean,
-  night: NightWindow | null = null,
-  now: Date = new Date(),
-): 'light' | 'dark' {
-  return themeOverride(preference, night, now) ?? (prefersDark ? 'dark' : 'light');
-}
-
 export const THEME_COLORS = { light: '#f3f0e8', dark: '#141612' } as const;
 const OVERRIDE_ID = 'theme-color-override';
 

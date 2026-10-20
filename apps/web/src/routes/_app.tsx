@@ -24,18 +24,16 @@ import { useSelectBaby } from '#/lib/use-select-baby';
 
 export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context, location }) => {
-    const { data } = await context.babble.client.auth.getSession();
+    const { session } = (await context.babble.client.auth.getSession()).data;
     await queryCacheRestored();
-    const families = data.session
-      ? await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client))
-      : [];
+    const families = session ? await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client)) : [];
     const state = resolveOnboarding({
-      signedIn: Boolean(data.session),
+      signedIn: Boolean(session),
       families,
       activeFamilyId: readStorage(storageKeys.activeFamily),
       activeBabyId: readStorage(storageKeys.activeBaby),
     });
-    if (state.step === 'sign-in') {
+    if (!session || state.step === 'sign-in') {
       if (location.pathname === '/chair' && context.babble.config.deviceSignInEnabled) {
         throw redirect({ to: '/device-sign-in', search: { to: location.href } });
       }
@@ -49,7 +47,6 @@ export const Route = createFileRoute('/_app')({
     }
     if (state.step === 'family') throw redirect({ to: '/onboarding/family' });
     if (state.step === 'baby') throw redirect({ to: '/onboarding/baby' });
-    const session = data.session!;
     return {
       session,
       family: state.family,

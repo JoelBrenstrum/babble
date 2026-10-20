@@ -3,26 +3,15 @@ import {
   filterLayout,
   parseTimelineLanes,
   shownLanes,
-  daySummaryStrip,
-  dayTotalCards,
   predictedLayout,
   predictionText,
   weekSummaryStrip,
   weekTableRows,
   TIMELINE_SPAN,
-  type DayComparison,
-  type DayLayout,
-  type FeedDueMarker,
-  type NightMarker,
-  type DaySummary,
-  type PredictedItem,
-  type TimelineLane,
-  type TimelineTick,
+  TIMELINE_VIEWS,
   type TimelineView,
-  type Units,
 } from '@babble/domain';
 import { familyHasFeature } from '@babble/config';
-import { sampleMonthView } from '@babble/api/fixtures';
 import {
   useDayComparison,
   useNow,
@@ -33,34 +22,32 @@ import {
   useUnits,
 } from '@babble/api/react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ArrowLeftRight, ChevronLeft, ChevronRight, Sparkles } from 'lucide-react';
-import { useMemo, useState, type ReactNode } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import { Segmented } from '#/components/ui/segmented';
 import { PageSpinner } from '#/components/ui/spinner';
 import { PredictionLine } from '#/features/home-overview';
 import { PlusBadge, PlusDialog } from '#/features/plus-dialog';
-import { DayComparisonCard } from '#/features/timeline/day-comparison';
-import { DayTimeline } from '#/features/timeline/day-timeline';
+import { CompareButton } from '#/features/timeline/compare-button';
+import { DayPanel, dayPanelView, isDayModel } from '#/features/timeline/day-panel';
 import { LaneToggles } from '#/features/timeline/lane-toggles';
-import { DayTotals, SummaryStrip, WeekTable } from '#/features/timeline/totals';
+import { SampleMonth } from '#/features/timeline/sample-month';
+import { SummaryStrip, WeekTable } from '#/features/timeline/totals';
 import { WeekTimeline } from '#/features/timeline/week-timeline';
 import { MonthTimeline } from '#/features/timeline/month-timeline';
 import { PlusMask } from '#/features/plus-mask';
 import { cn } from '#/lib/cn';
+import { parseBooleanParam, parseOptionParam } from '#/lib/search-params';
 
-type View = TimelineView;
 const DAY_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 export const Route = createFileRoute('/_app/timeline')({
   validateSearch: (
     search: Record<string, unknown>,
-  ): { view?: View; date?: string; compare?: boolean; show?: string } => ({
-    view:
-      search.view === '7d' || search.view === '30d' || search.view === 'day' || search.view === '24h'
-        ? search.view
-        : undefined,
+  ): { view?: TimelineView; date?: string; compare?: boolean; show?: string } => ({
+    view: parseOptionParam(search.view, TIMELINE_VIEWS),
     date: typeof search.date === 'string' && DAY_KEY.test(search.date) ? search.date : undefined,
-    compare: search.compare === true || search.compare === 'true' ? true : undefined,
+    compare: parseBooleanParam(search.compare),
     show: parseTimelineLanes(search.show),
   }),
   component: TimelinePage,
@@ -92,7 +79,7 @@ function TimelinePage() {
   const predictionLine = showsToday ? predictionText(prediction, baby.timezone) : null;
   const plus = babble.config.billingEnabled;
   const [pitching, setPitching] = useState(false);
-  const { feedDue, night } = useTimelineMarkers({
+  const markers = useTimelineMarkers({
     client: babble.client,
     babyId: baby.id,
     timeZone: baby.timezone,
@@ -130,7 +117,7 @@ function TimelinePage() {
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-title font-bold">Timeline</h1>
         <div className="w-72">
-          <Segmented<View>
+          <Segmented<TimelineView>
             label="Timeline view"
             value={view}
             onChange={(next) => void navigate({ search: { view: next, date, compare, show } })}
@@ -217,21 +204,17 @@ function TimelinePage() {
         </PlusMask>
       ) : !model ? (
         <PageSpinner />
-      ) : model.view === 'day' ? (
+      ) : isDayModel(model) ? (
         <DayPanel
-          summary={model.day.summary}
-          layout={model.day.layout}
+          view={dayPanelView(model)}
+          markers={markers}
           lanes={lanes}
-          ticks={model.ticks}
-          nowFrac={model.nowFrac}
           now={now}
           units={units}
           timeZone={baby.timezone}
           predicted={predicted}
-          feedDue={feedDue}
-          night={night}
-          currentLabel={range.rangeLabel}
-          comparison={comparing ? (comparison ?? 'loading') : null}
+          currentLabel={model.view === 'day' ? range.rangeLabel : 'Last 24h'}
+          comparison={comparing ? ((model.view === 'day' ? comparison : rolling) ?? 'loading') : null}
           plusBadge={plus}
           before={predictionLine && <PredictionLine text={predictionLine} plus={plus} />}
           after={
@@ -243,22 +226,6 @@ function TimelinePage() {
               </p>
             )
           }
-        />
-      ) : model.view === '24h' ? (
-        <DayPanel
-          summary={model.summary}
-          layout={model.layout}
-          lanes={lanes}
-          ticks={model.ticks}
-          nowFrac={model.nowFrac}
-          now={now}
-          units={units}
-          timeZone={baby.timezone}
-          feedDue={feedDue}
-          night={night}
-          currentLabel="Last 24h"
-          comparison={comparing ? (rolling ?? 'loading') : null}
-          plusBadge={plus}
         />
       ) : model.view === '30d' ? (
         <div className="flex flex-col gap-4">
@@ -298,160 +265,5 @@ function TimelinePage() {
         </div>
       )}
     </div>
-  );
-}
-
-function DayPanel({
-  summary,
-  layout,
-  lanes,
-  ticks,
-  nowFrac,
-  now,
-  units,
-  timeZone,
-  predicted,
-  feedDue = null,
-  night,
-  currentLabel,
-  comparison = null,
-  plusBadge = false,
-  before,
-  after,
-}: {
-  summary: DaySummary;
-  layout: DayLayout;
-  lanes: readonly TimelineLane[];
-  ticks: TimelineTick[];
-  nowFrac: number | null;
-  now: Date;
-  units: Units;
-  timeZone: string;
-  predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
-  feedDue?: FeedDueMarker | null;
-  night: NightMarker[];
-  currentLabel?: string;
-  comparison?: DayComparison | 'loading' | null;
-  plusBadge?: boolean;
-  before?: ReactNode;
-  after?: ReactNode;
-}) {
-  return (
-    <div className="grid gap-6 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] md:items-start">
-      <div className="flex flex-col gap-4">
-        {!comparison && (
-          <div className="md:hidden">
-            <SummaryStrip items={daySummaryStrip(summary)} />
-          </div>
-        )}
-        {before}
-        {comparison ? (
-          <div className="grid grid-cols-2 gap-3" data-testid="day-comparison-timelines">
-            <div className="flex min-w-0 flex-col gap-2">
-              <span className="text-meta font-semibold text-ink-2">
-                {comparison === 'loading' ? '…' : comparison.previousLabel}
-              </span>
-              {comparison === 'loading' ? (
-                <PageSpinner />
-              ) : (
-                <DayTimeline
-                  layout={comparison.layout}
-                  lanes={lanes}
-                  night={night}
-                  ticks={ticks}
-                  timeZone={timeZone}
-                  units={units}
-                  nowFrac={comparison.cutoffFrac}
-                  now={now}
-                  compact
-                />
-              )}
-            </div>
-            <div className="flex min-w-0 flex-col gap-2">
-              <span className="text-meta font-semibold">{currentLabel}</span>
-              <DayTimeline
-                layout={layout}
-                lanes={lanes}
-                night={night}
-                ticks={ticks}
-                timeZone={timeZone}
-                units={units}
-                nowFrac={nowFrac}
-                now={now}
-                predicted={predicted}
-                feedDue={feedDue}
-                compact
-              />
-            </div>
-          </div>
-        ) : (
-          <DayTimeline
-            layout={layout}
-            lanes={lanes}
-            night={night}
-            ticks={ticks}
-            timeZone={timeZone}
-            units={units}
-            nowFrac={nowFrac}
-            now={now}
-            predicted={predicted}
-            feedDue={feedDue}
-          />
-        )}
-        {after}
-      </div>
-      <div className="flex flex-col gap-3">
-        {comparison && comparison !== 'loading' && (
-          <DayComparisonCard comparison={comparison} currentLabel={currentLabel ?? ''} plusBadge={plusBadge} />
-        )}
-        {!comparison && <DayTotals cards={dayTotalCards(summary, units, timeZone)} />}
-      </div>
-    </div>
-  );
-}
-
-function SampleMonth({ now }: { now: Date }) {
-  const sample = useMemo(() => sampleMonthView(now), [now]);
-  return (
-    <div className="flex flex-col gap-4">
-      <SummaryStrip items={weekSummaryStrip(sample.week)} />
-      <MonthTimeline days={sample.days} ticks={sample.ticks} todayKey={sample.todayKey} linkDays={false} />
-    </div>
-  );
-}
-
-function CompareButton({
-  comparing,
-  label,
-  locked,
-  plus,
-  onPress,
-}: {
-  comparing: boolean;
-  label: string;
-  locked: boolean;
-  plus: boolean;
-  onPress: () => void;
-}) {
-  const title = comparing ? 'Stop comparing' : label;
-  return (
-    <button
-      type="button"
-      aria-pressed={comparing}
-      aria-label={title}
-      title={title}
-      onClick={onPress}
-      className={cn(
-        'relative grid size-tap place-items-center rounded-full',
-        comparing ? 'bg-primary text-ink-on-solid' : 'bg-surface text-ink hover:bg-line',
-      )}
-    >
-      <ArrowLeftRight className="size-5" strokeWidth={2.75} />
-      {plus && locked && (
-        <span className="absolute -right-0.5 -top-0.5 grid size-4 place-items-center rounded-full bg-primary-soft text-on-primary-soft">
-          <Sparkles aria-hidden className="size-2.5" strokeWidth={3} />
-        </span>
-      )}
-    </button>
   );
 }

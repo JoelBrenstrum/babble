@@ -20,6 +20,7 @@ import {
   type TimelineLane,
   type Units,
   TIMELINE_LANES,
+  visibleLanes,
 } from '@babble/domain';
 import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
@@ -29,6 +30,13 @@ import { cn } from '#/lib/cn';
 import { TimelineItemLink } from './timeline-item-link';
 
 const TIP_ROOM_PX = 72;
+
+const LANE_STYLE: Record<TimelineLane, { icon: LucideIcon; tone: string }> = {
+  sleep: { icon: Moon, tone: 'text-sleep' },
+  feeds: { icon: Heart, tone: 'text-feed-left' },
+  nappies: { icon: Droplets, tone: 'text-nappy' },
+  pumps: { icon: GlassWater, tone: 'text-pump' },
+};
 
 interface TipAnchor {
   event: BabyEvent;
@@ -107,15 +115,7 @@ export function DayTimeline({
   lanes?: readonly TimelineLane[];
   night?: NightMarker[];
 }) {
-  const filtered = shown.length < TIMELINE_LANES.length;
-  const lanes: { key: keyof DayLayout; label: string; icon: LucideIcon; tone: string }[] = [
-    { key: 'sleep' as const, label: 'Sleep', icon: Moon, tone: 'text-sleep' },
-    { key: 'feeds' as const, label: 'Feeds', icon: Heart, tone: 'text-feed-left' },
-    { key: 'nappies' as const, label: 'Nappy', icon: Droplets, tone: 'text-nappy' },
-    ...(layout.pumps.length || filtered
-      ? [{ key: 'pumps' as const, label: 'Pump', icon: GlassWater, tone: 'text-pump' }]
-      : []),
-  ].filter((lane) => shown.includes(lane.key));
+  const lanes = visibleLanes(layout, shown).map((lane) => ({ ...lane, ...LANE_STYLE[lane.key] }));
   const columns = { gridTemplateColumns: `2.25rem repeat(${lanes.length}, minmax(0, 1fr))` };
   const grid = useRef<HTMLDivElement>(null);
   const [tip, setTip] = useState<TipAnchor | null>(null);

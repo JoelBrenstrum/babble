@@ -45,11 +45,12 @@ import { useOnline } from '#/lib/use-online';
 import { useFullscreen } from '#/lib/fullscreen';
 import { reloadForRelease, useNewRelease } from '#/lib/release';
 import { useScreenWakeLock } from '#/lib/wake-lock';
+import { parseBooleanParam } from '#/lib/search-params';
 
 export const Route = createFileRoute('/_app/chair')({
   validateSearch: (search: Record<string, unknown>): { screenOff?: number; kiosk?: boolean } => ({
     screenOff: screenOffMinutes(search.screenOff),
-    kiosk: search.kiosk === 1 || search.kiosk === '1' || search.kiosk === true ? true : undefined,
+    kiosk: parseBooleanParam(search.kiosk),
   }),
   beforeLoad: ({ context }) => {
     if (!context.canLog) throw redirect({ to: '/' });
