@@ -135,6 +135,24 @@ describe('predictedLayout', () => {
     });
   });
 
+  it('starts the band at now so it never covers what has already happened', () => {
+    const layout = predictedLayout(
+      [
+        block('sleep', '2026-10-13T00:00:00Z', '2026-10-13T01:12:00Z', true, {
+          endWindow: { from: '2026-10-12T23:30:00Z', to: '2026-10-13T01:30:00Z' },
+        }),
+        block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z', false, {
+          startWindow: { from: '2026-10-12T22:00:00Z', to: '2026-10-12T23:00:00Z' },
+        }),
+      ],
+      window,
+      now,
+      TZ,
+    );
+    expect(layout.sleep[0]!.band).toEqual({ startFrac: 0.25, endFrac: 7.5 / 24 });
+    expect(layout.feeds[0]!.band).toBeNull();
+  });
+
   it('leaves out the band and range line when the window is narrow or missing', () => {
     const plain = block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z');
     expect(predictedItemTip(plain, TZ)).toEqual({

@@ -102,11 +102,11 @@ export function predictedItemTip(block: PredictedBlock, timeZone: string): Timel
   };
 }
 
-function bandOf(block: PredictedBlock, window: TimeWindow): PredictedItem['band'] {
+function bandOf(block: PredictedBlock, window: TimeWindow, nowMs: number): PredictedItem['band'] {
   const uncertain = uncertainWindow(block);
   if (!uncertain) return null;
   const clamp = (frac: number) => Math.min(1, Math.max(0, frac));
-  const startFrac = clamp(fractionOf(window, Date.parse(uncertain.from)));
+  const startFrac = clamp(fractionOf(window, Math.max(nowMs, Date.parse(uncertain.from))));
   const endFrac = clamp(fractionOf(window, Date.parse(uncertain.to)));
   return endFrac > startFrac ? { startFrac, endFrac } : null;
 }
@@ -129,7 +129,7 @@ export function predictedLayout(
       endFrac: fractionOf(window, end),
       opacity: 1 - (1 - FADED_OPACITY) * ahead,
       label: blockLabel(block, timeZone),
-      band: bandOf(block, window),
+      band: bandOf(block, window, now.getTime()),
       tip: predictedItemTip(block, timeZone),
     });
   }

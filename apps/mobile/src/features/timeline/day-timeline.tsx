@@ -26,7 +26,6 @@ import { pct } from './percent';
 
 export const DAY_TIMELINE_HEIGHT = 560;
 const TIP_ROOM_FRAC = 0.15;
-const BAND_OPACITY = 0.55;
 
 interface TipAnchor {
   startFrac: number;
@@ -184,19 +183,9 @@ export function DayTimeline({
 
 function Predicted({ item, onTip }: { item: PredictedItem; onTip: () => void }) {
   const soft = item.kind === 'sleep' ? 'bg-sleep-soft' : 'bg-feed-left-soft';
+  const tone = item.kind === 'sleep' ? 'bg-sleep' : 'bg-feed-left';
   return (
     <>
-      {item.band && (
-        <View
-          testID="predicted-band"
-          className={`absolute inset-x-0 rounded-md ${soft}`}
-          style={{
-            top: pct(item.band.startFrac),
-            height: pct(item.band.endFrac - item.band.startFrac),
-            opacity: item.opacity * BAND_OPACITY,
-          }}
-        />
-      )}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={item.label}
@@ -210,6 +199,21 @@ function Predicted({ item, onTip }: { item: PredictedItem; onTip: () => void }) 
           opacity: item.opacity,
         }}
       />
+      {item.band && (
+        <View
+          testID="predicted-band"
+          pointerEvents="none"
+          className={`absolute right-1 z-10 w-0.5 ${tone}`}
+          style={{
+            top: pct(item.band.startFrac),
+            height: pct(item.band.endFrac - item.band.startFrac),
+            opacity: item.opacity,
+          }}
+        >
+          <View className={`absolute top-0 h-0.5 w-2 ${tone}`} style={{ left: -3 }} />
+          <View className={`absolute bottom-0 h-0.5 w-2 ${tone}`} style={{ left: -3 }} />
+        </View>
+      )}
     </>
   );
 }

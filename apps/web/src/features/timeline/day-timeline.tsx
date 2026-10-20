@@ -29,7 +29,6 @@ import { cn } from '#/lib/cn';
 import { TimelineItemLink } from './timeline-item-link';
 
 const TIP_ROOM_PX = 72;
-const BAND_OPACITY = 0.55;
 
 interface TipAnchor {
   content: () => TimelineTip;
@@ -255,18 +254,6 @@ function Predicted({ item, onTip }: { item: PredictedItem; onTip: (target: HTMLE
   const soft = item.kind === 'sleep' ? 'bg-sleep-soft' : 'bg-feed-left-soft';
   return (
     <>
-      {item.band && (
-        <div
-          aria-hidden
-          data-testid="predicted-band"
-          className={cn('absolute inset-x-0 rounded-md', soft)}
-          style={{
-            top: formatFraction(item.band.startFrac),
-            height: formatFraction(item.band.endFrac - item.band.startFrac),
-            opacity: item.opacity * BAND_OPACITY,
-          }}
-        />
-      )}
       <button
         type="button"
         aria-label={item.label}
@@ -287,6 +274,24 @@ function Predicted({ item, onTip }: { item: PredictedItem; onTip: (target: HTMLE
         onBlur={() => onTip(null)}
         onClick={(click) => onTip(click.currentTarget)}
       />
+      {item.band && (
+        <div
+          aria-hidden
+          data-testid="predicted-band"
+          className={cn(
+            'pointer-events-none absolute right-1 z-[1] w-0.5',
+            item.kind === 'sleep' ? 'bg-sleep' : 'bg-feed-left',
+          )}
+          style={{
+            top: formatFraction(item.band.startFrac),
+            height: formatFraction(item.band.endFrac - item.band.startFrac),
+            opacity: item.opacity,
+          }}
+        >
+          <span className="absolute -left-[3px] top-0 h-0.5 w-2 bg-inherit" />
+          <span className="absolute -left-[3px] bottom-0 h-0.5 w-2 bg-inherit" />
+        </div>
+      )}
     </>
   );
 }
