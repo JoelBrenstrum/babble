@@ -1,6 +1,7 @@
 name: Deploy staging
 
 on:
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -8,6 +9,9 @@ permissions:
 
 jobs:
   deploy:
+    concurrency:
+      group: deploy-staging-${{ github.event.number || 'manual' }}
+      cancel-in-progress: ${{ github.event_name == 'pull_request' }}
     uses: ./.github/workflows/deploy.yml
     with:
       environment: staging

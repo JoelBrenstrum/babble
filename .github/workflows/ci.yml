@@ -73,6 +73,9 @@ jobs:
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [check, database-and-e2e, docker]
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
     uses: ./.github/workflows/deploy.yml
     with:
       environment: production

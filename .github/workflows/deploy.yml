@@ -25,9 +25,6 @@ jobs:
     environment:
       name: ${{ inputs.environment }}
       url: ${{ inputs.url }}
-    concurrency:
-      group: deploy-${{ inputs.environment }}
-      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
