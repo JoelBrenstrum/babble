@@ -82,8 +82,12 @@ describe('DayTimeline', () => {
   it('explains a predicted block and shades its likely range', async () => {
     const nap = { ...sampleRunningSleep(now), startedAt: new Date(now.getTime() - 72 * 60_000).toISOString() };
     const tip = {
-      title: 'Likely sleep',
-      lines: ['Down 2:10 pm · likely 2:00 pm – 2:30 pm', 'Up 3:20 pm · 1h 10m', 'Estimated from recent days'],
+      title: 'Next sleep',
+      lines: [
+        'Likely from 2:10 pm to 3:20 pm (about 1h 10m)',
+        'Around the usual time. Recent sleeps started between 2:00 and 2:30 pm.',
+        'Based on the last few days',
+      ],
     };
     render(
       <FixtureRouter>
@@ -112,9 +116,9 @@ describe('DayTimeline', () => {
     );
     const block = await screen.findByRole('button', { name: 'Likely asleep 2:10 pm–3:20 pm' });
     fireEvent.mouseEnter(block);
-    expect(screen.getByText('Down 2:10 pm · likely 2:00 pm – 2:30 pm')).toBeInTheDocument();
+    expect(screen.getByText('Likely from 2:10 pm to 3:20 pm (about 1h 10m)')).toBeInTheDocument();
     fireEvent.mouseLeave(block);
-    expect(screen.queryByText('Down 2:10 pm · likely 2:00 pm – 2:30 pm')).not.toBeInTheDocument();
+    expect(screen.queryByText('Likely from 2:10 pm to 3:20 pm (about 1h 10m)')).not.toBeInTheDocument();
   });
 
   describe('on a phone', () => {

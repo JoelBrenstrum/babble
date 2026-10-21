@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { PredictedBlock } from './predict-day';
-import { predictedItemTip, predictedLayout, predictionSince, predictionText } from './predicted-view';
+import { betweenTimes, predictedItemTip, predictedLayout, predictionSince, predictionText } from './predicted-view';
 
 const TZ = 'Pacific/Auckland';
 const NOW = new Date('2026-10-13T00:30:00Z');
@@ -125,12 +125,34 @@ describe('predictedLayout', () => {
       TZ,
     );
     expect(layout.sleep[0]!.tip).toEqual({
-      title: 'Sleep still going',
-      lines: ['Up 2:12 pm · likely 2:00 pm – 2:30 pm', 'Estimated from recent days'],
+      title: 'Still asleep',
+      lines: [
+        'Likely awake around 2:12 pm',
+        'Recent sleeps ended between 2:00 and 2:30 pm.',
+        'Based on the last few days',
+      ],
     });
     expect(layout.sleep[1]!.tip).toEqual({
-      title: 'Likely sleep',
-      lines: ['Down 5:00 pm · likely 4:00 pm – 5:30 pm', 'Up 6:00 pm · 1h 00m', 'Estimated from recent days'],
+      title: 'Next sleep',
+      lines: [
+        'Likely from 5:00 pm to 6:00 pm (about 1h 00m)',
+        'Around the usual time. Recent sleeps started between 4:00 and 5:30 pm.',
+        'Based on the last few days',
+      ],
+    });
+  });
+
+  it('words a running feed as feeding rather than sleeping', () => {
+    const feeding = block('feed', '2026-10-13T00:00:00Z', '2026-10-13T00:20:00Z', true, {
+      endWindow: { from: '2026-10-13T00:10:00Z', to: '2026-10-13T00:35:00Z' },
+    });
+    expect(predictedItemTip(feeding, now, TZ)).toEqual({
+      title: 'Still feeding',
+      lines: [
+        'Likely done around 1:20 pm',
+        'Recent feeds ended between 1:10 and 1:35 pm.',
+        'Based on the last few days',
+      ],
     });
   });
 
@@ -140,27 +162,53 @@ describe('predictedLayout', () => {
     });
     const layout = predictedLayout([running], window, now, TZ);
     expect(layout.sleep[0]).toMatchObject({ startFrac: 0.25, endFrac: 0.25 });
-    expect(predictedItemTip(running, now, TZ).lines[0]).toBe('Longer than usual');
+    expect(predictedItemTip(running, now, TZ).lines).toEqual([
+      'Sleeping longer than usual',
+      'Based on the last few days',
+    ]);
     const within = { ...running, endWindow: { from: '2026-10-12T23:20:00Z', to: '2026-10-13T00:20:00Z' } };
-    expect(predictedItemTip(within, now, TZ).lines[0]).toBe('Up by 1:20 pm');
+    expect(predictedItemTip(within, now, TZ).lines[0]).toBe('Likely awake by 1:20 pm');
   });
 
-  it('says the range is the usual one when the block has been pushed past it', () => {
+  it('says whether the block falls later or earlier than its usual range', () => {
     const overdue = block('sleep', '2026-10-13T08:00:00Z', '2026-10-13T10:25:00Z', false, {
       startWindow: { from: '2026-10-13T05:43:00Z', to: '2026-10-13T06:08:00Z' },
     });
-    expect(predictedItemTip(overdue, now, TZ).lines[0]).toBe('Down 9:00 pm · usually 6:43 pm – 7:08 pm');
+    expect(predictedItemTip(overdue, now, TZ).lines.slice(0, 2)).toEqual([
+      'Likely from 9:00 pm to 11:25 pm (about 2h 25m)',
+      'Later than usual. Recent sleeps started between 6:43 and 7:08 pm.',
+    ]);
+    const early = block('feed', '2026-10-13T02:00:00Z', '2026-10-13T02:30:00Z', false, {
+      startWindow: { from: '2026-10-13T02:30:00Z', to: '2026-10-13T03:00:00Z' },
+    });
+    expect(predictedItemTip(early, now, TZ).lines[1]).toBe(
+      'Earlier than usual. Recent feeds started between 3:30 and 4:00 pm.',
+    );
   });
 
   it('leaves out the range line when the window is narrow or missing', () => {
     const plain = block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z');
     expect(predictedItemTip(plain, now, TZ)).toEqual({
-      title: 'Likely feed',
-      lines: ['Starts 2:20 pm', 'Ends 3:00 pm · 40m', 'Estimated from recent days'],
+      title: 'Next feed',
+      lines: ['Likely from 2:20 pm to 3:00 pm (about 40m)', 'Based on the last few days'],
     });
     const close = block('sleep', '2026-10-13T04:00:00Z', '2026-10-13T05:00:00Z', false, {
       startWindow: { from: '2026-10-13T03:58:00Z', to: '2026-10-13T04:03:00Z' },
     });
-    expect(predictedItemTip(close, now, TZ).lines[0]).toBe('Down 5:00 pm');
+    expect(predictedItemTip(close, now, TZ).lines).toHaveLength(2);
+  });
+});
+
+describe('betweenTimes', () => {
+  it('writes am or pm once when both ends share it', () => {
+    expect(betweenTimes({ from: '2026-10-12T20:15:00Z', to: '2026-10-12T20:47:00Z' }, TZ)).toBe(
+      'between 9:15 and 9:47 am',
+    );
+  });
+
+  it('keeps both when the range crosses midday', () => {
+    expect(betweenTimes({ from: '2026-10-12T22:45:00Z', to: '2026-10-12T23:10:00Z' }, TZ)).toBe(
+      'between 11:45 am and 12:10 pm',
+    );
   });
 });
