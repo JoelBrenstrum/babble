@@ -463,7 +463,7 @@ describe('cluster feeding', () => {
     expect(card.chart.bars).toHaveLength(14);
     expect(card.chart.bars.at(-1)).toEqual({
       label: '2026-10-14',
-      values: [2.6],
+      values: [155 / 60],
       breakdown: ['6:00 pm–8:35 pm, 4 feeds'],
     });
     expect(card.chart.bars.at(-2)).toEqual({ label: '2026-10-13', values: [0] });
@@ -475,11 +475,11 @@ describe('cluster feeding', () => {
     const bar = card.chart.bars.at(-1)!;
     expect(bar).toEqual({
       label: '2026-10-14',
-      values: [2.6, 2.6],
+      values: [155 / 60, 155 / 60],
       breakdown: ['1:00 am–3:35 am, 4 feeds', '3:00 pm–5:35 pm, 4 feeds'],
     });
-    expect(card.chart.max).toBe(5.2);
-    expect(barReadout(card.chart, bar)).toBe('14 Oct: 5.2h · 1:00 am–3:35 am, 4 feeds · 3:00 pm–5:35 pm, 4 feeds');
+    expect(card.chart.max).toBe(310 / 60);
+    expect(barReadout(card.chart, bar)).toBe('14 Oct: 5h 10m · 1:00 am–3:35 am, 4 feeds · 3:00 pm–5:35 pm, 4 feeds');
   });
 
   it('shows no clusters as zero days, and needs a week of feeds first', () => {

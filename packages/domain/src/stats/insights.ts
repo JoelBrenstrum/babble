@@ -175,7 +175,7 @@ export function nightSleepCard(nights: readonly NightStat[], dayKeys: readonly s
   const byKey = new Map(nights.map((night) => [night.dayKey, night]));
   const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => ({
     label: dayKey,
-    values: [Math.round(((byKey.get(dayKey)?.longestMs ?? 0) / HOUR_MS) * 10) / 10],
+    values: [(byKey.get(dayKey)?.longestMs ?? 0) / HOUR_MS],
   }));
   return {
     key: 'night',
@@ -475,7 +475,7 @@ export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly stri
 
   const bars = dayKeys.slice(-INSIGHT_DAYS).map((dayKey) => {
     const value = median(sample(false, new Set([dayKey]))) ?? 0;
-    return { label: dayKey, values: [Math.round((value / HOUR_MS) * 10) / 10] };
+    return { label: dayKey, values: [value / HOUR_MS] };
   });
   return {
     key: 'feed-spacing',
@@ -599,7 +599,7 @@ export function clusterFeedingCard(
     if (onDay.length === 0) return { label: dayKey, values: [0] };
     return {
       label: dayKey,
-      values: onDay.map((cluster) => Math.round(((cluster.end - cluster.start) / HOUR_MS) * 10) / 10),
+      values: onDay.map((cluster) => (cluster.end - cluster.start) / HOUR_MS),
       breakdown: onDay.map((cluster) => clusterText(cluster, settings)),
     };
   });

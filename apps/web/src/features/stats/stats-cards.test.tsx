@@ -96,9 +96,7 @@ describe('StatsCards', () => {
       />,
     );
     expect(screen.getByRole('group', { name: 'Breastfeeds per feed, 7-day average by day' })).toBeInTheDocument();
-    expect(
-      screen.getByRole('img', { name: '14 Oct: Left 12 min, Right 10 min, Idle 2 min · Total 24 min' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '14 Oct: Left 12m, Right 10m, Idle 2m · Total 24m' })).toBeInTheDocument();
     expect(screen.getByText('Each bar is the average feed over the 7 days up to that day.')).toBeInTheDocument();
     expect(screen.getByText('Plus')).toBeInTheDocument();
   });
@@ -130,6 +128,6 @@ describe('StatsCards', () => {
     expect(screen.getByRole('group', { name: 'Feed spacing typical daytime gap by day' })).toBeInTheDocument();
     expect(screen.getByText('Overnight')).toBeInTheDocument();
     expect(screen.getByText('4h 30m')).toBeInTheDocument();
-    expect(screen.getByRole('img', { name: '14 Oct: 3.5h' })).toBeInTheDocument();
+    expect(screen.getByRole('img', { name: '14 Oct: 3h 30m' })).toBeInTheDocument();
   });
 });

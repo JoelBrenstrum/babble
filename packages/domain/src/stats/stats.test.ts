@@ -297,10 +297,10 @@ describe('barReadout', () => {
     expect(feeds.legend.map((index) => feeds.series[index])).toEqual(['Breast', 'Bottle']);
     expect(barReadout(feeds, feeds.bars[0]!)).toBe('7 Oct: Breast 0, Bottle 1 · Total 1');
     expect(barReadout(chartFor('sleep'), { label: '2026-10-07', values: [5, 4.5] })).toBe(
-      '7 Oct: Night 5h, Naps 4.5h · Total 9.5h',
+      '7 Oct: Night 5h 00m, Naps 4h 30m · Total 9h 30m',
     );
     expect(barReadout(chartFor('sleep'), { label: '2026-10-07', values: [10.3, 3.4] })).toBe(
-      '7 Oct: Night 10.3h, Naps 3.4h · Total 13.7h',
+      '7 Oct: Night 10h 18m, Naps 3h 24m · Total 13h 42m',
     );
   });
 
@@ -312,15 +312,17 @@ describe('barReadout', () => {
 
 describe('chartValue', () => {
   it('rounds small values to one decimal and adds the unit', () => {
-    expect(chartValue(4.46, 'h')).toBe('4.5h');
     expect(chartValue(12.6, '')).toBe('13');
+    expect(chartValue(4.46, '')).toBe('4.5');
     expect(chartValue(210, 'ml')).toBe('210 ml');
-    expect(chartValue(42.4, 'min')).toBe('42 min');
   });
 
-  it('keeps one decimal for hours of any size', () => {
-    expect(chartValue(13.64, 'h')).toBe('13.6h');
-    expect(chartValue(14, 'h')).toBe('14h');
+  it('shows durations as hours and minutes, rounded to the minute', () => {
+    expect(chartValue(4.46, 'h')).toBe('4h 28m');
+    expect(chartValue(14, 'h')).toBe('14h 00m');
+    expect(chartValue(0.5, 'h')).toBe('30m');
+    expect(chartValue(42.4, 'min')).toBe('42m');
+    expect(chartValue(75, 'min')).toBe('1h 15m');
   });
 });
 
