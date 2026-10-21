@@ -102,10 +102,15 @@ export function useDayRhythm(input: {
   enabled: boolean;
 }): DayRhythm | null {
   const { client, babyId, baby, dayKey, now, enabled } = input;
-  const window = dayRhythmWindow(dayKey, baby);
   const settings = useQuery(babySettingsQuery(client, babyId)).data;
+  const window = settings ? dayRhythmWindow(dayKey, baby, settings) : null;
   const events = useQuery({
-    ...eventsBetweenQuery(client, babyId, window.start.toISOString(), window.end.toISOString()),
+    queryKey: window
+      ? queryKeys.eventsBetween(babyId, window.start.toISOString(), window.end.toISOString())
+      : queryKeys.eventsBetweenAny(babyId),
+    queryFn: window
+      ? () => listEventsBetween(client, babyId, window.start.toISOString(), window.end.toISOString())
+      : skipToken,
     enabled,
   });
   if (!enabled || !settings || !events.data) return null;

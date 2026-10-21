@@ -14,10 +14,13 @@ import {
   type TimelinePlaceholder,
 } from './use-timeline';
 
-const { fetchEvents } = vi.hoisted(() => ({ fetchEvents: vi.fn(async () => []) }));
+const { fetchEvents, fetchSettings } = vi.hoisted(() => ({
+  fetchEvents: vi.fn(async () => []),
+  fetchSettings: vi.fn(async (): Promise<object | null> => null),
+}));
 vi.mock('../families', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../families')>()),
-  getBabySettings: async () => null,
+  getBabySettings: () => fetchSettings(),
 }));
 vi.mock('../events', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../events')>()),
@@ -138,11 +141,14 @@ describe('useDayRhythm', () => {
     expect(fetchEvents).not.toHaveBeenCalled();
   });
 
-  it('loads from the start of the day before', async () => {
+  it('waits for the night settings, then works out the day', async () => {
     const { client, wrapper } = setup();
     fetchEvents.mockClear();
-    renderHook(() => useDayRhythm(props(client, true)), { wrapper });
-    await waitFor(() => expect(fetchEvents).toHaveBeenCalledTimes(1));
+    fetchSettings.mockResolvedValueOnce({ night_start_minutes: 19 * 60, night_end_minutes: 7 * 60 });
+    const { result } = renderHook(() => useDayRhythm(props(client, true)), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
+    expect(fetchEvents).toHaveBeenCalledTimes(1);
+    expect(result.current).toEqual({ feedSpacing: null, wakeWindows: null, night: null, nightFeedGapMs: null });
   });
 });
 

@@ -31,10 +31,14 @@ const events = [
 ];
 
 describe('dayRhythmWindow', () => {
-  it('reaches back to the start of the day before so the night before is covered', () => {
-    expect(dayRhythmWindow('2026-10-14', baby)).toEqual({
+  it('runs from the start of the day before to the end of the day or its night, whichever is later', () => {
+    expect(dayRhythmWindow('2026-10-14', baby, settings)).toEqual({
       start: new Date('2026-10-13T00:00:00Z'),
-      end: new Date('2026-10-15T00:00:00Z'),
+      end: new Date('2026-10-15T07:00:00Z'),
+    });
+    expect(dayRhythmWindow('2026-10-14', { ...baby, day_start_minutes: 8 * 60 }, settings)).toEqual({
+      start: new Date('2026-10-13T08:00:00Z'),
+      end: new Date('2026-10-15T08:00:00Z'),
     });
   });
 });
@@ -42,8 +46,8 @@ describe('dayRhythmWindow', () => {
 describe('dayRhythm', () => {
   const rhythm = dayRhythm({ events, dayKey: '2026-10-14', now, settings, baby });
 
-  it('spaces daytime feeds start to start, folding in top-ups', () => {
-    expect(rhythm.feedSpacing).toEqual({ typicalMs: 2.75 * HOUR, longestMs: 4 * HOUR, shortestMs: 2.5 * HOUR });
+  it('spaces daytime feeds start to start, folding in top-ups and leaving out the gap into the night', () => {
+    expect(rhythm.feedSpacing).toEqual({ typicalMs: 3 * HOUR, longestMs: 4 * HOUR, shortestMs: 2.5 * HOUR });
   });
 
   it('takes the longest gap between feeds that started in the night before', () => {
@@ -54,8 +58,25 @@ describe('dayRhythm', () => {
     expect(rhythm.wakeWindows).toEqual({ typicalMs: 2.5 * HOUR, longestMs: 5.25 * HOUR, shortestMs: 2.5 * HOUR });
   });
 
-  it('summarises the night before', () => {
+  it('summarises last night for today', () => {
     expect(rhythm.night).toEqual({ dayKey: '2026-10-13', sleepMs: 10.5 * HOUR, longestMs: 6 * HOUR, wakeUps: 1 });
+  });
+
+  it("summarises a past day's own night", () => {
+    const later = new Date('2026-10-15T12:00:00Z');
+    const past = dayRhythm({ events, dayKey: '2026-10-13', now: later, settings, baby });
+    expect(past.night).toEqual({ dayKey: '2026-10-13', sleepMs: 10.5 * HOUR, longestMs: 6 * HOUR, wakeUps: 1 });
+    expect(past.nightFeedGapMs).toBe(4.5 * HOUR);
+  });
+
+  it('counts a wake window to the day it ends in, even if baby woke before the day started', () => {
+    const lateStart = { ...baby, day_start_minutes: 7 * 60 };
+    const early = [
+      sleep('night', '2026-10-13T19:30', '2026-10-14T06:30'),
+      sleep('nap', '2026-10-14T08:30', '2026-10-14T09:30'),
+    ];
+    const result = dayRhythm({ events: early, dayKey: '2026-10-14', now, settings, baby: lateStart });
+    expect(result.wakeWindows).toEqual({ typicalMs: 2 * HOUR, longestMs: 2 * HOUR, shortestMs: 2 * HOUR });
   });
 
   it('is empty when nothing was logged', () => {
@@ -75,7 +96,7 @@ describe('dayRhythmCards', () => {
       {
         key: 'spacing',
         label: 'Feed spacing',
-        value: '2h 45m',
+        value: '3h 00m',
         details: [
           { label: 'Longest', value: '4h 00m' },
           { label: 'Shortest', value: '2h 30m' },
@@ -103,7 +124,7 @@ describe('dayRhythmCards', () => {
     ]);
   });
 
-  it('names the night before on past days and leaves out what is missing', () => {
+  it('names the night overnight on past days and leaves out what is missing', () => {
     const cards = dayRhythmCards(
       { feedSpacing: null, wakeWindows: null, night: null, nightFeedGapMs: 3 * HOUR },
       false,
@@ -111,7 +132,7 @@ describe('dayRhythmCards', () => {
     expect(cards).toEqual([
       {
         key: 'night',
-        label: 'Night before',
+        label: 'Overnight',
         value: '—',
         details: [
           { label: 'Longest stretch', value: '—' },

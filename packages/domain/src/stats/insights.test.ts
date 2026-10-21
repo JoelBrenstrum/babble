@@ -312,7 +312,7 @@ describe('feed trend', () => {
 
 describe('feed spacing', () => {
   const keys = insightDays('2026-10-15');
-  const gap = (dayKey: string, hours: number, night = false) => ({ dayKey, ms: hours * HOUR, night });
+  const gap = (dayKey: string, hours: number, night = false, start = 0) => ({ dayKey, start, ms: hours * HOUR, night });
 
   it('measures start to start between feeds, folds top-ups in and splits day from night', () => {
     const breast = (id: string, start: string, end: string) =>
@@ -329,12 +329,13 @@ describe('feed spacing', () => {
       breast('f', '2026-10-14T06:30:00Z', '2026-10-14T06:50:00Z'),
       makeEvent('sleep', { id: 'nap', startedAt: '2026-10-13T09:00:00Z', endedAt: '2026-10-13T10:00:00Z' }),
     ];
+    const at = (iso: string) => Date.parse(`${iso}:00Z`);
     expect(feedGaps(events, settings)).toEqual([
-      gap('2026-10-13', 3),
-      gap('2026-10-13', 3),
-      gap('2026-10-13', 6),
-      gap('2026-10-13', 5, true),
-      gap('2026-10-13', 5.5, true),
+      gap('2026-10-13', 3, false, at('2026-10-13T08:00')),
+      gap('2026-10-13', 3, false, at('2026-10-13T11:00')),
+      gap('2026-10-13', 6, false, at('2026-10-13T14:00')),
+      gap('2026-10-13', 5, true, at('2026-10-13T20:00')),
+      gap('2026-10-13', 5.5, true, at('2026-10-14T01:00')),
     ]);
   });
 

@@ -420,6 +420,7 @@ export function feedTrendCard(feeds: readonly FeedStat[], dayKeys: readonly stri
 
 export interface FeedGap {
   dayKey: string;
+  start: number;
   ms: number;
   night: boolean;
 }
@@ -444,7 +445,7 @@ export function feedGaps(events: readonly BabyEvent[], settings: InsightSettings
       const nightKey = nightKeyOf(previous.start, settings);
       const dayKey =
         nightKey ?? dayKeyFor(new Date(previous.start).toISOString(), settings.timeZone, settings.dayStartMinutes);
-      gaps.push({ dayKey, ms, night: nightKey !== null });
+      gaps.push({ dayKey, start: previous.start, ms, night: nightKey !== null });
     }
     previous = feed;
   }

@@ -1,5 +1,15 @@
 import { weekdayLabel, type StripItem, type TotalCard, type WeekRow } from '@babble/domain';
-import { BedDouble, Carrot, Droplets, GlassWater, Heart, Moon, Sun, Timer, type LucideIcon } from 'lucide-react-native';
+import {
+  Carrot,
+  Droplets,
+  GlassWater,
+  Heart,
+  Hourglass,
+  Moon,
+  MoonStar,
+  Sun,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { ScrollView, Text, View } from 'react-native';
 import { Card } from '@/components/card';
 import { PooSwatch } from '@/components/poo-swatch';
@@ -7,16 +17,27 @@ import { useTokenColor } from '@/lib/theme';
 
 const TONES: Record<
   TotalCard['key'],
-  { icon: LucideIcon; tile: string; ink: '--on-sleep' | '--on-feed-right' | '--on-solids' | '--on-nappy' | '--on-pump' }
+  {
+    icon: LucideIcon;
+    tile: string;
+    ink:
+      | '--on-sleep'
+      | '--on-feed-right'
+      | '--on-solids'
+      | '--on-nappy'
+      | '--on-pump'
+      | '--on-bottle'
+      | '--on-primary-soft';
+  }
 > = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep' },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft', ink: '--on-feed-right' },
   solids: { icon: Carrot, tile: 'bg-solids-soft', ink: '--on-solids' },
   nappies: { icon: Droplets, tile: 'bg-nappy-soft', ink: '--on-nappy' },
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump' },
-  spacing: { icon: Timer, tile: 'bg-feed-right-soft', ink: '--on-feed-right' },
-  wake: { icon: Sun, tile: 'bg-sleep-soft', ink: '--on-sleep' },
-  night: { icon: BedDouble, tile: 'bg-sleep-soft', ink: '--on-sleep' },
+  spacing: { icon: Hourglass, tile: 'bg-bottle-soft', ink: '--on-bottle' },
+  wake: { icon: Sun, tile: 'bg-primary-soft', ink: '--on-primary-soft' },
+  night: { icon: MoonStar, tile: 'bg-sleep-soft', ink: '--on-sleep' },
 };
 
 const ROW_DOT: Record<WeekRow['key'], string> = {
