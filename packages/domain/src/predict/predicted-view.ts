@@ -82,26 +82,27 @@ function uncertainWindow(block: PredictedBlock): PredictedWindow | undefined {
 }
 
 export function predictedItemTip(block: PredictedBlock, now: Date, timeZone: string): TimelineTip {
-  const noun = block.kind === 'sleep' ? 'sleep' : 'feed';
+  const sleep = block.kind === 'sleep';
+  const [startWord, endWord] = sleep ? ['Down', 'Up'] : ['Starts', 'Ends'];
+  const at = (iso: string) => formatTimeOfDay(iso, timeZone);
   const window = uncertainWindow(block);
-  const spanText = (w: PredictedWindow) => `${formatTimeOfDay(w.from, timeZone)} – ${formatTimeOfDay(w.to, timeZone)}`;
+  const likely = window ? ` · likely ${at(window.from)} – ${at(window.to)}` : '';
   if (block.continuesRunning) {
-    const overdue = Date.parse(block.endedAt) <= now.getTime();
-    return {
-      title: `${noun[0]!.toUpperCase()}${noun.slice(1)} still going`,
-      lines: [
-        overdue ? 'Longer than usual' : `Likely ends around ${formatTimeOfDay(block.endedAt, timeZone)}`,
-        ...(window ? [`Could end ${spanText(window)}`] : []),
-        ESTIMATE_NOTE,
-      ],
-    };
+    const nowMs = now.getTime();
+    const line =
+      Date.parse(block.endedAt) > nowMs
+        ? `${endWord} ${at(block.endedAt)}${likely}`
+        : block.endWindow && nowMs <= Date.parse(block.endWindow.to)
+          ? `${endWord} by ${at(block.endWindow.to)}`
+          : 'Longer than usual';
+    return { title: `${sleep ? 'Sleep' : 'Feed'} still going`, lines: [line, ESTIMATE_NOTE] };
   }
   const length = formatDuration(Date.parse(block.endedAt) - Date.parse(block.startedAt), { seconds: false });
   return {
-    title: `Likely ${noun}`,
+    title: `Likely ${sleep ? 'sleep' : 'feed'}`,
     lines: [
-      `${formatTimeOfDay(block.startedAt, timeZone)} – ${formatTimeOfDay(block.endedAt, timeZone)} · ${length}`,
-      ...(window ? [`Could start ${spanText(window)}`] : []),
+      `${startWord} ${at(block.startedAt)}${likely}`,
+      `${endWord} ${at(block.endedAt)} · ${length}`,
       ESTIMATE_NOTE,
     ],
   };

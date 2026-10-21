@@ -83,7 +83,7 @@ describe('DayTimeline', () => {
     const nap = { ...sampleRunningSleep(now), startedAt: new Date(now.getTime() - 72 * 60_000).toISOString() };
     const tip = {
       title: 'Likely sleep',
-      lines: ['2:10 pm – 3:20 pm · 1h 10m', 'Could start 2:00 pm – 2:30 pm', 'Estimated from recent days'],
+      lines: ['Down 2:10 pm · likely 2:00 pm – 2:30 pm', 'Up 3:20 pm · 1h 10m', 'Estimated from recent days'],
     };
     render(
       <FixtureRouter>
@@ -112,9 +112,9 @@ describe('DayTimeline', () => {
     );
     const block = await screen.findByRole('button', { name: 'Likely asleep 2:10 pm–3:20 pm' });
     fireEvent.mouseEnter(block);
-    expect(screen.getByText('Could start 2:00 pm – 2:30 pm')).toBeInTheDocument();
+    expect(screen.getByText('Down 2:10 pm · likely 2:00 pm – 2:30 pm')).toBeInTheDocument();
     fireEvent.mouseLeave(block);
-    expect(screen.queryByText('Could start 2:00 pm – 2:30 pm')).not.toBeInTheDocument();
+    expect(screen.queryByText('Down 2:10 pm · likely 2:00 pm – 2:30 pm')).not.toBeInTheDocument();
   });
 
   describe('on a phone', () => {

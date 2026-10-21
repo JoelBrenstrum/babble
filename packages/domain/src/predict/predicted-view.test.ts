@@ -126,11 +126,11 @@ describe('predictedLayout', () => {
     );
     expect(layout.sleep[0]!.tip).toEqual({
       title: 'Sleep still going',
-      lines: ['Likely ends around 2:12 pm', 'Could end 2:00 pm – 2:30 pm', 'Estimated from recent days'],
+      lines: ['Up 2:12 pm · likely 2:00 pm – 2:30 pm', 'Estimated from recent days'],
     });
     expect(layout.sleep[1]!.tip).toEqual({
       title: 'Likely sleep',
-      lines: ['5:00 pm – 6:00 pm · 1h 00m', 'Could start 4:00 pm – 5:30 pm', 'Estimated from recent days'],
+      lines: ['Down 5:00 pm · likely 4:00 pm – 5:30 pm', 'Up 6:00 pm · 1h 00m', 'Estimated from recent days'],
     });
   });
 
@@ -141,17 +141,19 @@ describe('predictedLayout', () => {
     const layout = predictedLayout([running], window, now, TZ);
     expect(layout.sleep[0]).toMatchObject({ startFrac: 0.25, endFrac: 0.25 });
     expect(predictedItemTip(running, now, TZ).lines[0]).toBe('Longer than usual');
+    const within = { ...running, endWindow: { from: '2026-10-12T23:20:00Z', to: '2026-10-13T00:20:00Z' } };
+    expect(predictedItemTip(within, now, TZ).lines[0]).toBe('Up by 1:20 pm');
   });
 
   it('leaves out the range line when the window is narrow or missing', () => {
     const plain = block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z');
     expect(predictedItemTip(plain, now, TZ)).toEqual({
       title: 'Likely feed',
-      lines: ['2:20 pm – 3:00 pm · 40m', 'Estimated from recent days'],
+      lines: ['Starts 2:20 pm', 'Ends 3:00 pm · 40m', 'Estimated from recent days'],
     });
     const close = block('sleep', '2026-10-13T04:00:00Z', '2026-10-13T05:00:00Z', false, {
       startWindow: { from: '2026-10-13T03:58:00Z', to: '2026-10-13T04:03:00Z' },
     });
-    expect(predictedItemTip(close, now, TZ).lines).not.toContainEqual(expect.stringMatching(/^Could/));
+    expect(predictedItemTip(close, now, TZ).lines[0]).toBe('Down 5:00 pm');
   });
 });
