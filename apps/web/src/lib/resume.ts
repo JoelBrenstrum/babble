@@ -18,7 +18,7 @@ export function shouldReloadOnResume(
 }
 
 export function watchResume(reload: () => void = reloadPage, threshold = RESUME_RELOAD_AFTER_MS): () => void {
-  let hiddenAt: number | null = null;
+  let hiddenAt: number | null = document.visibilityState === 'hidden' ? Date.now() : null;
   const onChange = () => {
     if (document.visibilityState === 'hidden') {
       hiddenAt ??= Date.now();

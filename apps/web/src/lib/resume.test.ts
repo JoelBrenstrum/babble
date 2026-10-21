@@ -51,6 +51,16 @@ describe('watchResume', () => {
     expect(reload).toHaveBeenCalledTimes(1);
   });
 
+  it('counts from mount when the page is already hidden', () => {
+    const reload = vi.fn();
+    visibility = 'hidden';
+    const stop = watchResume(reload, 1000);
+    vi.advanceTimersByTime(1000);
+    setVisibility('visible');
+    expect(reload).toHaveBeenCalledTimes(1);
+    stop();
+  });
+
   it('keeps the first hidden time across repeated hidden events', () => {
     const reload = vi.fn();
     const stop = watchResume(reload, 1000);

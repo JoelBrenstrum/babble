@@ -23,6 +23,14 @@ describe('timeoutSignal', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('stops listening to the outer signal once the timeout fires', () => {
+    const outer = new AbortController();
+    const remove = vi.spyOn(outer.signal, 'removeEventListener');
+    timeoutSignal(1000, outer.signal);
+    vi.advanceTimersByTime(1000);
+    expect(remove).toHaveBeenCalledWith('abort', expect.any(Function));
+  });
+
   it('is already aborted when the outer signal is', () => {
     const outer = AbortSignal.abort(new Error('gone'));
     const signal = timeoutSignal(1000, outer);
@@ -43,6 +51,17 @@ describe('fetchWithTimeout', () => {
     expect(((await settled) as DOMException).name).toBe('TimeoutError');
     const init = base.mock.calls[0]![1]!;
     expect(init.headers).toEqual({ apikey: 'key' });
+  });
+
+  it('follows the signal on a Request input', async () => {
+    const base = vi.fn(async (_input: Parameters<typeof fetch>[0], init?: RequestInit) => {
+      expect(init?.signal?.aborted).toBe(true);
+      return new Response();
+    });
+    const outer = new AbortController();
+    outer.abort();
+    await fetchWithTimeout(base, 500)(new Request('https://example.test', { signal: outer.signal }));
+    expect(base).toHaveBeenCalledTimes(1);
   });
 
   it('keeps a caller abort working', async () => {
