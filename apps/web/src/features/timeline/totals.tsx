@@ -1,15 +1,18 @@
-import { weekdayLabel, type StripItem, type TotalCard, type TotalKey, type WeekRow } from '@babble/domain';
-import { Carrot, Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
+import { weekdayLabel, type StripItem, type TotalCard, type WeekRow } from '@babble/domain';
+import { BedDouble, Carrot, Droplets, GlassWater, Heart, Moon, Sun, Timer, type LucideIcon } from 'lucide-react';
 import { Card } from '#/components/ui/card';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
 
-const TONES: Record<TotalKey, { icon: LucideIcon; tile: string }> = {
+const TONES: Record<TotalCard['key'], { icon: LucideIcon; tile: string }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft text-on-sleep' },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft text-on-feed-right' },
   solids: { icon: Carrot, tile: 'bg-solids-soft text-on-solids' },
   nappies: { icon: Droplets, tile: 'bg-nappy-soft text-on-nappy' },
   pump: { icon: GlassWater, tile: 'bg-pump-soft text-on-pump' },
+  spacing: { icon: Timer, tile: 'bg-feed-right-soft text-on-feed-right' },
+  wake: { icon: Sun, tile: 'bg-sleep-soft text-on-sleep' },
+  night: { icon: BedDouble, tile: 'bg-sleep-soft text-on-sleep' },
 };
 
 const ROW_DOT: Record<WeekRow['key'], string> = {
@@ -56,7 +59,16 @@ export function DayTotals({ cards }: { cards: TotalCard[] }) {
               <span className="flex-1 text-row-title font-semibold">{card.label}</span>
               <span className="tabular text-heading font-bold">{card.value}</span>
             </div>
-            <dl className={cn('grid gap-2', card.details.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3')}>
+            <dl
+              className={cn(
+                'grid gap-2',
+                card.details.length === 4
+                  ? 'grid-cols-2 sm:grid-cols-4'
+                  : card.details.length === 2
+                    ? 'grid-cols-2'
+                    : 'grid-cols-3',
+              )}
+            >
               {card.details.map((detail) => (
                 <div key={detail.label} className="flex flex-col rounded-tile bg-surface px-3 py-2">
                   <dt className="text-caption text-ink-2">{detail.label}</dt>

@@ -6,7 +6,13 @@ import { describe, expect, it, vi } from 'vitest';
 import { sampleBaby } from '../fixtures';
 import { queryKeys } from '../queries';
 import { fakeClient } from '../test-utils';
-import { mostlyOverlaps, useRollingComparison, useTimelineModel, type TimelinePlaceholder } from './use-timeline';
+import {
+  mostlyOverlaps,
+  useDayRhythm,
+  useRollingComparison,
+  useTimelineModel,
+  type TimelinePlaceholder,
+} from './use-timeline';
 
 const { fetchEvents } = vi.hoisted(() => ({ fetchEvents: vi.fn(async () => []) }));
 vi.mock('../families', async (importOriginal) => ({
@@ -111,6 +117,32 @@ describe('useRollingComparison', () => {
     );
     expect(result.current).toBeNull();
     expect(fetchEvents).not.toHaveBeenCalled();
+  });
+});
+
+describe('useDayRhythm', () => {
+  const props = (client: ReturnType<typeof setup>['client'], enabled: boolean) => ({
+    client,
+    babyId: sampleBaby.id,
+    baby: sampleBaby,
+    dayKey: '2026-10-12',
+    now: new Date('2026-10-12T10:00:00Z'),
+    enabled,
+  });
+
+  it('fetches nothing while locked', () => {
+    const { client, wrapper } = setup();
+    fetchEvents.mockClear();
+    const { result } = renderHook(() => useDayRhythm(props(client, false)), { wrapper });
+    expect(result.current).toBeNull();
+    expect(fetchEvents).not.toHaveBeenCalled();
+  });
+
+  it('loads from the start of the day before', async () => {
+    const { client, wrapper } = setup();
+    fetchEvents.mockClear();
+    renderHook(() => useDayRhythm(props(client, true)), { wrapper });
+    await waitFor(() => expect(fetchEvents).toHaveBeenCalledTimes(1));
   });
 });
 

@@ -5,6 +5,7 @@ import {
   filterLayout,
   parseTimelineLanes,
   shownLanes,
+  dayRhythmCards,
   dayTotalCards,
   predictedLayout,
   predictionText,
@@ -22,6 +23,7 @@ import { familyHasFeature } from '@babble/config';
 import { sampleMonthView } from '@babble/api/fixtures';
 import {
   useDayComparison,
+  useDayRhythm,
   useNow,
   usePrediction,
   useRollingComparison,
@@ -129,6 +131,14 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
     now,
     lanes,
     enabled: !insightsLocked,
+  });
+  const rhythm = useDayRhythm({
+    client,
+    babyId: baby.id,
+    baby,
+    dayKey,
+    now,
+    enabled: view === 'day' && !insightsLocked,
   });
   const openDay = (key: string) => {
     setDate(key);
@@ -312,7 +322,14 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
             {comparison && (
               <DayComparisonCard comparison={comparison} currentLabel={rangeLabel} plusBadge={config.billingEnabled} />
             )}
-            {!comparing && <DayTotals cards={dayTotalCards(model.day.summary, units, baby.timezone)} />}
+            {!comparing && (
+              <DayTotals
+                cards={[
+                  ...dayTotalCards(model.day.summary, units, baby.timezone),
+                  ...(rhythm ? dayRhythmCards(rhythm, dayKey === todayKey) : []),
+                ]}
+              />
+            )}
           </>
         ) : model.view === '30d' ? (
           <>

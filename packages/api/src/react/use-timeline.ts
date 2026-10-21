@@ -1,5 +1,7 @@
 import {
   dayComparison,
+  dayRhythm,
+  dayRhythmWindow,
   feedDueFor,
   feedDueMarker,
   nightMarkers,
@@ -10,6 +12,7 @@ import {
   timelineRange,
   type BabyEvent,
   type DayComparison,
+  type DayRhythm,
   type DaySummary,
   type FeedDueMarker,
   type NightMarker,
@@ -88,6 +91,25 @@ export function useDayComparison(input: {
   });
   if (!enabled || !current || !events.data) return null;
   return dayComparison({ dayKey, todayKey, current, events: events.data, settings, baby, now });
+}
+
+export function useDayRhythm(input: {
+  client: BabbleClient;
+  babyId: string;
+  baby: TimelineBaby;
+  dayKey: string;
+  now: Date;
+  enabled: boolean;
+}): DayRhythm | null {
+  const { client, babyId, baby, dayKey, now, enabled } = input;
+  const window = dayRhythmWindow(dayKey, baby);
+  const settings = useQuery(babySettingsQuery(client, babyId)).data;
+  const events = useQuery({
+    ...eventsBetweenQuery(client, babyId, window.start.toISOString(), window.end.toISOString()),
+    enabled,
+  });
+  if (!enabled || !settings || !events.data) return null;
+  return dayRhythm({ events: events.data, dayKey, now, settings, baby });
 }
 
 export function useRollingComparison(input: {

@@ -8,8 +8,10 @@ import { mean } from '../stats/maths';
 
 export type TotalKey = 'sleep' | 'feeds' | 'solids' | 'nappies' | 'pump';
 
+export type RhythmKey = 'spacing' | 'wake' | 'night';
+
 export interface TotalCard {
-  key: TotalKey;
+  key: TotalKey | RhythmKey;
   label: string;
   value: string;
   details: { label: string; value: string }[];
