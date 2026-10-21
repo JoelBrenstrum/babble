@@ -23,6 +23,7 @@ import { configProblem } from '#/lib/config-problem';
 import { clearPersistedQueries } from '#/lib/query-persistence';
 import { themeBootScript, themeColorMeta } from '#/lib/theme';
 import { reloadForRelease, useNewRelease } from '#/lib/release';
+import { watchResume } from '#/lib/resume';
 import { clearAccountStorage } from '#/lib/storage';
 import appCss from '../styles.css?url';
 
@@ -88,6 +89,8 @@ function RootComponent() {
       document.removeEventListener('visibilitychange', onVisible);
     };
   }, [babble]);
+
+  useEffect(() => watchResume(), []);
 
   useEffect(() => {
     let userId: string | null | undefined;
