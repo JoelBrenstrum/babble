@@ -145,6 +145,13 @@ describe('predictedLayout', () => {
     expect(predictedItemTip(within, now, TZ).lines[0]).toBe('Up by 1:20 pm');
   });
 
+  it('says the range is the usual one when the block has been pushed past it', () => {
+    const overdue = block('sleep', '2026-10-13T08:00:00Z', '2026-10-13T10:25:00Z', false, {
+      startWindow: { from: '2026-10-13T05:43:00Z', to: '2026-10-13T06:08:00Z' },
+    });
+    expect(predictedItemTip(overdue, now, TZ).lines[0]).toBe('Down 9:00 pm · usually 6:43 pm – 7:08 pm');
+  });
+
   it('leaves out the range line when the window is narrow or missing', () => {
     const plain = block('feed', '2026-10-13T01:20:00Z', '2026-10-13T02:00:00Z');
     expect(predictedItemTip(plain, now, TZ)).toEqual({

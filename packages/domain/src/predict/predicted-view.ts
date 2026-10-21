@@ -86,12 +86,15 @@ export function predictedItemTip(block: PredictedBlock, now: Date, timeZone: str
   const [startWord, endWord] = sleep ? ['Down', 'Up'] : ['Starts', 'Ends'];
   const at = (iso: string) => formatTimeOfDay(iso, timeZone);
   const window = uncertainWindow(block);
-  const likely = window ? ` · likely ${at(window.from)} – ${at(window.to)}` : '';
+  const inside = (iso: string) =>
+    window !== undefined && Date.parse(iso) >= Date.parse(window.from) && Date.parse(iso) <= Date.parse(window.to);
+  const range = (iso: string) =>
+    window ? ` · ${inside(iso) ? 'likely' : 'usually'} ${at(window.from)} – ${at(window.to)}` : '';
   if (block.continuesRunning) {
     const nowMs = now.getTime();
     const line =
       Date.parse(block.endedAt) > nowMs
-        ? `${endWord} ${at(block.endedAt)}${likely}`
+        ? `${endWord} ${at(block.endedAt)}${range(block.endedAt)}`
         : block.endWindow && nowMs <= Date.parse(block.endWindow.to)
           ? `${endWord} by ${at(block.endWindow.to)}`
           : 'Longer than usual';
@@ -101,7 +104,7 @@ export function predictedItemTip(block: PredictedBlock, now: Date, timeZone: str
   return {
     title: `Likely ${sleep ? 'sleep' : 'feed'}`,
     lines: [
-      `${startWord} ${at(block.startedAt)}${likely}`,
+      `${startWord} ${at(block.startedAt)}${range(block.startedAt)}`,
       `${endWord} ${at(block.endedAt)} · ${length}`,
       ESTIMATE_NOTE,
     ],
