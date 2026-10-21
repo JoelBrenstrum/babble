@@ -21,7 +21,7 @@ export interface PredictedItem {
   tip: TimelineTip;
 }
 
-const ESTIMATE_NOTE = 'Estimated from recent days';
+const ESTIMATE_NOTE = 'Based on the last few days';
 
 export interface PredictionBaby {
   timeZone: string;
@@ -81,33 +81,44 @@ function uncertainWindow(block: PredictedBlock): PredictedWindow | undefined {
   return narrow(window) ? undefined : window;
 }
 
+export function betweenTimes(window: PredictedWindow, timeZone: string): string {
+  const from = formatTimeOfDay(window.from, timeZone);
+  const to = formatTimeOfDay(window.to, timeZone);
+  const period = to.slice(-3);
+  return `between ${from.endsWith(period) ? from.slice(0, -3) : from} and ${to}`;
+}
+
+function againstUsual(iso: string, window: PredictedWindow): string {
+  const at = Date.parse(iso);
+  if (at < Date.parse(window.from)) return 'Earlier than usual';
+  if (at > Date.parse(window.to)) return 'Later than usual';
+  return 'Around the usual time';
+}
+
 export function predictedItemTip(block: PredictedBlock, now: Date, timeZone: string): TimelineTip {
   const sleep = block.kind === 'sleep';
-  const [startWord, endWord] = sleep ? ['Down', 'Up'] : ['Starts', 'Ends'];
+  const noun = sleep ? 'sleep' : 'feed';
   const at = (iso: string) => formatTimeOfDay(iso, timeZone);
   const window = uncertainWindow(block);
-  const inside = (iso: string) =>
-    window !== undefined && Date.parse(iso) >= Date.parse(window.from) && Date.parse(iso) <= Date.parse(window.to);
-  const range = (iso: string) =>
-    window ? ` · ${inside(iso) ? 'likely' : 'usually'} ${at(window.from)} – ${at(window.to)}` : '';
   if (block.continuesRunning) {
     const nowMs = now.getTime();
-    const line =
-      Date.parse(block.endedAt) > nowMs
-        ? `${endWord} ${at(block.endedAt)}${range(block.endedAt)}`
-        : block.endWindow && nowMs <= Date.parse(block.endWindow.to)
-          ? `${endWord} by ${at(block.endWindow.to)}`
-          : 'Longer than usual';
-    return { title: `${sleep ? 'Sleep' : 'Feed'} still going`, lines: [line, ESTIMATE_NOTE] };
+    const endsAhead = Date.parse(block.endedAt) > nowMs;
+    const over = sleep ? 'awake' : 'done';
+    const line = endsAhead
+      ? `Likely ${over} around ${at(block.endedAt)}`
+      : block.endWindow && nowMs <= Date.parse(block.endWindow.to)
+        ? `Likely ${over} by ${at(block.endWindow.to)}`
+        : `${sleep ? 'Sleeping' : 'Feeding'} longer than usual`;
+    const usual = window && endsAhead ? [`Recent ${noun}s ended ${betweenTimes(window, timeZone)}.`] : [];
+    return { title: sleep ? 'Still asleep' : 'Still feeding', lines: [line, ...usual, ESTIMATE_NOTE] };
   }
   const length = formatDuration(Date.parse(block.endedAt) - Date.parse(block.startedAt), { seconds: false });
+  const usual = window
+    ? [`${againstUsual(block.startedAt, window)}. Recent ${noun}s started ${betweenTimes(window, timeZone)}.`]
+    : [];
   return {
-    title: `Likely ${sleep ? 'sleep' : 'feed'}`,
-    lines: [
-      `${startWord} ${at(block.startedAt)}${range(block.startedAt)}`,
-      `${endWord} ${at(block.endedAt)} · ${length}`,
-      ESTIMATE_NOTE,
-    ],
+    title: `Next ${noun}`,
+    lines: [`Likely from ${at(block.startedAt)} to ${at(block.endedAt)} (about ${length})`, ...usual, ESTIMATE_NOTE],
   };
 }
 

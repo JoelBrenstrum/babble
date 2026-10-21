@@ -49,7 +49,10 @@ describe('DayTimeline', () => {
           endFrac: 0.6,
           opacity: 0.8,
           label: 'Likely asleep 2:10 pm–3:20 pm',
-          tip: { title: 'Likely sleep', lines: ['Down 2:10 pm · likely 2:00 pm – 2:30 pm', 'Up 3:20 pm · 1h 10m'] },
+          tip: {
+            title: 'Next sleep',
+            lines: ['Likely from 2:10 pm to 3:20 pm (about 1h 10m)', 'Based on the last few days'],
+          },
         },
       ],
       feeds: [],
@@ -68,7 +71,7 @@ describe('DayTimeline', () => {
     );
     expect(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm')).toBeTruthy();
     await fireEvent.press(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm'));
-    expect(screen.getByText('Down 2:10 pm · likely 2:00 pm – 2:30 pm')).toBeTruthy();
+    expect(screen.getByText('Likely from 2:10 pm to 3:20 pm (about 1h 10m)')).toBeTruthy();
     await fireEvent.press(screen.getByTestId('timeline-tip'));
     expect(screen.queryByTestId('timeline-tip')).toBeNull();
   });
