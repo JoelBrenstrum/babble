@@ -1,8 +1,8 @@
-import type { PooColour } from '@babble/domain';
+import { CAUTION_COLOURS, POO_COLOUR_LABELS, type PooColour } from '@babble/domain';
 import { Stethoscope } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { useTokenColor } from '@/lib/theme';
-import { CAUTION_COLOURS, POO_COLOURS, PooSwatch } from './poo-swatch';
+import { POO_COLOURS, PooSwatch } from './poo-swatch';
 
 export function SwatchPicker({
   value,
@@ -14,7 +14,7 @@ export function SwatchPicker({
   const full = value.length >= 2;
   const caution = value.some((colour) => CAUTION_COLOURS.includes(colour));
   const cautionColor = useTokenColor('--on-caution');
-  const summary = value.flatMap((colour) => POO_COLOURS.find((c) => c.value === colour)?.label ?? []).join(' + ');
+  const summary = value.map((colour) => POO_COLOUR_LABELS[colour]).join(' + ');
 
   return (
     <View className="gap-3">

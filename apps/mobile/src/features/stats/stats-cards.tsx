@@ -115,6 +115,7 @@ function StatsCardView({
   const [selected, setSelected] = useState<string | null>(null);
   const selectedBar = chart.bars.find((bar) => bar.label === selected);
   const link = selectedBar && onOpenTimeline ? statsBarLink(card.key, selectedBar, chart.weekly) : null;
+  const ends = chartEnds(chart);
   return (
     <Card className="gap-4 p-5">
       <View className="flex-row items-center gap-3">
@@ -193,10 +194,10 @@ function StatsCardView({
             );
           })}
         </View>
-        {chartEnds(chart) && (
+        {ends && (
           <View className="flex-row justify-between">
-            <Text className="font-sans text-caption text-ink-3">{chartEnds(chart)![0]}</Text>
-            <Text className="font-sans text-caption text-ink-3">{chartEnds(chart)![1]}</Text>
+            <Text className="font-sans text-caption text-ink-3">{ends[0]}</Text>
+            <Text className="font-sans text-caption text-ink-3">{ends[1]}</Text>
           </View>
         )}
         {card.note && <Text className="font-sans text-caption text-ink-3">{card.note}</Text>}

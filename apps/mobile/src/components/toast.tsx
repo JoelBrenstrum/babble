@@ -1,5 +1,5 @@
 import { NotifyProvider, type Notify } from '@babble/api/react';
-import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -14,20 +14,16 @@ export function toastFromNotice(notice: Parameters<Notify>[0]): Omit<Toast, 'id'
   return { message, ...(action && { action: { label: action.label, onPress: action.run } }) };
 }
 
-const ToastContext = createContext<(toast: Omit<Toast, 'id'>) => void>(() => undefined);
-
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<Toast | null>(null);
   const [paused, setPaused] = useState(false);
   const nextId = useRef(0);
   const insets = useSafeAreaInsets();
 
-  const show = useCallback((next: Omit<Toast, 'id'>) => {
+  const notify = useCallback<Notify>((notice) => {
     nextId.current += 1;
-    setToast({ ...next, id: nextId.current });
+    setToast({ ...toastFromNotice(notice), id: nextId.current });
   }, []);
-
-  const notify = useCallback<Notify>((notice) => show(toastFromNotice(notice)), [show]);
 
   useEffect(() => {
     if (!toast || paused) return;
@@ -36,7 +32,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, [toast, paused]);
 
   return (
-    <ToastContext.Provider value={show}>
+    <>
       <NotifyProvider notify={notify}>{children}</NotifyProvider>
       {toast && (
         <View pointerEvents="box-none" className="absolute inset-x-0 px-4" style={{ bottom: insets.bottom + 96 }}>
@@ -62,10 +58,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           </Pressable>
         </View>
       )}
-    </ToastContext.Provider>
+    </>
   );
-}
-
-export function useToast() {
-  return useContext(ToastContext);
 }

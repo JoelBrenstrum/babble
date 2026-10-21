@@ -20,10 +20,11 @@ export function chunkedStore(secure: KeyValueStore, legacy?: KeyValueStore): Key
     async getItem(key) {
       const count = await secure.getItem(countKey(key));
       if (count === null) {
-        const old = (await legacy?.getItem(key)) ?? null;
+        if (!legacy) return null;
+        const old = await legacy.getItem(key);
         if (old !== null) {
           await store.setItem(key, old);
-          await legacy!.removeItem(key);
+          await legacy.removeItem(key);
         }
         return old;
       }

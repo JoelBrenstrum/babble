@@ -1,10 +1,11 @@
 import { useNow, useSessionAction, useTrackingSettings } from '@babble/api/react';
 import { clock, eventListQuery, eventQuery, runningEventsQuery, familyAuthors } from '@babble/api';
-import { formatTimeOfDay, liveMergeOffer, READ_ONLY_NOTE, trimIdleSwitch } from '@babble/domain';
+import { formatTimeOfDay, liveMergeOffer, READ_ONLY_NOTE, trackerFor, trimIdleSwitch } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Card, SectionLabel } from '@/components/card';
+import { PageSpinner } from '@/components/page-spinner';
 import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
 import { StatusMessage } from '@/components/status-message';
@@ -17,7 +18,6 @@ import { PumpAmountsEditor } from '@/features/events/pump-amounts-editor';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { SleepDetailsEditor } from '@/features/events/sleep-details-editor';
 import { useBabble } from '@/lib/babble';
-import { useTokenColor } from '@/lib/theme';
 import { useCanLog } from '@/lib/use-can-log';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
@@ -37,26 +37,24 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
   const now = useNow(1000);
   const { mergeGapMs, units } = useTrackingSettings(client, baby.id);
   const action = useSessionAction(client, baby.id);
-  const spinnerColor = useTokenColor('--primary');
   const event = running.data?.find((item) => item.id === id) ?? fallback.data;
   const earlier = useQuery({
     ...eventListQuery(client, baby.id, [event?.type === 'sleep' ? 'sleep' : 'breast_feed']),
     enabled: logging && (event?.type === 'breast_feed' || event?.type === 'sleep'),
   });
 
-  if (!event) return <ActivityIndicator size="large" color={spinnerColor} className="flex-1 bg-bg" />;
+  if (!event) return <PageSpinner />;
   if (event.deletedAt) return <Redirect href="/" />;
   if (event.endedAt !== null) return <Redirect href={`/events/${id}`} />;
 
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
   const trimTo = logging ? trimIdleSwitch(event, clock.now()) : null;
   const merge = logging && earlier.data ? liveMergeOffer(event, earlier.data) : null;
-  const title = event.type === 'sleep' ? 'Sleep' : event.type === 'pump' ? 'Pump' : 'Breastfeed';
 
   return (
     <Screen>
       <ScreenHeader
-        title={title}
+        title={trackerFor(event.type).label}
         right={
           <Text className="font-sans text-meta text-ink-2">{`started ${formatTimeOfDay(event.startedAt, baby.timezone)}`}</Text>
         }

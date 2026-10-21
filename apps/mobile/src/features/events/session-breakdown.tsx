@@ -1,7 +1,8 @@
-import { formatDuration, sideTotals, summariseSegments, type TimedSegment } from '@babble/domain';
+import { formatDuration, SIDE_LABEL, sideTotals, summariseSegments, type TimedSegment } from '@babble/domain';
 import { Minus } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
+import { SIDE_STYLE } from '@/lib/side-style';
 import { useTokenColor } from '@/lib/theme';
 
 export function SessionBreakdown({
@@ -33,14 +34,14 @@ export function SessionBreakdown({
           className={`min-h-tap flex-row items-center gap-3 px-4 py-2 ${index > 0 ? 'border-t border-line' : ''}`}
         >
           {row.kind === 'side' ? (
-            <View className={`size-3 rounded-full ${row.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`} />
+            <View className={`size-3 rounded-full ${SIDE_STYLE[row.side].solid}`} />
           ) : (
             <View className="size-3 rounded-full border-2 border-dashed border-session-downtime" />
           )}
           <Text
             className={`flex-1 text-body ${row.kind === 'side' ? 'font-semibold text-ink' : 'font-sans text-ink-2'}`}
           >
-            {row.kind === 'side' ? (row.side === 'left' ? 'Left' : 'Right') : 'Downtime'}
+            {row.kind === 'side' ? SIDE_LABEL[row.side] : 'Downtime'}
           </Text>
           {row.kind === 'downtime' && (
             <Text className="font-semibold text-meta text-on-session-downtime">
@@ -48,11 +49,7 @@ export function SessionBreakdown({
             </Text>
           )}
           {row.running && row.kind === 'side' && (
-            <Text
-              className={`font-semibold text-meta ${row.side === 'left' ? 'text-on-feed-left' : 'text-on-feed-right'}`}
-            >
-              running
-            </Text>
+            <Text className={`font-semibold text-meta ${SIDE_STYLE[row.side].text}`}>running</Text>
           )}
           <Text className="w-24 text-right font-sans text-body text-ink">{formatDuration(row.durationMs)}</Text>
           {onTrimIdle && row.kind === 'downtime' && row.latest && !row.running && (
@@ -80,9 +77,9 @@ export function SessionBreakdown({
         <View accessibilityLabel="Each side" className="-mt-1 flex-row flex-wrap gap-x-4 gap-y-1 px-4 pb-3">
           {sides.map((total) => (
             <View key={total.side} className="flex-row items-center gap-1.5">
-              <View className={`size-2 rounded-full ${total.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`} />
+              <View className={`size-2 rounded-full ${SIDE_STYLE[total.side].solid}`} />
               <Text className="font-sans text-meta text-ink-2">
-                {`${total.side === 'left' ? 'Left' : 'Right'} `}
+                {`${SIDE_LABEL[total.side]} `}
                 <Text className="font-semibold text-ink">{formatDuration(total.durationMs)}</Text>
               </Text>
             </View>

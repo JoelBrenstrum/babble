@@ -1,7 +1,9 @@
 import {
   awakePeriods,
+  MOOD_LABELS,
   napDurationText,
   newAwakePeriod,
+  SLEEP_LOCATION_LABELS,
   SLEEP_QUALITIES,
   SLEEP_QUALITY_LABELS,
   stretchesWithAwake,
@@ -9,9 +11,7 @@ import {
   type AwakePeriod,
   type DraftOfType,
   type FallAsleep,
-  type Mood,
   type SleepDetails,
-  type SleepLocation,
 } from '@babble/domain';
 import { Plus } from 'lucide-react-native';
 import { useState } from 'react';
@@ -19,30 +19,28 @@ import { Pressable, Text, View } from 'react-native';
 import { CheckRow, MultiChips, SingleChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
 import { RatingScale } from '@/components/rating-scale';
+import { labelOptions } from '@/lib/options';
 import { useTokenColor } from '@/lib/theme';
 import { NapBreakdown } from '../nap-breakdown';
 import { FormSection, type FormProps } from './shared';
 
-const LOCATIONS: { value: SleepLocation; label: string }[] = [
-  { value: 'cot', label: 'Cot' },
-  { value: 'bassinet', label: 'Bassinet' },
-  { value: 'pram', label: 'Pram' },
-  { value: 'car', label: 'Car' },
-  { value: 'swing', label: 'Swing' },
-  { value: 'held', label: 'Held' },
-  { value: 'nursing', label: 'Nursing' },
-  { value: 'co_sleep', label: 'Co-sleep' },
-  { value: 'next_to_carer', label: 'Next to carer' },
-];
+const LOCATIONS = labelOptions(SLEEP_LOCATION_LABELS, [
+  'cot',
+  'bassinet',
+  'pram',
+  'car',
+  'swing',
+  'held',
+  'nursing',
+  'co_sleep',
+  'next_to_carer',
+]);
 const FALL_ASLEEP: { value: FallAsleep; label: string }[] = [
   { value: 'under_10_min', label: 'Under 10 min' },
   { value: '10_to_20_min', label: '10–20 min' },
   { value: 'long_time', label: 'Took a while' },
 ];
-const MOODS: { value: Mood; label: string }[] = [
-  { value: 'happy', label: 'Happy' },
-  { value: 'upset', label: 'Upset' },
-];
+const MOODS = labelOptions(MOOD_LABELS, ['happy', 'upset']);
 
 export function SleepDetailFields({
   details,

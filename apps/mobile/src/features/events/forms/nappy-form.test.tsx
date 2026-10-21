@@ -39,6 +39,16 @@ describe('NappyForm', () => {
     expect(screen.getByText('Poo colour')).toBeTruthy();
   });
 
+  it('offers poo textures by their domain labels', async () => {
+    await render(<Harness onDraft={jest.fn()} />);
+    await fireEvent.press(screen.getByRole('radio', { name: 'Dirty' }));
+    for (const name of ['Runny', 'Seedy', 'Pasty', 'Formed', 'Mucousy', 'Solid']) {
+      expect(screen.getByRole('checkbox', { name })).toBeTruthy();
+    }
+    expect(screen.queryByRole('checkbox', { name: 'Loose' })).toBeNull();
+    expect(screen.getByRole('checkbox', { name: 'White / grey' })).toBeTruthy();
+  });
+
   it('limits poo colours to two', async () => {
     const onDraft = jest.fn();
     await render(<Harness onDraft={onDraft} />);

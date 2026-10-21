@@ -4,17 +4,17 @@ import DateTimePicker, { type DateTimePickerEvent } from '@react-native-communit
 import { useState } from 'react';
 import { Platform, Pressable, Text, View } from 'react-native';
 
-function toPickerDate(iso: string, timeZone: string): Date {
+export function toPickerDate(iso: string, timeZone: string): Date {
   const [date, time] = toLocalInputValue(iso, timeZone).split('T') as [string, string];
   const [year, month, day] = date.split('-').map(Number) as [number, number, number];
   const [hour, minute] = time.split(':').map(Number) as [number, number];
   return new Date(year, month - 1, day, hour, minute);
 }
 
-function fromPickerDate(date: Date, timeZone: string): string {
+export function fromPickerDate(date: Date, timeZone: string): string | null {
   const pad = (value: number) => String(value).padStart(2, '0');
   const local = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  return fromLocalInputValue(local, timeZone)!;
+  return fromLocalInputValue(local, timeZone);
 }
 
 export function DateTimeField({
@@ -34,7 +34,8 @@ export function DateTimeField({
 
   function handle(event: DateTimePickerEvent, date?: Date) {
     if (Platform.OS === 'android') setMode(null);
-    if (event.type === 'set' && date) onChange(fromPickerDate(date, timeZone));
+    const iso = event.type === 'set' && date ? fromPickerDate(date, timeZone) : null;
+    if (iso) onChange(iso);
   }
 
   return (

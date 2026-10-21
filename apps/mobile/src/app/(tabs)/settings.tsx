@@ -55,17 +55,12 @@ export default function SettingsTab() {
   const lockedNote = settingsLockedNote(memberRole(family, session.user.id));
   const plan = planSummary(config.billingEnabled, family.plan);
   const groups = settingsGroups(baby.name, family.name);
-  const groupFor = (id: SettingsGroupId) => groups.find((group) => group.id === id)!;
-  const babyGroup = groupFor('baby');
-  const familyGroup = groupFor('family');
-  const deviceGroup = groupFor('device');
-  const accountGroup = groupFor('account');
 
   return (
     <Screen edges={['top']}>
       <Text className="mb-6 font-bold text-title text-ink">Settings</Text>
       <View className="gap-10">
-        <SettingsGroupSection group={babyGroup} note={lockedNote}>
+        <SettingsGroupSection groups={groups} id="baby" note={lockedNote}>
           <Card className="p-2">
             <BabyChoiceList
               choices={choices}
@@ -80,18 +75,18 @@ export default function SettingsTab() {
           <BabyTrackingSettings client={client} babyId={baby.id} disabled={!admin} />
           <ExportData client={client} family={family} baby={baby} scope="baby" />
         </SettingsGroupSection>
-        <SettingsGroupSection group={familyGroup} plus={plan?.plus ?? false} note={lockedNote}>
+        <SettingsGroupSection groups={groups} id="family" plus={plan?.plus ?? false} note={lockedNote}>
           <MembersSection family={family} userId={session.user.id} admin={admin} />
           <FamilyDevices client={client} familyId={family.id} admin={admin} />
           {plan && <PlusPlan summary={plan} />}
           <FamilyTrackingSettings client={client} familyId={family.id} babyId={baby.id} disabled={!admin} />
           {family.babies.length > 1 && <ExportData client={client} family={family} baby={baby} scope="family" />}
         </SettingsGroupSection>
-        <SettingsGroupSection group={deviceGroup}>
+        <SettingsGroupSection groups={groups} id="device">
           <DeviceNameSetting you={authorName(family, session.user.id) ?? 'you'} familyId={family.id} />
           <AppearanceSection babyName={baby.name} />
         </SettingsGroupSection>
-        <SettingsGroupSection group={accountGroup}>
+        <SettingsGroupSection groups={groups} id="account">
           <AccountSection email={session.user.email ?? ''} />
           <AboutSection publicUrl={config.publicUrl} />
         </SettingsGroupSection>
@@ -102,16 +97,20 @@ export default function SettingsTab() {
 }
 
 function SettingsGroupSection({
-  group,
+  groups,
+  id,
   plus = false,
   note = null,
   children,
 }: {
-  group: SettingsGroup;
+  groups: SettingsGroup[];
+  id: SettingsGroupId;
   plus?: boolean;
   note?: string | null;
   children: ReactNode;
 }) {
+  const group = groups.find((candidate) => candidate.id === id);
+  if (!group) return null;
   return (
     <View className="gap-4">
       <View>

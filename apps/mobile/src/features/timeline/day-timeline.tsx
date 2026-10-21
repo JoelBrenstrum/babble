@@ -10,6 +10,7 @@ import {
   type DayLayout,
   type TimelineLane,
   TIMELINE_LANES,
+  visibleLanes,
   type FeedDueMarker,
   type NightMarker,
   type PredictedItem,
@@ -21,9 +22,10 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { PooSwatch } from '@/components/poo-swatch';
+import { sideStyle } from '@/lib/side-style';
 import { pct } from './percent';
 
-export const DAY_TIMELINE_HEIGHT = 560;
+const DAY_TIMELINE_HEIGHT = 560;
 const TIP_ROOM_FRAC = 0.15;
 
 function open(item: TimelineItem) {
@@ -55,13 +57,7 @@ export function DayTimeline({
   lanes?: readonly TimelineLane[];
   night?: NightMarker[];
 }) {
-  const filtered = shown.length < TIMELINE_LANES.length;
-  const lanes: { key: keyof DayLayout; label: string }[] = [
-    { key: 'sleep' as const, label: 'Sleep' },
-    { key: 'feeds' as const, label: 'Feeds' },
-    { key: 'nappies' as const, label: 'Nappy' },
-    ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
-  ].filter((lane) => shown.includes(lane.key));
+  const lanes = visibleLanes(layout, shown);
   const [tip, setTip] = useState<TimelineItem | null>(null);
   const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
 
@@ -258,7 +254,7 @@ function Item({
           return (
             <View
               key={index}
-              className={`absolute inset-x-0 ${event.type === 'pump' ? 'bg-pump' : part.side === 'left' ? 'bg-feed-left' : 'bg-feed-right'}`}
+              className={`absolute inset-x-0 ${event.type === 'pump' ? 'bg-pump' : sideStyle(part.side).solid}`}
               style={{ top: pct(top), height: pct(partHeight), minHeight: 3 }}
             />
           );

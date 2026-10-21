@@ -5,6 +5,7 @@ import {
   joinDuration,
   splitDuration,
   segmentsToEditableRows,
+  SIDE_LABEL,
   type EditableRow,
   type Side,
   type TimedSegment,
@@ -12,6 +13,7 @@ import {
 import { Trash2 } from 'lucide-react-native';
 import { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
+import { SIDE_STYLE } from '@/lib/side-style';
 import { useTokenColor } from '@/lib/theme';
 
 function DurationInputs({ label, ms, onChange }: { label: string; ms: number; onChange: (ms: number) => void }) {
@@ -73,18 +75,17 @@ export function SegmentEditor({
               <View accessibilityRole="radiogroup" className="flex-row gap-1">
                 {(['left', 'right'] as const).map((side) => {
                   const selected = row.side === side;
-                  const solid = side === 'left' ? 'bg-feed-left' : 'bg-feed-right';
                   return (
                     <Pressable
                       key={side}
                       accessibilityRole="radio"
-                      accessibilityLabel={side === 'left' ? 'Left' : 'Right'}
+                      accessibilityLabel={SIDE_LABEL[side]}
                       accessibilityState={{ checked: selected }}
                       onPress={() => update(rows.map((r, i) => (i === index ? { ...row, side } : r)))}
-                      className={`size-10 items-center justify-center rounded-full ${selected ? solid : 'border border-line bg-raised'}`}
+                      className={`size-10 items-center justify-center rounded-full ${selected ? SIDE_STYLE[side].solid : 'border border-line bg-raised'}`}
                     >
                       <Text className={`font-bold text-label ${selected ? 'text-ink-on-solid' : 'text-ink-2'}`}>
-                        {side === 'left' ? 'L' : 'R'}
+                        {SIDE_STYLE[side].letter}
                       </Text>
                     </Pressable>
                   );

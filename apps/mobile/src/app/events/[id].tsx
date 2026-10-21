@@ -14,15 +14,15 @@ import {
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Card } from '@/components/card';
+import { PageSpinner } from '@/components/page-spinner';
 import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
 import { StatusMessage } from '@/components/status-message';
 import { TrackerIcon } from '@/components/tracker-icon';
 import { EventForm } from '@/features/events/event-form';
 import { useBabble } from '@/lib/babble';
-import { useTokenColor } from '@/lib/theme';
 import { NapBreakdown } from '@/features/events/nap-breakdown';
 import { SessionBreakdown } from '@/features/events/session-breakdown';
 import { Button } from '@/components/button';
@@ -54,9 +54,8 @@ function EditEventContent({
   const resumeSession = useReopenSession(client, baby.id);
   const resume = useAsyncAction();
   const event = useQuery(eventQuery(client, baby.id, id));
-  const spinnerColor = useTokenColor('--primary');
 
-  if (event.isPending) return <ActivityIndicator size="large" color={spinnerColor} className="flex-1 bg-bg" />;
+  if (event.isPending) return <PageSpinner />;
   if (event.error || !event.data || event.data.deletedAt) {
     return (
       <Screen>
