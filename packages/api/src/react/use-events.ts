@@ -26,12 +26,15 @@ import {
   saveSleepDetails,
   startSession,
   subscribeToBabyEvents,
+  UNKNOWN_CHANGE,
+  type EventChange,
   type PumpAmountChanges,
   type SleepChanges,
 } from '../events';
 import { runNapAction, type DataNapAction } from '../nap';
-import { babySettingsQuery, queryKeys, runningEventsQuery } from '../queries';
+import { babySettingsQuery, runningEventsQuery } from '../queries';
 import { autoEndStaleSessions } from './auto-end';
+import { applyEventChange } from './event-cache';
 import { useNotify, type Notify } from './notify';
 import {
   mergePumpAmounts,
@@ -50,8 +53,8 @@ const AUTO_END_CHECK_MS = 60_000;
 export function useRealtimeEvents(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
   useEffect(() => {
-    const invalidate = () => void queryClient.invalidateQueries({ queryKey: queryKeys.events(babyId) });
-    return subscribeToBabyEvents(client, babyId, invalidate, invalidate);
+    const apply = (change: EventChange) => void applyEventChange(queryClient, client, babyId, change);
+    return subscribeToBabyEvents(client, babyId, apply, () => apply(UNKNOWN_CHANGE));
   }, [client, babyId, queryClient]);
 }
 
