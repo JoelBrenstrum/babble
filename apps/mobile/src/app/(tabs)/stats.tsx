@@ -1,4 +1,4 @@
-import { babySettingsQuery, eventListQuery, eventsBetweenQuery } from '@babble/api';
+import { babySettingsQuery, eventListQuery } from '@babble/api';
 import {
   type TimelineLink,
   growthReport,
@@ -12,8 +12,8 @@ import {
 } from '@babble/domain';
 import { sampleStatsReport } from '@babble/api/fixtures';
 import { familyHasFeature } from '@babble/config';
-import { useSettled, useUnits } from '@babble/api/react';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { useEventsInRange, useSettled, useUnits } from '@babble/api/react';
+import { useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { ChartColumn } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
@@ -47,10 +47,13 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
   const { from, to } = statsInputs(range, baby, now);
   const insights = useInsights(baby, family, now);
   const sampleOnly = range === 'all' && insights.locked;
-  const events = useQuery({
-    ...eventsBetweenQuery(client, baby.id, from, to),
+  const events = useEventsInRange(client, baby.id, {
+    from,
+    to,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled: !sampleOnly,
-    placeholderData: keepPreviousData,
+    keepPrevious: true,
   });
   const loading = events.isPlaceholderData && !sampleOnly;
   const shownRange = useSettled(range, !loading);

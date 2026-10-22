@@ -34,7 +34,7 @@ import {
 import { runNapAction, type DataNapAction } from '../nap';
 import { babySettingsQuery, runningEventsQuery } from '../queries';
 import { autoEndStaleSessions } from './auto-end';
-import { applyEventChange } from './event-cache';
+import { applyEventChange, findAnyCachedEvent } from './event-cache';
 import { useNotify, type Notify } from './notify';
 import {
   mergePumpAmounts,
@@ -134,7 +134,12 @@ function useOptimisticEventMutation<V>(
       if (context) restoreEventCaches(queryClient, babyId, context.eventId, context.snapshot);
       notify({ message: toBabbleError(error).message });
     },
-    onSettled: () => refreshEvents(queryClient, babyId),
+    onSettled: (_, __, variables) => {
+      const target = options.target(variables);
+      const cached = target ? findAnyCachedEvent(queryClient, babyId, target.eventId) : undefined;
+      const touched = cached ? [cached.startedAt, cached.endedAt, clock.now().toISOString()] : undefined;
+      return refreshEvents(queryClient, babyId, touched);
+    },
   });
 }
 
@@ -142,7 +147,12 @@ export function useSaveEvent(client: BabbleClient, babyId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ draft, id }: { draft: EventDraft; id?: string }) => saveEvent(client, babyId, draft, id),
-    onSettled: () => refreshEvents(queryClient, babyId),
+    onSettled: (_, __, { draft, id }) => {
+      const previous = id ? findAnyCachedEvent(queryClient, babyId, id) : undefined;
+      const touched =
+        id && !previous ? undefined : [draft.startedAt, draft.endedAt, previous?.startedAt, previous?.endedAt];
+      return refreshEvents(queryClient, babyId, touched);
+    },
   });
 }
 
@@ -154,7 +164,7 @@ export function useDeleteEvent(client: BabbleClient, babyId: string) {
     onSuccess: (_, event) =>
       notify({ message: 'Entry deleted', action: undoAction(client, queryClient, babyId, event.id) }),
     onError: (error) => notify({ message: toBabbleError(error).message }),
-    onSettled: () => refreshEvents(queryClient, babyId),
+    onSettled: (_, __, event) => refreshEvents(queryClient, babyId, [event.startedAt, event.endedAt]),
   });
 }
 

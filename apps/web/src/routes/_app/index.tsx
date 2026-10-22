@@ -1,5 +1,5 @@
-import { babySettingsQuery, eventsSinceQuery, latestEventsQuery, runningEventsQuery, familyAuthors } from '@babble/api';
-import { useUnits } from '@babble/api/react';
+import { babySettingsQuery, latestEventsQuery, runningEventsQuery, familyAuthors } from '@babble/api';
+import { useEventsInRange, useUnits } from '@babble/api/react';
 import { feedDueFor, feedDueText, homeWindow, predictionText, summariseDay } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute } from '@tanstack/react-router';
@@ -16,10 +16,15 @@ function HomePage() {
   const { babble, baby, family, canLog } = Route.useRouteContext();
   const now = useNow(30_000);
   const units = useUnits(babble.client, baby.id);
-  const { window: dayToNow, since } = homeWindow(now, baby);
+  const { window: dayToNow, day, since } = homeWindow(now, baby);
   const running = useQuery(runningEventsQuery(babble.client, baby.id));
   const latest = useQuery(latestEventsQuery(babble.client, baby.id));
-  const recent = useQuery(eventsSinceQuery(babble.client, baby.id, since));
+  const recent = useEventsInRange(babble.client, baby.id, {
+    from: since,
+    to: day.end.toISOString(),
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
+  });
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
   const install = useInstall();
   const prediction = usePrediction(babble, baby, family, now);

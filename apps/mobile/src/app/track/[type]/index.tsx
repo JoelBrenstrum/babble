@@ -1,5 +1,5 @@
-import { useUnits } from '@babble/api/react';
-import { babySettingsQuery, eventListQuery, eventsBetweenQuery, familyAuthors } from '@babble/api';
+import { useEventsInRange, useUnits } from '@babble/api/react';
+import { babySettingsQuery, eventListQuery, familyAuthors } from '@babble/api';
 import {
   hasStrip,
   isEventType,
@@ -72,8 +72,10 @@ function TrackerListContent({
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const stripRange = stripWindow(now, baby.timezone, baby.day_start_minutes);
   const showStrip = hasStrip(kind);
-  const recent = useQuery({
-    ...eventsBetweenQuery(client, baby.id, stripRange.from, stripRange.to),
+  const recent = useEventsInRange(client, baby.id, {
+    ...stripRange,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled: showStrip,
   });
   const strip =

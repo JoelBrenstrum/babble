@@ -1,4 +1,5 @@
-import { babySettingsQuery, eventsBetweenQuery, type BabbleClient } from '@babble/api';
+import { babySettingsQuery, type BabbleClient } from '@babble/api';
+import { useEventsInRange } from '@babble/api/react';
 import {
   dayComparison,
   previous24hWindow,
@@ -15,15 +16,6 @@ import {
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 
-export function mostlyOverlaps(previousKey: readonly unknown[], range: Pick<TimelineRange, 'from' | 'to'>): boolean {
-  const [, , , from, to] = previousKey;
-  if (typeof from !== 'string' || typeof to !== 'string') return false;
-  const start = Math.max(Date.parse(from), Date.parse(range.from));
-  const end = Math.min(Date.parse(to), Date.parse(range.to));
-  const span = Date.parse(range.to) - Date.parse(range.from);
-  return end - start > span / 2;
-}
-
 export function useTimelineModel(input: {
   client: BabbleClient;
   babyId: string;
@@ -36,11 +28,13 @@ export function useTimelineModel(input: {
   const { client, babyId, baby, view, date, now, enabled } = input;
   const range = timelineRange({ view, date, baby, now });
   const settings = useQuery(babySettingsQuery(client, babyId)).data;
-  const events = useQuery({
-    ...eventsBetweenQuery(client, babyId, range.from, range.to),
+  const events = useEventsInRange(client, babyId, {
+    from: range.from,
+    to: range.to,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled,
-    placeholderData: (previous, previousQuery) =>
-      previousQuery && mostlyOverlaps(previousQuery.queryKey, range) ? previous : undefined,
+    keepPrevious: view === '24h',
   });
   const model = events.data ? timelineModel({ view, date, events: events.data, settings, baby, now }) : null;
   return { range, model };
@@ -59,8 +53,11 @@ export function useDayComparison(input: {
   const { client, babyId, baby, dayKey, todayKey, current, now, enabled } = input;
   const window = previousDayWindow(dayKey, baby);
   const settings = useQuery(babySettingsQuery(client, babyId)).data;
-  const events = useQuery({
-    ...eventsBetweenQuery(client, babyId, window.start.toISOString(), window.end.toISOString()),
+  const events = useEventsInRange(client, babyId, {
+    from: window.start.toISOString(),
+    to: window.end.toISOString(),
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled,
   });
   if (!enabled || !current || !events.data) return null;
@@ -81,11 +78,12 @@ export function useRollingComparison(input: {
     ? { from: previous.start.toISOString(), to: previous.end.toISOString() }
     : { from: new Date(0).toISOString(), to: new Date(0).toISOString() };
   const settings = useQuery(babySettingsQuery(client, babyId)).data;
-  const events = useQuery({
-    ...eventsBetweenQuery(client, babyId, range.from, range.to),
+  const events = useEventsInRange(client, babyId, {
+    ...range,
+    timeZone: baby.timezone,
+    dayStartMinutes: baby.day_start_minutes,
     enabled: enabled && previous !== null,
-    placeholderData: (data, previousQuery) =>
-      previousQuery && mostlyOverlaps(previousQuery.queryKey, range) ? data : undefined,
+    keepPrevious: true,
   });
   if (!enabled || !window || !current || !events.data) return null;
   return rollingComparison({ window, current, events: events.data, settings, baby });
