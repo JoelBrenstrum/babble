@@ -61,14 +61,22 @@ export function useInsights(
 export function usePrediction(
   client: BabbleClient,
   billingEnabled: boolean,
-  baby: Pick<BabyRow, 'id' | 'timezone'>,
+  baby: Pick<BabyRow, 'id' | 'timezone' | 'birth_date'>,
   family: PlanHolder,
   now: Date,
 ): PredictedBlock[] | null {
   const enabled = familyHasFeature(billingEnabled, family.plan, 'predictions');
   const events = useQuery({ ...eventsSinceQuery(client, baby.id, predictionSince(now)), enabled }).data;
+  const settings = useQuery({ ...babySettingsQuery(client, baby.id), enabled }).data;
   return useMemo(
-    () => (enabled && events ? predictAhead(events, now, baby.timezone) : null),
-    [enabled, events, now, baby.timezone],
+    () =>
+      enabled && events
+        ? predictAhead(events, now, {
+            timeZone: baby.timezone,
+            birthDate: baby.birth_date,
+            night: settings ? nightSettingsFrom(settings) : null,
+          })
+        : null,
+    [enabled, events, settings, now, baby.timezone, baby.birth_date],
   );
 }

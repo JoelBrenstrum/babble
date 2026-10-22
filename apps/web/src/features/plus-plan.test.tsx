@@ -8,7 +8,7 @@ describe('PlusPlan', () => {
     render(<PlusPlan summary={planSummary(true, 'plus')!} />);
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(screen.getByText('Included')).toBeInTheDocument();
-    expect(screen.getByText('Predicted sleeps and feeds on Home and the Timeline')).toBeInTheDocument();
+    expect(screen.getByText('Sleep windows and predicted feeds on Home and the Timeline')).toBeInTheDocument();
   });
 
   it('tells a free family what plus adds', () => {

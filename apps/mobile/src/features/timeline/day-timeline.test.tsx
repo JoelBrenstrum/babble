@@ -43,7 +43,17 @@ describe('DayTimeline', () => {
     const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
     const predicted = {
       sleep: [
-        { kind: 'sleep' as const, startFrac: 0.55, endFrac: 0.6, opacity: 0.8, label: 'Likely asleep 2:10 pm–3:20 pm' },
+        {
+          kind: 'sleep' as const,
+          startFrac: 0.55,
+          endFrac: 0.6,
+          opacity: 0.8,
+          label: 'Likely asleep 2:10 pm–3:20 pm',
+          tip: {
+            title: 'Next sleep',
+            lines: ['Likely from 2:10 pm to 3:20 pm (about 1h 10m)', 'Based on the last few days'],
+          },
+        },
       ],
       feeds: [],
     };
@@ -60,6 +70,32 @@ describe('DayTimeline', () => {
       />,
     );
     expect(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm')).toBeTruthy();
+    await fireEvent.press(screen.getByLabelText('Likely asleep 2:10 pm–3:20 pm'));
+    expect(screen.getByText('Likely from 2:10 pm to 3:20 pm (about 1h 10m)')).toBeTruthy();
+    await fireEvent.press(screen.getByTestId('timeline-tip'));
+    expect(screen.queryByTestId('timeline-tip')).toBeNull();
+  });
+
+  it('draws minor hours as unlabelled lines', async () => {
+    const now = new Date();
+    const window = { start: new Date(now.getTime() - 12 * 3_600_000), end: new Date(now.getTime() + 12 * 3_600_000) };
+    await render(
+      <DayTimeline
+        layout={dayLayout([], window, now)}
+        ticks={[
+          { frac: 0, label: '00' },
+          { frac: 1 / 24, label: '01', minor: true },
+          { frac: 3 / 24, label: '03' },
+        ]}
+        timeZone={sampleBaby.timezone}
+        units="metric"
+        nowFrac={null}
+        now={now}
+      />,
+    );
+    expect(screen.getByText('03')).toBeTruthy();
+    expect(screen.queryByText('01')).toBeNull();
+    expect(screen.getAllByTestId('hour-line')).toHaveLength(1);
   });
 
   it('marks when the next feed is due', async () => {

@@ -13,6 +13,7 @@ import {
   type FeedDueMarker,
   type NightMarker,
   type PredictedItem,
+  type TimelineTip,
   type TimelineItem,
   type Units,
   summariseSleep,
@@ -25,6 +26,12 @@ import { pct } from './percent';
 
 export const DAY_TIMELINE_HEIGHT = 560;
 const TIP_ROOM_FRAC = 0.15;
+
+interface TipAnchor {
+  startFrac: number;
+  endFrac: number;
+  content: () => TimelineTip;
+}
 
 function open(item: TimelineItem) {
   router.push(item.running ? `/sessions/${item.event.id}` : `/events/${item.event.id}`);
@@ -44,7 +51,7 @@ export function DayTimeline({
   night = [],
 }: {
   layout: DayLayout;
-  ticks: { frac: number; label: string }[];
+  ticks: { frac: number; label: string; minor?: boolean }[];
   timeZone: string;
   units: Units;
   nowFrac: number | null;
@@ -62,8 +69,8 @@ export function DayTimeline({
     { key: 'nappies' as const, label: 'Nappy' },
     ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
   ].filter((lane) => shown.includes(lane.key));
-  const [tip, setTip] = useState<TimelineItem | null>(null);
-  const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
+  const [tip, setTip] = useState<TipAnchor | null>(null);
+  const tipContent = tip?.content() ?? null;
 
   return (
     <View className="gap-2">
@@ -78,19 +85,27 @@ export function DayTimeline({
       )}
       <View className="flex-row gap-2" style={{ height: DAY_TIMELINE_HEIGHT }}>
         <View className="w-7">
-          {ticks.map((tick, index) => (
-            <Text
-              key={index}
-              className="absolute left-0 font-sans text-caption text-ink-3"
-              style={{ top: pct(tick.frac), transform: [{ translateY: -7 }] }}
-            >
-              {tick.label}
-            </Text>
-          ))}
+          {ticks.map(
+            (tick, index) =>
+              !tick.minor && (
+                <Text
+                  key={index}
+                  className="absolute left-0 font-sans text-caption text-ink-3"
+                  style={{ top: pct(tick.frac), transform: [{ translateY: -7 }] }}
+                >
+                  {tick.label}
+                </Text>
+              ),
+          )}
         </View>
         <View className="absolute bottom-0 left-9 right-0 top-0" pointerEvents="none">
           {ticks.map((tick, index) => (
-            <View key={index} className="absolute inset-x-0 border-t border-line" style={{ top: pct(tick.frac) }} />
+            <View
+              key={index}
+              testID={tick.minor ? 'hour-line' : undefined}
+              className={`absolute inset-x-0 border-t border-line ${tick.minor ? 'opacity-40' : ''}`}
+              style={{ top: pct(tick.frac) }}
+            />
           ))}
           {night.map((marker) => (
             <View
@@ -133,6 +148,9 @@ export function DayTimeline({
         </View>
         {lanes.map((lane) => (
           <View key={lane.key} className="flex-1">
+            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
+              <Predicted key={item.startFrac} item={item} onTip={() => setTip({ ...item, content: () => item.tip })} />
+            ))}
             {layout[lane.key].map((item) => (
               <Item
                 key={item.event.id}
@@ -140,11 +158,8 @@ export function DayTimeline({
                 label={timelineItemLabel(item, timeZone, units)}
                 units={units}
                 now={now}
-                onTip={() => setTip(item)}
+                onTip={() => setTip({ ...item, content: () => timelineItemTip(item.event, now, timeZone, units) })}
               />
-            ))}
-            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
-              <Predicted key={item.startFrac} item={item} />
             ))}
           </View>
         ))}
@@ -174,12 +189,13 @@ export function DayTimeline({
   );
 }
 
-function Predicted({ item }: { item: PredictedItem }) {
+function Predicted({ item, onTip }: { item: PredictedItem; onTip: () => void }) {
   return (
-    <View
-      accessible
+    <Pressable
+      accessibilityRole="button"
       accessibilityLabel={item.label}
       testID="predicted-block"
+      onPress={onTip}
       className={`absolute inset-x-0 rounded-md border-2 border-dashed ${item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft'}`}
       style={{
         top: pct(item.startFrac),

@@ -55,6 +55,105 @@ describe('DayTimeline', () => {
     expect(screen.queryByText(/so far$/)).not.toBeInTheDocument();
   });
 
+  it('draws minor hours as unlabelled lines', async () => {
+    const nap = { ...sampleRunningSleep(now), startedAt: new Date(now.getTime() - 72 * 60_000).toISOString() };
+    render(
+      <FixtureRouter>
+        <DayTimeline
+          layout={dayLayout([nap], window, now)}
+          ticks={[
+            { frac: 0, label: '00' },
+            { frac: 1 / 24, label: '01', minor: true },
+            { frac: 2 / 24, label: '02', minor: true },
+            { frac: 3 / 24, label: '03' },
+          ]}
+          timeZone={timeZone}
+          units="metric"
+          now={now}
+          nowFrac={null}
+        />
+      </FixtureRouter>,
+    );
+    expect(await screen.findByText('03')).toBeInTheDocument();
+    expect(screen.queryByText('01')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('hour-line')).toHaveLength(2);
+  });
+
+  it('explains a predicted block and shades its likely range', async () => {
+    const nap = { ...sampleRunningSleep(now), startedAt: new Date(now.getTime() - 72 * 60_000).toISOString() };
+    const tip = {
+      title: 'Next sleep',
+      lines: [
+        'Likely from 2:10 pm to 3:20 pm (about 1h 10m)',
+        'Around the usual time. Recent sleeps started between 2:00 and 2:30 pm.',
+        'Based on the last few days',
+      ],
+    };
+    render(
+      <FixtureRouter>
+        <DayTimeline
+          layout={dayLayout([nap], window, now)}
+          ticks={[]}
+          timeZone={timeZone}
+          units="metric"
+          now={now}
+          nowFrac={null}
+          predicted={{
+            sleep: [
+              {
+                kind: 'sleep',
+                startFrac: 0.55,
+                endFrac: 0.6,
+                opacity: 0.8,
+                label: 'Likely asleep 2:10 pm–3:20 pm',
+                tip,
+              },
+            ],
+            feeds: [],
+          }}
+        />
+      </FixtureRouter>,
+    );
+    const block = await screen.findByRole('button', { name: 'Likely asleep 2:10 pm–3:20 pm' });
+    fireEvent.mouseEnter(block);
+    expect(screen.getByText('Likely from 2:10 pm to 3:20 pm (about 1h 10m)')).toBeInTheDocument();
+    fireEvent.mouseLeave(block);
+    expect(screen.queryByText('Likely from 2:10 pm to 3:20 pm (about 1h 10m)')).not.toBeInTheDocument();
+  });
+
+  it('draws recorded entries above predicted blocks so an overlap still opens the entry', async () => {
+    const nap = { ...sampleRunningSleep(now), startedAt: now.toISOString() };
+    const tip = { title: 'Likely awake', lines: [] };
+    render(
+      <FixtureRouter>
+        <DayTimeline
+          layout={dayLayout([nap], window, now)}
+          ticks={[]}
+          timeZone={timeZone}
+          units="metric"
+          now={now}
+          nowFrac={fractionOf(window, now.getTime())}
+          predicted={{
+            sleep: [
+              {
+                kind: 'sleep',
+                startFrac: fractionOf(window, now.getTime()),
+                endFrac: 0.2,
+                opacity: 1,
+                label: 'Likely asleep',
+                tip,
+              },
+            ],
+            feeds: [],
+          }}
+        />
+      </FixtureRouter>,
+    );
+    const block = await screen.findByRole('button', { name: 'Likely asleep' });
+    const sleep = screen.getByRole('link', { name: /^Sleep / });
+    expect(block.compareDocumentPosition(sleep) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   describe('on a phone', () => {
     afterEach(() => vi.useRealTimers());
 

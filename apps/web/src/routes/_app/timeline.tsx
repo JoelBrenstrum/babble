@@ -76,7 +76,7 @@ function TimelinePage() {
   const showsToday = view === 'day' && range.dayKey === range.todayKey;
   const predicted =
     showsToday && model?.view === 'day' ? predictedLayout(prediction, model.day.window, now, baby.timezone) : null;
-  const predictionLine = showsToday ? predictionText(prediction, baby.timezone) : null;
+  const predictionLine = showsToday ? predictionText(prediction, now, baby.timezone) : null;
   const plus = babble.config.billingEnabled;
   const [pitching, setPitching] = useState(false);
   const markers = useTimelineMarkers({

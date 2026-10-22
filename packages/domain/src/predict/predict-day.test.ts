@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import type { BabyEvent } from '../events/types';
-import { learnRhythm, predictDay, weightedMedian } from './predict-day';
+import {
+  blendWithPrior,
+  learnRhythm,
+  predictDay,
+  predictDayStatus,
+  weightedMedian,
+  weightedQuantile,
+} from './predict-day';
 
 const M = 60_000;
 const OPTIONS = { timeZone: 'Pacific/Auckland' };
@@ -50,13 +57,39 @@ describe('weightedMedian', () => {
   });
 });
 
+describe('weightedQuantile', () => {
+  it('reads the lower and upper quartiles from the cumulative weight', () => {
+    const values = [10, 20, 30, 40].map((value) => ({ value, weight: 1 }));
+    expect(weightedQuantile(values, 0.25)).toBe(10);
+    expect(weightedQuantile(values, 0.75)).toBe(30);
+    expect(weightedQuantile(values, 1)).toBe(40);
+  });
+});
+
+describe('blendWithPrior', () => {
+  const observed = { low: 40, mid: 60, high: 80 };
+  const prior = { low: 80, mid: 120, high: 160 };
+
+  it('uses whichever side exists on its own', () => {
+    expect(blendWithPrior(observed, null, 3)).toEqual(observed);
+    expect(blendWithPrior(null, prior, 0)).toEqual(prior);
+    expect(blendWithPrior(null, null, 0)).toBeNull();
+  });
+
+  it('trusts the observations more as their weight grows', () => {
+    expect(blendWithPrior(observed, prior, 2)).toEqual({ low: 60, mid: 90, high: 120 });
+    expect(blendWithPrior(observed, prior, 18)!.mid).toBe(66);
+  });
+});
+
 describe('learnRhythm', () => {
-  it('measures feed length, feed start to sleep, sleep length and wake to feed', () => {
+  it('measures feed length, feed start to sleep, sleep length, wake to feed and wake to sleep', () => {
     const rhythm = learnRhythm(regularCycles(4), new Date(BASE + 12 * 60 * M), OPTIONS);
     expect(rhythm.feedLength.map((s) => s.value / M)).toEqual([40, 40, 40, 40]);
     expect(rhythm.feedToSleep.map((s) => s.value / M)).toEqual([50, 50, 50, 50]);
     expect(rhythm.sleepLength.map((s) => s.value / M)).toEqual([120, 120, 120, 120]);
     expect(rhythm.wakeToFeed.map((s) => s.value / M)).toEqual([10, 10, 10]);
+    expect(rhythm.wakeToSleep.map((s) => s.value / M)).toEqual([60, 60, 60]);
   });
 
   it('treats sleeps a few minutes apart as one sleep', () => {
@@ -178,13 +211,32 @@ describe('predictDay', () => {
     ]);
   });
 
-  it('expects an overdue sleep shortly after now rather than in the past', () => {
+  it('expects an overdue sleep now rather than in the past', () => {
     const events = regularCycles(8).filter((event) => event.id !== 'sleep-7');
     const now = new Date(BASE + 21 * 60 * M + 120 * M);
     expect(simplify(predictDay(events, now, new Date(BASE + 23 * 60 * M + 30 * M), OPTIONS))?.[0]).toEqual([
       'sleep',
-      '23:10',
-      '01:10',
+      '23:00',
+      '01:00',
+      false,
+    ]);
+  });
+
+  it('keeps the expected wake-up fixed while a sleep runs on past it', () => {
+    const events = [
+      ...regularCycles(8),
+      makeEvent('sleep', { id: 'long', startedAt: iso(BASE + 25 * 60 * M), endedAt: null, segments: [] }),
+    ];
+    const until = new Date(BASE + 30 * 60 * M);
+    const early = predictDay(events, new Date(BASE + 25 * 60 * M + 30 * M), until, OPTIONS)![0]!;
+    const late = predictDay(events, new Date(BASE + 25 * 60 * M + 150 * M), until, OPTIONS)![0]!;
+    expect(early.endedAt).toBe(iso(BASE + 27 * 60 * M));
+    expect(late.endedAt).toBe(iso(BASE + 27 * 60 * M));
+    expect(late.continuesRunning).toBe(true);
+    expect(simplify(predictDay(events, new Date(BASE + 25 * 60 * M + 150 * M), until, OPTIONS))?.[1]).toEqual([
+      'feed',
+      '03:40',
+      '04:20',
       false,
     ]);
   });
@@ -226,5 +278,135 @@ describe('predictDay before it is ready', () => {
     expect(rhythm.wakeToFeed.map((sample) => sample.value)).toContain(0);
     const blocks = predictDay(events, new Date(BASE + 24 * 60 * M + 150 * M), new Date(BASE + 30 * 60 * M), OPTIONS);
     expect(blocks?.[0]?.kind).toBe('sleep');
+  });
+});
+
+describe('predictDay with age-typical patterns', () => {
+  const AGED = { ...OPTIONS, ageMonths: 4 };
+  const AFTERNOON = BASE + 60 * M;
+
+  it('predicts from the first sleep using the typical wake window for the age', () => {
+    const wake = AFTERNOON;
+    const events = [
+      makeEvent('sleep', { id: 'only', startedAt: iso(wake - 60 * M), endedAt: iso(wake), segments: [] }),
+    ];
+    const now = new Date(wake + 10 * M);
+    const blocks = predictDay(events, now, new Date(wake + 6 * 60 * M), AGED)!;
+    const sleep = blocks.find((block) => block.kind === 'sleep')!;
+    expect(blocks[0]?.kind).toBe('feed');
+    expect(sleep.startedAt).toBe(iso(wake + 120 * M));
+    expect(sleep.startWindow).toEqual({ from: iso(wake + 90 * M), to: iso(wake + 150 * M) });
+  });
+
+  it('pulls a learned wake window toward the typical one for the age', () => {
+    const events = regularCycles(8);
+    const now = new Date(BASE + 23 * 60 * M + 55 * M);
+    const learned = predictDay(events, now, new Date(BASE + 30 * 60 * M), OPTIONS)!;
+    const blended = predictDay(events, now, new Date(BASE + 30 * 60 * M), AGED)!;
+    const sleepStart = (blocks: typeof learned) => Date.parse(blocks.find((b) => b.kind === 'sleep')!.startedAt);
+    const wake = BASE + 23 * 60 * M + 50 * M;
+    expect(sleepStart(learned)).toBe(wake + 60 * M);
+    expect(sleepStart(blended)).toBeGreaterThan(wake + 60 * M);
+    expect(sleepStart(blended)).toBeLessThan(wake + 120 * M);
+  });
+
+  it('spreads the window across the spread of past wake windows', () => {
+    const gaps = [40, 50, 60, 70, 80];
+    let cursor = BASE;
+    const events = gaps.flatMap((gap, index) => {
+      const sleepStart = cursor;
+      const wake = sleepStart + 90 * M;
+      cursor = wake + gap * M;
+      return [
+        makeEvent('sleep', { id: `s${index}`, startedAt: iso(sleepStart), endedAt: iso(wake), segments: [] }),
+        makeEvent('bottle', { id: `f${index}`, startedAt: iso(wake + 5 * M), endedAt: iso(wake + 20 * M) }),
+      ];
+    });
+    const lastWake = cursor - gaps.at(-1)! * M;
+    const now = new Date(lastWake + 25 * M);
+    const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), { ...OPTIONS, minSamples: 0 })!;
+    const sleep = blocks.find((block) => block.kind === 'sleep')!;
+    const from = Date.parse(sleep.startWindow!.from);
+    const to = Date.parse(sleep.startWindow!.to);
+    expect(from).toBeGreaterThanOrEqual(lastWake + 40 * M);
+    expect(to).toBeLessThanOrEqual(lastWake + 80 * M);
+    expect(from).toBeLessThanOrEqual(Date.parse(sleep.startedAt));
+    expect(to).toBeGreaterThanOrEqual(Date.parse(sleep.startedAt));
+  });
+
+  it('keeps an overdue window in the past while the sleep itself lands after now', () => {
+    const wake = AFTERNOON;
+    const events = [
+      makeEvent('sleep', { id: 'only', startedAt: iso(wake - 60 * M), endedAt: iso(wake), segments: [] }),
+    ];
+    const now = new Date(wake + 4 * 60 * M);
+    const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), AGED)!;
+    const sleep = blocks.find((block) => block.kind === 'sleep')!;
+    expect(Date.parse(sleep.startWindow!.to)).toBeLessThan(now.getTime());
+    expect(Date.parse(sleep.startedAt)).toBeGreaterThanOrEqual(now.getTime());
+  });
+
+  it('gives a wake-up range for a running sleep', () => {
+    const start = AFTERNOON;
+    const events = [makeEvent('sleep', { id: 'running', startedAt: iso(start), endedAt: null, segments: [] })];
+    const now = new Date(start + 20 * M);
+    const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), AGED)!;
+    expect(blocks[0]).toMatchObject({
+      kind: 'sleep',
+      continuesRunning: true,
+      endedAt: iso(start + 75 * M),
+      endWindow: { from: iso(start + 30 * M), to: iso(start + 120 * M) },
+    });
+  });
+
+  it('keeps a running night sleep near the learned night instead of the typical nap', () => {
+    const NZ = 13 * 60 * M;
+    const bedtime = (day: number) => Date.parse('2026-10-01T19:30:00Z') - NZ + day * 24 * 60 * M;
+    const nights = Array.from({ length: 7 }, (_, day) =>
+      makeEvent('sleep', {
+        id: `night-${day}`,
+        startedAt: iso(bedtime(day)),
+        endedAt: iso(bedtime(day) + 600 * M),
+        segments: [],
+      }),
+    );
+    const tonight = bedtime(7);
+    const events = [
+      ...nights,
+      makeEvent('sleep', { id: 'tonight', startedAt: iso(tonight), endedAt: null, segments: [] }),
+    ];
+    const now = new Date(tonight + 20 * M);
+    const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), { ...OPTIONS, ageMonths: 7 })!;
+    expect(blocks[0]).toMatchObject({ kind: 'sleep', continuesRunning: true, endedAt: iso(tonight + 600 * M) });
+  });
+
+  it('anchors the next sleep on the last feed once the last logged wake-up is long past', () => {
+    const history = regularCycles(8);
+    const lastWake = BASE + 7 * 180 * M + 170 * M;
+    const feeds = Array.from({ length: 4 }, (_, index) => {
+      const start = lastWake + (index + 1) * 120 * M;
+      return makeEvent('bottle', { id: `later-${index}`, startedAt: iso(start), endedAt: iso(start + 20 * M) });
+    });
+    const lastFeed = lastWake + 4 * 120 * M;
+    const now = new Date(lastFeed + 25 * M);
+    const blocks = predictDay([...history, ...feeds], now, new Date(now.getTime() + 4 * 60 * M), AGED)!;
+    const sleep = blocks.find((block) => block.kind === 'sleep')!;
+    expect(Date.parse(sleep.startWindow!.to)).toBeGreaterThan(now.getTime());
+  });
+
+  it('still predicts ahead when there is nothing to go on at night', () => {
+    const NZ = 13 * 60 * M;
+    const feed = Date.parse('2026-10-03T22:00:00Z') - NZ;
+    const events = [makeEvent('bottle', { id: 'late', startedAt: iso(feed), endedAt: iso(feed + 15 * M) })];
+    const now = new Date(feed + 20 * M);
+    const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), AGED)!;
+    expect(blocks.length).toBeGreaterThan(0);
+    expect(blocks.find((block) => block.kind === 'sleep')!.startedAt).toBe(iso(feed + 25 * M));
+  });
+
+  it('does not wait for history when the age is known', () => {
+    const now = new Date(BASE + 9 * 60 * M);
+    expect(predictDayStatus(regularCycles(3), now, new Date(BASE + 15 * 60 * M), AGED).status).toBe('ready');
+    expect(predictDayStatus([], now, new Date(BASE + 15 * 60 * M), AGED)).toEqual({ status: 'no-anchor' });
   });
 });

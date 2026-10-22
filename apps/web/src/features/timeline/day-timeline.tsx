@@ -11,13 +11,13 @@ import {
   summariseSleep,
   timelineItemLabel,
   timelineItemTip,
-  type BabyEvent,
   type DayLayout,
   type FeedDueMarker,
   type NightMarker,
   type PredictedItem,
   type TimelineItem,
   type TimelineLane,
+  type TimelineTip,
   type Units,
   TIMELINE_LANES,
   visibleLanes,
@@ -39,7 +39,7 @@ const LANE_STYLE: Record<TimelineLane, { icon: LucideIcon; tone: string }> = {
 };
 
 interface TipAnchor {
-  event: BabyEvent;
+  content: () => TimelineTip;
   left: number;
   right: number;
   top: number;
@@ -104,7 +104,7 @@ export function DayTimeline({
   night = [],
 }: {
   layout: DayLayout;
-  ticks: { frac: number; label: string }[];
+  ticks: { frac: number; label: string; minor?: boolean }[];
   timeZone: string;
   units: Units;
   now: Date;
@@ -129,12 +129,12 @@ export function DayTimeline({
       document.removeEventListener('scroll', close, true);
     };
   }, [tip]);
-  const showTip = (event: BabyEvent) => (target: HTMLElement | null) => {
+  const showTip = (content: () => TimelineTip) => (target: HTMLElement | null) => {
     const box = grid.current?.getBoundingClientRect();
     if (!target || !box) return setTip(null);
     const rect = target.getBoundingClientRect();
     setTip({
-      event,
+      content,
       left: rect.left - box.left,
       right: rect.right - box.left,
       top: rect.top - box.top,
@@ -142,7 +142,7 @@ export function DayTimeline({
       width: box.width,
     });
   };
-  const tipContent = tip ? timelineItemTip(tip.event, now, timeZone, units) : null;
+  const tipContent = tip?.content() ?? null;
 
   return (
     <div className="flex flex-col gap-2">
@@ -157,21 +157,25 @@ export function DayTimeline({
       </div>
       <div ref={grid} className="relative grid h-[36rem] gap-2 md:h-[46rem]" style={columns} data-testid="day-timeline">
         <div className="relative">
-          {ticks.map((tick, index) => (
-            <span
-              key={index}
-              className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
-              style={{ top: formatFraction(tick.frac) }}
-            >
-              {tick.label}
-            </span>
-          ))}
+          {ticks.map(
+            (tick, index) =>
+              !tick.minor && (
+                <span
+                  key={index}
+                  className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
+                  style={{ top: formatFraction(tick.frac) }}
+                >
+                  {tick.label}
+                </span>
+              ),
+          )}
         </div>
         <div className="pointer-events-none absolute inset-y-0 left-[2.75rem] right-0">
           {ticks.map((tick, index) => (
             <div
               key={index}
-              className="absolute inset-x-0 border-t border-line"
+              data-testid={tick.minor ? 'hour-line' : undefined}
+              className={cn('absolute inset-x-0 border-t border-line', tick.minor && 'opacity-40')}
               style={{ top: formatFraction(tick.frac) }}
             />
           ))}
@@ -220,6 +224,9 @@ export function DayTimeline({
         </div>
         {lanes.map((lane) => (
           <div key={lane.key} className="relative overflow-x-clip">
+            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
+              <Predicted key={item.startFrac} item={item} onTip={showTip(() => item.tip)} />
+            ))}
             {layout[lane.key].map((item) => (
               <Item
                 key={item.event.id}
@@ -227,11 +234,8 @@ export function DayTimeline({
                 label={timelineItemLabel(item, timeZone, units)}
                 units={units}
                 now={now}
-                onTip={showTip(item.event)}
+                onTip={showTip(() => timelineItemTip(item.event, now, timeZone, units))}
               />
-            ))}
-            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
-              <Predicted key={item.startFrac} item={item} />
             ))}
           </div>
         ))}
@@ -250,18 +254,22 @@ export function DayTimeline({
   );
 }
 
-function Predicted({ item }: { item: PredictedItem }) {
+function Predicted({ item, onTip }: { item: PredictedItem; onTip: (target: HTMLElement | null) => void }) {
   return (
-    <div
-      role="img"
+    <button
+      type="button"
       aria-label={item.label}
-      title={item.label}
       data-testid="predicted-block"
       className={cn(
-        'absolute inset-x-0 min-h-1 rounded-md border-2 border-dashed',
+        'absolute inset-x-0 min-h-1 rounded-md border-2 border-dashed outline-none focus-visible:ring-2 focus-visible:ring-primary',
         item.kind === 'sleep' ? 'border-sleep bg-sleep-soft' : 'border-feed-left bg-feed-left-soft',
       )}
       style={{ top: formatFraction(item.startFrac), height: formatFraction(itemSpanFrac(item)), opacity: item.opacity }}
+      onMouseEnter={(mouse) => onTip(mouse.currentTarget)}
+      onMouseLeave={() => onTip(null)}
+      onFocus={(focus) => onTip(focus.currentTarget)}
+      onBlur={() => onTip(null)}
+      onClick={(click) => onTip(click.currentTarget)}
     />
   );
 }

@@ -72,6 +72,8 @@ describe('timelineModel', () => {
     expect(result.day.events.map((event) => event.id)).toContain('bottle');
     expect(result.nowFrac).toBeCloseTo((9 * 3_600_000) / (24 * 3_600_000), 5);
     expect(result.ticks[0]).toEqual({ frac: 0, label: '07' });
+    expect(result.ticks).toHaveLength(25);
+    expect(result.ticks.filter((tick) => tick.minor)).toHaveLength(16);
   });
 
   it('has no now marker for a past day', () => {
@@ -85,7 +87,8 @@ describe('timelineModel', () => {
     expect(result.window.end).toEqual(now);
     expect(result.summary.feeds).toBe(1);
     expect(result.nowFrac).toBe(1);
-    expect(result.ticks.length).toBeGreaterThan(0);
+    expect(result.ticks.filter((tick) => !tick.minor).length).toBeGreaterThan(0);
+    expect(result.ticks.filter((tick) => tick.minor).length).toBeGreaterThan(0);
   });
 
   it('returns every day of a week, with summaries for none of the future and week totals', () => {

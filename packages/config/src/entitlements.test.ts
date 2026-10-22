@@ -43,7 +43,9 @@ describe('planSummary', () => {
   it('describes plus and free families', () => {
     expect(planSummary(true, 'plus')).toMatchObject({ plus: true, status: expect.stringContaining('has Plus') });
     expect(planSummary(true, 'free')).toMatchObject({ plus: false, status: expect.stringContaining('free plan') });
-    expect(planSummary(true, 'free')!.highlights).toContain('Predicted sleeps and feeds on Home and the Timeline');
+    expect(planSummary(true, 'free')!.highlights).toContain(
+      'Sleep windows and predicted feeds on Home and the Timeline',
+    );
   });
 });
 
@@ -74,7 +76,7 @@ describe('plusPitch', () => {
     expect(plusPitch('multiple_babies')).toEqual({
       reason: 'Adding more than one baby to a family is part of Babble Plus.',
       highlights: [
-        'Predicted sleeps and feeds on Home and the Timeline',
+        'Sleep windows and predicted feeds on Home and the Timeline',
         "An estimate of today's weight, length and head size",
         'More than one baby in a family',
         'More than two carers in a family',

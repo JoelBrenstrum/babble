@@ -69,7 +69,10 @@ describe('usePrediction', () => {
     fetchSince.mockClear();
     const { result } = renderHook(() => usePrediction(client, false, sampleBaby, sampleFamily, NOW), { wrapper });
     await waitFor(() => expect(fetchSince).toHaveBeenCalledTimes(1));
-    const expected = predictAhead(sampleEvents(NOW), NOW, sampleBaby.timezone);
+    const expected = predictAhead(sampleEvents(NOW), NOW, {
+      timeZone: sampleBaby.timezone,
+      birthDate: sampleBaby.birth_date,
+    });
     await waitFor(() => expect(result.current).toEqual(expected));
   });
 });

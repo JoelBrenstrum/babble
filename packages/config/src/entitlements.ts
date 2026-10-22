@@ -57,7 +57,7 @@ export const CARER_LIMIT_MESSAGE =
   'A free family can have two carers, counting invites waiting to be accepted. Babble Plus allows more.';
 
 const PLUS_HIGHLIGHTS: readonly string[] = [
-  'Predicted sleeps and feeds on Home and the Timeline',
+  'Sleep windows and predicted feeds on Home and the Timeline',
   "An estimate of today's weight, length and head size",
   'More than one baby in a family',
   'More than two carers in a family',
@@ -72,7 +72,7 @@ const PLUS_HIGHLIGHTS: readonly string[] = [
 export type PlusFeature = 'predictions' | 'multiple_babies' | 'extra_carers' | 'insights' | 'chair_mode';
 
 const PLUS_REASONS: Record<PlusFeature, string> = {
-  predictions: 'Predicted sleeps and feeds are part of Babble Plus.',
+  predictions: 'Sleep windows and predicted feeds are part of Babble Plus.',
   multiple_babies: 'Adding more than one baby to a family is part of Babble Plus.',
   extra_carers: CARER_LIMIT_MESSAGE,
   insights:
