@@ -224,6 +224,9 @@ export function DayTimeline({
         </div>
         {lanes.map((lane) => (
           <div key={lane.key} className="relative overflow-x-clip">
+            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
+              <Predicted key={item.startFrac} item={item} onTip={showTip(() => item.tip)} />
+            ))}
             {layout[lane.key].map((item) => (
               <Item
                 key={item.event.id}
@@ -233,9 +236,6 @@ export function DayTimeline({
                 now={now}
                 onTip={showTip(() => timelineItemTip(item.event, now, timeZone, units))}
               />
-            ))}
-            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
-              <Predicted key={item.startFrac} item={item} onTip={showTip(() => item.tip)} />
             ))}
           </div>
         ))}

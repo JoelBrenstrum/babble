@@ -1,3 +1,4 @@
+import { nightSettingsFrom } from '../events/baby-settings';
 import { summariseDay, summaryOptions, type SummarySettings } from '../events/day-summary';
 import {
   feedRemindersQuiet,
@@ -376,7 +377,11 @@ function todaySection(input: SnapshotInput, events: readonly BabyEvent[]): HomeA
 function predictionsSection(input: SnapshotInput, events: readonly BabyEvent[]): HomeAssistantSnapshot['predictions'] {
   if (!input.predictions) return null;
   const blocks =
-    predictAhead(events, input.now, { timeZone: input.baby.timeZone, birthDate: input.baby.birthDate }) ?? [];
+    predictAhead(events, input.now, {
+      timeZone: input.baby.timeZone,
+      birthDate: input.baby.birthDate,
+      night: nightSettingsFrom(input.settings),
+    }) ?? [];
   return {
     next_sleep_at: blocks.find((block) => block.kind === 'sleep' && !block.continuesRunning)?.startedAt ?? null,
     next_feed_at: blocks.find((block) => block.kind === 'feed' && !block.continuesRunning)?.startedAt ?? null,

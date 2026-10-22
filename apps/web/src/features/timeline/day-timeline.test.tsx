@@ -121,6 +121,39 @@ describe('DayTimeline', () => {
     expect(screen.queryByText('Likely from 2:10 pm to 3:20 pm (about 1h 10m)')).not.toBeInTheDocument();
   });
 
+  it('draws recorded entries above predicted blocks so an overlap still opens the entry', async () => {
+    const nap = { ...sampleRunningSleep(now), startedAt: now.toISOString() };
+    const tip = { title: 'Likely awake', lines: [] };
+    render(
+      <FixtureRouter>
+        <DayTimeline
+          layout={dayLayout([nap], window, now)}
+          ticks={[]}
+          timeZone={timeZone}
+          units="metric"
+          now={now}
+          nowFrac={fractionOf(window, now.getTime())}
+          predicted={{
+            sleep: [
+              {
+                kind: 'sleep',
+                startFrac: fractionOf(window, now.getTime()),
+                endFrac: 0.2,
+                opacity: 1,
+                label: 'Likely asleep',
+                tip,
+              },
+            ],
+            feeds: [],
+          }}
+        />
+      </FixtureRouter>,
+    );
+    const block = await screen.findByRole('button', { name: 'Likely asleep' });
+    const sleep = screen.getByRole('link', { name: /^Sleep / });
+    expect(block.compareDocumentPosition(sleep) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   describe('on a phone', () => {
     afterEach(() => vi.useRealTimers());
 

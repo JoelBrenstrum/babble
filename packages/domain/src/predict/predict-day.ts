@@ -1,6 +1,7 @@
 import { minutesOfDay } from '../time/local-time';
 import type { BabyEvent } from '../events/types';
 import { DAY_MS, MINUTE_MS } from '../time/constants';
+import { isWithinNight, type NightSettings } from '../time/night';
 import { priorsForAge, type AgePriors, type Prior } from './age-priors';
 
 export type PredictedKind = 'sleep' | 'feed';
@@ -44,6 +45,7 @@ type RhythmKey = keyof Rhythm;
 export interface PredictOptions {
   timeZone: string;
   ageMonths?: number | null;
+  night?: NightSettings | null;
   lookbackDays?: number;
   halfLifeDays?: number;
   hourSpreadMinutes?: number;
@@ -57,12 +59,16 @@ export interface Quantiles {
   high: number;
 }
 
+type ResolvedOptions = Required<Omit<PredictOptions, 'night'>> & { night: NightSettings };
+
 const OVERRUN_MS = 10 * MINUTE_MS;
 const MIN_BLOCK_MS = 5 * MINUTE_MS;
 const SHORT_NAP_FRACTION = 0.5;
 const NEAR_PLANNED_WAKE_MS = 15 * MINUTE_MS;
 const PRIOR_WEIGHT = 2;
 const LEARNED_KEYS: readonly RhythmKey[] = ['feedLength', 'feedToSleep', 'sleepLength', 'wakeToFeed'];
+const DAYTIME_PRIORS: readonly RhythmKey[] = ['sleepLength', 'wakeToSleep'];
+const STALE_WAKE_FACTOR = 2;
 
 const DEFAULTS = {
   lookbackDays: 7,
@@ -70,14 +76,16 @@ const DEFAULTS = {
   hourSpreadMinutes: 180,
   mergeGapMinutes: 15,
   minSamples: 6,
+  night: { nightStartMinutes: 19 * 60, nightEndMinutes: 7 * 60 },
 };
 
 const ANY_VALUE = -1;
 
-function resolveOptions(options: PredictOptions): Required<PredictOptions> {
+function resolveOptions(options: PredictOptions): ResolvedOptions {
   return {
     timeZone: options.timeZone,
     ageMonths: options.ageMonths ?? null,
+    night: options.night ?? DEFAULTS.night,
     lookbackDays: options.lookbackDays ?? DEFAULTS.lookbackDays,
     halfLifeDays: options.halfLifeDays ?? DEFAULTS.halfLifeDays,
     hourSpreadMinutes: options.hourSpreadMinutes ?? DEFAULTS.hourSpreadMinutes,
@@ -124,7 +132,7 @@ export function learnRhythm(events: readonly BabyEvent[], now: Date, options: Pr
   return rhythmFrom(episodes(events, now.getTime(), settings.mergeGapMinutes * MINUTE_MS), now.getTime(), settings);
 }
 
-function rhythmFrom(history: readonly Episode[], nowMs: number, settings: Required<PredictOptions>): Rhythm {
+function rhythmFrom(history: readonly Episode[], nowMs: number, settings: ResolvedOptions): Rhythm {
   const from = nowMs - settings.lookbackDays * DAY_MS;
   const all = history.filter((e) => e.end !== null);
   const sample = (at: number, value: number): Sample => ({
@@ -190,7 +198,7 @@ function estimate(
   prior: Prior | null,
   at: number,
   now: number,
-  settings: Required<PredictOptions>,
+  settings: ResolvedOptions,
   above: number,
 ): Quantiles | null {
   const minute = minutesOfDay(new Date(at), settings.timeZone);
@@ -272,15 +280,12 @@ export function predictDayStatus(
     blocks.push(block);
   };
 
+  // The age priors describe naps and daytime wake windows, so they would drag night stretches short.
+  const atNight = (at: number) => isWithinNight(new Date(at), { timeZone: settings.timeZone, ...settings.night });
+  const priorFor = (key: RhythmKey, at: number) =>
+    key === 'feedToSleep' || (DAYTIME_PRIORS.includes(key) && atNight(at)) ? null : (priors?.[key] ?? null);
   const quantiles = (key: RhythmKey, at: number) =>
-    estimate(
-      rhythm[key],
-      key === 'feedToSleep' ? null : (priors?.[key] ?? null),
-      at,
-      nowMs,
-      settings,
-      key === 'wakeToFeed' ? ANY_VALUE : 0,
-    );
+    estimate(rhythm[key], priorFor(key, at), at, nowMs, settings, key === 'wakeToFeed' ? ANY_VALUE : 0);
   const windowAt = (anchor: number, q: Quantiles | null): PredictedWindow | undefined =>
     q ? { from: iso(anchor + q.low), to: iso(anchor + q.high) } : undefined;
   const length = (key: RhythmKey, at: number) => quantiles(key, at)?.mid ?? 0;
@@ -291,7 +296,9 @@ export function predictDayStatus(
   const notBeforeNow = (time: number) => Math.max(time, nowMs);
 
   const sleepAfter = (wake: number | null, feed: { start: number; end: number } | null): Next => {
-    const fromWake = wake === null ? null : sinceAnchor('wakeToSleep', wake);
+    const typicalWake = wake === null ? null : quantiles('wakeToSleep', wake);
+    const stale = wake !== null && typicalWake !== null && nowMs - wake > STALE_WAKE_FACTOR * typicalWake.high;
+    const fromWake = wake === null || stale ? null : sinceAnchor('wakeToSleep', wake);
     if (fromWake) {
       const floor = feed ? feed.end + MIN_BLOCK_MS : 0;
       return { kind: 'sleep', at: notBeforeNow(Math.max(fromWake.at, floor)), window: fromWake.window };
@@ -304,7 +311,7 @@ export function predictDayStatus(
         window: fromFeed.window,
       };
     }
-    return { kind: 'sleep', at: nowMs + OVERRUN_MS, window: undefined };
+    return { kind: 'sleep', at: notBeforeNow((feed?.end ?? nowMs) + OVERRUN_MS), window: undefined };
   };
   const feedAfter = (wake: number): Next => ({
     kind: 'feed',

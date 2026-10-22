@@ -148,6 +148,9 @@ export function DayTimeline({
         </View>
         {lanes.map((lane) => (
           <View key={lane.key} className="flex-1">
+            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
+              <Predicted key={item.startFrac} item={item} onTip={() => setTip({ ...item, content: () => item.tip })} />
+            ))}
             {layout[lane.key].map((item) => (
               <Item
                 key={item.event.id}
@@ -157,9 +160,6 @@ export function DayTimeline({
                 now={now}
                 onTip={() => setTip({ ...item, content: () => timelineItemTip(item.event, now, timeZone, units) })}
               />
-            ))}
-            {(lane.key === 'sleep' ? predicted?.sleep : lane.key === 'feeds' ? predicted?.feeds : null)?.map((item) => (
-              <Predicted key={item.startFrac} item={item} onTip={() => setTip({ ...item, content: () => item.tip })} />
             ))}
           </View>
         ))}

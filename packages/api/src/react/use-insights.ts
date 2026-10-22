@@ -67,9 +67,16 @@ export function usePrediction(
 ): PredictedBlock[] | null {
   const enabled = familyHasFeature(billingEnabled, family.plan, 'predictions');
   const events = useQuery({ ...eventsSinceQuery(client, baby.id, predictionSince(now)), enabled }).data;
+  const settings = useQuery({ ...babySettingsQuery(client, baby.id), enabled }).data;
   return useMemo(
     () =>
-      enabled && events ? predictAhead(events, now, { timeZone: baby.timezone, birthDate: baby.birth_date }) : null,
-    [enabled, events, now, baby.timezone, baby.birth_date],
+      enabled && events
+        ? predictAhead(events, now, {
+            timeZone: baby.timezone,
+            birthDate: baby.birth_date,
+            night: settings ? nightSettingsFrom(settings) : null,
+          })
+        : null,
+    [enabled, events, settings, now, baby.timezone, baby.birth_date],
   );
 }

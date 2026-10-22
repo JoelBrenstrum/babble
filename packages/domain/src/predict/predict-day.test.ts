@@ -283,9 +283,10 @@ describe('predictDay before it is ready', () => {
 
 describe('predictDay with age-typical patterns', () => {
   const AGED = { ...OPTIONS, ageMonths: 4 };
+  const AFTERNOON = BASE + 60 * M;
 
   it('predicts from the first sleep using the typical wake window for the age', () => {
-    const wake = BASE + 10 * 60 * M;
+    const wake = AFTERNOON;
     const events = [
       makeEvent('sleep', { id: 'only', startedAt: iso(wake - 60 * M), endedAt: iso(wake), segments: [] }),
     ];
@@ -334,7 +335,7 @@ describe('predictDay with age-typical patterns', () => {
   });
 
   it('keeps an overdue window in the past while the sleep itself lands after now', () => {
-    const wake = BASE + 10 * 60 * M;
+    const wake = AFTERNOON;
     const events = [
       makeEvent('sleep', { id: 'only', startedAt: iso(wake - 60 * M), endedAt: iso(wake), segments: [] }),
     ];
@@ -346,7 +347,7 @@ describe('predictDay with age-typical patterns', () => {
   });
 
   it('gives a wake-up range for a running sleep', () => {
-    const start = BASE + 10 * 60 * M;
+    const start = AFTERNOON;
     const events = [makeEvent('sleep', { id: 'running', startedAt: iso(start), endedAt: null, segments: [] })];
     const now = new Date(start + 20 * M);
     const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), AGED)!;
@@ -356,6 +357,51 @@ describe('predictDay with age-typical patterns', () => {
       endedAt: iso(start + 75 * M),
       endWindow: { from: iso(start + 30 * M), to: iso(start + 120 * M) },
     });
+  });
+
+  it('keeps a running night sleep near the learned night instead of the typical nap', () => {
+    const NZ = 13 * 60 * M;
+    const bedtime = (day: number) => Date.parse('2026-10-01T19:30:00Z') - NZ + day * 24 * 60 * M;
+    const nights = Array.from({ length: 7 }, (_, day) =>
+      makeEvent('sleep', {
+        id: `night-${day}`,
+        startedAt: iso(bedtime(day)),
+        endedAt: iso(bedtime(day) + 600 * M),
+        segments: [],
+      }),
+    );
+    const tonight = bedtime(7);
+    const events = [
+      ...nights,
+      makeEvent('sleep', { id: 'tonight', startedAt: iso(tonight), endedAt: null, segments: [] }),
+    ];
+    const now = new Date(tonight + 20 * M);
+    const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), { ...OPTIONS, ageMonths: 7 })!;
+    expect(blocks[0]).toMatchObject({ kind: 'sleep', continuesRunning: true, endedAt: iso(tonight + 600 * M) });
+  });
+
+  it('anchors the next sleep on the last feed once the last logged wake-up is long past', () => {
+    const history = regularCycles(8);
+    const lastWake = BASE + 7 * 180 * M + 170 * M;
+    const feeds = Array.from({ length: 4 }, (_, index) => {
+      const start = lastWake + (index + 1) * 120 * M;
+      return makeEvent('bottle', { id: `later-${index}`, startedAt: iso(start), endedAt: iso(start + 20 * M) });
+    });
+    const lastFeed = lastWake + 4 * 120 * M;
+    const now = new Date(lastFeed + 25 * M);
+    const blocks = predictDay([...history, ...feeds], now, new Date(now.getTime() + 4 * 60 * M), AGED)!;
+    const sleep = blocks.find((block) => block.kind === 'sleep')!;
+    expect(Date.parse(sleep.startWindow!.to)).toBeGreaterThan(now.getTime());
+  });
+
+  it('still predicts ahead when there is nothing to go on at night', () => {
+    const NZ = 13 * 60 * M;
+    const feed = Date.parse('2026-10-03T22:00:00Z') - NZ;
+    const events = [makeEvent('bottle', { id: 'late', startedAt: iso(feed), endedAt: iso(feed + 15 * M) })];
+    const now = new Date(feed + 20 * M);
+    const blocks = predictDay(events, now, new Date(now.getTime() + 4 * 60 * M), AGED)!;
+    expect(blocks.length).toBeGreaterThan(0);
+    expect(blocks.find((block) => block.kind === 'sleep')!.startedAt).toBe(iso(feed + 25 * M));
   });
 
   it('does not wait for history when the age is known', () => {

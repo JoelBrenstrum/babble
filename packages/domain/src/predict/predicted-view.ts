@@ -6,6 +6,7 @@ import type { BabyEvent } from '../events/types';
 import { ageInMonths } from '../growth/growth';
 import { predictDay, type PredictedBlock, type PredictedKind, type PredictedWindow } from './predict-day';
 import { DAY_MS, HOUR_MS, MINUTE_MS } from '../time/constants';
+import type { NightSettings } from '../time/night';
 
 export const PREDICTION_HORIZON_MS = 4 * HOUR_MS;
 const LOOKBACK_MS = 7 * DAY_MS;
@@ -26,6 +27,7 @@ const ESTIMATE_NOTE = 'Based on the last few days';
 export interface PredictionBaby {
   timeZone: string;
   birthDate?: string | null;
+  night?: NightSettings | null;
 }
 
 export function predictionSince(now: Date): string {
@@ -37,6 +39,7 @@ export function predictAhead(events: readonly BabyEvent[], now: Date, baby: Pred
   return predictDay(events, now, new Date(now.getTime() + PREDICTION_HORIZON_MS), {
     timeZone: baby.timeZone,
     ageMonths,
+    night: baby.night,
   });
 }
 
