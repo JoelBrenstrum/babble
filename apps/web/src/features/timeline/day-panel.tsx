@@ -10,6 +10,7 @@ import {
   type TimelineLane,
   type TimelineModel,
   type TimelineTick,
+  type TotalCard,
   type Units,
 } from '@babble/domain';
 import type { ReactNode } from 'react';
@@ -47,6 +48,7 @@ export function DayPanel({
   units,
   timeZone,
   predicted = null,
+  rhythm = [],
   currentLabel,
   comparison = null,
   plusBadge = false,
@@ -60,6 +62,7 @@ export function DayPanel({
   units: Units;
   timeZone: string;
   predicted?: { sleep: PredictedItem[]; feeds: PredictedItem[] } | null;
+  rhythm?: TotalCard[];
   currentLabel?: string;
   comparison?: DayComparison | 'loading' | null;
   plusBadge?: boolean;
@@ -136,7 +139,7 @@ export function DayPanel({
         {comparison && comparison !== 'loading' && (
           <DayComparisonCard comparison={comparison} currentLabel={currentLabel ?? ''} plusBadge={plusBadge} />
         )}
-        {!comparison && <DayTotals cards={dayTotalCards(summary, units, timeZone)} />}
+        {!comparison && <DayTotals cards={[...dayTotalCards(summary, units, timeZone), ...rhythm]} />}
       </div>
     </div>
   );

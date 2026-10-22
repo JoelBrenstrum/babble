@@ -6,12 +6,21 @@ import { describe, expect, it, vi } from 'vitest';
 import { sampleBaby } from '../fixtures';
 import { queryKeys } from '../queries';
 import { fakeClient } from '../test-utils';
-import { mostlyOverlaps, useRollingComparison, useTimelineModel, type TimelinePlaceholder } from './use-timeline';
+import {
+  mostlyOverlaps,
+  useDayRhythm,
+  useRollingComparison,
+  useTimelineModel,
+  type TimelinePlaceholder,
+} from './use-timeline';
 
-const { fetchEvents } = vi.hoisted(() => ({ fetchEvents: vi.fn(async () => []) }));
+const { fetchEvents, fetchSettings } = vi.hoisted(() => ({
+  fetchEvents: vi.fn(async () => []),
+  fetchSettings: vi.fn(async (): Promise<object | null> => null),
+}));
 vi.mock('../families', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../families')>()),
-  getBabySettings: async () => null,
+  getBabySettings: () => fetchSettings(),
 }));
 vi.mock('../events', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../events')>()),
@@ -111,6 +120,35 @@ describe('useRollingComparison', () => {
     );
     expect(result.current).toBeNull();
     expect(fetchEvents).not.toHaveBeenCalled();
+  });
+});
+
+describe('useDayRhythm', () => {
+  const props = (client: ReturnType<typeof setup>['client'], enabled: boolean) => ({
+    client,
+    babyId: sampleBaby.id,
+    baby: sampleBaby,
+    dayKey: '2026-10-12',
+    now: new Date('2026-10-12T10:00:00Z'),
+    enabled,
+  });
+
+  it('fetches nothing while locked', () => {
+    const { client, wrapper } = setup();
+    fetchEvents.mockClear();
+    const { result } = renderHook(() => useDayRhythm(props(client, false)), { wrapper });
+    expect(result.current).toBeNull();
+    expect(fetchEvents).not.toHaveBeenCalled();
+  });
+
+  it('waits for the night settings, then works out the day', async () => {
+    const { client, wrapper } = setup();
+    fetchEvents.mockClear();
+    fetchSettings.mockResolvedValueOnce({ night_start_minutes: 19 * 60, night_end_minutes: 7 * 60 });
+    const { result } = renderHook(() => useDayRhythm(props(client, true)), { wrapper });
+    await waitFor(() => expect(result.current).not.toBeNull());
+    expect(fetchEvents).toHaveBeenCalledTimes(1);
+    expect(result.current).toEqual({ feedSpacing: null, wakeWindows: null, night: null, nightFeedGapMs: null });
   });
 });
 

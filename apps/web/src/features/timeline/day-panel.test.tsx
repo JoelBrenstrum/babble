@@ -66,6 +66,28 @@ describe('DayPanel', () => {
     expect(screen.getByText('After')).toBeInTheDocument();
   });
 
+  it('adds the day rhythm cards after the totals', async () => {
+    const rhythm = [
+      {
+        key: 'spacing' as const,
+        label: 'Feed spacing',
+        value: '2h 45m',
+        details: [
+          { label: 'Longest', value: '4h 00m' },
+          { label: 'Shortest', value: '2h 30m' },
+        ],
+      },
+    ];
+    render(
+      <FixtureRouter>
+        <DayPanel {...common} rhythm={rhythm} />
+      </FixtureRouter>,
+    );
+    expect(await screen.findByText('Feed spacing')).toBeInTheDocument();
+    expect(screen.getByText('2h 45m')).toBeInTheDocument();
+    expect(screen.getByText('Shortest')).toBeInTheDocument();
+  });
+
   it('shows a spinner while the comparison loads', async () => {
     render(
       <FixtureRouter>

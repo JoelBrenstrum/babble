@@ -88,6 +88,7 @@ export {
   weekSummaryStrip,
   weekTableRows,
   type TotalCard,
+  type RhythmKey,
   type TotalKey,
   type WeekRow,
 } from './timeline/totals';
@@ -294,6 +295,7 @@ export {
   type DayComparison,
 } from './timeline/day-comparison';
 export { statsInputs, statsOptions } from './stats/inputs';
+export { dayRhythm, dayRhythmCards, dayRhythmWindow, type DayRhythm, type GapStats } from './timeline/day-rhythm';
 export { buildChairData, type ChairBaby, type ChairFeed, type ChairViewModel } from './chair/chair-data';
 export { homeAssistantSnapshot } from './home-assistant/snapshot';
 export { planHomeAssistantAction, type ActionStep } from './home-assistant/actions';

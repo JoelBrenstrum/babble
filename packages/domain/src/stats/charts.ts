@@ -1,3 +1,5 @@
+import { formatDuration } from '../format/duration';
+import { HOUR_MS, MINUTE_MS } from '../time/constants';
 import { formatShortDate } from '../time/local-time';
 
 export type ChartUnit = 'h' | 'min' | 'ml' | '';
@@ -45,8 +47,11 @@ export function topSegment(values: readonly number[]): number {
 }
 
 export function chartValue(value: number, unit: ChartUnit): string {
-  const rounded = value >= 10 && unit !== 'h' ? Math.round(value) : Math.round(value * 10) / 10;
-  if (unit === 'h') return `${rounded}h`;
+  if (unit === 'h' || unit === 'min') {
+    const minutes = Math.round(unit === 'h' ? (value * HOUR_MS) / MINUTE_MS : value);
+    return formatDuration(minutes * MINUTE_MS, { seconds: false });
+  }
+  const rounded = value >= 10 ? Math.round(value) : Math.round(value * 10) / 10;
   return unit === '' ? String(rounded) : `${rounded} ${unit}`;
 }
 

@@ -1,5 +1,6 @@
 import {
   comparisonToggleLabel,
+  dayRhythmCards,
   filterLayout,
   parseTimelineLanes,
   shownLanes,
@@ -14,6 +15,7 @@ import {
 import { familyHasFeature } from '@babble/config';
 import {
   useDayComparison,
+  useDayRhythm,
   useNow,
   usePrediction,
   useRollingComparison,
@@ -110,6 +112,15 @@ function TimelinePage() {
     current: model?.view === 'day' ? model.day.summary : null,
     now,
     enabled: comparing && view === 'day',
+  });
+
+  const rhythm = useDayRhythm({
+    client: babble.client,
+    babyId: baby.id,
+    baby,
+    dayKey: range.dayKey,
+    now,
+    enabled: view === 'day' && !insightsLocked,
   });
 
   return (
@@ -213,6 +224,7 @@ function TimelinePage() {
           units={units}
           timeZone={baby.timezone}
           predicted={predicted}
+          rhythm={rhythm && model.view === 'day' ? dayRhythmCards(rhythm, showsToday) : []}
           currentLabel={model.view === 'day' ? range.rangeLabel : 'Last 24h'}
           comparison={comparing ? ((model.view === 'day' ? comparison : rolling) ?? 'loading') : null}
           plusBadge={plus}

@@ -312,7 +312,7 @@ describe('feed trend', () => {
 
 describe('feed spacing', () => {
   const keys = insightDays('2026-10-15');
-  const gap = (dayKey: string, hours: number, night = false) => ({ dayKey, ms: hours * HOUR, night });
+  const gap = (dayKey: string, hours: number, night = false, start = 0) => ({ dayKey, start, ms: hours * HOUR, night });
 
   it('measures start to start between feeds, folds top-ups in and splits day from night', () => {
     const breast = (id: string, start: string, end: string) =>
@@ -329,12 +329,13 @@ describe('feed spacing', () => {
       breast('f', '2026-10-14T06:30:00Z', '2026-10-14T06:50:00Z'),
       makeEvent('sleep', { id: 'nap', startedAt: '2026-10-13T09:00:00Z', endedAt: '2026-10-13T10:00:00Z' }),
     ];
+    const at = (iso: string) => Date.parse(`${iso}:00Z`);
     expect(feedGaps(events, settings)).toEqual([
-      gap('2026-10-13', 3),
-      gap('2026-10-13', 3),
-      gap('2026-10-13', 6),
-      gap('2026-10-13', 5, true),
-      gap('2026-10-13', 5.5, true),
+      gap('2026-10-13', 3, false, at('2026-10-13T08:00')),
+      gap('2026-10-13', 3, false, at('2026-10-13T11:00')),
+      gap('2026-10-13', 6, false, at('2026-10-13T14:00')),
+      gap('2026-10-13', 5, true, at('2026-10-13T20:00')),
+      gap('2026-10-13', 5.5, true, at('2026-10-14T01:00')),
     ]);
   });
 
@@ -463,7 +464,7 @@ describe('cluster feeding', () => {
     expect(card.chart.bars).toHaveLength(14);
     expect(card.chart.bars.at(-1)).toEqual({
       label: '2026-10-14',
-      values: [2.6],
+      values: [155 / 60],
       breakdown: ['6:00 pm–8:35 pm, 4 feeds'],
     });
     expect(card.chart.bars.at(-2)).toEqual({ label: '2026-10-13', values: [0] });
@@ -475,11 +476,11 @@ describe('cluster feeding', () => {
     const bar = card.chart.bars.at(-1)!;
     expect(bar).toEqual({
       label: '2026-10-14',
-      values: [2.6, 2.6],
+      values: [155 / 60, 155 / 60],
       breakdown: ['1:00 am–3:35 am, 4 feeds', '3:00 pm–5:35 pm, 4 feeds'],
     });
-    expect(card.chart.max).toBe(5.2);
-    expect(barReadout(card.chart, bar)).toBe('14 Oct: 5.2h · 1:00 am–3:35 am, 4 feeds · 3:00 pm–5:35 pm, 4 feeds');
+    expect(card.chart.max).toBe(310 / 60);
+    expect(barReadout(card.chart, bar)).toBe('14 Oct: 5h 10m · 1:00 am–3:35 am, 4 feeds · 3:00 pm–5:35 pm, 4 feeds');
   });
 
   it('shows no clusters as zero days, and needs a week of feeds first', () => {
