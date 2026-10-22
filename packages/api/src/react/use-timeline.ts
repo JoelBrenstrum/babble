@@ -111,7 +111,7 @@ export function useDayRhythm(input: {
     queryFn: window
       ? () => listEventsBetween(client, babyId, window.start.toISOString(), window.end.toISOString())
       : skipToken,
-    enabled,
+    enabled: enabled && window !== null,
   });
   if (!enabled || !settings || !events.data) return null;
   return dayRhythm({ events: events.data, dayKey, now, settings, baby });
