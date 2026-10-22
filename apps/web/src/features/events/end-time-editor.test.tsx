@@ -23,6 +23,30 @@ const feed = {
   details: {},
 } as unknown as BabyEvent;
 
+describe('EndTimeEditor for a paused feed', () => {
+  const paused = {
+    ...feed,
+    sessionState: 'paused',
+    segments: [{ side: 'left', startedAt: '2026-10-11T11:45:00Z', endedAt: '2026-10-11T12:00:00Z' }],
+  } as unknown as BabyEvent;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-11T12:10:00Z'));
+  });
+  afterEach(() => vi.useRealTimers());
+
+  it('offers ends before the pause, back to when the last side started', () => {
+    const onEnd = vi.fn();
+    render(<EndTimeEditor event={paused} timeZone="Pacific/Auckland" onEnd={onEnd} onCancel={vi.fn()} />);
+    expect(screen.getByRole('button', { name: '15 min ago' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: '30 min ago' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'End feed at 1:00 am' })).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: '15 min ago' }));
+    expect(onEnd).toHaveBeenCalledWith('2026-10-11T11:55:00.000Z');
+  });
+});
+
 describe('EndTimeEditor around midnight', () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ['Date'] });

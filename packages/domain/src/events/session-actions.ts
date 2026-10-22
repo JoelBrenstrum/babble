@@ -70,10 +70,19 @@ export function applySessionAction(event: BabyEvent, action: SessionAction, now:
         segments: [...event.segments, { side: action.side ?? last?.side ?? 'left', startedAt: at, endedAt: null }],
       };
     case 'end': {
-      const segments = closeOpen(event.segments, endAt(action, at));
-      return { ...event, sessionState: 'ended', segments, endedAt: settledEnd(segments) ?? endAt(action, at) };
+      const end = endAt(action, at);
+      const segments = trimAfter(closeOpen(event.segments, end), end);
+      return { ...event, sessionState: 'ended', segments, endedAt: settledEnd(segments) ?? end };
     }
   }
+}
+
+function trimAfter<S extends Stretch>(segments: S[], end: string): S[] {
+  return segments.map((segment) =>
+    segment.endedAt && compareIso(segment.endedAt, end) > 0
+      ? { ...segment, endedAt: compareIso(segment.startedAt, end) > 0 ? segment.startedAt : end }
+      : segment,
+  );
 }
 
 function settledEnd(segments: readonly Stretch[]): string | null {
@@ -99,11 +108,7 @@ function applyNapAction(
       return { ...nap, sessionState: 'running', segments: [...nap.segments, { startedAt: at, endedAt: null }] };
     case 'end': {
       const end = endAt(action, at);
-      const segments = closeOpen(nap.segments, end).map((segment) =>
-        segment.endedAt && compareIso(segment.endedAt, end) > 0
-          ? { ...segment, endedAt: compareIso(segment.startedAt, end) > 0 ? segment.startedAt : end }
-          : segment,
-      );
+      const segments = trimAfter(closeOpen(nap.segments, end), end);
       return { ...nap, sessionState: 'ended', segments, endedAt: settledEnd(segments) ?? end };
     }
     case 'switch':
@@ -148,7 +153,7 @@ export function earlierEnd(now: Date, minutes: number): string {
 }
 
 export function suggestedEnd(event: BabyEvent, now: Date): string {
-  const pausedAt = event.type === 'sleep' ? event.segments.at(-1)?.endedAt : null;
+  const pausedAt = hasSegments(event) ? event.segments.at(-1)?.endedAt : null;
   if (pausedAt) return pausedAt;
   const earliest = earliestEnd(event);
   const fiveAgo = earlierEnd(now, 5);
@@ -157,10 +162,7 @@ export function suggestedEnd(event: BabyEvent, now: Date): string {
 
 export function earliestEnd(event: BabyEvent): string {
   if (!hasSegments(event)) return event.startedAt;
-  const last = event.segments.at(-1);
-  if (!last) return event.startedAt;
-  if (event.type === 'sleep') return last.startedAt;
-  return last.endedAt ?? last.startedAt;
+  return event.segments.at(-1)?.startedAt ?? event.startedAt;
 }
 
 export function endChangeError(event: BabyEvent, endedAt: string, now: Date): string | null {
@@ -175,7 +177,7 @@ export function endChangeError(event: BabyEvent, endedAt: string, now: Date): st
   }
   const last = hasSegments(event) ? event.segments.at(-1) : undefined;
   if (last && last.endedAt === null) return "The end can't be before the current side started.";
-  if (last) return "The end can't be before the last side finished.";
+  if (last) return "The end can't be before the last side started.";
   return `The end can't be before the ${sessionNoun(event.type)} started.`;
 }
 
