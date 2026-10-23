@@ -5,6 +5,7 @@ import {
   pumpFinishSummary,
   runningSessionLine,
   runningTone,
+  previousFeedSides,
   startContext,
   withoutPumpAmounts,
 } from './session-context';
@@ -25,6 +26,19 @@ describe('startContext', () => {
   it('describes the last breastfeed and the next side', () => {
     expect(startContext('breast_feed', [feed], NOW, 'metric')).toBe(
       'Last feed ended on Right, 2h 14m ago. Next side: Left.',
+    );
+  });
+
+  it('says the same side again when it got less time last feed', () => {
+    const uneven = {
+      ...feed,
+      segments: [
+        { side: 'left' as const, startedAt: '2026-10-06T09:26:00Z', endedAt: '2026-10-06T09:41:00Z' },
+        { side: 'right' as const, startedAt: '2026-10-06T09:41:00Z', endedAt: '2026-10-06T09:46:00Z' },
+      ],
+    };
+    expect(startContext('breast_feed', [uneven], NOW, 'metric')).toBe(
+      'Last feed ended on Right, 2h 14m ago. Next side: Right again.',
     );
   });
 
@@ -52,6 +66,39 @@ describe('startContext', () => {
     const nap = makeEvent('sleep', { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T10:55:00Z' });
     expect(startContext('sleep', [nap], NOW, 'metric')).toBe('Awake 1h 05m since the last nap.');
     expect(startContext('sleep', [], NOW, 'metric')).toBeNull();
+  });
+});
+
+describe('previousFeedSides', () => {
+  it('totals each side of the last finished breastfeed', () => {
+    const uneven = {
+      ...feed,
+      segments: [
+        { side: 'left' as const, startedAt: '2026-10-06T09:26:00Z', endedAt: '2026-10-06T09:36:00Z' },
+        { side: 'right' as const, startedAt: '2026-10-06T09:36:00Z', endedAt: '2026-10-06T09:41:00Z' },
+        { side: 'left' as const, startedAt: '2026-10-06T09:41:00Z', endedAt: '2026-10-06T09:46:00Z' },
+      ],
+    };
+    expect(previousFeedSides([uneven])).toEqual({ left: '15m', right: '5m' });
+  });
+
+  it('shows a side as 0m when the last feed skipped it', () => {
+    const oneSided = { ...feed, segments: [feed.segments[0]!] };
+    expect(previousFeedSides([oneSided])).toEqual({ left: '10m', right: '0m' });
+  });
+
+  it('ignores running and deleted feeds and other event types', () => {
+    expect(previousFeedSides([])).toBeNull();
+    expect(previousFeedSides([{ ...feed, endedAt: null }])).toBeNull();
+    const older = makeEvent('breast_feed', {
+      startedAt: '2026-10-06T05:00:00Z',
+      endedAt: '2026-10-06T05:08:00Z',
+      segments: [{ side: 'right', startedAt: '2026-10-06T05:00:00Z', endedAt: '2026-10-06T05:08:00Z' }],
+    });
+    expect(previousFeedSides([older, { ...feed, deletedAt: '2026-10-06T10:00:00Z' }])).toEqual({
+      left: '0m',
+      right: '8m',
+    });
   });
 });
 

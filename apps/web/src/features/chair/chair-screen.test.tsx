@@ -33,6 +33,7 @@ function makeData(overrides: Partial<ChairData> = {}): ChairData {
     lastFeed: 'Last fed 2h 10m ago · Right side · 18m',
     due: { text: 'Next feed due in 42m · around 3:02 pm', overdue: false },
     suggested: 'left',
+    previousSides: { left: '6m', right: '15m' },
     feed: null,
     nap: null,
     lastNappy: null,
@@ -80,7 +81,9 @@ describe('ChairScreen idle', () => {
     expect(screen.getByText('Last fed 2h 10m ago · Right side · 18m')).toBeInTheDocument();
     expect(screen.getByText('Next feed due in 42m · around 3:02 pm')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Start left' })).toHaveTextContent('Next');
+    expect(screen.getByRole('button', { name: 'Start left' })).toHaveTextContent('Last feed 6m');
     expect(screen.getByRole('button', { name: 'Start right' })).not.toHaveTextContent('Next');
+    expect(screen.getByRole('button', { name: 'Start right' })).toHaveTextContent('Last feed 15m');
     tap('Start right');
     expect(actions.startFeed).toHaveBeenCalledWith('right');
   });

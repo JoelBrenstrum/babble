@@ -106,22 +106,44 @@ describe('feedEndTime', () => {
 });
 
 describe('nextBreastSide', () => {
-  const feed = (startedAt: string, sides: ('left' | 'right')[]) =>
-    makeEvent('breast_feed', {
+  const feed = (startedAt: string, sides: ('left' | 'right')[], minutes: number[] = []) => {
+    let at = Date.parse(startedAt);
+    return makeEvent('breast_feed', {
       id: startedAt,
       startedAt,
-      segments: sides.map((side, index) => ({
-        side,
-        startedAt: new Date(Date.parse(startedAt) + index * 600_000).toISOString(),
-        endedAt: new Date(Date.parse(startedAt) + (index + 1) * 600_000).toISOString(),
-      })),
+      segments: sides.map((side, index) => {
+        const from = at;
+        at += (minutes[index] ?? 10) * 60_000;
+        return { side, startedAt: new Date(from).toISOString(), endedAt: new Date(at).toISOString() };
+      }),
     });
+  };
 
-  it('suggests the other side from the one the last feed ended on', () => {
+  it('suggests the side that got less time in the last feed', () => {
+    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['left', 'right'], [15, 6])])).toBe('right');
+    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right', 'left', 'right'], [4, 12, 5])])).toBe('right');
+    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right'])])).toBe('left');
+  });
+
+  it('suggests the other side from the one the last feed ended on when both sides got equal time', () => {
     expect(
       nextBreastSide([feed('2026-10-06T08:00:00Z', ['left']), feed('2026-10-06T11:00:00Z', ['left', 'right'])]),
     ).toBe('left');
     expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right', 'left'])])).toBe('right');
+  });
+
+  it('counts the open side of a running feed up to now, or only its settled part without a clock', () => {
+    const running = makeEvent('breast_feed', {
+      id: 'running',
+      startedAt: '2026-10-06T11:00:00Z',
+      endedAt: null,
+      segments: [
+        { side: 'left', startedAt: '2026-10-06T11:00:00Z', endedAt: '2026-10-06T11:05:00Z' },
+        { side: 'right', startedAt: '2026-10-06T11:05:00Z', endedAt: null },
+      ],
+    });
+    expect(nextBreastSide([running])).toBe('right');
+    expect(nextBreastSide([running], new Date('2026-10-06T11:12:00Z'))).toBe('left');
   });
 
   it('has no suggestion without a breastfeed', () => {

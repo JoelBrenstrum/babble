@@ -107,6 +107,11 @@ export function IdleView({
               <Play className="size-[4.6cqmin]" strokeWidth={3} />
               Start {side}
             </span>
+            {data.previousSides && (
+              <span className="tabular text-[length:4cqmin] font-semibold opacity-80">
+                Last feed {data.previousSides[side]}
+              </span>
+            )}
           </BigButton>
         ))}
       </div>

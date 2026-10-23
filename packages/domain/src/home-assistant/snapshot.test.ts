@@ -152,7 +152,7 @@ describe('homeAssistantSnapshot feeds', () => {
       right_s: 8 * 60,
       active_side: 'right',
       last_side: 'right',
-      next_side: 'left',
+      next_side: 'right',
       previous: {
         started_at: '2026-10-06T08:00:00Z',
         ended_at: '2026-10-06T08:25:00Z',

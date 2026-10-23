@@ -55,6 +55,7 @@ describe('buildChairData', () => {
       feed: null,
       nap: null,
       suggested: 'left',
+      previousSides: { left: '0m', right: '20m' },
       lastNappy: null,
       units: 'metric',
       bottle: { amount: 120, content: 'breast_milk' },
