@@ -38,11 +38,14 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   await page.getByRole('button', { name: 'Resume' }).click();
   await expect(page.getByText('Feeding · Right')).toBeVisible();
   await expect
-    .poll(async () => {
-      const sides = (await page.getByText(/^Left \d+:\d\d · Right \d+:\d\d$/).textContent()) ?? '';
-      const [left = 0, right = 0] = [...sides.matchAll(/(\d+):(\d\d)/g)].map((m) => Number(m[1]) * 60 + Number(m[2]));
-      return right - left;
-    }, { timeout: 20_000 })
+    .poll(
+      async () => {
+        const sides = (await page.getByText(/^Left \d+:\d\d · Right \d+:\d\d$/).textContent()) ?? '';
+        const [left = 0, right = 0] = [...sides.matchAll(/(\d+):(\d\d)/g)].map((m) => Number(m[1]) * 60 + Number(m[2]));
+        return right - left;
+      },
+      { timeout: 20_000 },
+    )
     .toBeGreaterThanOrEqual(2);
 
   await page.getByRole('button', { name: 'End feed' }).click();
