@@ -87,6 +87,16 @@ describe('previousFeedSides', () => {
     expect(previousFeedSides([oneSided])).toEqual({ left: '10m', right: '0m' });
   });
 
+  it('skips a newer running or empty feed and uses the last finished one', () => {
+    const running = makeEvent('breast_feed', {
+      startedAt: '2026-10-06T11:40:00Z',
+      endedAt: null,
+      segments: [{ side: 'left', startedAt: '2026-10-06T11:40:00Z', endedAt: null }],
+    });
+    const empty = makeEvent('breast_feed', { startedAt: '2026-10-06T11:00:00Z', endedAt: '2026-10-06T11:01:00Z' });
+    expect(previousFeedSides([running, empty, feed])).toEqual({ left: '10m', right: '10m' });
+  });
+
   it('ignores running and deleted feeds and other event types', () => {
     expect(previousFeedSides([])).toBeNull();
     expect(previousFeedSides([{ ...feed, endedAt: null }])).toBeNull();

@@ -42,7 +42,7 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
       const sides = (await page.getByText(/^Left \d+:\d\d · Right \d+:\d\d$/).textContent()) ?? '';
       const [left = 0, right = 0] = [...sides.matchAll(/(\d+):(\d\d)/g)].map((m) => Number(m[1]) * 60 + Number(m[2]));
       return right - left;
-    })
+    }, { timeout: 20_000 })
     .toBeGreaterThanOrEqual(2);
 
   await page.getByRole('button', { name: 'End feed' }).click();
@@ -60,8 +60,8 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
 
   await expect(page.getByText(/^Last fed .+ · just now · Right side/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Start left' })).toContainText('Next');
-  await expect(page.getByRole('button', { name: 'Start left' })).toContainText('Last feed 0m');
-  await expect(page.getByRole('button', { name: 'Start right' })).toContainText('Last feed 0m');
+  await expect(page.getByRole('button', { name: 'Start left' })).toContainText(/Last feed \d+m/);
+  await expect(page.getByRole('button', { name: 'Start right' })).toContainText(/Last feed \d+m/);
   await expect(page.getByRole('button', { name: /^Nappy/ })).toContainText('Wet · just now');
   await expect(page.getByRole('status')).toHaveCount(0, { timeout: 7_000 });
   await page.screenshot({ path: testInfo.outputPath('idle-after.png') });

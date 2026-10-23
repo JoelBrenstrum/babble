@@ -57,9 +57,12 @@ export function startContext(
 }
 
 export function previousFeedSides(latest: readonly BabyEvent[]): Record<Side, string> | null {
-  const feed = latestOfType(latest, 'breast_feed');
-  if (!feed?.endedAt || feed.segments.length === 0) return null;
-  const totals = segmentTotals(feed.segments, new Date(feed.endedAt));
+  const feed = latest
+    .filter((event): event is EventOfType<'breast_feed'> => event.type === 'breast_feed' && !event.deletedAt)
+    .filter((event) => event.endedAt !== null && event.segments.length > 0)
+    .sort(byStartedAtDesc)[0];
+  if (!feed) return null;
+  const totals = segmentTotals(feed.segments, new Date(feed.endedAt!));
   return {
     left: formatDuration(totals.leftMs, { seconds: false }),
     right: formatDuration(totals.rightMs, { seconds: false }),
