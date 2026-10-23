@@ -182,10 +182,25 @@ describe('ending a running session earlier', () => {
     expect(next.type === 'breast_feed' && next.segments[0]!.endedAt).toBe('2026-10-06T10:12:00.000Z');
   });
 
-  it('allows ends back to the nap start, the open side start or the last side end', () => {
+  it('allows ends back to the nap start, the open side start or the last side start', () => {
     expect(earliestEnd(nap)).toBe('2026-10-06T09:00:00Z');
     expect(earliestEnd(running)).toBe('2026-10-06T10:00:00Z');
-    expect(earliestEnd(paused)).toBe('2026-10-06T09:55:00Z');
+    expect(earliestEnd(paused)).toBe('2026-10-06T09:40:00Z');
+  });
+
+  it('ends a paused feed earlier than the pause, dropping the idle gap and cutting the last side short', () => {
+    expect(suggestedEnd(paused, NOW)).toBe('2026-10-06T09:55:00Z');
+    expect(endChangeError(paused, earlierEnd(NOW, 30), NOW)).toBeNull();
+    expect(endChangeError(paused, '2026-10-06T09:39:00Z', NOW)).toBe("The end can't be before the last side started.");
+    const ended = applySessionAction(paused, { kind: 'end', at: '2026-10-06T09:50:00Z' }, NOW);
+    expect(ended).toMatchObject({
+      endedAt: '2026-10-06T09:50:00.000Z',
+      sessionState: 'ended',
+      segments: [{ side: 'left', startedAt: '2026-10-06T09:40:00Z', endedAt: '2026-10-06T09:50:00Z' }],
+    });
+    expect(applySessionAction(paused, { kind: 'end', at: '2026-10-06T10:00:00Z' }, NOW).endedAt).toBe(
+      '2026-10-06T09:55:00.000Z',
+    );
   });
 
   it('ends a paused nap earlier than the pause, cutting its last stretch short', () => {
@@ -225,7 +240,7 @@ describe('ending a running session earlier', () => {
     expect(endChangeError(running, '2026-10-06T09:59:00Z', NOW)).toBe(
       "The end can't be before the current side started.",
     );
-    expect(endChangeError(paused, '2026-10-06T09:50:00Z', NOW)).toBe("The end can't be before the last side finished.");
+    expect(endChangeError(paused, '2026-10-06T09:50:00Z', NOW)).toBeNull();
     expect(endChangeError(nap, 'nonsense', NOW)).toBe('Pick an end time.');
   });
 });
