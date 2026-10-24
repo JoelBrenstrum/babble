@@ -3,6 +3,7 @@ import { useAsyncAction, useNow, useSessionPrompts, useStartSession, useUnits } 
 import {
   nextBreastSide,
   pastDraft,
+  previousFeedSides,
   runningSessionLine,
   runningTone,
   startContext,
@@ -110,6 +111,7 @@ function StartSession({
   const running = runningEvents.find((event) => event.type === type);
   const latest = useQuery(latestEventsQuery(client, babyId)).data ?? [];
   const suggested = type === 'breast_feed' ? nextBreastSide(latest) : null;
+  const previousSides = type === 'breast_feed' ? previousFeedSides(latest) : null;
   const showPrompts = useNapPrompt();
   const promptsFor = useSessionPrompts(client, babyId);
   const { run, error } = useAsyncAction();
@@ -199,6 +201,9 @@ function StartSession({
               )}
               <Text className="font-bold text-timer-md text-ink-on-solid">{side === 'left' ? 'L' : 'R'}</Text>
               <Text className="font-semibold text-label text-ink-on-solid">{`Start ${side}`}</Text>
+              {previousSides && (
+                <Text className="font-semibold text-caption text-ink-on-solid opacity-80">{`Last feed ${previousSides[side]}`}</Text>
+              )}
             </Pressable>
           ))}
         </View>

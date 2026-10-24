@@ -3,6 +3,7 @@ import { formatDurationShort } from '../format/duration';
 import { todayInTimeZone } from '../format/time-of-day';
 import { feedDueFor, feedDueText, type FeedReminderSettings, type NightReminderSettings } from '../events/feed-due';
 import { nextBreastSide } from '../events/feed-rules';
+import { previousFeedSides } from '../events/session-context';
 import {
   nappyPromptOnFeedFinish,
   nappyPromptOnFeedStart,
@@ -79,6 +80,7 @@ export interface ChairViewModel {
   lastFeed: string;
   due: { text: string; overdue: boolean } | null;
   suggested: Side | null;
+  previousSides: Record<Side, string> | null;
   feed: ChairFeed | null;
   nap: ChairNap | null;
   lastNappy: string | null;
@@ -121,6 +123,7 @@ export function buildChairData(input: ChairDataInput): {
     lastFeed: lastFeedLine(latest, now, units, baby.timezone),
     due: due ? feedDueText(due, now, baby.timezone) : null,
     suggested: nextBreastSide(latest),
+    previousSides: previousFeedSides(latest),
     feed:
       feed && feedView
         ? {

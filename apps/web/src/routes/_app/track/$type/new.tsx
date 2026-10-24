@@ -5,6 +5,7 @@ import {
   isSessionType,
   nextBreastSide,
   pastDraft,
+  previousFeedSides,
   promptsForSessionEvent,
   runningIndicator,
   runningSessionLine,
@@ -104,6 +105,7 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   const running = runningEvents.find((event) => event.type === type);
   const latest = useQuery(latestEventsQuery(babble.client, baby.id)).data ?? [];
   const suggested = type === 'breast_feed' ? nextBreastSide(latest) : null;
+  const previousSides = type === 'breast_feed' ? previousFeedSides(latest) : null;
   const showNapPrompt = useNapPrompt();
   const { run, error } = useAsyncAction();
   const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
@@ -204,6 +206,9 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
                 <Play className="size-4" strokeWidth={3} />
                 Start {side}
               </span>
+              {previousSides && (
+                <span className="tabular text-caption font-semibold opacity-80">Last feed {previousSides[side]}</span>
+              )}
             </button>
           ))}
         </div>

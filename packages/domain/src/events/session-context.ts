@@ -41,7 +41,8 @@ export function startContext(
     const side = lastSide(feed.segments);
     const next = nextBreastSide(latest);
     const ended = side ? `Last feed ended on ${SIDE_LABEL[side]}, ${ago}.` : `Last feed ended ${ago}.`;
-    return next ? `${ended} Next side: ${SIDE_LABEL[next]}.` : ended;
+    if (!next) return ended;
+    return `${ended} Next side: ${SIDE_LABEL[next]}${next === side ? ' again' : ''}.`;
   }
   if (type === 'pump') {
     const pump = latestOfType(latest, 'pump');
@@ -53,6 +54,19 @@ export function startContext(
   const nap = latestOfType(latest, 'sleep');
   if (!nap?.endedAt) return null;
   return `Awake ${formatDuration(now.getTime() - Date.parse(nap.endedAt), { seconds: false })} since the last nap.`;
+}
+
+export function previousFeedSides(latest: readonly BabyEvent[]): Record<Side, string> | null {
+  const feed = latest
+    .filter((event): event is EventOfType<'breast_feed'> => event.type === 'breast_feed' && !event.deletedAt)
+    .filter((event) => event.endedAt !== null && event.segments.length > 0)
+    .sort(byStartedAtDesc)[0];
+  if (!feed) return null;
+  const totals = segmentTotals(feed.segments, new Date(feed.endedAt!));
+  return {
+    left: formatDuration(totals.leftMs, { seconds: false }),
+    right: formatDuration(totals.rightMs, { seconds: false }),
+  };
 }
 
 export function runningSessionLine(event: BabyEvent, now: Date, startedBy?: string): string {

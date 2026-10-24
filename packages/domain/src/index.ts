@@ -232,6 +232,7 @@ export { growthInputUnit, growthPlaceholders, toGrowthInput } from './growth/pre
 export { fitStretches, napRows, summariseSleep, type NapLike } from './events/sleep-stretches';
 export {
   pausedForMs,
+  previousFeedSides,
   pumpFinishSummary,
   runningSessionLine,
   runningTone,
