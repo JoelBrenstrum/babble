@@ -363,6 +363,15 @@ describe('feed spacing', () => {
     expect(feedGaps(morning, settings)).toEqual([gap('2026-10-14', 8, false, Date.parse('2026-10-14T03:00:00Z'))]);
   });
 
+  it('measures the overlap with a short night rather than trusting the midpoint', () => {
+    const bottle = (id: string, start: string) => makeEvent('bottle', { id, startedAt: start, endedAt: null });
+    const shortNight = { ...settings, nightStartMinutes: 22 * 60, nightEndMinutes: 2 * 60 };
+    const around = [bottle('a', '2026-10-13T19:00:00Z'), bottle('b', '2026-10-14T03:00:00Z')];
+    const mostly = [bottle('c', '2026-10-13T21:00:00Z'), bottle('d', '2026-10-14T03:00:00Z')];
+    expect(feedGaps(around, shortNight)).toEqual([gap('2026-10-13', 8, false, Date.parse('2026-10-13T19:00:00Z'))]);
+    expect(feedGaps(mostly, shortNight)).toEqual([gap('2026-10-13', 6, true, Date.parse('2026-10-13T21:00:00Z'))]);
+  });
+
   it('shows the typical daytime and overnight gap, last night and the change on last week', () => {
     const gaps = [
       gap('2026-10-05', 2.5),
