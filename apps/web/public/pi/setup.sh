@@ -7,6 +7,7 @@ AUTOSTART="${BABBLE_CHAIR_AUTOSTART:-yes}"
 SCREEN_OFF_MINUTES="${BABBLE_CHAIR_SCREEN_OFF_MINUTES:-30}"
 BIN="$HOME/.local/bin"
 LABWC="$HOME/.config/labwc"
+LOG="$HOME/.local/state/babble-chair/chromium.log"
 # Tells chair mode it's on the Pi, so it hides its full screen button.
 case "$URL" in *\?*) URL="$URL&kiosk=1" ;; *) URL="$URL?kiosk=1" ;; esac
 if [ "$SCREEN_OFF_MINUTES" != "0" ]; then
@@ -26,20 +27,25 @@ fi
 
 say "Installing the chair launcher"
 mkdir -p "$BIN"
+mkdir -p "$(dirname "$LOG")"
 cat > "$BIN/babble-chair" <<EOF
 #!/usr/bin/env bash
 BROWSER="$BROWSER"
 URL="$URL"
-PREFS="\$HOME/.config/\$(basename "\$BROWSER")/Default/Preferences"
+LOG="$LOG"
+PROFILE="\$HOME/.config/\$(basename "\$BROWSER")"
+PREFS="\$PROFILE/Default/Preferences"
 rm -f "\$HOME/.babble-chair-off"
 pkill -x "\$(basename "\$BROWSER")" 2>/dev/null || true
 sleep 1
 while [ ! -e "\$HOME/.babble-chair-off" ]; do
   # After a power cut Chromium thinks it crashed and offers to restore pages; mark the last exit as clean.
   [ -f "\$PREFS" ] && sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]*"/"exit_type":"Normal"/' "\$PREFS"
+  # Every start leaves a metrics file and crash dumps behind that nothing ever uploads or removes.
+  rm -rf "\$PROFILE/BrowserMetrics" "\$PROFILE/Crash Reports"
   "\$BROWSER" --ozone-platform=wayland --disable-gpu --kiosk "\$URL" --noerrdialogs \\
     --disable-infobars --disable-session-crashed-bubble --password-store=basic \\
-    --disk-cache-dir=/dev/shm/babble-chair > /tmp/babble-chair.log 2>&1
+    --disk-cache-dir=/dev/shm/babble-chair --disable-crash-reporter --log-level=2 >> "\$LOG" 2>&1
   sleep 3
 done
 EOF
@@ -99,6 +105,14 @@ fi
 say "Cutting down SD card writes"
 sudo mkdir -p /etc/systemd/journald.conf.d
 printf '[Journal]\nStorage=volatile\nRuntimeMaxUse=30M\n' | sudo tee /etc/systemd/journald.conf.d/babble-chair.conf >/dev/null
+if command -v journalctl >/dev/null; then
+  sudo journalctl --rotate >/dev/null 2>&1 || true
+  sudo journalctl --vacuum-size=30M >/dev/null 2>&1 || true
+fi
+rm -f /tmp/babble-chair.log
+if [ -d /etc/logrotate.d ]; then
+  printf '%s {\n  size 1M\n  rotate 1\n  copytruncate\n  missingok\n  notifempty\n  nocompress\n}\n' "$LOG" | sudo tee /etc/logrotate.d/babble-chair >/dev/null
+fi
 if systemctl list-unit-files dphys-swapfile.service >/dev/null 2>&1; then
   sudo systemctl disable --now dphys-swapfile.service >/dev/null 2>&1 || true
 fi

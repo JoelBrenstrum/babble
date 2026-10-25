@@ -1,8 +1,10 @@
 # Stage 9: Offline mode
 
-## Status (2026-10-13)
+## Status (2026-10-25)
 
 Planned. Nothing built yet. The full write-up, with diagrams, is at https://claude.ai/artifact/12pHrigi2iRG8FBst7Cp3A.
+
+The web app persists its query cache to IndexedDB, except on `/chair`: the Pi's SD card was filling up, so chair mode keeps the cache in memory only and removes any copy an earlier session left. Phase 1 needs to revisit this when chair mode goes first for offline, probably with a much smaller persisted set and a longer throttle.
 
 ## Goal
 

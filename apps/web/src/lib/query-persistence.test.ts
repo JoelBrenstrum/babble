@@ -1,8 +1,10 @@
 import { QueryClient, onlineManager, type Query } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import {
+  dropPersistedQueries,
   ensureCurrentData,
   PERSIST_MAX_AGE_MS,
+  persistsQueries,
   resetRevalidation,
   setupQueryPersistence,
   shouldPersistQuery,
@@ -40,6 +42,16 @@ describe('shouldPersistQuery', () => {
     expect(shouldPersistQuery(query(['release'], 'success', 'r1'))).toBe(false);
     expect(shouldPersistQuery(query(['invite', 'ABC'], 'success', {}))).toBe(false);
     expect(shouldPersistQuery(query(['device-link', 'ABC'], 'success', {}))).toBe(false);
+  });
+});
+
+describe('persistsQueries', () => {
+  it('keeps the cache on every page but chair mode', () => {
+    expect(persistsQueries('/')).toBe(true);
+    expect(persistsQueries('/home')).toBe(true);
+    expect(persistsQueries('/settings/chair')).toBe(true);
+    expect(persistsQueries('/chair')).toBe(false);
+    expect(persistsQueries('/chair/')).toBe(false);
   });
 });
 
@@ -152,6 +164,23 @@ describe('setupQueryPersistence', () => {
     const second = client();
     await setupQueryPersistence(second, { storage, throttleTime: 0, buster: 'r2' }).restored;
     expect(second.getQueryData(['families'])).toBeUndefined();
+  });
+
+  it('drops a cache left by an earlier session without restoring it', async () => {
+    const storage = memoryStorage();
+    const first = client();
+    await setupQueryPersistence(first, { storage, throttleTime: 0, buster: 'r1' }).restored;
+    first.setQueryData(['families'], [{ id: 'f1' }]);
+    await flush();
+    expect(storage.items.size).toBe(1);
+    await dropPersistedQueries(storage);
+    expect(storage.items.size).toBe(0);
+  });
+
+  it('ignores storage that cannot be cleared', async () => {
+    const storage = memoryStorage();
+    storage.removeItem = () => Promise.reject(new Error('blocked'));
+    await expect(dropPersistedQueries(storage)).resolves.toBeUndefined();
   });
 
   it('clears the stored cache on request', async () => {
