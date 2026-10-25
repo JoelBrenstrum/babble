@@ -1,6 +1,12 @@
 import { CHAIR_ENDED_MS } from '@babble/domain';
 import { describe, expect, it } from 'vitest';
-import { chairErrorMessage, chairFlowReducer, initialChairFlow, type ChairFlowState } from './chair-flow';
+import {
+  chairErrorMessage,
+  chairFlowReducer,
+  initialChairFlow,
+  nappySavedMessage,
+  type ChairFlowState,
+} from './chair-flow';
 
 const feed = { id: 'feed-1', summary: { title: 'Fed 13m', sides: 'Left 8m · Right 4m' }, asleepSince: null };
 
@@ -49,5 +55,23 @@ describe('chairErrorMessage', () => {
   it('uses an error message, or a generic one', () => {
     expect(chairErrorMessage(new Error('No connection.'))).toBe('No connection.');
     expect(chairErrorMessage('boom')).toBe('Something went wrong. Try again.');
+  });
+});
+
+describe('nappySavedMessage', () => {
+  it('names the type, then any sizes picked', () => {
+    const none = { wetSize: null, pooSize: null };
+    expect(nappySavedMessage('dry', none)).toBe('Nappy saved · Dry');
+    expect(nappySavedMessage('wet', { ...none, wetSize: 'massive' })).toBe('Nappy saved · Wet · Soaked');
+    expect(nappySavedMessage('dirty', { ...none, pooSize: 'tiny' })).toBe('Nappy saved · Dirty · Tiny');
+  });
+
+  it('says which size is which when the nappy was wet and dirty', () => {
+    expect(nappySavedMessage('both', { wetSize: 'little', pooSize: 'large' })).toBe(
+      'Nappy saved · Wet and dirty · Light wee · Large poo',
+    );
+    expect(nappySavedMessage('both', { wetSize: null, pooSize: 'large' })).toBe(
+      'Nappy saved · Wet and dirty · Large poo',
+    );
   });
 });

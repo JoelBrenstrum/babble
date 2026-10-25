@@ -1,4 +1,4 @@
-import type { BottleContent, ChairViewModel, NappyType, Side } from '@babble/domain';
+import type { BottleContent, ChairNappySizes, ChairViewModel, NappyType, Side } from '@babble/domain';
 
 export type { ChairBaby, ChairFeed } from '@babble/domain';
 
@@ -16,7 +16,7 @@ export interface ChairActions {
   endFeed: () => Promise<unknown>;
   resumeFeed: (feedId: string) => Promise<unknown>;
   saveBottle: (amount: number, content: BottleContent) => Promise<string>;
-  saveNappy: (type: NappyType) => Promise<string>;
+  saveNappy: (type: NappyType, sizes: ChairNappySizes) => Promise<string>;
   startNap: (at?: string) => Promise<string>;
   endNap: () => Promise<unknown>;
   pauseNap: () => void;

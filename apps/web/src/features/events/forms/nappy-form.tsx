@@ -1,4 +1,11 @@
-import { instantDraft, nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
+import {
+  instantDraft,
+  nappyType,
+  WET_SIZE_LABELS,
+  withNappyType,
+  type DraftOfType,
+  type PooTexture,
+} from '@babble/domain';
 import { MultiChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { Segmented } from '#/components/ui/segmented';
@@ -33,7 +40,12 @@ export function NappyForm({ draft, onChange, errors, timeZone }: FormProps<Draft
         ]}
       />
       {details.wet && (
-        <SizeSelector label="Wee size" value={details.wetSize} onChange={(wetSize) => set({ wetSize })} />
+        <SizeSelector
+          label="Wetness"
+          labels={WET_SIZE_LABELS}
+          value={details.wetSize}
+          onChange={(wetSize) => set({ wetSize })}
+        />
       )}
       {details.dirty && (
         <>

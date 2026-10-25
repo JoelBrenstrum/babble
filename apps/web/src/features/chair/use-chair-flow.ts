@@ -6,12 +6,18 @@ import {
   type BottleContent,
   type ChairBaby,
   type ChairFeed,
+  type ChairNappySizes,
   type NappyType,
   type Side,
 } from '@babble/domain';
 import { useCallback, useEffect, useReducer } from 'react';
-import { chairErrorMessage, chairFlowReducer, initialChairFlow, type ChairSheet } from './chair-flow';
-import { NAPPY_SAVED } from './nappy-sheet';
+import {
+  chairErrorMessage,
+  chairFlowReducer,
+  initialChairFlow,
+  nappySavedMessage,
+  type ChairSheet,
+} from './chair-flow';
 import type { ChairActions, ChairData } from './types';
 
 export function useChairFlow(data: ChairData, actions: ChairActions) {
@@ -105,8 +111,8 @@ export function useChairFlow(data: ChairData, actions: ChairActions) {
     saveEntry(() => actions.saveBottle(amount, content), `Bottle saved · ${formatBottleAmount(amount)} ${unit}`);
   }
 
-  function saveNappy(type: NappyType) {
-    saveEntry(() => actions.saveNappy(type), `Nappy saved · ${NAPPY_SAVED[type]}`);
+  function saveNappy(type: NappyType, sizes: ChairNappySizes) {
+    saveEntry(() => actions.saveNappy(type, sizes), nappySavedMessage(type, sizes));
   }
 
   function undoEnded() {

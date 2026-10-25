@@ -1,4 +1,11 @@
-import { CHAIR_ENDED_MS, type ChairFeed } from '@babble/domain';
+import {
+  CHAIR_ENDED_MS,
+  SIZE_LABELS,
+  WET_SIZE_LABELS,
+  type ChairFeed,
+  type ChairNappySizes,
+  type NappyType,
+} from '@babble/domain';
 import type { EndedFeed } from './ended-view';
 
 export type ChairSheet = 'bottle' | 'nappy' | 'nappy-ask' | 'baby' | 'settings';
@@ -57,6 +64,21 @@ export function chairFlowReducer(state: ChairFlowState, event: ChairFlowEvent): 
       if (!state.ended) return state;
       return event.now >= state.ended.until ? { ...state, ended: null } : { ...state, now: event.now };
   }
+}
+
+export const NAPPY_SAVED: Record<NappyType, string> = {
+  wet: 'Wet',
+  dirty: 'Dirty',
+  both: 'Wet and dirty',
+  dry: 'Dry',
+};
+
+export function nappySavedMessage(type: NappyType, sizes: ChairNappySizes): string {
+  const parts = [`Nappy saved · ${NAPPY_SAVED[type]}`];
+  if (sizes.wetSize)
+    parts.push(type === 'both' ? `${WET_SIZE_LABELS[sizes.wetSize]} wee` : WET_SIZE_LABELS[sizes.wetSize]);
+  if (sizes.pooSize) parts.push(type === 'both' ? `${SIZE_LABELS[sizes.pooSize]} poo` : SIZE_LABELS[sizes.pooSize]);
+  return parts.join(' · ');
 }
 
 export function chairErrorMessage(caught: unknown): string {

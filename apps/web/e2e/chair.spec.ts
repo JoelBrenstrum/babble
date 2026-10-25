@@ -28,7 +28,11 @@ test('chair mode asks for a nappy when a feed starts and offers a nap when it en
   const nappyAsk = page.getByRole('dialog', { name: "Change Olivia's nappy?" });
   await nappyAsk.getByRole('button', { name: 'Yes, log a nappy' }).click();
   await page.getByRole('dialog', { name: 'Nappy' }).getByRole('button', { name: 'Wet', exact: true }).click();
-  await expect(page.getByRole('status')).toContainText('Nappy saved · Wet');
+  const nappySizes = page.getByRole('dialog', { name: 'Nappy · Wet' });
+  await nappySizes.getByRole('radio', { name: 'Heavy' }).click();
+  await page.screenshot({ path: testInfo.outputPath('nappy-sizes.png') });
+  await nappySizes.getByRole('button', { name: 'Save' }).click();
+  await expect(page.getByRole('status')).toContainText('Nappy saved · Wet · Heavy');
   await expect(page.getByRole('timer')).toBeVisible();
   await page.getByRole('button', { name: 'Switch to Right' }).click();
   await expect(page.getByText('Feeding · Right')).toBeVisible();

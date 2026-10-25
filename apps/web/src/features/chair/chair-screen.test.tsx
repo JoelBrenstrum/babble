@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ChairScreen, type ChairActions, type ChairData, type ChairFeed } from './chair-screen';
 
@@ -110,8 +110,9 @@ describe('ChairScreen idle', () => {
     expect(screen.getByRole('dialog', { name: "Change Olivia's nappy?" })).toBeInTheDocument();
     tap('Yes, log a nappy');
     tap('Dirty');
+    tap('Skip');
     await flush();
-    expect(actions.saveNappy).toHaveBeenCalledWith('dirty');
+    expect(actions.saveNappy).toHaveBeenCalledWith('dirty', { wetSize: null, pooSize: null });
     expect(screen.getByRole('timer')).toHaveTextContent('12:34');
   });
 
@@ -172,15 +173,47 @@ describe('ChairScreen idle', () => {
     expect(actions.undoEntry).toHaveBeenCalledWith('bottle-1');
   });
 
-  it('saves a nappy in one tap', async () => {
+  it('saves a dry nappy in one tap', async () => {
     const actions = makeActions();
     render(<ChairScreen data={makeData({ lastNappy: 'Wet · 2h 10m ago' })} actions={actions} />);
     expect(screen.getByRole('button', { name: /^Nappy/ })).toHaveTextContent('Wet · 2h 10m ago');
     tap(/Nappy/);
-    tap('Both');
+    tap('Dry');
     await flush();
-    expect(actions.saveNappy).toHaveBeenCalledWith('both');
-    expect(screen.getByRole('status')).toHaveTextContent('Nappy saved · Wet and dirty');
+    expect(actions.saveNappy).toHaveBeenCalledWith('dry', { wetSize: null, pooSize: null });
+    expect(screen.getByRole('status')).toHaveTextContent('Nappy saved · Dry');
+  });
+
+  it('asks how wet and how big after picking the type, and saves the sizes', async () => {
+    const actions = makeActions();
+    render(<ChairScreen data={makeData()} actions={actions} />);
+    tap(/Nappy/);
+    tap('Both');
+    expect(actions.saveNappy).not.toHaveBeenCalled();
+    const sheet = screen.getByRole('dialog', { name: 'Nappy · Wet and dirty' });
+    const wetness = within(sheet).getByRole('radiogroup', { name: 'Wetness' });
+    expect(
+      within(wetness)
+        .getAllByRole('radio')
+        .map((radio) => radio.textContent),
+    ).toEqual(['Damp', 'Light', 'Medium', 'Heavy', 'Soaked']);
+    fireEvent.click(within(wetness).getByRole('radio', { name: 'Heavy' }));
+    const poo = within(sheet).getByRole('radiogroup', { name: 'Poo size' });
+    fireEvent.click(within(poo).getByRole('radio', { name: 'Little' }));
+    expect(within(wetness).getByRole('radio', { name: 'Heavy' })).toHaveAttribute('aria-checked', 'true');
+    tap('Save');
+    await flush();
+    expect(actions.saveNappy).toHaveBeenCalledWith('both', { wetSize: 'large', pooSize: 'little' });
+    expect(screen.getByRole('status')).toHaveTextContent('Nappy saved · Wet and dirty · Heavy wee · Little poo');
+  });
+
+  it('only asks about wetness for a wet nappy', () => {
+    render(<ChairScreen data={makeData()} actions={makeActions()} />);
+    tap(/Nappy/);
+    tap('Wet');
+    const sheet = screen.getByRole('dialog', { name: 'Nappy · Wet' });
+    expect(within(sheet).getByRole('radiogroup', { name: 'Wetness' })).toBeInTheDocument();
+    expect(within(sheet).queryByRole('radiogroup', { name: 'Poo size' })).not.toBeInTheDocument();
   });
 
   it('starts a nap, or ends the running one', async () => {
@@ -231,6 +264,7 @@ describe('ChairScreen idle', () => {
     render(<ChairScreen data={makeData()} actions={actions} />);
     tap(/Nappy/);
     tap('Wet');
+    tap('Skip');
     await flush();
     expect(screen.getByRole('status')).toHaveTextContent('No connection.');
   });

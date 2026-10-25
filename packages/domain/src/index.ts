@@ -210,6 +210,7 @@ export {
   POO_TEXTURE_LABELS,
   SIDE_LABEL,
   SIZE_LABELS,
+  SIZES,
   SLEEP_LOCATION_LABELS,
   SLEEP_QUALITIES,
   SLEEP_QUALITY_LABELS,
@@ -217,6 +218,7 @@ export {
   SOLIDS_AMOUNT_OPTIONS,
   SOLIDS_REACTION_LABELS,
   SOLIDS_REACTION_OPTIONS,
+  WET_SIZE_LABELS,
 } from './events/labels';
 export { addFood, foodSuggestions, hasFood, MAX_FOOD_LENGTH, newFoods, recentFoods, toggleFood } from './events/foods';
 export { chartAxis } from './growth/axis';
@@ -259,6 +261,8 @@ export {
   chairFeedSummary,
   chairFeedView,
   chairNappyDraft,
+  NO_NAPPY_SIZES,
+  type ChairNappySizes,
   formatBottleAmount,
   lastFeedLine,
   lastNappyLine,

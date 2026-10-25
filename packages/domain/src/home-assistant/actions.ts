@@ -1,4 +1,5 @@
 import { emptyDraft } from '../events/drafts';
+import { SIZES } from '../events/labels';
 import { otherSide, segmentTotals } from '../events/segments';
 import type { SessionAction } from '../events/session-actions';
 import type {
@@ -24,7 +25,6 @@ export type ActionStep =
 export type ActionPlan = { ok: true; step: ActionStep } | { ok: false; status: 400 | 404 | 409; error: string };
 
 const SIDES = ['left', 'right'] as const;
-const SIZES = ['tiny', 'little', 'medium', 'large', 'massive'] as const;
 const CONTENTS = ['breast_milk', 'formula', 'mixed', 'other'] as const;
 const COLOURS = ['yellow', 'mustard', 'green', 'dark_green', 'brown', 'orange', 'black', 'red', 'white_grey'] as const;
 const TEXTURES = ['runny', 'loose', 'seedy', 'pasty', 'formed', 'mucousy', 'solid', 'pebbles', 'diarrhea'] as const;

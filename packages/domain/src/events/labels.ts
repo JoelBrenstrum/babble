@@ -22,12 +22,22 @@ export const SLEEP_QUALITY_LABELS: Record<SleepQuality, string> = {
 
 export const SIDE_LABEL: Record<Side, string> = { left: 'Left', right: 'Right' };
 
+export const SIZES: readonly Size[] = ['tiny', 'little', 'medium', 'large', 'massive'];
+
 export const SIZE_LABELS: Record<Size, string> = {
   tiny: 'Tiny',
   little: 'Little',
   medium: 'Medium',
   large: 'Large',
   massive: 'Massive',
+};
+
+export const WET_SIZE_LABELS: Record<Size, string> = {
+  tiny: 'Damp',
+  little: 'Light',
+  medium: 'Medium',
+  large: 'Heavy',
+  massive: 'Soaked',
 };
 
 export const SLEEP_LOCATION_LABELS: Record<SleepLocation, string> = {
