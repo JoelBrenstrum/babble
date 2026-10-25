@@ -1,7 +1,7 @@
 import { MINUTE_MS } from '../time/constants';
 import { byStartedAtAsc, byStartedAtDesc, ms } from '../time/instants';
 import { MERGE_WITHIN_MS, type MergeableType } from './merge-sessions';
-import { hasSegments, lastSegmentEnd, otherSide, segmentTotals } from './segments';
+import { hasSegments, lastSegmentEnd, otherSide } from './segments';
 import type { BabyEvent, EventOfType, Side } from './types';
 
 export function latestFeed(events: readonly BabyEvent[]): BabyEvent | undefined {
@@ -10,14 +10,12 @@ export function latestFeed(events: readonly BabyEvent[]): BabyEvent | undefined 
     .sort(byStartedAtDesc)[0];
 }
 
-export function nextBreastSide(events: readonly BabyEvent[], now?: Date): Side | null {
+export function nextBreastSide(events: readonly BabyEvent[]): Side | null {
   const last = events
     .filter((event): event is EventOfType<'breast_feed'> => event.type === 'breast_feed')
     .filter((event) => !event.deletedAt && event.segments.length > 0)
     .sort(byStartedAtDesc)[0];
   if (!last) return null;
-  const { leftMs, rightMs } = segmentTotals(last.segments, now ?? new Date(lastSegmentEnd(last) ?? last.startedAt));
-  if (leftMs !== rightMs) return leftMs < rightMs ? 'left' : 'right';
   return otherSide([...last.segments].sort(byStartedAtAsc).at(-1)!.side);
 }
 

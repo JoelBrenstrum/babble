@@ -29,7 +29,7 @@ describe('startContext', () => {
     );
   });
 
-  it('says the same side again when it got less time last feed', () => {
+  it('suggests the other side even when the last side got less time', () => {
     const uneven = {
       ...feed,
       segments: [
@@ -38,7 +38,7 @@ describe('startContext', () => {
       ],
     };
     expect(startContext('breast_feed', [uneven], NOW, 'metric')).toBe(
-      'Last feed ended on Right, 2h 14m ago. Next side: Right again.',
+      'Last feed ended on Right, 2h 14m ago. Next side: Left.',
     );
   });
 
