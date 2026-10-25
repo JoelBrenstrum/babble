@@ -50,8 +50,8 @@ describe('dayRhythm', () => {
     expect(rhythm.feedSpacing).toEqual({ typicalMs: 3 * HOUR, longestMs: 4 * HOUR, shortestMs: 2.5 * HOUR });
   });
 
-  it('takes the longest gap between feeds that started in the night before', () => {
-    expect(rhythm.nightFeedGapMs).toBe(4.5 * HOUR);
+  it('takes the longest feed gap that mostly fell in the night before, even one that began before dark', () => {
+    expect(rhythm.nightFeedGapMs).toBe(5 * HOUR);
   });
 
   it('measures the wake windows that began on the day', () => {
@@ -66,7 +66,7 @@ describe('dayRhythm', () => {
     const later = new Date('2026-10-15T12:00:00Z');
     const past = dayRhythm({ events, dayKey: '2026-10-13', now: later, settings, baby });
     expect(past.night).toEqual({ dayKey: '2026-10-13', sleepMs: 10.5 * HOUR, longestMs: 6 * HOUR, wakeUps: 1 });
-    expect(past.nightFeedGapMs).toBe(4.5 * HOUR);
+    expect(past.nightFeedGapMs).toBe(5 * HOUR);
   });
 
   it('counts a wake window to the day it ends in, even if baby woke before the day started', () => {
@@ -118,7 +118,7 @@ describe('dayRhythmCards', () => {
         details: [
           { label: 'Longest stretch', value: '6h 00m' },
           { label: 'Wake-ups', value: '1' },
-          { label: 'Longest feed gap', value: '4h 30m' },
+          { label: 'Longest feed gap', value: '5h 00m' },
         ],
       },
     ]);
