@@ -206,7 +206,7 @@ function nursingSection(events: readonly BabyEvent[], now: Date): HomeAssistantS
       right_s: seconds(lastTotals.rightMs),
       last_side: lastTotals.lastSide,
     };
-  const next_side = nextBreastSide(events, now);
+  const next_side = nextBreastSide(events);
   if (!current) {
     return {
       state: 'none',

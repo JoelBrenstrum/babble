@@ -119,20 +119,20 @@ describe('nextBreastSide', () => {
     });
   };
 
-  it('suggests the side that got less time in the last feed', () => {
-    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['left', 'right'], [15, 6])])).toBe('right');
-    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right', 'left', 'right'], [4, 12, 5])])).toBe('right');
+  it('suggests the opposite of the side the last feed ended on, whatever the time split', () => {
+    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['left', 'right'], [15, 6])])).toBe('left');
+    expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right', 'left', 'right'], [4, 12, 5])])).toBe('left');
     expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right'])])).toBe('left');
-  });
-
-  it('suggests the other side from the one the last feed ended on when both sides got equal time', () => {
-    expect(
-      nextBreastSide([feed('2026-10-06T08:00:00Z', ['left']), feed('2026-10-06T11:00:00Z', ['left', 'right'])]),
-    ).toBe('left');
     expect(nextBreastSide([feed('2026-10-06T11:00:00Z', ['right', 'left'])])).toBe('right');
   });
 
-  it('counts the open side of a running feed up to now, or only its settled part without a clock', () => {
+  it('only looks at the most recent breastfeed', () => {
+    expect(
+      nextBreastSide([feed('2026-10-06T08:00:00Z', ['left']), feed('2026-10-06T11:00:00Z', ['left', 'right'])]),
+    ).toBe('left');
+  });
+
+  it('uses the open side of a running feed', () => {
     const running = makeEvent('breast_feed', {
       id: 'running',
       startedAt: '2026-10-06T11:00:00Z',
@@ -142,8 +142,7 @@ describe('nextBreastSide', () => {
         { side: 'right', startedAt: '2026-10-06T11:05:00Z', endedAt: null },
       ],
     });
-    expect(nextBreastSide([running])).toBe('right');
-    expect(nextBreastSide([running], new Date('2026-10-06T11:12:00Z'))).toBe('left');
+    expect(nextBreastSide([running])).toBe('left');
   });
 
   it('has no suggestion without a breastfeed', () => {

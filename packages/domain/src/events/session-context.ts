@@ -42,7 +42,7 @@ export function startContext(
     const next = nextBreastSide(latest);
     const ended = side ? `Last feed ended on ${SIDE_LABEL[side]}, ${ago}.` : `Last feed ended ${ago}.`;
     if (!next) return ended;
-    return `${ended} Next side: ${SIDE_LABEL[next]}${next === side ? ' again' : ''}.`;
+    return `${ended} Next side: ${SIDE_LABEL[next]}.`;
   }
   if (type === 'pump') {
     const pump = latestOfType(latest, 'pump');
