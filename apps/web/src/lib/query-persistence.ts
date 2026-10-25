@@ -7,6 +7,12 @@ import { RELEASE_ID } from './release';
 export const PERSIST_MAX_AGE_MS = 24 * 60 * 60_000;
 const STORAGE_KEY = 'babble.queryCache';
 const NEVER_PERSISTED = new Set(['release', 'invite', 'device-link']);
+const UNPERSISTED_PAGES = new Set(['/chair']);
+
+// Chair mode runs for weeks on a Pi, and rewriting the cache on every change wears out its SD card.
+export function persistsQueries(pathname: string): boolean {
+  return !UNPERSISTED_PAGES.has(pathname.replace(/\/+$/, '') || '/');
+}
 
 export interface PersistedStorage {
   getItem(key: string): Promise<string | null | undefined>;
@@ -60,6 +66,10 @@ export function setupQueryPersistence(
     },
   };
   return current;
+}
+
+export function dropPersistedQueries(storage: PersistedStorage = idbStorage): Promise<void> {
+  return storage.removeItem(STORAGE_KEY).catch(() => undefined);
 }
 
 export function queryCacheRestored(): Promise<void> {

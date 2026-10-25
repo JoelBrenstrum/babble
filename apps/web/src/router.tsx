@@ -4,7 +4,12 @@ import { createIsomorphicFn } from '@tanstack/react-start';
 import { setResponseHeader } from '@tanstack/react-start/server';
 import { PageSpinner } from './components/ui/spinner';
 import { captureInstallPrompt } from './lib/install-prompt';
-import { PERSIST_MAX_AGE_MS, setupQueryPersistence } from './lib/query-persistence';
+import {
+  dropPersistedQueries,
+  PERSIST_MAX_AGE_MS,
+  persistsQueries,
+  setupQueryPersistence,
+} from './lib/query-persistence';
 import { contentSecurityPolicy } from './lib/security-headers';
 import { routeTree } from './routeTree.gen';
 
@@ -25,7 +30,10 @@ export function getRouter() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { staleTime: 30_000, gcTime: PERSIST_MAX_AGE_MS, retry: 1 } },
   });
-  if (typeof window !== 'undefined') setupQueryPersistence(queryClient);
+  if (typeof window !== 'undefined') {
+    if (persistsQueries(window.location.pathname)) setupQueryPersistence(queryClient);
+    else void dropPersistedQueries();
+  }
   return createRouter({
     routeTree,
     context: { queryClient },
