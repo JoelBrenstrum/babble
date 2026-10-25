@@ -8,7 +8,7 @@ import { bucketByDay } from '../timeline/day-layout';
 import { dayKeyFor, dayWindow, formatTimeOfDay, lastDays, minutesOfDay, shiftDay } from '../time/local-time';
 import { nightWindow } from '../time/night';
 import { joinSpans, type Span } from '../time/spans';
-import type { TimeWindow } from '../time/windows';
+import { overlapMs, type TimeWindow } from '../time/windows';
 import { MAX_GAP_MS, type StatsCard } from './cards';
 import { mean, median } from './maths';
 import type { InsightSettings, InsightsReportSettings } from './settings';
@@ -88,6 +88,16 @@ function nightKeyOf(instant: number, settings: InsightSettings): string | null {
   const key = dayKeyFor(new Date(instant).toISOString(), settings.timeZone, 0);
   const keys = [shiftDay(key, -1), key];
   return keys.find((dayKey) => inside(instant, nightWindow(dayKey, settings))) ?? null;
+}
+
+function mostlyNightKey(start: number, end: number, settings: InsightSettings): string | null {
+  const key = dayKeyFor(new Date(start).toISOString(), settings.timeZone, 0);
+  const window = { start: new Date(start), end: new Date(end) };
+  const best = [-1, 0, 1]
+    .map((days) => shiftDay(key, days))
+    .map((dayKey) => ({ dayKey, ms: overlapMs(window, nightWindow(dayKey, settings)) }))
+    .reduce((a, b) => (b.ms > a.ms ? b : a));
+  return best.ms > (end - start) / 2 ? best.dayKey : null;
 }
 
 const inAnyNight = (instant: number, settings: InsightSettings) => nightKeyOf(instant, settings) !== null;
@@ -442,9 +452,9 @@ export function feedGaps(events: readonly BabyEvent[], settings: InsightSettings
     }
     const ms = feed.start - previous.start;
     if (ms < MAX_GAP_MS) {
-      const nightKey = nightKeyOf(previous.start, settings);
-      const dayKey =
-        nightKey ?? dayKeyFor(new Date(previous.start).toISOString(), settings.timeZone, settings.dayStartMinutes);
+      const middle = previous.start + ms / 2;
+      const nightKey = mostlyNightKey(previous.start, feed.start, settings);
+      const dayKey = nightKey ?? dayKeyFor(new Date(middle).toISOString(), settings.timeZone, settings.dayStartMinutes);
       gaps.push({ dayKey, start: previous.start, ms, night: nightKey !== null });
     }
     previous = feed;
@@ -481,7 +491,7 @@ export function feedSpacingCard(gaps: readonly FeedGap[], dayKeys: readonly stri
   return {
     key: 'feed-spacing',
     title: 'Feed spacing',
-    note: 'Gaps run from the start of one feed to the start of the next. A top-up within 20 minutes counts as the same feed.',
+    note: 'Gaps run from the start of one feed to the start of the next, and count as overnight when most of the gap is in the night. A top-up within 20 minutes counts as the same feed.',
     plus: true,
     figures,
     chart: {
