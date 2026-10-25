@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
   SIDE_LABEL,
+  SIZE_LABELS,
+  SIZES,
   SOLIDS_AMOUNT_LABELS,
   SOLIDS_AMOUNT_OPTIONS,
   SOLIDS_REACTION_LABELS,
   SOLIDS_REACTION_OPTIONS,
+  WET_SIZE_LABELS,
 } from './labels';
 
 describe('option lists', () => {
@@ -17,5 +20,10 @@ describe('option lists', () => {
 
   it('labels the sides', () => {
     expect(SIDE_LABEL).toEqual({ left: 'Left', right: 'Right' });
+  });
+
+  it('lists the sizes from smallest to largest, with a weight-based wording for wet nappies', () => {
+    expect(SIZES).toEqual(Object.keys(SIZE_LABELS));
+    expect(SIZES.map((size) => WET_SIZE_LABELS[size])).toEqual(['Damp', 'Light', 'Medium', 'Heavy', 'Soaked']);
   });
 });

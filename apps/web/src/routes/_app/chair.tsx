@@ -163,7 +163,7 @@ function ChairLive() {
     },
     resumeFeed: (feedId) => resume.mutateAsync({ type: 'breast_feed', eventId: feedId }),
     saveBottle: (amount, content) => save.mutateAsync({ draft: chairBottleDraft(amount, content, units, clock.now()) }),
-    saveNappy: (type) => save.mutateAsync({ draft: chairNappyDraft(type, clock.now()) }),
+    saveNappy: (type, sizes) => save.mutateAsync({ draft: chairNappyDraft(type, clock.now(), sizes) }),
     startNap: (at) => start.mutateAsync({ type: 'sleep', startAt: at }),
     endNap: async () => {
       if (nap) await session.mutateAsync({ event: nap, action: { kind: 'end' } });

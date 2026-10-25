@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { NappyType } from '../events/nappy';
 import { makeEvent } from '../events/test-events';
 import {
   chairAsleepSince,
@@ -225,8 +226,25 @@ describe('bottle amounts', () => {
 describe('chairNappyDraft', () => {
   it('saves the chosen type', () => {
     const draft = chairNappyDraft('both', NOW);
-    expect(draft.type === 'nappy' && draft.details).toMatchObject({ wet: true, dirty: true });
+    expect(draft.type === 'nappy' && draft.details).toMatchObject({
+      wet: true,
+      dirty: true,
+      wetSize: null,
+      pooSize: null,
+    });
     expect(draft.type === 'nappy' && 'typePending' in draft.details).toBe(false);
+  });
+
+  it('keeps only the sizes that match the type', () => {
+    const sizes = { wetSize: 'large', pooSize: 'little' } as const;
+    const details = (type: NappyType) => {
+      const draft = chairNappyDraft(type, NOW, sizes);
+      return draft.type === 'nappy' ? draft.details : null;
+    };
+    expect(details('both')).toMatchObject(sizes);
+    expect(details('wet')).toMatchObject({ wetSize: 'large', pooSize: null });
+    expect(details('dirty')).toMatchObject({ wetSize: null, pooSize: 'little' });
+    expect(details('dry')).toMatchObject({ wetSize: null, pooSize: null });
   });
 });
 

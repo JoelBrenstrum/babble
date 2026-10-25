@@ -9,6 +9,7 @@ import {
   POO_COLOUR_LABELS,
   POO_TEXTURE_LABELS,
   SIZE_LABELS,
+  WET_SIZE_LABELS,
   SLEEP_LOCATION_LABELS,
   SOLIDS_AMOUNT_LABELS,
   SOLIDS_REACTION_LABELS,
@@ -238,12 +239,12 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
           parts.push({ text: 'Check', tone: 'caution', icon: 'stethoscope' });
         }
       }
-      const size = dirty ? (pooSize ?? wetSize) : wet ? wetSize : null;
+      const trailing = dirty && pooSize ? SIZE_LABELS[pooSize] : wet && wetSize ? WET_SIZE_LABELS[wetSize] : null;
       return {
         title: 'Nappy',
         parts,
         duration: null,
-        trailing: size ? SIZE_LABELS[size] : null,
+        trailing,
         running: false,
       };
     }

@@ -225,7 +225,7 @@ describe('describeEvent', () => {
     ]);
     expect(describeEvent({ ...base, details: { ...base.details, wetSize: 'tiny' } }, NOW, 'metric')).toMatchObject({
       parts: [{ text: 'Wet', icon: 'droplet' }],
-      trailing: 'Tiny',
+      trailing: 'Damp',
     });
   });
 

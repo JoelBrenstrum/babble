@@ -5,7 +5,7 @@ import { withNappyType, type NappyType } from '../events/nappy';
 import { pausedForMs } from '../events/session-context';
 import { lastSegmentEnd, segmentTotals } from '../events/segments';
 import { summariseSegments } from '../events/session-summary';
-import type { BabyEvent, BottleContent, EventDraft, EventOfType, Side, Units } from '../events/types';
+import type { BabyEvent, BottleContent, EventDraft, EventOfType, Side, Size, Units } from '../events/types';
 import { SIDE_LABEL } from '../events/labels';
 import { formatAgo, formatDuration, formatTimer } from '../format/duration';
 import { formatVolume, ML_PER_OUNCE, volumeToMl } from '../format/units';
@@ -166,9 +166,16 @@ export function chairBottleDraft(amount: number, content: BottleContent, units: 
   return { ...draft, details: { ...draft.details, content, amountMl: volumeToMl(amount, units) } };
 }
 
-export function chairNappyDraft(type: NappyType, now: Date): EventDraft {
+export interface ChairNappySizes {
+  wetSize: Size | null;
+  pooSize: Size | null;
+}
+
+export const NO_NAPPY_SIZES: ChairNappySizes = { wetSize: null, pooSize: null };
+
+export function chairNappyDraft(type: NappyType, now: Date, sizes: ChairNappySizes = NO_NAPPY_SIZES): EventDraft {
   const draft = emptyDraft('nappy', now);
-  return { ...draft, details: withNappyType(draft.details, type) };
+  return { ...draft, details: withNappyType({ ...draft.details, ...sizes }, type) };
 }
 
 export function chairIsNight(night: NightWindow | null, now: Date): boolean {

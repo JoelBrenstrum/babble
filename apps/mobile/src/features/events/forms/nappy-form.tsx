@@ -1,4 +1,11 @@
-import { instantDraft, nappyType, withNappyType, type DraftOfType, type PooTexture } from '@babble/domain';
+import {
+  instantDraft,
+  nappyType,
+  WET_SIZE_LABELS,
+  withNappyType,
+  type DraftOfType,
+  type PooTexture,
+} from '@babble/domain';
 import { Text } from 'react-native';
 import { CheckRow, MultiChips } from '@/components/chips';
 import { DateTimeField } from '@/components/datetime-field';
@@ -33,7 +40,12 @@ export function NappyForm({ draft, onChange, errors, timeZone }: FormProps<Draft
         ]}
       />
       {details.wet && (
-        <SizeSelector label="Wee size" value={details.wetSize} onChange={(wetSize) => set({ wetSize })} />
+        <SizeSelector
+          label="Wetness"
+          labels={WET_SIZE_LABELS}
+          value={details.wetSize}
+          onChange={(wetSize) => set({ wetSize })}
+        />
       )}
       {details.dirty && (
         <>
