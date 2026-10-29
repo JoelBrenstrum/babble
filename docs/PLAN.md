@@ -15,18 +15,19 @@ babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding an
 
 ## Stages
 
-| Stage | Plan                                                  | Summary                                                                                           |
-| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| 0     | [Foundations](stages/00-foundations.md)               | Monorepo, both app shells, Supabase + RLS, auth, families, self-host compose                      |
-| 1     | [Core tracking](stages/01-core-tracking.md)           | All trackers, home, category lists, realtime. Huckleberry parity on mobile and the phone web app. |
-| 2     | [Feed and pump sessions](stages/02-feed-sessions.md)  | Downtime breakdown, merge threshold, resume latest feed, feed ↔ nap prompts                       |
-| 3     | [Timeline](stages/03-timeline.md)                     | Timeline day and 7-day views, day start, night window. Built.                                     |
-| 4     | [Reminders](stages/04-reminders.md)                   | Feed-due reminders through Web Push and Expo push                                                 |
-| 5     | [Huckleberry import](stages/05-huckleberry-import.md) | CSV import, including solids. Built.                                                              |
-| 6     | [Food intake](stages/06-food-intake.md)               | Parked. (The baby's own solids are a normal tracker, built separately.)                           |
-| 7     | [Stats](stages/07-stats.md)                           | Today / 7d / 30d / All averages and charts, WHO growth percentiles with point readouts. Built.    |
-| 8     | [Plus billing](stages/08-plus-billing.md)             | Stripe subscriptions on the web at NZ$10/month or NZ$80/year, then App Store and Play. Planned.   |
-| 9     | [Offline mode](stages/09-offline.md)                  | Persisted cache, a device outbox for taps and logs, sync with tap-time accuracy. Planned.         |
+| Stage | Plan                                                  | Summary                                                                                                                  |
+| ----- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 0     | [Foundations](stages/00-foundations.md)               | Monorepo, both app shells, Supabase + RLS, auth, families, self-host compose                                             |
+| 1     | [Core tracking](stages/01-core-tracking.md)           | All trackers, home, category lists, realtime. Huckleberry parity on mobile and the phone web app.                        |
+| 2     | [Feed and pump sessions](stages/02-feed-sessions.md)  | Downtime breakdown, merge threshold, resume latest feed, feed ↔ nap prompts                                              |
+| 3     | [Timeline](stages/03-timeline.md)                     | Timeline day and 7-day views, day start, night window. Built.                                                            |
+| 4     | [Reminders](stages/04-reminders.md)                   | Feed-due reminders through Web Push and Expo push                                                                        |
+| 5     | [Huckleberry import](stages/05-huckleberry-import.md) | CSV import, including solids. Built.                                                                                     |
+| 6     | [Food intake](stages/06-food-intake.md)               | Parked. (The baby's own solids are a normal tracker, built separately.)                                                  |
+| 7     | [Stats](stages/07-stats.md)                           | Today / 7d / 30d / All averages and charts, WHO growth percentiles with point readouts. Built.                           |
+| 8     | [Plus billing](stages/08-plus-billing.md)             | Stripe subscriptions on the web at NZ$10/month or NZ$80/year, then App Store and Play. Planned.                          |
+| 9     | [Offline mode](stages/09-offline.md)                  | Persisted cache, a device outbox for taps and logs, sync with tap-time accuracy. Planned.                                |
+| 10    | [Reports](stages/10-reports.md)                       | A report builder with nine chart types and saved reports (2 on free). Built on web, viewer on mobile; dashboard planned. |
 
 ### Built beyond the stages
 

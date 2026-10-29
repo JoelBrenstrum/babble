@@ -1,6 +1,6 @@
 # babble Design (Claude Design export)
 
-Exported from Claude Design on 2026-10-09. Direction: **"Sage"** (design system v1, screens v1.1), derived from the Organic system. See [ui.md](../ui.md) for which file holds which screen.
+Exported from Claude Design on 2026-10-29 (Reports added; first export 2026-10-09). Direction: **"Sage"** (design system v1, screens v1.1), derived from the Organic system. See [ui.md](../ui.md) for which file holds which screen.
 
 ## Files
 
@@ -20,6 +20,9 @@ Exported from Claude Design on 2026-10-09. Direction: **"Sage"** (design system 
 | `Web.dc.html` | Desktop and tablet web: home, feeds split view, add dialog, timeline, import, settings |
 | `Web Tools.dc.html` | The public TOG calculator page (`/tog`). `screen` prop: `room`, `room-edge`, `room-cold`, `room-f`, `keypad`, `bag`, `bag-between`, `bag-clamp`, `bag-f`; `size`: `phone`, `desktop` |
 | `TOG Calculator.dc.html` | Index of the TOG calculator states, each at phone and desktop in light and dark |
+| `Reports.dc.html` | Reports screens. `screen` prop: `reports-list`, `reports-empty`, `report-templates`, `report-view`, `report-builder`, `report-builder-filter`, `report-builder-phone`, `report-builder-phone-chart`, `report-save`, `report-limit`, `dashboard`, `dashboard-arrange`; `size`: `phone`, `desktop`; `theme`: `light`, `dark` |
+| `Report Chart.dc.html` | The report card frame with every chart type. `preset` prop: `bar-bottle`, `bar-feeds`, `bar-nappy`, `stacked-sleep`, `stacked-loc`, `line-bottle`, `line-multi`, `line-weight`, `area-sleep`, `donut-loc`, `donut-carer`, `number-bottle`, `number-wake`, `table-feeds`, `heatmap-feeds`, `heatmap-sleep`, `hist-naps`, `hist-wake`, `rhythm-14`; `state`: `ok`, `readout`, `empty`, `loading`; `size`: `xs`, `s`, `m`, `l`; plus `compare`, `menu`, `menuKind`, `head`, `figs`, `bare`, `title`, `meta` |
+| `Reports Screens.dc.html` | Index of the Reports screens at phone and desktop in light and dark, with notes on how the builder folds onto a phone and which charts need width |
 | `Screen.dc.html` | Phone screens. `screen` prop: `home`, `timer`, `nappy`, `feeds`, `day`, `week` (Timeline) |
 | `Phone.dc.html` | Home + breastfeed timer in a phone frame |
 | `Chair Mode.dc.html` | Chair mode for a wall-mounted touchscreen: idle, feeding, paused, ended, quick bottle and nappy, night dim, offline, signed out, at 800×480, 1280×720 and portrait |
@@ -30,6 +33,7 @@ Exported from Claude Design on 2026-10-09. Direction: **"Sage"** (design system 
 | `tokens/tailwind.config.js` | NativeWind theme extension (type scale, radii, spacing, shadows) |
 | `tokens/shadcn-theme.css` | Maps the babble tokens onto shadcn/ui variables for the web app (load after `babble-tokens.css`) |
 | `_ds/organic-*/` | The underlying Organic design system (styles + guide) |
+| `screenshots/` | Thumbnails Claude Design exported alongside the screens |
 | `support.js` | Claude Design runtime needed to render the `.dc.html` files |
 
 To view the designs, open a `.dc.html` file in a browser. Fonts and icons load from Google Fonts and unpkg.

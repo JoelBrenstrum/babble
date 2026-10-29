@@ -36,9 +36,13 @@ import { Route as OnboardingDayStartRouteImport } from './routes/onboarding/day-
 import { Route as OnboardingFamilyRouteImport } from './routes/onboarding/family'
 import { Route as OnboardingInviteRouteImport } from './routes/onboarding/invite'
 import { Route as AppEventsEventIdRouteImport } from './routes/_app/events/$eventId'
+import { Route as AppReportsIndexRouteImport } from './routes/_app/reports/index'
+import { Route as AppReportsNewRouteImport } from './routes/_app/reports/new'
 import { Route as AppSessionsEventIdRouteImport } from './routes/_app/sessions/$eventId'
 import { Route as ApiDeviceLinkIndexRouteImport } from './routes/api/device-link/index'
 import { Route as ApiDeviceLinkPollRouteImport } from './routes/api/device-link/poll'
+import { Route as AppReportsReportIdIndexRouteImport } from './routes/_app/reports/$reportId/index'
+import { Route as AppReportsReportIdEditRouteImport } from './routes/_app/reports/$reportId/edit'
 import { Route as AppTrackTypeIndexRouteImport } from './routes/_app/track/$type/index'
 import { Route as AppTrackTypeNewRouteImport } from './routes/_app/track/$type/new'
 import { Route as ApiHaV1ConfigRouteImport } from './routes/api/ha/v1/config'
@@ -180,6 +184,16 @@ const AppEventsEventIdRoute = AppEventsEventIdRouteImport.update({
   path: '/events/$eventId',
   getParentRoute: () => AppRoute,
 } as any)
+const AppReportsIndexRoute = AppReportsIndexRouteImport.update({
+  id: '/reports/',
+  path: '/reports/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsNewRoute = AppReportsNewRouteImport.update({
+  id: '/reports/new',
+  path: '/reports/new',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppSessionsEventIdRoute = AppSessionsEventIdRouteImport.update({
   id: '/sessions/$eventId',
   path: '/sessions/$eventId',
@@ -194,6 +208,16 @@ const ApiDeviceLinkPollRoute = ApiDeviceLinkPollRouteImport.update({
   id: '/api/device-link/poll',
   path: '/api/device-link/poll',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppReportsReportIdIndexRoute = AppReportsReportIdIndexRouteImport.update({
+  id: '/reports/$reportId/',
+  path: '/reports/$reportId/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppReportsReportIdEditRoute = AppReportsReportIdEditRouteImport.update({
+  id: '/reports/$reportId/edit',
+  path: '/reports/$reportId/edit',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppTrackTypeIndexRoute = AppTrackTypeIndexRouteImport.update({
   id: '/track/$type/',
@@ -255,11 +279,15 @@ export interface FileRoutesByFullPath {
   '/onboarding/invite': typeof OnboardingInviteRoute
   '/link/': typeof LinkIndexRoute
   '/events/$eventId': typeof AppEventsEventIdRoute
+  '/reports/new': typeof AppReportsNewRoute
   '/sessions/$eventId': typeof AppSessionsEventIdRoute
   '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
+  '/reports/': typeof AppReportsIndexRoute
   '/api/device-link/': typeof ApiDeviceLinkIndexRoute
+  '/reports/$reportId/edit': typeof AppReportsReportIdEditRoute
   '/track/$type/new': typeof AppTrackTypeNewRoute
   '/api/ha/v1/config': typeof ApiHaV1ConfigRoute
+  '/reports/$reportId/': typeof AppReportsReportIdIndexRoute
   '/track/$type/': typeof AppTrackTypeIndexRoute
   '/api/ha/v1/babies/': typeof ApiHaV1BabiesIndexRoute
   '/api/ha/v1/babies/$babyId/state': typeof ApiHaV1BabiesBabyIdStateRoute
@@ -292,11 +320,15 @@ export interface FileRoutesByTo {
   '/': typeof AppIndexRoute
   '/link': typeof LinkIndexRoute
   '/events/$eventId': typeof AppEventsEventIdRoute
+  '/reports/new': typeof AppReportsNewRoute
   '/sessions/$eventId': typeof AppSessionsEventIdRoute
   '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
+  '/reports': typeof AppReportsIndexRoute
   '/api/device-link': typeof ApiDeviceLinkIndexRoute
+  '/reports/$reportId/edit': typeof AppReportsReportIdEditRoute
   '/track/$type/new': typeof AppTrackTypeNewRoute
   '/api/ha/v1/config': typeof ApiHaV1ConfigRoute
+  '/reports/$reportId': typeof AppReportsReportIdIndexRoute
   '/track/$type': typeof AppTrackTypeIndexRoute
   '/api/ha/v1/babies': typeof ApiHaV1BabiesIndexRoute
   '/api/ha/v1/babies/$babyId/state': typeof ApiHaV1BabiesBabyIdStateRoute
@@ -331,11 +363,15 @@ export interface FileRoutesById {
   '/_app/': typeof AppIndexRoute
   '/link/': typeof LinkIndexRoute
   '/_app/events/$eventId': typeof AppEventsEventIdRoute
+  '/_app/reports/new': typeof AppReportsNewRoute
   '/_app/sessions/$eventId': typeof AppSessionsEventIdRoute
   '/api/device-link/poll': typeof ApiDeviceLinkPollRoute
+  '/_app/reports/': typeof AppReportsIndexRoute
   '/api/device-link/': typeof ApiDeviceLinkIndexRoute
+  '/_app/reports/$reportId/edit': typeof AppReportsReportIdEditRoute
   '/_app/track/$type/new': typeof AppTrackTypeNewRoute
   '/api/ha/v1/config': typeof ApiHaV1ConfigRoute
+  '/_app/reports/$reportId/': typeof AppReportsReportIdIndexRoute
   '/_app/track/$type/': typeof AppTrackTypeIndexRoute
   '/api/ha/v1/babies/': typeof ApiHaV1BabiesIndexRoute
   '/api/ha/v1/babies/$babyId/state': typeof ApiHaV1BabiesBabyIdStateRoute
@@ -370,11 +406,15 @@ export interface FileRouteTypes {
     | '/onboarding/invite'
     | '/link/'
     | '/events/$eventId'
+    | '/reports/new'
     | '/sessions/$eventId'
     | '/api/device-link/poll'
+    | '/reports/'
     | '/api/device-link/'
+    | '/reports/$reportId/edit'
     | '/track/$type/new'
     | '/api/ha/v1/config'
+    | '/reports/$reportId/'
     | '/track/$type/'
     | '/api/ha/v1/babies/'
     | '/api/ha/v1/babies/$babyId/state'
@@ -407,11 +447,15 @@ export interface FileRouteTypes {
     | '/'
     | '/link'
     | '/events/$eventId'
+    | '/reports/new'
     | '/sessions/$eventId'
     | '/api/device-link/poll'
+    | '/reports'
     | '/api/device-link'
+    | '/reports/$reportId/edit'
     | '/track/$type/new'
     | '/api/ha/v1/config'
+    | '/reports/$reportId'
     | '/track/$type'
     | '/api/ha/v1/babies'
     | '/api/ha/v1/babies/$babyId/state'
@@ -445,11 +489,15 @@ export interface FileRouteTypes {
     | '/_app/'
     | '/link/'
     | '/_app/events/$eventId'
+    | '/_app/reports/new'
     | '/_app/sessions/$eventId'
     | '/api/device-link/poll'
+    | '/_app/reports/'
     | '/api/device-link/'
+    | '/_app/reports/$reportId/edit'
     | '/_app/track/$type/new'
     | '/api/ha/v1/config'
+    | '/_app/reports/$reportId/'
     | '/_app/track/$type/'
     | '/api/ha/v1/babies/'
     | '/api/ha/v1/babies/$babyId/state'
@@ -672,6 +720,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppEventsEventIdRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/reports/': {
+      id: '/_app/reports/'
+      path: '/reports'
+      fullPath: '/reports/'
+      preLoaderRoute: typeof AppReportsIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/new': {
+      id: '/_app/reports/new'
+      path: '/reports/new'
+      fullPath: '/reports/new'
+      preLoaderRoute: typeof AppReportsNewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/sessions/$eventId': {
       id: '/_app/sessions/$eventId'
       path: '/sessions/$eventId'
@@ -692,6 +754,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/device-link/poll'
       preLoaderRoute: typeof ApiDeviceLinkPollRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_app/reports/$reportId/': {
+      id: '/_app/reports/$reportId/'
+      path: '/reports/$reportId'
+      fullPath: '/reports/$reportId/'
+      preLoaderRoute: typeof AppReportsReportIdIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/reports/$reportId/edit': {
+      id: '/_app/reports/$reportId/edit'
+      path: '/reports/$reportId/edit'
+      fullPath: '/reports/$reportId/edit'
+      preLoaderRoute: typeof AppReportsReportIdEditRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/track/$type/': {
       id: '/_app/track/$type/'
@@ -746,8 +822,12 @@ interface AppRouteChildren {
   AppTimelineRoute: typeof AppTimelineRoute
   AppIndexRoute: typeof AppIndexRoute
   AppEventsEventIdRoute: typeof AppEventsEventIdRoute
+  AppReportsNewRoute: typeof AppReportsNewRoute
   AppSessionsEventIdRoute: typeof AppSessionsEventIdRoute
+  AppReportsIndexRoute: typeof AppReportsIndexRoute
+  AppReportsReportIdEditRoute: typeof AppReportsReportIdEditRoute
   AppTrackTypeNewRoute: typeof AppTrackTypeNewRoute
+  AppReportsReportIdIndexRoute: typeof AppReportsReportIdIndexRoute
   AppTrackTypeIndexRoute: typeof AppTrackTypeIndexRoute
 }
 
@@ -759,8 +839,12 @@ const AppRouteChildren: AppRouteChildren = {
   AppTimelineRoute: AppTimelineRoute,
   AppIndexRoute: AppIndexRoute,
   AppEventsEventIdRoute: AppEventsEventIdRoute,
+  AppReportsNewRoute: AppReportsNewRoute,
   AppSessionsEventIdRoute: AppSessionsEventIdRoute,
+  AppReportsIndexRoute: AppReportsIndexRoute,
+  AppReportsReportIdEditRoute: AppReportsReportIdEditRoute,
   AppTrackTypeNewRoute: AppTrackTypeNewRoute,
+  AppReportsReportIdIndexRoute: AppReportsReportIdIndexRoute,
   AppTrackTypeIndexRoute: AppTrackTypeIndexRoute,
 }
 
@@ -811,3 +895,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

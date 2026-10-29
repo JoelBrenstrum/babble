@@ -15,9 +15,9 @@ import { familyHasFeature } from '@babble/config';
 import { type InsightsState, useInsights, useNow, useSettled, useUnits } from '@babble/api/react';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { router } from 'expo-router';
-import { ChartColumn } from 'lucide-react-native';
+import { ChartColumn, ChartSpline, ChevronRight } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { EmptyState } from '@/components/empty-state';
 import { PageSpinner } from '@/components/page-spinner';
 import { Screen } from '@/components/screen';
@@ -28,6 +28,7 @@ import { WeeklySummaryCard } from '@/features/stats/weekly-summary';
 import { PlusTeaser } from '@/features/plus-teaser';
 import { PlusMask } from '@/features/plus-mask';
 import { useBabble } from '@/lib/babble';
+import { useTokenColor } from '@/lib/theme';
 import { useReadyState, type ReadyState } from '@/lib/use-onboarding';
 
 export default function StatsTab() {
@@ -55,6 +56,8 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
   const { todayKey, keys } = statsInputs(shownRange, baby, now);
   const growth = useQuery(eventListQuery(client, baby.id, ['growth']));
   const sample = useMemo(() => (sampleOnly ? sampleStatsReport(now) : null), [sampleOnly, now]);
+  const linkColor = useTokenColor('--primary');
+  const chevron = useTokenColor('--ink-3');
 
   const report =
     sample ??
@@ -78,6 +81,15 @@ function StatsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
             )}
           </View>
           <Segmented<StatsRange> value={range} onChange={setRange} options={STATS_RANGES} />
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => router.push('/reports')}
+            className="min-h-tap flex-row items-center gap-3 rounded-card bg-raised px-4 active:bg-surface"
+          >
+            <ChartSpline size={20} color={linkColor} strokeWidth={2.75} />
+            <Text className="flex-1 font-semibold text-body text-ink">Reports: build your own charts</Text>
+            <ChevronRight size={20} color={chevron} strokeWidth={2.75} />
+          </Pressable>
           {!report ? (
             <PageSpinner />
           ) : empty ? (

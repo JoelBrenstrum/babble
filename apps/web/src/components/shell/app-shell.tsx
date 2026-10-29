@@ -1,7 +1,7 @@
 import type { BabyChoice, BabyRow, Family } from '@babble/api';
 import { memberTones, type RunningIndicator } from '@babble/domain';
 import { Link, useLocation } from '@tanstack/react-router';
-import { ChartColumn, History, House, Settings, type LucideIcon } from 'lucide-react';
+import { ChartColumn, ChartSpline, History, House, Settings, type LucideIcon } from 'lucide-react';
 import { useMemo, type ReactNode } from 'react';
 import { Avatar, MemberTonesProvider } from '#/components/ui/avatar';
 import { Wordmark } from '#/components/ui/wordmark';
@@ -10,15 +10,17 @@ import { RunningDot } from './running-dot';
 import { cn } from '#/lib/cn';
 
 interface NavItem {
-  to: '/' | '/timeline' | '/stats' | '/settings';
+  to: '/' | '/timeline' | '/stats' | '/reports' | '/settings';
   label: string;
   icon: LucideIcon;
+  sidebarOnly?: boolean;
 }
 
 const NAV: readonly NavItem[] = [
   { to: '/', label: 'Home', icon: House },
   { to: '/timeline', label: 'Timeline', icon: History },
   { to: '/stats', label: 'Stats', icon: ChartColumn },
+  { to: '/reports', label: 'Reports', icon: ChartSpline, sidebarOnly: true },
   { to: '/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -137,7 +139,7 @@ export function AppShell({
           aria-label="Main"
           className="fixed inset-x-0 bottom-0 z-10 grid h-tab-bar grid-cols-4 border-t border-line bg-raised px-2 pb-[env(safe-area-inset-bottom)] md:hidden"
         >
-          {NAV.map((item) => {
+          {NAV.filter((item) => !item.sidebarOnly).map((item) => {
             const dot = item.to === '/' ? homeDot : null;
             return (
               <Link

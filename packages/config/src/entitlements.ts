@@ -12,17 +12,19 @@ export const ALL_FEATURES = [
   'reminders',
   'huckleberry_import',
   'stats',
+  'reports',
   'multiple_babies',
   'extra_carers',
   'predictions',
   'insights',
   'chair_mode',
+  'unlimited_reports',
 ] as const;
 
 export type Feature = (typeof ALL_FEATURES)[number];
 
 const PLAN_FEATURES: Record<Plan, readonly Feature[]> = {
-  free: ['core_tracking', 'history', 'reminders', 'huckleberry_import', 'stats'],
+  free: ['core_tracking', 'history', 'reminders', 'huckleberry_import', 'stats', 'reports'],
   plus: ALL_FEATURES,
 };
 
@@ -53,6 +55,14 @@ export function familyEntitlements(billingEnabled: boolean, familyPlan: string):
 
 export const FREE_CARER_LIMIT = 2;
 
+export const FREE_REPORT_LIMIT = 2;
+
+export const REPORT_LIMIT_MESSAGE = 'A free family can save two reports. Babble Plus saves as many as you like.';
+
+export function canSaveReport(billingEnabled: boolean, familyPlan: string, savedReports: number): boolean {
+  return familyHasFeature(billingEnabled, familyPlan, 'unlimited_reports') || savedReports < FREE_REPORT_LIMIT;
+}
+
 export const CARER_LIMIT_MESSAGE =
   'A free family can have two carers, counting invites waiting to be accepted. Babble Plus allows more.';
 
@@ -67,9 +77,16 @@ const PLUS_HIGHLIGHTS: readonly string[] = [
   'Cluster feeding: when feeds bunch up, and what time of day',
   'A 30-day timeline to see patterns form',
   'Chair mode, a feed station for a tablet by the feeding chair',
+  'Unlimited saved reports and reports over 90 days, 6 months or all time',
 ];
 
-export type PlusFeature = 'predictions' | 'multiple_babies' | 'extra_carers' | 'insights' | 'chair_mode';
+export type PlusFeature =
+  | 'predictions'
+  | 'multiple_babies'
+  | 'extra_carers'
+  | 'insights'
+  | 'chair_mode'
+  | 'unlimited_reports';
 
 const PLUS_REASONS: Record<PlusFeature, string> = {
   predictions: 'Sleep windows and predicted feeds are part of Babble Plus.',
@@ -78,6 +95,7 @@ const PLUS_REASONS: Record<PlusFeature, string> = {
   insights:
     'Wake windows, night sleep trends, breastfeed trends, feed spacing, cluster feeding, the weekly summary, all-time stats and the 30-day timeline are part of Babble Plus.',
   chair_mode: 'Chair mode is part of Babble Plus. You can preview it from Settings.',
+  unlimited_reports: REPORT_LIMIT_MESSAGE,
 };
 
 export interface PlusPitch {
