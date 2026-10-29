@@ -3,6 +3,7 @@ import {
   ALL_FEATURES,
   canAddBaby,
   canInviteCarer,
+  canSaveReport,
   entitlements,
   familyEntitlements,
   toPlan,
@@ -86,6 +87,7 @@ describe('plusPitch', () => {
         'Cluster feeding: when feeds bunch up, and what time of day',
         'A 30-day timeline to see patterns form',
         'Chair mode, a feed station for a tablet by the feeding chair',
+        'Unlimited saved reports and reports over 90 days, 6 months or all time',
       ],
       note: 'Upgrading is coming soon.',
     });
@@ -102,6 +104,16 @@ describe('canInviteCarer', () => {
   it('has no limit on plus or with billing off', () => {
     expect(canInviteCarer(true, 'plus', 4, 2)).toBe(true);
     expect(canInviteCarer(false, 'free', 4, 2)).toBe(true);
+  });
+});
+
+describe('canSaveReport', () => {
+  it('lets a free family save two reports and a plus family any number', () => {
+    expect(canSaveReport(true, 'free', 0)).toBe(true);
+    expect(canSaveReport(true, 'free', 1)).toBe(true);
+    expect(canSaveReport(true, 'free', 2)).toBe(false);
+    expect(canSaveReport(true, 'plus', 20)).toBe(true);
+    expect(canSaveReport(false, 'free', 20)).toBe(true);
   });
 });
 

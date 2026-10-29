@@ -554,6 +554,44 @@ export type Database = {
         };
         Relationships: [];
       };
+      reports: {
+        Row: {
+          created_at: string;
+          created_by: string | null;
+          family_id: string;
+          id: string;
+          name: string;
+          spec: NonNullable<Json>;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          created_by?: string | null;
+          family_id: string;
+          id?: string;
+          name: string;
+          spec: NonNullable<Json>;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          created_by?: string | null;
+          family_id?: string;
+          id?: string;
+          name?: string;
+          spec?: NonNullable<Json>;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reports_family_id_fkey';
+            columns: ['family_id'];
+            isOneToOne: false;
+            referencedRelation: 'families';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       sleep_details: {
         Row: {
           end_moods: Database['public']['Enums']['mood'][];

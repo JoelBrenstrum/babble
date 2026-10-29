@@ -14,8 +14,8 @@ import { sampleStatsReport } from '@babble/api/fixtures';
 import { familyHasFeature } from '@babble/config';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { ChartColumn } from 'lucide-react';
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
+import { ChartColumn, ChartSpline, ChevronRight } from 'lucide-react';
 import { cn } from '#/lib/cn';
 import { EmptyState } from '#/components/ui/empty-state';
 import { Segmented } from '#/components/ui/segmented';
@@ -110,6 +110,14 @@ function StatsPage() {
             />
           </div>
         </div>
+        <Link
+          to="/reports"
+          className="flex h-tap items-center gap-3 rounded-card bg-raised px-4 text-body font-medium shadow-raised hover:bg-surface"
+        >
+          <ChartSpline className="size-5 text-primary" strokeWidth={2.75} />
+          <span className="flex-1">Reports: build your own charts</span>
+          <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
+        </Link>
         {!report ? (
           <PageSpinner />
         ) : empty ? (

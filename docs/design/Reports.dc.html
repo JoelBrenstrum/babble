@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>body{margin:0}a{color:rgb(var(--on-primary-soft));text-underline-offset:3px}a:hover{color:rgb(var(--primary))}[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div data-theme="{{ theme }}" style="width:{{ W }};height:{{ H }};position:relative;overflow:hidden;display:flex;background:rgb(var(--bg));color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif">
+
+  <sc-if value="{{ desk }}" hint-placeholder-val="{{ true }}">
+    <aside style="width:248px;flex:none;display:flex;flex-direction:column;gap:14px;padding:20px 14px;border-right:1px solid rgb(var(--line));background:rgb(var(--surface));box-sizing:border-box">
+      <span style="font-family:Caprasimo, serif;font-size:28px;line-height:1;color:rgb(var(--primary));padding:4px 8px 6px">babble</span>
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line));cursor:pointer">
+        <span style="width:40px;height:40px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--on-primary-soft));display:grid;place-items:center;font-size:16px;font-weight:700">O</span>
+        <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:700">Olivia</span><span style="font-size:13px;color:rgb(var(--ink-2))">4 months</span></div>
+        <i class="icon-chevrons-up-down" style="font-size:16px;color:rgb(var(--ink-2))"></i>
+      </div>
+      <nav style="display:flex;flex-direction:column;gap:2px">
+        <sc-for list="{{ nav }}" as="nv" hint-placeholder-count="11">
+          <div style="display:flex;align-items:center;gap:12px;height:42px;padding:0 12px 0 {{ nv.pl }};border-radius:12px;background:{{ nv.bg }};color:{{ nv.c }};font-size:15px;font-weight:{{ nv.w }};cursor:pointer" style-hover="background:rgb(var(--raised))"><i class="{{ nv.icon }}" style="font-size:18px;color:{{ nv.ic }}"></i>{{ nv.label }}</div>
+        </sc-for>
+      </nav>
+      <span style="flex:1"></span>
+      <div style="display:flex;align-items:center;gap:8px;padding:8px">
+        <span style="width:32px;height:32px;border-radius:50%;background:rgb(var(--secondary-soft));color:rgb(var(--on-secondary-soft));display:grid;place-items:center;font-size:12px;font-weight:700">Jo</span>
+        <span style="width:32px;height:32px;border-radius:50%;background:rgb(var(--growth-soft));color:rgb(var(--on-growth));display:grid;place-items:center;font-size:12px;font-weight:700">Ja</span>
+        <span style="font-size:13px;color:rgb(var(--ink-2))">The Smiths</span>
+      </div>
+    </aside>
+  </sc-if>
+
+  <div style="flex:1;min-width:0;display:flex;flex-direction:column;position:relative">
+
+    <sc-if value="{{ is.list }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:1;overflow-y:auto;padding:{{ pad }};display:flex;flex-direction:column;gap:28px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="font-size:26px;font-weight:700;line-height:1.2">Reports</span><span style="font-size:14px;color:rgb(var(--ink-2))">{{ listMeta }}</span></div>
+          <div style="height:48px;padding:0 18px 0 14px;border-radius:999px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap" style-hover="filter:brightness(0.95)"><i class="icon-plus" style="font-size:18px"></i>New report</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <span style="font-size:14px;font-weight:700;color:rgb(var(--ink-2))">Start from</span>
+          <div style="display:flex;flex-wrap:{{ chipWrap }};gap:8px;overflow-x:auto;margin:0 {{ bleed }};padding:0 {{ bleedPad }} 4px">
+            <sc-for list="{{ templates }}" as="tp" hint-placeholder-count="12"><div style="flex:none;height:40px;padding:0 14px 0 12px;border-radius:999px;background:rgb(var(--raised));border:1px solid rgb(var(--line));display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;white-space:nowrap;cursor:pointer" style-hover="border-color:rgb(var(--line-strong));background:rgb(var(--surface))"><i class="{{ tp.icon }}" style="font-size:16px;color:{{ tp.c }}"></i>{{ tp.name }}</div></sc-for>
+          </div>
+        </div>
+        <sc-if value="{{ is.empty }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:28px 22px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+            <span style="width:64px;height:64px;border-radius:50%;background:rgb(var(--primary-soft));color:rgb(var(--primary));display:grid;place-items:center"><i class="icon-chart-spline" style="font-size:28px"></i></span>
+            <span style="font-size:21px;font-weight:700">No reports yet</span>
+            <span style="font-size:16px;color:rgb(var(--ink-2));line-height:1.45">Start from a template or build your own.</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ hasSaved }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:18px;font-weight:700">Saved</span><span style="font-size:14px;color:rgb(var(--ink-2))">2 of 2 saved</span></div>
+            <div style="display:grid;grid-template-columns:{{ cols }};gap:16px">
+              <sc-for list="{{ saved }}" as="sv" hint-placeholder-count="2">
+                <div style="display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));cursor:pointer;min-width:0" style-hover="border-color:rgb(var(--line-strong))">
+                  <dc-import name="Report Chart" preset="{{ sv.preset }}" size="s" bare="{{ true }}" hint-size="100%,110px"></dc-import>
+                  <div style="display:flex;align-items:center;gap:10px">
+                    <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:16px;font-weight:700">{{ sv.name }}</span><span style="font-size:14px;color:rgb(var(--ink-2))">{{ sv.meta }}</span></div>
+                    <span style="width:28px;height:28px;flex:none;border-radius:50%;background:{{ sv.avBg }};color:{{ sv.avC }};display:grid;place-items:center;font-size:11px;font-weight:700">{{ sv.av }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.view }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:{{ pad }};display:flex;flex-direction:column;gap:18px">
+        <span style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:rgb(var(--ink-2));cursor:pointer"><i class="icon-chevron-left" style="font-size:16px"></i>Reports</span>
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:26px;font-weight:700;line-height:1.2">{{ view.title }}</span><span style="display:flex;align-items:center;gap:8px;font-size:14px;color:rgb(var(--ink-2))">{{ view.meta }}<span style="width:22px;height:22px;border-radius:50%;background:{{ view.avBg }};color:{{ view.avC }};display:grid;place-items:center;font-size:10px;font-weight:700">{{ view.av }}</span></span></div>
+          <div style="width:48px;height:48px;flex:none;border-radius:50%;background:rgb(var(--raised));border:1px solid rgb(var(--line));display:grid;place-items:center;cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="icon-ellipsis" style="font-size:20px"></i></div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface));max-width:520px">
+          <sc-for list="{{ ranges }}" as="rg" hint-placeholder-count="6"><div style="height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:14px;font-weight:{{ rg.w }};background:{{ rg.bg }};color:{{ rg.c }};box-shadow:{{ rg.s }};cursor:pointer;white-space:nowrap">{{ rg.label }}<span style="display:{{ rg.plusD }};height:16px;padding:0 5px;border-radius:999px;background:rgb(var(--secondary-soft));color:rgb(var(--on-secondary-soft));font-size:10px;font-weight:700;align-items:center">Plus</span></div></sc-for>
+        </div>
+        <dc-import name="Report Chart" preset="{{ view.preset }}" size="{{ chartSize }}" head="{{ false }}" compare="{{ view.compare }}" state="readout" hint-size="100%,420px"></dc-import>
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));cursor:pointer">
+          <i class="icon-history" style="font-size:18px;color:rgb(var(--ink-2))"></i>
+          <span style="flex:1;font-size:15px;font-weight:600">Compare with the previous 30 days</span>
+          <span style="width:48px;height:28px;flex:none;border-radius:999px;background:{{ view.swBg }};position:relative"><span style="position:absolute;top:3px;left:{{ view.swL }};width:22px;height:22px;border-radius:50%;background:rgb(var(--raised));box-shadow:var(--shadow-raised)"></span></span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.builder }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;display:flex;align-items:center;gap:12px;padding:18px 28px;border-bottom:1px solid rgb(var(--line))">
+        <span style="display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;color:rgb(var(--ink-2));cursor:pointer"><i class="icon-chevron-left" style="font-size:16px"></i>Reports</span>
+        <span style="font-size:22px;font-weight:700">New report</span>
+      </div>
+      <div style="flex:1;min-height:0;display:flex">
+        <div style="width:320px;flex:none;overflow-y:auto;padding:18px 20px 24px;display:flex;flex-direction:column;gap:22px;border-right:1px solid rgb(var(--line));box-sizing:border-box">
+          <div style="height:44px;border-radius:999px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));display:flex;align-items:center;gap:8px;padding:0 14px;color:rgb(var(--ink-3));font-size:15px"><i class="icon-search" style="font-size:17px"></i>Search measures</div>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-size:15px;font-weight:700">Measure</span><span style="font-size:13px;color:rgb(var(--ink-3))">1 of 4</span></div>
+            <sc-if value="{{ measureOpen }}" hint-placeholder-val="{{ true }}">
+              <sc-for list="{{ measures }}" as="mg" hint-placeholder-count="8">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <span style="font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:rgb(var(--ink-3))">{{ mg.group }}</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ mg.items }}" as="mc" hint-placeholder-count="3"><div style="height:34px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;background:{{ mc.bg }};color:{{ mc.c }};border:1.5px solid {{ mc.bd }};box-sizing:border-box;cursor:pointer"><i class="{{ mc.icon }}" style="font-size:14px"></i>{{ mc.label }}</div></sc-for></div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ measureClosed }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:8px"><div style="height:34px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;background:rgb(var(--sleep));color:rgb(var(--ink-on-solid))"><i class="icon-check" style="font-size:14px"></i>Time asleep</div><span style="font-size:14px;font-weight:600;color:rgb(var(--on-primary-soft));cursor:pointer">Change</span></div>
+            </sc-if>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:700">Range</span>
+            <div style="display:grid;grid-template-columns:repeat(6, minmax(0, 1fr));gap:3px;padding:3px;border-radius:12px;background:rgb(var(--surface))">
+              <sc-for list="{{ rangesSm }}" as="rg" hint-placeholder-count="6"><div style="height:36px;border-radius:9px;display:grid;place-items:center;font-size:13px;font-weight:{{ rg.w }};background:{{ rg.bg }};color:{{ rg.c }};box-shadow:{{ rg.s }};cursor:pointer">{{ rg.label }}</div></sc-for>
+            </div>
+            <div style="align-self:flex-start;height:34px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;border:1.5px solid rgb(var(--line-strong));cursor:pointer"><i class="icon-calendar-range" style="font-size:14px"></i>Custom…</div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:700">Group by</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ groupBy }}" as="ch" hint-placeholder-count="5"><div style="height:34px;padding:0 12px;border-radius:999px;display:flex;align-items:center;font-size:14px;font-weight:600;background:{{ ch.bg }};color:{{ ch.c }};border:1.5px solid {{ ch.bd }};box-sizing:border-box;cursor:pointer">{{ ch.label }}</div></sc-for></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:700">Split by</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ splitBy }}" as="ch" hint-placeholder-count="8"><div style="height:34px;padding:0 12px;border-radius:999px;display:flex;align-items:center;font-size:14px;font-weight:600;background:{{ ch.bg }};color:{{ ch.c }};border:1.5px solid {{ ch.bd }};box-sizing:border-box;cursor:pointer">{{ ch.label }}</div></sc-for></div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:700">Chart</span>
+            <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px">
+              <sc-for list="{{ chartTypes }}" as="ct" hint-placeholder-count="9">
+                <div style="position:relative;height:76px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:{{ ct.bg }};border:{{ ct.bd }};box-sizing:border-box;opacity:{{ ct.op }};cursor:pointer">
+                  <i class="{{ ct.icon }}" style="font-size:22px;color:{{ ct.ic }}"></i><span style="font-size:13px;font-weight:600">{{ ct.label }}</span>
+                  <span style="display:{{ ct.sugD }};position:absolute;top:-8px;right:-4px;height:18px;padding:0 6px;border-radius:999px;background:rgb(var(--primary));color:rgb(var(--on-primary));font-size:10px;font-weight:700;align-items:center">Suggested</span>
+                  <span style="display:{{ ct.hintD }};position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);padding:6px 10px;border-radius:10px;background:rgb(var(--ink));color:rgb(var(--bg));font-size:12px;font-weight:600;white-space:nowrap;z-index:3">{{ ct.hint }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="position:relative;display:flex;flex-direction:column;gap:10px">
+            <span style="font-size:15px;font-weight:700">Filters</span>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <div style="height:34px;padding:0 6px 0 12px;border-radius:999px;display:flex;align-items:center;gap:4px;font-size:14px;font-weight:600;background:rgb(var(--surface));border:1.5px solid rgb(var(--line-strong));box-sizing:border-box">Carer is Jaimi<span style="width:24px;height:24px;border-radius:50%;display:grid;place-items:center;cursor:pointer" style-hover="background:rgb(var(--line))"><i class="icon-x" style="font-size:14px"></i></span></div>
+              <div style="height:34px;padding:0 12px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;border:1.5px dashed rgb(var(--line-strong));color:rgb(var(--on-primary-soft));background:{{ filterBtnBg }};cursor:pointer"><i class="icon-plus" style="font-size:14px"></i>Add filter</div>
+            </div>
+            <sc-if value="{{ filterOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="position:absolute;top:84px;left:0;right:0;z-index:4;display:flex;flex-direction:column;padding:6px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));box-shadow:var(--shadow-toast)">
+                <sc-for list="{{ filterKeys }}" as="fk" hint-placeholder-count="8"><div style="display:flex;align-items:center;gap:10px;height:42px;padding:0 12px;border-radius:10px;font-size:15px;cursor:pointer" style-hover="background:rgb(var(--surface))"><span style="flex:1">{{ fk }}</span><i class="icon-chevron-right" style="font-size:16px;color:rgb(var(--ink-3))"></i></div></sc-for>
+              </div>
+            </sc-if>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:4px">
+            <span style="font-size:15px;font-weight:700;margin-bottom:6px">Options</span>
+            <sc-for list="{{ options }}" as="op" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;gap:12px;min-height:44px;cursor:pointer"><span style="flex:1;font-size:15px">{{ op.label }}</span><span style="width:44px;height:26px;flex:none;border-radius:999px;background:{{ op.bg }};position:relative"><span style="position:absolute;top:3px;left:{{ op.l }};width:20px;height:20px;border-radius:50%;background:rgb(var(--raised));box-shadow:var(--shadow-raised)"></span></span></div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:10px;background:rgb(var(--bg))">
+          <span style="font-size:13px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:rgb(var(--ink-3))">Preview</span>
+          <dc-import name="Report Chart" preset="stacked-loc" size="l" placeholder-title="{{ true }}" hint-size="100%,460px"></dc-import>
+          <span style="font-size:13px;color:rgb(var(--ink-3))">The title is a suggestion. You can name it when you save.</span>
+        </div>
+      </div>
+      <div style="flex:none;display:flex;justify-content:flex-end;gap:10px;padding:14px 28px;border-top:1px solid rgb(var(--line));background:rgb(var(--raised))">
+        <div style="height:48px;padding:0 22px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:flex;align-items:center;font-size:15px;font-weight:600;cursor:pointer" style-hover="background:rgb(var(--surface))">Cancel</div>
+        <div style="height:48px;padding:0 26px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;font-size:15px;font-weight:600;cursor:pointer">Save</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ is.builderPhone }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;display:flex;align-items:center;gap:8px;padding:14px 16px 8px">
+        <div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="icon-x" style="font-size:20px"></i></div>
+        <span style="font-size:18px;font-weight:700">New report</span>
+      </div>
+      <div style="padding:0 16px">
+        <dc-import name="Report Chart" preset="{{ phonePreview }}" size="s" figs="{{ false }}" placeholder-title="{{ true }}" hint-size="100%,250px"></dc-import>
+      </div>
+      <sc-if value="{{ phoneSheet }}" hint-placeholder-val="{{ true }}">
+        <div style="position:absolute;left:0;right:0;bottom:0;height:54%;display:flex;flex-direction:column;border-radius:28px 28px 0 0;background:rgb(var(--raised));box-shadow:var(--shadow-sheet)">
+          <span style="width:40px;height:5px;border-radius:999px;background:rgb(var(--line-strong));align-self:center;margin:10px 0 6px"></span>
+          <div style="display:flex;gap:2px;padding:0 12px;border-bottom:1px solid rgb(var(--line))">
+            <sc-for list="{{ phoneTabs }}" as="pt" hint-placeholder-count="5"><div style="flex:1;height:44px;display:grid;place-items:center;font-size:14px;font-weight:{{ pt.w }};color:{{ pt.c }};border-bottom:3px solid {{ pt.bd }};cursor:pointer">{{ pt.label }}</div></sc-for>
+          </div>
+          <div style="flex:1;min-height:0;overflow-y:auto;padding:14px 16px;display:flex;flex-direction:column;gap:14px">
+            <sc-if value="{{ tabMeasure }}" hint-placeholder-val="{{ true }}">
+              <div style="height:44px;flex:none;border-radius:999px;background:rgb(var(--surface));display:flex;align-items:center;gap:8px;padding:0 14px;color:rgb(var(--ink-3));font-size:15px"><i class="icon-search" style="font-size:17px"></i>Search measures</div>
+              <sc-for list="{{ measures }}" as="mg" hint-placeholder-count="4">
+                <div style="display:flex;flex-direction:column;gap:6px">
+                  <span style="font-size:12px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:rgb(var(--ink-3))">{{ mg.group }}</span>
+                  <div style="display:flex;flex-wrap:wrap;gap:6px"><sc-for list="{{ mg.items }}" as="mc" hint-placeholder-count="3"><div style="height:40px;padding:0 14px;border-radius:999px;display:flex;align-items:center;gap:6px;font-size:14px;font-weight:600;background:{{ mc.bg }};color:{{ mc.c }};border:1.5px solid {{ mc.bd }};box-sizing:border-box"><i class="{{ mc.icon }}" style="font-size:14px"></i>{{ mc.label }}</div></sc-for></div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ tabChart }}" hint-placeholder-val="{{ false }}">
+              <div style="display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:8px;padding-top:8px">
+                <sc-for list="{{ chartTypes }}" as="ct" hint-placeholder-count="9">
+                  <div style="position:relative;height:80px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:{{ ct.bg }};border:{{ ct.bd }};box-sizing:border-box;opacity:{{ ct.op }}">
+                    <i class="{{ ct.icon }}" style="font-size:22px;color:{{ ct.ic }}"></i><span style="font-size:13px;font-weight:600">{{ ct.label }}</span>
+                    <span style="display:{{ ct.sugD }};position:absolute;top:-8px;right:-4px;height:18px;padding:0 6px;border-radius:999px;background:rgb(var(--primary));color:rgb(var(--on-primary));font-size:10px;font-weight:700;align-items:center">Suggested</span>
+                  </div>
+                </sc-for>
+              </div>
+              <span style="font-size:13px;color:rgb(var(--ink-3));line-height:1.45">Dimmed charts don't fit these settings. Tap one to see why.</span>
+            </sc-if>
+          </div>
+          <div style="flex:none;display:flex;gap:10px;padding:12px 16px 20px;border-top:1px solid rgb(var(--line))">
+            <div style="flex:1;height:52px;border-radius:14px;border:1.5px solid rgb(var(--line-strong));display:grid;place-items:center;font-size:16px;font-weight:600">Cancel</div>
+            <div style="flex:1;height:52px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:grid;place-items:center;font-size:16px;font-weight:600">Save</div>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <sc-if value="{{ is.dash }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:1;overflow-y:auto;padding:{{ pad }};display:flex;flex-direction:column;gap:18px">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px">
+          <div style="flex:1 1 240px;display:flex;flex-direction:column;gap:2px"><span style="font-size:26px;font-weight:700;line-height:1.2">Stats</span><span style="font-size:14px;color:rgb(var(--ink-2))">Daily averages over 30 finished days.</span></div>
+          <div style="flex:{{ rangeFlex }};display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
+            <sc-for list="{{ statRange }}" as="rg" hint-placeholder-count="3"><div style="height:40px;padding:0 18px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ rg.w }};background:{{ rg.bg }};color:{{ rg.c }};box-shadow:{{ rg.s }};cursor:pointer">{{ rg.label }}</div></sc-for>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-radius:14px;cursor:pointer" style-hover="background:rgb(var(--surface))">
+          <i class="icon-chart-spline" style="font-size:20px;color:rgb(var(--primary))"></i>
+          <span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">Reports</span><span style="font-size:13px;color:rgb(var(--ink-2))">Build your own charts · 2 saved</span></span>
+          <i class="icon-chevron-right" style="font-size:18px;color:rgb(var(--ink-3))"></i>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:4px">
+          <span style="flex:1;font-size:18px;font-weight:700">Dashboard</span>
+          <div style="height:44px;padding:0 16px;border-radius:999px;display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;background:{{ arrBtn.bg }};color:{{ arrBtn.c }};border:1.5px solid {{ arrBtn.bd }};cursor:pointer"><i class="{{ arrBtn.icon }}" style="font-size:17px"></i>{{ arrBtn.label }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:{{ cols }};gap:16px;align-items:start">
+          <sc-for list="{{ dash }}" as="dc" hint-placeholder-count="8">
+            <div style="grid-column:{{ dc.span }};min-width:0;position:relative;display:flex;flex-direction:column;border-radius:18px;outline:{{ dc.outline }};outline-offset:3px">
+              <sc-if value="{{ dc.arrange }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:8px;padding:0 4px 8px">
+                  <i class="icon-grip-vertical" style="font-size:20px;color:rgb(var(--ink-2));cursor:grab"></i>
+                  <span style="flex:1;font-size:13px;font-weight:600;color:rgb(var(--ink-2))">{{ dc.kindLabel }}</span>
+                  <div style="display:flex;gap:2px;padding:3px;border-radius:10px;background:rgb(var(--surface))">
+                    <sc-for list="{{ dc.sizes }}" as="sz" hint-placeholder-count="2"><div style="width:44px;height:30px;border-radius:7px;display:grid;place-items:center;font-size:13px;font-weight:{{ sz.w }};background:{{ sz.bg }};color:{{ sz.c }};box-shadow:{{ sz.s }};cursor:pointer">{{ sz.label }}</div></sc-for>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ dc.isChart }}" hint-placeholder-val="{{ true }}">
+                <dc-import name="Report Chart" preset="{{ dc.preset }}" size="{{ dc.size }}" figs="{{ dc.figs }}" menu="{{ dc.menu }}" menu-kind="{{ dc.menuKind }}" hint-size="100%,340px"></dc-import>
+              </sc-if>
+              <sc-if value="{{ dc.isText }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:flex-start;gap:12px;padding:18px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line))">
+                  <span style="width:40px;height:40px;flex:none;border-radius:50%;background:rgb(var(--custom-soft));color:rgb(var(--custom));display:grid;place-items:center"><i class="icon-sticky-note" style="font-size:20px"></i></span>
+                  <div style="display:flex;flex-direction:column;gap:4px"><span style="font-size:18px;font-weight:700;line-height:1.3">Started formula top-ups 12 Oct</span><span style="font-size:13px;color:rgb(var(--ink-2))">Note · added by Joel</span></div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ dc.isAdd }}" hint-placeholder-val="{{ false }}">
+                <div style="min-height:120px;border-radius:16px;border:2px dashed rgb(var(--line-strong));display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px;font-weight:600;color:rgb(var(--on-primary-soft));cursor:pointer" style-hover="background:rgb(var(--surface))"><span style="width:32px;height:32px;border-radius:50%;border:2px dashed rgb(var(--primary));display:grid;place-items:center;color:rgb(var(--primary))"><i class="icon-plus" style="font-size:16px"></i></span>Add card</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-top:12px"><span style="font-size:18px;font-weight:700">Patterns</span><span style="font-size:14px;color:rgb(var(--ink-3))">Unchanged from the current Stats screen.</span></div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ showTabs }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;display:flex;height:72px;padding-bottom:8px;border-top:1px solid rgb(var(--line));background:rgb(var(--raised));box-sizing:border-box">
+        <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4"><div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:{{ tb.c }};font-size:12px;font-weight:{{ tb.w }};cursor:pointer"><i class="{{ tb.icon }}" style="font-size:22px"></i>{{ tb.label }}</div></sc-for>
+      </div>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ ov.show }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgb(var(--scrim) / 0.45)"></div>
+    <div style="position:absolute;left:{{ ov.l }};right:{{ ov.r }};top:{{ ov.t }};bottom:{{ ov.b }};width:{{ ov.w }};max-height:{{ ov.mh }};transform:{{ ov.tf }};border-radius:{{ ov.br }};display:flex;flex-direction:column;background:rgb(var(--raised));box-shadow:var(--shadow-sheet);box-sizing:border-box;overflow:hidden">
+      <sc-if value="{{ ov.handle }}" hint-placeholder-val="{{ false }}"><span style="width:40px;height:5px;flex:none;border-radius:999px;background:rgb(var(--line-strong));align-self:center;margin-top:10px"></span></sc-if>
+      <div style="flex:none;display:flex;align-items:center;gap:10px;padding:18px 22px 8px">
+        <span style="flex:1;font-size:20px;font-weight:700">{{ ov.title }}</span>
+        <div style="width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="icon-x" style="font-size:20px"></i></div>
+      </div>
+      <div style="flex:1;min-height:0;overflow-y:auto;padding:6px 22px 22px;display:flex;flex-direction:column;gap:14px">
+        <sc-if value="{{ ov.nameField }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <span style="font-size:14px;font-weight:600">Name</span>
+            <div style="height:52px;border-radius:14px;border:2px solid rgb(var(--primary));background:rgb(var(--raised));display:flex;align-items:center;padding:0 14px;font-size:16px;box-sizing:border-box">Time asleep by location, 30 days</div>
+            <span style="display:flex;align-items:center;gap:6px;font-size:14px;color:rgb(var(--ink-2))"><i class="icon-users" style="font-size:15px"></i>Shared with your family</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ov.limit }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;background:rgb(var(--caution-soft));color:rgb(var(--on-caution))">
+            <span style="display:flex;gap:10px;align-items:flex-start;font-size:15px;line-height:1.45;font-weight:600"><i class="icon-sparkles" style="font-size:18px;color:rgb(var(--caution));margin-top:2px"></i>You've saved 2 reports. babble Plus saves as many as you like.</span>
+            <div style="align-self:flex-start;height:44px;padding:0 18px;border-radius:14px;background:rgb(var(--primary));color:rgb(var(--on-primary));display:flex;align-items:center;font-size:15px;font-weight:600;cursor:pointer">See Plus</div>
+          </div>
+          <span style="font-size:15px;font-weight:700;margin-top:4px">Or replace one</span>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ replaceRows }}" as="rp" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:12px;min-height:56px;padding:8px 14px;border-radius:14px;border:{{ rp.bd }};background:{{ rp.bg }};box-sizing:border-box;cursor:pointer">
+                <span style="width:22px;height:22px;flex:none;border-radius:50%;border:2px solid {{ rp.ring }};display:grid;place-items:center;box-sizing:border-box"><span style="width:10px;height:10px;border-radius:50%;background:{{ rp.dot }}"></span></span>
+                <div style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">{{ rp.name }}</span><span style="font-size:13px;color:rgb(var(--ink-2))">{{ rp.meta }}</span></div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ov.templates }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;gap:2px">
+            <sc-for list="{{ templates }}" as="tp" hint-placeholder-count="12">
+              <div style="display:flex;align-items:center;gap:14px;min-height:64px;padding:8px;border-radius:14px;cursor:pointer" style-hover="background:rgb(var(--surface))">
+                <div style="width:76px;height:48px;flex:none;padding:6px 8px;border-radius:10px;background:rgb(var(--surface));box-sizing:border-box;overflow:hidden;display:flex;flex-direction:column;justify-content:center"><dc-import name="Report Chart" preset="{{ tp.preset }}" size="xs" hint-size="60px,36px"></dc-import></div>
+                <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px"><span style="font-size:15px;font-weight:700">{{ tp.name }}</span><span style="font-size:13px;color:rgb(var(--ink-2));line-height:1.35">{{ tp.desc }}</span></div>
+                <i class="icon-chevron-right" style="font-size:18px;color:rgb(var(--ink-3))"></i>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+      </div>
+      <sc-if value="{{ ov.actions }}" hint-placeholder-val="{{ false }}">
+        <div style="flex:none;display:flex;justify-content:flex-end;gap:10px;padding:14px 22px 20px;border-top:1px solid rgb(var(--line))">
+          <div style="flex:{{ ov.btnFlex }};height:48px;padding:0 20px;border-radius:14px;display:grid;place-items:center;font-size:15px;font-weight:600;color:rgb(var(--on-primary-soft));cursor:pointer" style-hover="background:rgb(var(--primary-soft))">Cancel</div>
+          <div style="flex:{{ ov.btnFlex }};height:48px;padding:0 24px;border-radius:14px;display:grid;place-items:center;font-size:15px;font-weight:600;background:{{ ov.okBg }};color:{{ ov.okC }};border:{{ ov.okBd }};box-sizing:border-box;cursor:pointer">{{ ov.ok }}</div>
+        </div>
+      </sc-if>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:860},&quot;screen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;reports-list&quot;,&quot;reports-empty&quot;,&quot;report-view&quot;,&quot;report-builder&quot;,&quot;report-builder-filter&quot;,&quot;report-builder-phone&quot;,&quot;report-builder-phone-chart&quot;,&quot;report-save&quot;,&quot;report-limit&quot;,&quot;report-templates&quot;,&quot;dashboard&quot;,&quot;dashboard-arrange&quot;],&quot;default&quot;:&quot;reports-list&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;phone&quot;,&quot;desktop&quot;],&quot;default&quot;:&quot;desktop&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;theme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const s = this.props.screen || 'reports-list';
+    const desk = (this.props.size || 'desktop') === 'desktop';
+    const theme = this.props.theme || 'light';
+    const c = n => `rgb(var(--${n}))`;
+    const seg = on => ({ w: on ? 700 : 500, bg: on ? c('raised') : 'transparent', c: on ? c('ink') : c('ink-2'), s: on ? 'var(--shadow-raised)' : 'none' });
+    const chip = (on, k = 'primary') => ({ bg: on ? c(k) : c('raised'), c: on ? c(k === 'primary' ? 'on-primary' : 'ink-on-solid') : c('ink'), bd: on ? c(k) : c('line-strong') });
+
+    const ovScreens = { 'report-save': 'save', 'report-limit': 'limit', 'report-templates': 'templates' };
+    const ovKind = ovScreens[s];
+    const base = ovKind === 'templates' ? 'reports-list' : ovKind ? (desk ? 'report-builder' : 'report-builder-phone') : s;
+    const is = {
+      list: base === 'reports-list' || base === 'reports-empty', empty: base === 'reports-empty',
+      view: base === 'report-view', builder: desk && base.startsWith('report-builder'),
+      builderPhone: !desk && base.startsWith('report-builder'), dash: base.startsWith('dashboard')
+    };
+    const arrange = base === 'dashboard-arrange';
+
+    const navDefs = [['Home', 'icon-house', ''], ['Feeds', 'icon-heart', 'feed-right'], ['Sleep', 'icon-moon', 'sleep'], ['Nappies', 'icon-droplets', 'nappy'], ['Pump', 'icon-glass-water', 'pump'], ['Growth', 'icon-ruler', 'growth'], ['Custom', 'icon-sparkles', 'custom'], ['Timeline', 'icon-history', ''], ['Stats', 'icon-chart-column', ''], ['Reports', 'icon-chart-spline', ''], ['Settings', 'icon-settings', '']];
+    const active = is.dash ? 'Stats' : 'Reports';
+    const nav = navDefs.map(([label, icon, k]) => { const on = label === active; return { label, icon, pl: label === 'Reports' ? '28px' : '12px', bg: on ? c('primary-soft') : 'transparent', c: on ? c('on-primary-soft') : c('ink'), w: on ? 700 : 500, ic: k ? c(k) : on ? c('primary') : c('ink-2') }; });
+    const tabs = [['Home', 'icon-house'], ['Timeline', 'icon-history'], ['Stats', 'icon-chart-column'], ['Settings', 'icon-settings']].map(([label, icon]) => { const on = label === 'Stats'; return { label, icon, c: on ? c('primary') : c('ink-2'), w: on ? 700 : 500 }; });
+
+    const TPL = [
+      ['Night and naps', 'icon-moon', 'sleep', 'area-sleep', 'Night sleep and naps per day, stacked'],
+      ['When Olivia sleeps', 'icon-clock', 'sleep', 'heatmap-sleep', 'Sleep by hour of day across the last 30 days'],
+      ['When feeds happen', 'icon-clock', 'feed-right', 'heatmap-feeds', 'Feeds by hour of day across the last 30 days'],
+      ['Where Olivia sleeps', 'icon-map-pin', 'sleep', 'donut-loc', 'Time asleep by location'],
+      ['Feeds per day', 'icon-heart', 'feed-right', 'bar-feeds', 'Breastfeeds and bottles each day'],
+      ['Bottle intake', 'icon-milk', 'bottle', 'line-bottle', 'Bottle ml per day with a 7-day average'],
+      ['Nap lengths', 'icon-timer', 'sleep', 'hist-naps', 'How long naps last, in 15-minute bins'],
+      ['Wake windows', 'icon-sun', 'primary', 'hist-wake', 'Time awake between sleeps'],
+      ['Nappy output', 'icon-droplets', 'nappy', 'bar-nappy', 'Wet and dirty nappies per day'],
+      ['Who logs what', 'icon-users', 'secondary', 'donut-carer', 'Entries logged by each carer'],
+      ['Weight gain', 'icon-ruler', 'growth', 'line-weight', 'Weight at each measurement since birth'],
+      ['Last 14 days', 'icon-calendar-days', 'sleep', 'rhythm-14', 'Sleep, feeds and pumps, one row per day']
+    ];
+    const templates = TPL.map(([name, icon, k, preset, desc]) => ({ name, icon, c: c(k), preset, desc }));
+    const saved = [
+      { name: 'When feeds happen', meta: '30 days · by hour of day', preset: 'heatmap-feeds', av: 'Ja', avBg: c('growth-soft'), avC: c('on-growth') },
+      { name: 'Where Olivia sleeps', meta: '30 days · by location', preset: 'donut-loc', av: 'Jo', avBg: c('secondary-soft'), avC: c('on-secondary-soft') }
+    ];
+
+    const rangeLabels = ['7d', '14d', '30d', '90d', '6m', 'All'];
+    const ranges = rangeLabels.map(label => ({ label, ...seg(label === '30d'), plusD: label === 'All' ? 'inline-flex' : 'none' }));
+    const rangesSm = rangeLabels.map(label => ({ label, ...seg(label === '30d') }));
+    const view = desk
+      ? { title: 'When feeds happen', meta: '30 days · by hour of day · made by', preset: 'heatmap-feeds', compare: false, swBg: c('line-strong'), swL: '3px', av: 'Ja', avBg: c('growth-soft'), avC: c('on-growth') }
+      : { title: 'Bottle intake', meta: '30 days · by day · made by', preset: 'line-bottle', compare: true, swBg: c('primary'), swL: '23px', av: 'Jo', avBg: c('secondary-soft'), avC: c('on-secondary-soft') };
+
+    const MG = [['Sleep', 'sleep', ['Time asleep', 'Naps', 'Night sleep', 'Longest stretch', 'Wake windows']], ['Feeds', 'feed-right', ['Breastfeeds', 'Feed time', 'Bottle ml', 'Feed gaps']], ['Nappies', 'nappy', ['Nappies', 'Wet', 'Dirty', 'Poo colour']], ['Pump', 'pump', ['Pumped ml', 'Sessions']], ['Solids', 'custom', ['Meals', 'New foods']], ['Growth', 'growth', ['Weight', 'Length', 'Head']], ['Custom', 'custom', ['Custom events']], ['Logging', 'primary', ['Entries logged']]];
+    const measures = MG.map(([group, k, items]) => ({ group, items: items.map(label => { const on = label === 'Time asleep'; return { label, icon: on ? 'icon-check' : '', ...chip(on, k) }; }) }));
+    const groupBy = ['Day', 'Week', 'Month', 'Hour of day', 'Weekday'].map(label => ({ label, ...chip(label === 'Day') }));
+    const splitBy = ['None', 'Location', 'Fall asleep', 'Mood', 'Night or day', 'Carer', 'Device', 'Weekday'].map(label => ({ label, ...chip(label === 'Location') }));
+    const CT = [['Bar', 'icon-chart-column', 1, 1], ['Line', 'icon-chart-line', 1], ['Area', 'icon-chart-area', 1], ['Donut', 'icon-chart-pie', 1], ['Number', 'icon-hash', 0, 0, 'Number shows one value, without a split'], ['Table', 'icon-table', 1], ['Heatmap', 'icon-grid-3x3', 0, 0, 'Heatmap needs Group by: Hour of day'], ['Histogram', 'icon-chart-column-big', 0, 0, 'Histogram needs a duration, without a split'], ['Rhythm', 'icon-chart-gantt', 0, 0, "Rhythm doesn't use a split"]];
+    const chartTypes = CT.map(([label, icon, fits, sel, hint]) => ({ label, icon, op: fits ? 1 : 0.45, bg: sel ? c('primary-soft') : c('raised'), bd: sel ? `2px solid ${c('primary')}` : `1px solid ${c('line')}`, ic: sel ? c('primary') : c('ink-2'), sugD: sel ? 'inline-flex' : 'none', hintD: label === 'Histogram' && desk && s === 'report-builder' ? 'block' : 'none', hint: hint || '' }));
+    const options = [['7-day average', false], ['Cumulative', false], ['Show empty days', true], ['Stack', true]].map(([label, on]) => ({ label, bg: on ? c('primary') : c('line-strong'), l: on ? '21px' : '3px' }));
+    const filterOpen = s === 'report-builder-filter';
+    const phoneTab = s === 'report-builder-phone-chart' ? 'Chart' : 'Measure';
+    const phoneTabs = ['Measure', 'Range', 'Split', 'Chart', 'More'].map(label => { const on = label === phoneTab; return { label, w: on ? 700 : 500, c: on ? c('ink') : c('ink-2'), bd: on ? c('primary') : 'transparent' }; });
+
+    const dashDefs = [['chart', 'stacked-sleep', 'M', 'Prebuilt'], ['chart', 'bar-feeds', 'S', 'Prebuilt'], ['chart', 'bar-nappy', 'S', 'Prebuilt'], ['text', '', 'S', 'Text'], ['chart', 'line-weight', 'S', 'Prebuilt'], ['chart', 'heatmap-feeds', 'M', 'Saved report'], ['chart', 'donut-loc', 'S', 'Saved report'], ['add', '', 'S', '']];
+    const dash = dashDefs.filter(d => !(arrange && d[0] === 'add')).map(([kind, preset, sz, kindLabel], i) => ({
+      isChart: kind === 'chart', isText: kind === 'text', isAdd: kind === 'add', preset, kindLabel,
+      span: desk && sz === 'M' ? '1 / -1' : 'auto', size: desk && sz === 'M' ? 'l' : 'm',
+      figs: sz === 'M' || !desk ? true : false, menu: desk && !arrange && i === 1, menuKind: kindLabel === 'Prebuilt' ? 'prebuilt' : 'saved',
+      arrange: arrange && kind !== 'add', outline: arrange && kind !== 'add' ? `2px dashed ${c('line-strong')}` : 'none',
+      sizes: ['S', 'M'].map(label => ({ label, ...seg(label === sz) }))
+    }));
+    const arrBtn = arrange ? { label: 'Done', icon: 'icon-check', bg: c('primary'), c: c('on-primary'), bd: c('primary') } : { label: 'Arrange', icon: 'icon-layout-grid', bg: 'transparent', c: c('ink'), bd: c('line-strong') };
+    const statRange = ['7d', '30d', 'All'].map(label => ({ label, ...seg(label === '30d') }));
+
+    let ov = { show: !!ovKind };
+    if (ovKind) {
+      const pos = desk
+        ? { l: '50%', r: 'auto', t: '50%', b: 'auto', w: ovKind === 'templates' ? '600px' : '480px', mh: '84%', tf: 'translate(-50%, -50%)', br: '24px', handle: false, btnFlex: '0 0 auto' }
+        : { l: '0', r: '0', t: 'auto', b: '0', w: 'auto', mh: ovKind === 'templates' ? '88%' : '86%', tf: 'none', br: '28px 28px 0 0', handle: true, btnFlex: '1' };
+      ov = { show: true, ...pos, title: ovKind === 'templates' ? 'Start from' : 'Save report', nameField: ovKind !== 'templates', limit: ovKind === 'limit', templates: ovKind === 'templates', actions: ovKind !== 'templates',
+        ok: ovKind === 'limit' ? 'Replace' : 'Save', okBg: ovKind === 'limit' ? c('raised') : c('primary'), okC: ovKind === 'limit' ? c('ink') : c('on-primary'), okBd: ovKind === 'limit' ? `1.5px solid ${c('line-strong')}` : 'none' };
+    }
+    const replaceRows = saved.map((r, i) => { const on = i === 0; return { name: r.name, meta: r.meta, bd: on ? `2px solid ${c('primary')}` : `1px solid ${c('line')}`, bg: on ? c('primary-soft') : c('raised'), ring: on ? c('primary') : c('line-strong'), dot: on ? c('primary') : 'transparent' }; });
+
+    return {
+      theme, desk, W: desk ? '1280px' : '390px', H: desk ? '860px' : '844px', pad: desk ? '28px 32px 40px' : '20px 16px 24px',
+      chipWrap: desk ? 'wrap' : 'nowrap', bleed: desk ? '0' : '-16px', bleedPad: desk ? '0' : '16px',
+      cols: desk ? 'repeat(2, minmax(0, 1fr))' : 'minmax(0, 1fr)', rangeFlex: desk ? '0 0 auto' : '1 1 100%',
+      is, nav, tabs, showTabs: !desk && (is.list || is.view || is.dash), listMeta: is.empty ? 'Shared with everyone in the family.' : '2 of 2 saved · shared with everyone in the family',
+      templates, saved, hasSaved: !is.empty, ranges, rangesSm, view, chartSize: desk ? 'l' : 'm',
+      measures, measureOpen: !filterOpen, measureClosed: filterOpen, groupBy, splitBy, chartTypes, options, filterOpen, filterBtnBg: filterOpen ? c('primary-soft') : 'transparent',
+      filterKeys: ['Location', 'Fall asleep', 'Mood', 'Night or day', 'Carer', 'Device', 'Weekday', 'Notes contain'],
+      phoneTabs, tabMeasure: phoneTab === 'Measure', tabChart: phoneTab === 'Chart', phoneSheet: !ovKind, phonePreview: 'stacked-loc',
+      dash, arrBtn, statRange, ov, replaceRows
+    };
+  }
+}
+</script>
+</body>
+</html>

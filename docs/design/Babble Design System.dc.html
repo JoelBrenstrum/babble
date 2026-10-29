@@ -518,6 +518,23 @@
   </section>
 
   <section style="display:flex;flex-direction:column;gap:28px">
+    <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap"><h2 style="margin:0;font-size:30px;font-weight:700">Report charts · added in v1.3</h2><span style="font-size:15px;color:rgb(var(--ink-2))">Nine chart types in the stats card frame. Each row shows the readout popover in light and dark, then the empty and loading states.</span></div>
+    <div style="display:flex;flex-direction:column;gap:40px">
+      <sc-for list="{{ reportCharts }}" as="rc" hint-placeholder-count="10">
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;align-items:baseline;gap:12px"><span style="font-size:13px;font-weight:700;font-family:ui-monospace,Menlo,monospace;color:rgb(var(--primary))">{{ rc.n }}</span><span style="font-size:20px;font-weight:700">{{ rc.title }}</span><span style="font-size:14px;color:rgb(var(--ink-2))">{{ rc.note }}</span></div>
+          <div style="display:grid;grid-template-columns:repeat(4, 440px);gap:24px;align-items:start">
+            <div data-theme="light" style="padding:20px;border-radius:24px;background:rgb(var(--bg))"><dc-import name="Report Chart" preset="{{ rc.preset }}" state="readout" size="m" hint-size="400px,380px"></dc-import></div>
+            <div data-theme="dark" style="padding:20px;border-radius:24px;background:rgb(var(--bg))"><dc-import name="Report Chart" preset="{{ rc.preset }}" state="readout" size="m" hint-size="400px,380px"></dc-import></div>
+            <div data-theme="light" style="padding:20px;border-radius:24px;background:rgb(var(--bg))"><dc-import name="Report Chart" preset="{{ rc.preset }}" state="empty" size="m" figs="{{ false }}" hint-size="400px,240px"></dc-import></div>
+            <div data-theme="dark" style="padding:20px;border-radius:24px;background:rgb(var(--bg))"><dc-import name="Report Chart" preset="{{ rc.preset }}" state="loading" size="m" hint-size="400px,380px"></dc-import></div>
+          </div>
+        </div>
+      </sc-for>
+    </div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:28px">
     <h2 style="margin:0;font-size:30px;font-weight:700">Screens</h2>
     <div style="display:grid;grid-template-columns:repeat(2,max-content);gap:64px 72px">
       <sc-for list="{{ screens }}" as="sc" hint-placeholder-count="6">
@@ -607,7 +624,20 @@ class Component extends DCLogic {
       ['timeline-week', '06', 'Timeline · week', 'Seven 24h strips with sleep blocks and feed ticks. Today is outlined, and longer night stretches show up as taller blocks.']
     ].map(([id, n, title, note]) => ({ id, n, title, note }));
     const keypad = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '', '0', ''].map((t, i) => ({ t, icon: i === 11 ? 'icon-delete' : '', bg: i === 9 || i === 11 ? 'transparent' : c('surface') }));
-    return { keypad, themes, poo, pickerSw, sizeSel, tabDemo, statuses, typeScale, spacing, radii, screens };
+    const reportCharts = [
+      ['bar-bottle', 'Bar', 'Single series. One bar per bucket.'],
+      ['stacked-sleep', 'Bar · stacked', 'Only the topmost segment gets the rounded top.'],
+      ['line-bottle', 'Line', 'Dashed 7-day average; hollow points on hover or tap.'],
+      ['line-multi', 'Line · up to four series', ''],
+      ['area-sleep', 'Area', 'Stacked soft tints with a solid top line per series.'],
+      ['donut-loc', 'Donut', 'Up to eight slices; legend beside on desktop, below on phone.'],
+      ['number-bottle', 'Number', 'Change chip: up in success-soft, down in caution-soft, flat in surface.'],
+      ['table-feeds', 'Table', 'Buckets down, series across, totals row. Export CSV lives in the card menu.'],
+      ['heatmap-feeds', 'Heatmap', 'Days down, 24 hours across. Night hours sit on a line-coloured base.'],
+      ['hist-naps', 'Histogram', '15-minute bins with the median dashed.'],
+      ['rhythm-14', 'Rhythm', 'The day timeline laid flat. 7 rows visible on phone, scroll for 14.']
+    ].map(([preset, title, note], i) => ({ preset, title, note, n: 'R' + String(i + 1).padStart(2, '0') }));
+    return { keypad, themes, poo, pickerSw, sizeSel, tabDemo, statuses, typeScale, spacing, radii, screens, reportCharts };
   }
 }
 </script>
