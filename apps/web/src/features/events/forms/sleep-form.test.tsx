@@ -14,16 +14,18 @@ function Harness() {
 }
 
 describe('SleepForm', () => {
-  it('shows the live duration while the range is valid', () => {
+  it('edits the nap length from the sleep row and keeps the wake-up time in step', () => {
     render(<Harness />);
-    expect(screen.getByText('Duration')).toBeInTheDocument();
     expect(screen.getByText('1h 12m')).toBeInTheDocument();
+    expect(screen.getByLabelText('Sleep 1 hours')).toHaveValue('1');
+    expect(screen.getByLabelText('Sleep 1 minutes')).toHaveValue('12');
+
+    fireEvent.change(screen.getByLabelText('Sleep 1 minutes'), { target: { value: '40' } });
+    expect(screen.getByText('1h 40m')).toBeInTheDocument();
+    expect(screen.getByLabelText('Woke up')).toHaveValue('2026-10-06T03:38');
 
     fireEvent.change(screen.getByLabelText('Woke up'), { target: { value: '2026-10-06T03:40' } });
-    expect(screen.getByText('1h 42m')).toBeInTheDocument();
-
-    fireEvent.change(screen.getByLabelText('Woke up'), { target: { value: '2026-10-06T01:00' } });
-    expect(screen.queryByText('Duration')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Sleep 1 minutes')).toHaveValue('42');
   });
 
   it('rates sleep quality from 1 to 5 and clears it on a second tap', () => {
@@ -44,17 +46,20 @@ describe('SleepForm', () => {
     expect(within(group).getByRole('radio', { name: '1: Hard to settle, wakeful' })).not.toBeChecked();
   });
 
-  it('adds wake-ups, trims them a minute at a time and removes them', () => {
+  it('adds wake-ups, edits how long each lasted and removes them', () => {
     render(<Harness />);
     fireEvent.click(screen.getByRole('button', { name: 'Add a wake-up' }));
     expect(screen.getByText('Awake')).toBeInTheDocument();
-    expect(screen.getByText('awake 10m 00s')).toBeInTheDocument();
+    expect(screen.getByText('awake 10m')).toBeInTheDocument();
+    expect(screen.getByText('1h 02m')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Take a minute off wake-up 1' }));
-    expect(screen.getByText('awake 9m 00s')).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Wake-up 1 minutes'), { target: { value: '25' } });
+    expect(screen.getByText('awake 25m')).toBeInTheDocument();
+    expect(screen.getByLabelText('Woke up')).toHaveValue('2026-10-06T03:25');
 
     fireEvent.click(screen.getByRole('button', { name: 'Remove wake-up 1' }));
-    expect(screen.getByText('Duration')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Remove wake-up 1' })).toBeNull();
+    expect(screen.queryByText('Awake')).toBeNull();
+    expect(screen.getByText('1h 27m')).toBeInTheDocument();
+    expect(screen.getByLabelText('Woke up')).toHaveValue('2026-10-06T03:25');
   });
 });

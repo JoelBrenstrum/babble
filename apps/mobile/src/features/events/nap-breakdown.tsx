@@ -1,5 +1,5 @@
 import { formatDuration, napRows, type NapLike } from '@babble/domain';
-import { Minus, Trash2 } from 'lucide-react-native';
+import { Minus } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 import { Card } from '@/components/card';
 import { useTokenColor } from '@/lib/theme';
@@ -7,18 +7,13 @@ import { useTokenColor } from '@/lib/theme';
 export function NapBreakdown({
   nap,
   now,
-  trim = 'last',
   onTrimAwake,
-  onRemoveAwake,
 }: {
   nap: NapLike;
   now: Date;
-  trim?: 'last' | 'all';
   onTrimAwake?: (awakeIndex: number) => void;
-  onRemoveAwake?: (awakeIndex: number) => void;
 }) {
   const ink = useTokenColor('--ink');
-  const muted = useTokenColor('--ink-2');
   const rows = napRows(nap, now);
   const lastAwake = rows.at(-1)?.kind === 'asleep' ? rows.length - 2 : -1;
   const asleepMs = rows.filter((row) => row.kind === 'asleep').reduce((sum, row) => sum + row.durationMs, 0);
@@ -30,7 +25,7 @@ export function NapBreakdown({
       {rows.map((row, index) => {
         if (row.kind === 'awake') awakeIndex += 1;
         const current = awakeIndex;
-        const canTrim = row.kind === 'awake' && !row.running && (trim === 'all' || index === lastAwake);
+        const canTrim = row.kind === 'awake' && !row.running && index === lastAwake;
         return (
           <View
             key={index}
@@ -62,16 +57,6 @@ export function NapBreakdown({
                 className="size-10 items-center justify-center rounded-full border border-line bg-raised"
               >
                 <Minus color={ink} size={16} strokeWidth={3} />
-              </Pressable>
-            )}
-            {row.kind === 'awake' && !row.running && onRemoveAwake && (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`Remove wake-up ${current + 1}`}
-                onPress={() => onRemoveAwake(current)}
-                className="size-10 items-center justify-center rounded-full"
-              >
-                <Trash2 color={muted} size={16} strokeWidth={2.5} />
               </Pressable>
             )}
           </View>
