@@ -14,7 +14,7 @@ jest.mock('react-native-safe-area-context', () => ({
 async function renderForm(initial: EventDraft, focusAmounts = false, readOnly = false) {
   const onDone = jest.fn();
   await render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <ToastProvider>
         <EventForm
           client={fake.client}

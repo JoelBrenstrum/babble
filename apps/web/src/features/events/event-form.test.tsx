@@ -16,7 +16,7 @@ const failed = { data: null, error: { message: 'Network down' } };
 function renderForm(initial: EventDraft, focusAmounts = false, readOnly = false) {
   const onDone = vi.fn();
   render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <ToastProvider>
         <EventForm
           client={client}
