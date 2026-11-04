@@ -1,18 +1,12 @@
+import { QueryClient, QueryObserver } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RESUME_RELOAD_AFTER_MS, shouldReloadOnResume, watchResume } from './resume';
+import { RESUME_REFRESH_AFTER_MS, refreshAfterResume, shouldRefreshOnResume, watchResume } from './resume';
 
-const base = { hiddenAt: 0, now: RESUME_RELOAD_AFTER_MS, online: true, pathname: '/' };
-
-describe('shouldReloadOnResume', () => {
-  it('reloads once the app has been hidden long enough', () => {
-    expect(shouldReloadOnResume(base)).toBe(true);
-    expect(shouldReloadOnResume({ ...base, now: RESUME_RELOAD_AFTER_MS - 1 })).toBe(false);
-  });
-
-  it('never reloads without a hidden time, offline, or on the chair', () => {
-    expect(shouldReloadOnResume({ ...base, hiddenAt: null })).toBe(false);
-    expect(shouldReloadOnResume({ ...base, online: false })).toBe(false);
-    expect(shouldReloadOnResume({ ...base, pathname: '/chair' })).toBe(false);
+describe('shouldRefreshOnResume', () => {
+  it('refreshes once the app has been hidden long enough', () => {
+    expect(shouldRefreshOnResume(0, RESUME_REFRESH_AFTER_MS)).toBe(true);
+    expect(shouldRefreshOnResume(0, RESUME_REFRESH_AFTER_MS - 1)).toBe(false);
+    expect(shouldRefreshOnResume(null, RESUME_REFRESH_AFTER_MS)).toBe(false);
   });
 });
 
@@ -33,43 +27,68 @@ describe('watchResume', () => {
     visibility = 'visible';
   });
 
-  it('reloads after a long time hidden and then starts counting afresh', () => {
-    const reload = vi.fn();
-    const stop = watchResume(reload, 1000);
+  it('fires after a long time hidden and then starts counting afresh', () => {
+    const onResume = vi.fn();
+    const stop = watchResume(onResume, 1000);
     setVisibility('hidden');
     vi.advanceTimersByTime(500);
     setVisibility('visible');
-    expect(reload).not.toHaveBeenCalled();
+    expect(onResume).not.toHaveBeenCalled();
     setVisibility('hidden');
     vi.advanceTimersByTime(1000);
     setVisibility('visible');
-    expect(reload).toHaveBeenCalledTimes(1);
+    expect(onResume).toHaveBeenCalledTimes(1);
     stop();
     setVisibility('hidden');
     vi.advanceTimersByTime(1000);
     setVisibility('visible');
-    expect(reload).toHaveBeenCalledTimes(1);
+    expect(onResume).toHaveBeenCalledTimes(1);
   });
 
   it('counts from mount when the page is already hidden', () => {
-    const reload = vi.fn();
+    const onResume = vi.fn();
     visibility = 'hidden';
-    const stop = watchResume(reload, 1000);
+    const stop = watchResume(onResume, 1000);
     vi.advanceTimersByTime(1000);
     setVisibility('visible');
-    expect(reload).toHaveBeenCalledTimes(1);
+    expect(onResume).toHaveBeenCalledTimes(1);
     stop();
   });
 
   it('keeps the first hidden time across repeated hidden events', () => {
-    const reload = vi.fn();
-    const stop = watchResume(reload, 1000);
+    const onResume = vi.fn();
+    const stop = watchResume(onResume, 1000);
     setVisibility('hidden');
     vi.advanceTimersByTime(600);
     setVisibility('hidden');
     vi.advanceTimersByTime(600);
     setVisibility('visible');
-    expect(reload).toHaveBeenCalledTimes(1);
+    expect(onResume).toHaveBeenCalledTimes(1);
+    stop();
+  });
+});
+
+describe('refreshAfterResume', () => {
+  function watch(queryClient: QueryClient, queryFn: () => Promise<string>) {
+    return new QueryObserver(queryClient, { queryKey: ['thing'], queryFn, retry: false }).subscribe(() => undefined);
+  }
+
+  it('abandons a request frozen in flight and fetches again', async () => {
+    const queryClient = new QueryClient();
+    let calls = 0;
+    const stop = watch(queryClient, () => {
+      calls += 1;
+      return calls === 1 ? new Promise<string>(() => undefined) : Promise.resolve('fresh');
+    });
+    expect(await refreshAfterResume(queryClient, 1000)).toBe('fresh');
+    expect(queryClient.getQueryData(['thing'])).toBe('fresh');
+    stop();
+  });
+
+  it('reports a stall when the refetch also hangs', async () => {
+    const queryClient = new QueryClient();
+    const stop = watch(queryClient, () => new Promise<string>(() => undefined));
+    expect(await refreshAfterResume(queryClient, 20)).toBe('stalled');
     stop();
   });
 });

@@ -10,11 +10,13 @@ import {
 import { canAddBaby } from '@babble/config';
 import { runningIndicator } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute, Outlet, redirect, useLocation } from '@tanstack/react-router';
+import { createFileRoute, Outlet, redirect, useLocation, useRouter } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { AppShell } from '#/components/shell/app-shell';
 import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
-import { ensureCurrentData, queryCacheRestored } from '#/lib/query-persistence';
+import { cachedThenCurrent, queryCacheRestored } from '#/lib/query-persistence';
+import { useResumeCount } from '#/lib/resume';
 import { readStorage, storageKeys } from '#/lib/storage';
 import { DeviceNameProvider } from '#/features/device-name-context';
 import { NapPromptProvider } from '#/features/nap-prompt';
@@ -26,7 +28,7 @@ export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context, location }) => {
     const { session } = (await context.babble.client.auth.getSession()).data;
     await queryCacheRestored();
-    const families = session ? await ensureCurrentData(context.queryClient, familiesQuery(context.babble.client)) : [];
+    const families = session ? await cachedThenCurrent(context.queryClient, familiesQuery(context.babble.client)) : [];
     const state = resolveOnboarding({
       signedIn: Boolean(session),
       families,
@@ -63,7 +65,8 @@ function AppLayout() {
   const { family, baby, babble, families, canLog: loggable, admin } = Route.useRouteContext();
   const selectBaby = useSelectBaby();
   const pathname = useLocation({ select: (location) => location.pathname });
-  useRealtimeEvents(babble.client, baby.id);
+  useRealtimeEvents(babble.client, baby.id, useResumeCount());
+  useRefreshWhenFamiliesChange(families);
   useAutoEndStaleSessions(babble.client, baby.id, { enabled: loggable });
   const running = useQuery(runningEventsQuery(babble.client, baby.id)).data ?? [];
   const settings = useQuery(babySettingsQuery(babble.client, baby.id)).data;
@@ -93,4 +96,14 @@ function AppLayout() {
       {page}
     </AppShell>
   );
+}
+
+// The layout starts from cached families; once the background refresh lands, rerun beforeLoad to pick it up.
+function useRefreshWhenFamiliesChange(families: readonly unknown[]) {
+  const { babble } = Route.useRouteContext();
+  const router = useRouter();
+  const live = useQuery(familiesQuery(babble.client)).data;
+  useEffect(() => {
+    if (live && live !== families) void router.invalidate();
+  }, [live, families, router]);
 }
