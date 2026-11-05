@@ -28,7 +28,12 @@ export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context, location }) => {
     const { session } = (await context.babble.client.auth.getSession()).data;
     await queryCacheRestored();
-    const families = session ? await cachedThenCurrent(context.queryClient, familiesQuery(context.babble.client)) : [];
+    const families = session
+      ? await cachedThenCurrent(context.queryClient, {
+          ...familiesQuery(context.babble.client),
+          usable: (cached) => cached.length > 0,
+        })
+      : [];
     const state = resolveOnboarding({
       signedIn: Boolean(session),
       families,

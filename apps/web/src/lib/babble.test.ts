@@ -49,6 +49,14 @@ describe('loadBabble', () => {
     expect(getPublicConfig).toHaveBeenCalledTimes(1);
   });
 
+  it('waits for the server when the saved config is incomplete', async () => {
+    const { publicUrl: _, ...noPublicUrl } = config;
+    window.localStorage.setItem('babble.publicConfig', JSON.stringify(noPublicUrl));
+    getPublicConfig.mockResolvedValue(config);
+    const { loadBabble } = await import('./babble');
+    await expect(loadBabble()).resolves.toMatchObject({ config });
+  });
+
   it('saves the config it waited for', async () => {
     getPublicConfig.mockResolvedValue(config);
     const { loadBabble } = await import('./babble');
@@ -64,6 +72,9 @@ describe('parseSavedConfig', () => {
     expect(parseSavedConfig('{nope')).toBeNull();
     expect(parseSavedConfig('null')).toBeNull();
     expect(parseSavedConfig(JSON.stringify({ supabaseUrl: 'x' }))).toBeNull();
+    const { publicUrl: _, ...noPublicUrl } = config;
+    expect(parseSavedConfig(JSON.stringify(noPublicUrl))).toBeNull();
+    expect(parseSavedConfig(JSON.stringify({ ...config, billingEnabled: 'yes' }))).toBeNull();
     expect(parseSavedConfig(JSON.stringify(config))).toEqual(config);
   });
 });

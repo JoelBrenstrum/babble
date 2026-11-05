@@ -141,20 +141,37 @@ describe('cachedThenCurrent', () => {
     expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'fresh' }]);
   });
 
-  it('keeps the cached data when the background refresh fails', async () => {
+  it('keeps the cached data when the background refresh fails, and tries again next time', async () => {
     resetRevalidation();
     const queryClient = client();
     queryClient.setQueryData(['families'], [{ id: 'cached' }]);
+    let calls = 0;
     const options = {
       queryKey: ['families'],
-      queryFn: async (): Promise<{ id: string }[]> => {
-        throw new Error('offline');
+      queryFn: async () => {
+        calls += 1;
+        if (calls === 1) throw new Error('offline');
+        return [{ id: 'fresh' }];
       },
       retry: false,
     };
     expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'cached' }]);
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await vi.waitFor(() => expect(calls).toBe(1));
     expect(queryClient.getQueryData(['families'])).toEqual([{ id: 'cached' }]);
+    await cachedThenCurrent(queryClient, options);
+    await vi.waitFor(() => expect(queryClient.getQueryData(['families'])).toEqual([{ id: 'fresh' }]));
+  });
+
+  it('waits for the network when the cached data is not usable', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    queryClient.setQueryData(['families'], []);
+    const options = {
+      queryKey: ['families'],
+      queryFn: async () => [{ id: 'fresh' }],
+      usable: (families: { id: string }[]) => families.length > 0,
+    };
+    expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'fresh' }]);
   });
 });
 

@@ -26,19 +26,21 @@ export function watchResume(onResume: () => void, threshold = RESUME_REFRESH_AFT
 // iOS can freeze a backgrounded PWA mid-request; refetching cancels whatever was in flight so nothing waits on it.
 export async function refreshAfterResume(
   queryClient: QueryClient,
-  stallMs = RESUME_STALL_MS,
-): Promise<'fresh' | 'stalled'> {
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const stalled = new Promise<'stalled'>((resolve) => (timer = setTimeout(() => resolve('stalled'), stallMs)));
-  const refreshed = queryClient
-    .cancelQueries()
-    .then(() => queryClient.invalidateQueries(undefined, { throwOnError: false }))
-    .then(() => 'fresh' as const);
+  { onStall = () => undefined, stallMs = RESUME_STALL_MS }: { onStall?: () => void; stallMs?: number } = {},
+): Promise<'fresh' | 'failed'> {
+  const startedAt = Date.now();
+  const timer = setTimeout(onStall, stallMs);
   try {
-    return await Promise.race([refreshed, stalled]);
+    await queryClient.cancelQueries();
+    await queryClient.invalidateQueries(undefined, { throwOnError: false });
   } finally {
     clearTimeout(timer);
   }
+  const failed = queryClient
+    .getQueryCache()
+    .findAll({ type: 'active' })
+    .some((query) => query.state.errorUpdatedAt >= startedAt);
+  return failed ? 'failed' : 'fresh';
 }
 
 let resumeCount = 0;
@@ -67,7 +69,10 @@ export function useResumeRefresh(queryClient: QueryClient, onResume: () => void)
       watchResume(() => {
         noteResume();
         onResume();
-        void refreshAfterResume(queryClient).then((outcome) => setStalled(outcome === 'stalled'));
+        // Offline failures recover on reconnect, and reloading offline would leave a blank page.
+        void refreshAfterResume(queryClient, { onStall: () => setStalled(true) }).then((outcome) =>
+          setStalled(outcome === 'failed' && navigator.onLine),
+        );
       }),
     [queryClient, onResume],
   );

@@ -98,16 +98,27 @@ export async function ensureCurrentData<T>(
   }
 }
 
-// Answers from the cache straight away when it has anything, refreshing in the background, so a start-up
-// with saved data never waits on the network.
+// Answers from usable cached data straight away, refreshing in the background, so a start-up with saved data
+// never waits on the network.
 export async function cachedThenCurrent<T>(
   queryClient: QueryClient,
-  options: { queryKey: readonly unknown[]; queryFn: () => Promise<T>; staleTime?: number; retry?: boolean | number },
+  {
+    usable = () => true,
+    ...options
+  }: {
+    queryKey: readonly unknown[];
+    queryFn: () => Promise<T>;
+    staleTime?: number;
+    retry?: boolean | number;
+    usable?: (data: T) => boolean;
+  },
 ): Promise<T> {
   const key = JSON.stringify(options.queryKey);
   const cached = queryClient.getQueryData<T>(options.queryKey);
-  if (cached === undefined || revalidated.has(key)) return ensureCurrentData(queryClient, options);
-  revalidated.add(key);
-  void queryClient.prefetchQuery({ ...options, staleTime: 0, networkMode: 'always' });
+  if (cached === undefined || revalidated.has(key) || !usable(cached)) return ensureCurrentData(queryClient, options);
+  void queryClient.fetchQuery({ ...options, staleTime: 0, networkMode: 'always' }).then(
+    () => void revalidated.add(key),
+    () => undefined,
+  );
   return cached;
 }

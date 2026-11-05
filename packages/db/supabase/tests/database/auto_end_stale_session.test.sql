@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(7);
+select plan(10);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -17,7 +17,9 @@ $$;
 update private.instance_settings set signup_mode = 'open';
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, created_at, updated_at) values
   ('55000000-0000-0000-0000-00000000000a', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-   'carer@auto-end.test', '{}', now(), now());
+   'carer@auto-end.test', '{}', now(), now()),
+  ('55000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+   'stranger@auto-end.test', '{}', now(), now());
 insert into public.families (id, name) values ('65000000-0000-0000-0000-00000000000a', 'Home');
 insert into public.family_members (family_id, user_id, role, display_name) values
   ('65000000-0000-0000-0000-00000000000a', '55000000-0000-0000-0000-00000000000a', 'owner', 'Carer');
@@ -31,17 +33,20 @@ insert into public.events (id, baby_id, type, started_at) values
   ('85000000-0000-0000-0000-00000000000a', '75000000-0000-0000-0000-00000000000a', 'breast_feed', now() - interval '3 hours'),
   ('85000000-0000-0000-0000-00000000000b', '75000000-0000-0000-0000-00000000000a', 'sleep', now() - interval '2 hours'),
   ('85000000-0000-0000-0000-00000000000c', '75000000-0000-0000-0000-00000000000a', 'pump', now() - interval '4 hours'),
-  ('85000000-0000-0000-0000-00000000000d', '75000000-0000-0000-0000-00000000000b', 'sleep', now() - interval '5 hours');
+  ('85000000-0000-0000-0000-00000000000d', '75000000-0000-0000-0000-00000000000b', 'sleep', now() - interval '5 hours'),
+  ('85000000-0000-0000-0000-00000000000e', '75000000-0000-0000-0000-00000000000b', 'pump', now() - interval '4 hours');
 insert into public.session_details (event_id, state) values
   ('85000000-0000-0000-0000-00000000000a', 'running'),
   ('85000000-0000-0000-0000-00000000000b', 'paused'),
   ('85000000-0000-0000-0000-00000000000c', 'paused'),
-  ('85000000-0000-0000-0000-00000000000d', 'running');
+  ('85000000-0000-0000-0000-00000000000d', 'running'),
+  ('85000000-0000-0000-0000-00000000000e', 'paused');
 insert into public.timed_segments (event_id, side, started_at, ended_at) values
   ('85000000-0000-0000-0000-00000000000a', 'left', now() - interval '3 hours', now() - interval '150 minutes'),
   ('85000000-0000-0000-0000-00000000000a', 'right', now() - interval '5 minutes', null),
   ('85000000-0000-0000-0000-00000000000b', null, now() - interval '2 hours', now() - interval '45 minutes'),
-  ('85000000-0000-0000-0000-00000000000c', 'left', now() - interval '4 hours', now() - interval '90 minutes');
+  ('85000000-0000-0000-0000-00000000000c', 'left', now() - interval '4 hours', now() - interval '90 minutes'),
+  ('85000000-0000-0000-0000-00000000000e', 'left', now() - interval '4 hours', now() - interval '90 minutes');
 
 select pg_temp.sign_in_as('55000000-0000-0000-0000-00000000000a');
 
@@ -80,6 +85,28 @@ select is(
   public.auto_end_stale_session('85000000-0000-0000-0000-00000000000d'),
   false,
   'a nap that was never paused is still asleep'
+);
+
+select pg_temp.sign_in_as('55000000-0000-0000-0000-00000000000b');
+select throws_ok(
+  $$ select public.auto_end_stale_session('85000000-0000-0000-0000-00000000000e') $$,
+  'P0002',
+  'Session not found',
+  'someone outside the family cannot end its sessions'
+);
+
+set local role anon;
+select throws_ok(
+  $$ select public.auto_end_stale_session('85000000-0000-0000-0000-00000000000e') $$,
+  '42501',
+  null,
+  'signed-out callers cannot use it'
+);
+
+reset role;
+select ok(
+  (select ended_at is null from public.events where id = '85000000-0000-0000-0000-00000000000e'),
+  'a stale session in another family is left running'
 );
 
 select * from finish();

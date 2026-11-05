@@ -19,10 +19,21 @@ export interface Babble {
 export function parseSavedConfig(saved: string | null): PublicConfig | null {
   if (!saved) return null;
   try {
-    const config = JSON.parse(saved) as Partial<PublicConfig> | null;
-    return typeof config?.supabaseUrl === 'string' && typeof config.supabaseAnonKey === 'string'
-      ? (config as PublicConfig)
-      : null;
+    const config = JSON.parse(saved) as Record<keyof PublicConfig, unknown> | null;
+    if (!config) return null;
+    const text = (value: unknown) => typeof value === 'string';
+    const flag = (value: unknown) => typeof value === 'boolean';
+    const optionalText = (value: unknown) => value === null || text(value);
+    const valid =
+      text(config.publicUrl) &&
+      text(config.supabaseUrl) &&
+      text(config.supabaseAnonKey) &&
+      flag(config.billingEnabled) &&
+      flag(config.googleAuthEnabled) &&
+      flag(config.deviceSignInEnabled) &&
+      optionalText(config.operatorName) &&
+      optionalText(config.contactEmail);
+    return valid ? (config as PublicConfig) : null;
   } catch {
     return null;
   }

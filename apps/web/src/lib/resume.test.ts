@@ -1,6 +1,14 @@
 import { QueryClient, QueryObserver } from '@tanstack/react-query';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { RESUME_REFRESH_AFTER_MS, refreshAfterResume, shouldRefreshOnResume, watchResume } from './resume';
+import { act, renderHook } from '@testing-library/react';
+import {
+  RESUME_REFRESH_AFTER_MS,
+  RESUME_STALL_MS,
+  refreshAfterResume,
+  shouldRefreshOnResume,
+  useResumeRefresh,
+  watchResume,
+} from './resume';
 
 describe('shouldRefreshOnResume', () => {
   it('refreshes once the app has been hidden long enough', () => {
@@ -80,15 +88,64 @@ describe('refreshAfterResume', () => {
       calls += 1;
       return calls === 1 ? new Promise<string>(() => undefined) : Promise.resolve('fresh');
     });
-    expect(await refreshAfterResume(queryClient, 1000)).toBe('fresh');
+    expect(await refreshAfterResume(queryClient, { stallMs: 1000 })).toBe('fresh');
     expect(queryClient.getQueryData(['thing'])).toBe('fresh');
     stop();
   });
 
-  it('reports a stall when the refetch also hangs', async () => {
+  it('reports a stall while the refetch hangs, then the outcome once it lands', async () => {
     const queryClient = new QueryClient();
-    const stop = watch(queryClient, () => new Promise<string>(() => undefined));
-    expect(await refreshAfterResume(queryClient, 20)).toBe('stalled');
+    let land: (value: string) => void = () => undefined;
+    const stop = watch(queryClient, () => new Promise<string>((resolve) => (land = resolve)));
+    const onStall = vi.fn();
+    const outcome = refreshAfterResume(queryClient, { onStall, stallMs: 20 });
+    await vi.waitFor(() => expect(onStall).toHaveBeenCalled());
+    land('late');
+    expect(await outcome).toBe('fresh');
+    stop();
+  });
+
+  it('reports a refetch that fails', async () => {
+    const queryClient = new QueryClient();
+    const stop = watch(queryClient, () => Promise.reject(new Error('down')));
+    await vi.waitFor(() => expect(queryClient.getQueryState(['thing'])?.status).toBe('error'));
+    expect(await refreshAfterResume(queryClient, { stallMs: 1000 })).toBe('failed');
     stop();
   });
 });
+
+describe('useResumeRefresh', () => {
+  let visibility: DocumentVisibilityState = 'visible';
+  beforeEach(() => {
+    Object.defineProperty(document, 'visibilityState', { get: () => visibility, configurable: true });
+  });
+
+  it('clears the stalled banner when a slow refresh finally succeeds', async () => {
+    vi.useFakeTimers({ toFake: ['Date', 'setTimeout', 'clearTimeout'] });
+    try {
+      const queryClient = new QueryClient();
+      let land: (value: string) => void = () => undefined;
+      const stop = new QueryObserver(queryClient, {
+        queryKey: ['thing'],
+        queryFn: () => new Promise<string>((resolve) => (land = resolve)),
+        retry: false,
+      }).subscribe(() => undefined);
+      const { result } = renderHook(() => useResumeRefresh(queryClient, noop));
+      visibility = 'hidden';
+      act(() => void document.dispatchEvent(new Event('visibilitychange')));
+      vi.advanceTimersByTime(RESUME_REFRESH_AFTER_MS);
+      visibility = 'visible';
+      act(() => void document.dispatchEvent(new Event('visibilitychange')));
+      await act(async () => void (await vi.advanceTimersByTimeAsync(RESUME_STALL_MS)));
+      expect(result.current.stalled).toBe(true);
+      await act(async () => land('late'));
+      await vi.waitFor(() => expect(result.current.stalled).toBe(false));
+      stop();
+    } finally {
+      vi.useRealTimers();
+      visibility = 'visible';
+    }
+  });
+});
+
+const noop = () => undefined;
