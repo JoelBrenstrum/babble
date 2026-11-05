@@ -689,6 +689,7 @@ export type Database = {
     Functions: {
       accept_invite: { Args: { display_name: string; invite_code: string }; Returns: string };
       approve_device_link: { Args: { link_code: string }; Returns: undefined };
+      auto_end_stale_session: { Args: { target_event_id: string }; Returns: boolean };
       check_invite: {
         Args: { invite_code: string };
         Returns: {

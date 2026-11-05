@@ -414,6 +414,10 @@ export async function endSession(client: BabbleClient, eventId: string, endAt?: 
   unwrapVoid(await client.rpc('end_session', { target_event_id: eventId, ...(endAt ? { end_at: endAt } : {}) }));
 }
 
+export async function autoEndStaleSession(client: BabbleClient, eventId: string): Promise<boolean> {
+  return unwrap(await client.rpc('auto_end_stale_session', { target_event_id: eventId }));
+}
+
 export async function setSwitchTime(client: BabbleClient, eventId: string, switchAt: string): Promise<void> {
   unwrapVoid(await client.rpc('set_switch_time', { target_event_id: eventId, switch_at: switchAt }));
 }
