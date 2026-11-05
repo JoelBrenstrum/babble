@@ -15,7 +15,7 @@ import { useEffect } from 'react';
 import { AppShell } from '#/components/shell/app-shell';
 import { signedOutRedirect } from '#/lib/entry';
 import { runningStandalone } from '#/lib/install-prompt';
-import { cachedThenCurrent, queryCacheRestored } from '#/lib/query-persistence';
+import { cachedThenCurrent, queryCacheRestored, sameData } from '#/lib/query-persistence';
 import { useResumeCount } from '#/lib/resume';
 import { readStorage, storageKeys } from '#/lib/storage';
 import { DeviceNameProvider } from '#/features/device-name-context';
@@ -109,6 +109,6 @@ function useRefreshWhenFamiliesChange(families: readonly unknown[]) {
   const router = useRouter();
   const live = useQuery(familiesQuery(babble.client)).data;
   useEffect(() => {
-    if (live && live !== families) void router.invalidate();
+    if (live && !sameData<readonly unknown[]>(families, live)) void router.invalidate();
   }, [live, families, router]);
 }

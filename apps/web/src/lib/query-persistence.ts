@@ -1,5 +1,5 @@
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
-import type { Query, QueryClient } from '@tanstack/react-query';
+import { replaceEqualDeep, type Query, type QueryClient } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { del, get, set } from 'idb-keyval';
 
@@ -121,4 +121,8 @@ export async function cachedThenCurrent<T>(
     () => undefined,
   );
   return cached;
+}
+
+export function sameData<T>(a: T, b: T): boolean {
+  return replaceEqualDeep(a, b) === a;
 }

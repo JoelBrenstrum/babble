@@ -5,6 +5,7 @@ import {
   ensureCurrentData,
   PERSIST_MAX_AGE_MS,
   resetRevalidation,
+  sameData,
   setupQueryPersistence,
   shouldPersistQuery,
   type PersistedStorage,
@@ -172,6 +173,19 @@ describe('cachedThenCurrent', () => {
       usable: (families: { id: string }[]) => families.length > 0,
     };
     expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'fresh' }]);
+  });
+});
+
+describe('sameData', () => {
+  it('treats separately fetched copies of the same families as unchanged', () => {
+    const families = [{ id: 'f', babies: [{ id: 'b', name: 'Olivia' }] }];
+    expect(sameData(families, structuredClone(families))).toBe(true);
+  });
+
+  it('notices a change anywhere inside', () => {
+    const families = [{ id: 'f', babies: [{ id: 'b', name: 'Olivia' }] }];
+    expect(sameData(families, [{ id: 'f', babies: [{ id: 'b', name: 'Liv' }] }])).toBe(false);
+    expect(sameData(families, [])).toBe(false);
   });
 });
 
