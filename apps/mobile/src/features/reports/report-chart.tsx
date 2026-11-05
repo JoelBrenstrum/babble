@@ -11,8 +11,8 @@ import {
   type Units,
 } from '@babble/domain';
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import Svg, { Line, Path, Text as SvgText } from 'react-native-svg';
 import { useTokenColor } from '@/lib/theme';
 import { toneLook, useToneColor } from './tones';
 
@@ -90,6 +90,7 @@ function Lines({ result, units, area }: { result: ReportResult; units: Units; ar
           width="100%"
           height={128}
           viewBox={`0 0 ${SIZE.width} ${SIZE.height}`}
+          preserveAspectRatio="none"
           accessibilityLabel={`${result.series.map((series) => series.label).join(', ')} over time`}
         >
           {geometry.yTicks.map((tick) => (
@@ -145,22 +146,24 @@ function Lines({ result, units, area }: { result: ReportResult; units: Units; ar
                 />
               ),
           )}
-          {geometry.series.map((item, order) =>
-            item.points
-              .filter((point) => point.index === active)
-              .map((point) => (
-                <Circle
-                  key={`${item.key}-${point.index}`}
-                  cx={point.x}
-                  cy={point.y}
-                  r={4}
-                  fill={raised}
-                  stroke={resolved[order]}
-                  strokeWidth={2}
-                />
-              )),
-          )}
         </Svg>
+        {geometry.series.map((item, order) =>
+          item.points
+            .filter((point) => point.index === active)
+            .map((point) => (
+              <View
+                key={`${item.key}-${point.index}`}
+                pointerEvents="none"
+                className="absolute h-2.5 w-2.5 -ml-[5px] -mt-[5px] rounded-full border-2"
+                style={{
+                  left: `${(point.x / SIZE.width) * 100}%`,
+                  top: `${(point.y / SIZE.height) * 100}%`,
+                  backgroundColor: raised,
+                  borderColor: resolved[order],
+                }}
+              />
+            )),
+        )}
         <View className="absolute inset-0 flex-row">
           {result.buckets.map((bucket, index) => (
             <Pressable
@@ -248,16 +251,10 @@ function Number({ result, units }: { result: ReportResult; units: Units }) {
   const figure = result.figures[0];
   if (!series) return null;
   const delta = figure?.delta ?? null;
-  const tone = delta?.startsWith('Up')
-    ? 'bg-success-soft'
-    : delta?.startsWith('Down')
-      ? 'bg-caution-soft'
-      : 'bg-surface';
-  const text = delta?.startsWith('Up')
-    ? 'text-on-success'
-    : delta?.startsWith('Down')
-      ? 'text-on-caution'
-      : 'text-ink-2';
+  const tone =
+    figure?.direction === 'up' ? 'bg-success-soft' : figure?.direction === 'down' ? 'bg-caution-soft' : 'bg-surface';
+  const text =
+    figure?.direction === 'up' ? 'text-on-success' : figure?.direction === 'down' ? 'text-on-caution' : 'text-ink-2';
   return (
     <View className="gap-1">
       <Text className="font-sans text-caption text-ink-2">{figure?.label ?? series.label}</Text>
@@ -286,9 +283,8 @@ function Table({ result, units }: { result: ReportResult; units: Units }) {
           </Text>
         ))}
       </View>
-      {result.buckets.slice(-14).map((bucket, offset) => {
-        const index = result.buckets.length - Math.min(14, result.buckets.length) + offset;
-        return (
+      <ScrollView className="max-h-80" nestedScrollEnabled>
+        {result.buckets.map((bucket, index) => (
           <View key={bucket.key} className="flex-row border-t border-line px-3 py-1.5">
             <Text className="flex-1 font-sans text-meta text-ink">{bucket.title}</Text>
             {result.series.map((series) => (
@@ -297,8 +293,18 @@ function Table({ result, units }: { result: ReportResult; units: Units }) {
               </Text>
             ))}
           </View>
-        );
-      })}
+        ))}
+      </ScrollView>
+      <View className="flex-row border-t border-line-strong bg-surface px-3 py-2">
+        <Text className="flex-1 font-semibold text-meta text-ink">
+          {result.series.some((series) => series.perDay) ? 'Per day' : 'Overall'}
+        </Text>
+        {result.series.map((series) => (
+          <Text key={series.key} className="w-20 text-right font-semibold text-meta text-ink">
+            {formatReportValue(series.total, series.unit, units)}
+          </Text>
+        ))}
+      </View>
     </View>
   );
 }

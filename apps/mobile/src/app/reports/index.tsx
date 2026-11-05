@@ -1,5 +1,5 @@
 import { useNow, useReports } from '@babble/api/react';
-import { canSaveReport, FREE_REPORT_LIMIT } from '@babble/config';
+import { reportLimit } from '@babble/config';
 import { REPORT_TEMPLATES, templateName } from '@babble/domain';
 import { router } from 'expo-router';
 import { ChartSpline, Plus } from 'lucide-react-native';
@@ -29,10 +29,11 @@ function ReportsContent({ baby, family }: Pick<ReadyState, 'baby' | 'family'>) {
   const reports = useReports(client, family.id);
   const iconColor = useTokenColor('--primary');
   const saved = reports.data ?? [];
-  const limited = config.billingEnabled && !canSaveReport(config.billingEnabled, family.plan, Number.MAX_SAFE_INTEGER);
-  const meta = limited
-    ? `${saved.length} of ${FREE_REPORT_LIMIT} saved · shared with everyone in the family`
-    : 'Shared with everyone in the family';
+  const limit = reportLimit(config.billingEnabled, family.plan);
+  const meta =
+    limit === null
+      ? 'Shared with everyone in the family'
+      : `${saved.length} of ${limit} saved · shared with everyone in the family`;
   return (
     <Screen edges={['top']}>
       <ScreenHeader title="Reports" />

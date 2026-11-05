@@ -29,6 +29,7 @@ create policy "editors delete reports" on public.reports
 revoke all on public.reports from anon, authenticated;
 grant select, insert, update (name, spec), delete on public.reports to authenticated;
 
+-- Definer rights: the trigger reads private.instance_settings and must count every report in the family, not just the rows the caller can see.
 create function private.enforce_report_limit()
 returns trigger
 language plpgsql

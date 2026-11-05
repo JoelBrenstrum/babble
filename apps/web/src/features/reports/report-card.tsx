@@ -83,6 +83,7 @@ export function ReportCard({
   group = 'logging',
   size = 'm',
   loading = false,
+  idle = false,
   plusBadge = false,
   menu,
   footer,
@@ -97,6 +98,7 @@ export function ReportCard({
   group?: string;
   size?: ReportCardSize;
   loading?: boolean;
+  idle?: boolean;
   plusBadge?: boolean;
   menu?: ReactNode;
   footer?: ReactNode;
@@ -138,7 +140,11 @@ export function ReportCard({
         aria-busy={loading}
       >
         {!result ? (
-          <SectionSpinner />
+          idle ? (
+            <div className="h-32" />
+          ) : (
+            <SectionSpinner />
+          )
         ) : result.empty ? (
           <p className="grid h-32 place-items-center text-center text-meta text-ink-3">
             Nothing logged in this range yet

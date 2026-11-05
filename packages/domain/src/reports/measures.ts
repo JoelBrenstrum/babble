@@ -518,13 +518,13 @@ export const MEASURES: readonly Measure[] = [
     tone: 'solids',
     types: ['solids'],
     splits: SOLIDS_SPLITS,
-    samples: ({ events }) => {
-      const seen = new Set<string>();
+    samples: ({ events, knownFoods }) => {
+      const seen = new Set(knownFoods);
       return [...ofType(events, 'solids')]
         .sort((a, b) => ms(a.startedAt) - ms(b.startedAt))
         .map((event) => {
-          const fresh = event.details.foods.filter((food) => !seen.has(food.trim().toLowerCase()));
-          for (const food of fresh) seen.add(food.trim().toLowerCase());
+          const fresh = event.details.foods.filter((food) => !seen.has(foodKey(food)));
+          for (const food of fresh) seen.add(foodKey(food));
           return { event, at: ms(event.startedAt), value: fresh.length };
         });
     },
@@ -629,9 +629,14 @@ export const MEASURES: readonly Measure[] = [
     tone: 'primary',
     types: ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'],
     splits: COMMON_SPLITS,
-    samples: ({ events }) => events.filter((event) => ms(event.createdAt) - ms(event.startedAt) > HOUR_MS).map(count),
+    samples: ({ events }) =>
+      events
+        .filter((event) => event.source === 'manual' && ms(event.createdAt) - ms(event.startedAt) > HOUR_MS)
+        .map(count),
   }),
 ];
+
+export const foodKey = (food: string): string => food.trim().toLowerCase();
 
 const BY_ID = new Map(MEASURES.map((measure) => [measure.id, measure]));
 

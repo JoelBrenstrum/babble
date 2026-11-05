@@ -85,7 +85,7 @@ export function donutSlices(result: ReportResult, radius: number, thickness: num
     key: series.key,
     label: series.label,
     tone: series.tone,
-    value: Math.max(0, series.total === null ? 0 : series.perDay ? series.total * result.days : series.total),
+    value: Math.max(0, (series.perDay ? series.sum : series.total) ?? 0),
   }));
   const sum = totals.reduce((total, item) => total + item.value, 0);
   if (sum <= 0) return [];
@@ -116,8 +116,7 @@ export function heatIntensity(value: number, max: number): number {
 
 export function donutTotal(result: ReportResult): number {
   return result.series.reduce(
-    (total, series) =>
-      total + Math.max(0, series.total === null ? 0 : series.perDay ? series.total * result.days : series.total),
+    (total, series) => total + Math.max(0, (series.perDay ? series.sum : series.total) ?? 0),
     0,
   );
 }

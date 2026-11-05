@@ -17,6 +17,7 @@ export function ReportCard({
   group = 'logging',
   compact = false,
   loading = false,
+  idle = false,
   plusBadge = false,
   right,
   footer,
@@ -29,6 +30,7 @@ export function ReportCard({
   group?: string;
   compact?: boolean;
   loading?: boolean;
+  idle?: boolean;
   plusBadge?: boolean;
   right?: ReactNode;
   footer?: ReactNode;
@@ -70,7 +72,11 @@ export function ReportCard({
       )}
       <View className="gap-1.5" style={{ opacity: loading ? 0.6 : 1 }}>
         {!result ? (
-          <ActivityIndicator color={spinner} className="py-10" />
+          idle ? (
+            <View className="h-32" />
+          ) : (
+            <ActivityIndicator color={spinner} className="py-10" />
+          )
         ) : result.empty ? (
           <Text className="py-12 text-center font-sans text-meta text-ink-3">Nothing logged in this range yet</Text>
         ) : (

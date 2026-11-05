@@ -1,6 +1,7 @@
 import {
   allowedSplits,
   canAddMeasure,
+  canCompare,
   CHART_TYPE_LABELS,
   CHART_TYPES,
   chartProblem,
@@ -376,12 +377,6 @@ export function ReportBuilder({
     </Section>
   );
 
-  const canCompare =
-    !spec.splitBy &&
-    spec.chart !== 'donut' &&
-    spec.chart !== 'heatmap' &&
-    spec.chart !== 'histogram' &&
-    spec.chart !== 'rhythm';
   const moreSection = (
     <Section title="Options">
       <Switch
@@ -410,7 +405,7 @@ export function ReportBuilder({
       <Switch
         label="Compare with the previous period"
         checked={spec.compare === 'previous'}
-        disabled={!canCompare}
+        disabled={!canCompare(spec)}
         onChange={(on) => onChange({ ...spec, compare: on ? 'previous' : undefined })}
       />
     </Section>

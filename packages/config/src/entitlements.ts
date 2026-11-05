@@ -59,8 +59,13 @@ export const FREE_REPORT_LIMIT = 2;
 
 export const REPORT_LIMIT_MESSAGE = 'A free family can save two reports. Babble Plus saves as many as you like.';
 
+export function reportLimit(billingEnabled: boolean, familyPlan: string): number | null {
+  return familyHasFeature(billingEnabled, familyPlan, 'unlimited_reports') ? null : FREE_REPORT_LIMIT;
+}
+
 export function canSaveReport(billingEnabled: boolean, familyPlan: string, savedReports: number): boolean {
-  return familyHasFeature(billingEnabled, familyPlan, 'unlimited_reports') || savedReports < FREE_REPORT_LIMIT;
+  const limit = reportLimit(billingEnabled, familyPlan);
+  return limit === null || savedReports < limit;
 }
 
 export const CARER_LIMIT_MESSAGE =

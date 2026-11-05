@@ -5,6 +5,7 @@ import {
   canInviteCarer,
   canSaveReport,
   entitlements,
+  reportLimit,
   familyEntitlements,
   toPlan,
   familyHasFeature,
@@ -114,6 +115,12 @@ describe('canSaveReport', () => {
     expect(canSaveReport(true, 'free', 2)).toBe(false);
     expect(canSaveReport(true, 'plus', 20)).toBe(true);
     expect(canSaveReport(false, 'free', 20)).toBe(true);
+  });
+
+  it('names the limit only for a free family with billing on', () => {
+    expect(reportLimit(true, 'free')).toBe(2);
+    expect(reportLimit(true, 'plus')).toBeNull();
+    expect(reportLimit(false, 'free')).toBeNull();
   });
 });
 

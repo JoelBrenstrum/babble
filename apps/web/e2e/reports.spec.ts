@@ -35,6 +35,11 @@ test('a family builds, saves, views and hits the free limit for reports', async 
   await page.screenshot({ path: testInfo.outputPath('report-view.png'), fullPage: true });
 
   await page.getByRole('button', { name: 'Report actions' }).click();
+  await expect(page.getByRole('menu')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('menu')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Report actions' })).toBeFocused();
+  await page.getByRole('button', { name: 'Report actions' }).click();
   await page.getByRole('menuitem', { name: 'Edit' }).click();
   await expect(page).toHaveURL(/\/edit$/);
   await page.getByRole('checkbox', { name: 'Bottles' }).filter({ visible: true }).click();
@@ -64,6 +69,21 @@ test('a family builds, saves, views and hits the free limit for reports', async 
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await page.getByRole('dialog', { name: 'Save report' }).getByRole('button', { name: 'Save' }).click();
   await expect(page).toHaveURL(/\/reports\/[0-9a-f-]{36}$/);
+
+  await page.goto('/reports/new?template=bottle-intake');
+  await expect(page.getByText('Ranges over 30 days are part of Babble Plus.')).toBeVisible();
+  await expect(page.getByText('Loading')).toHaveCount(0);
+
+  await page.goto('/reports/new?template=wake-windows');
+  await expect(page.locator('[aria-busy=true]')).toHaveCount(0);
+  const chart = page.getByRole('img', { name: 'Wake window over time' });
+  await expect(chart).toBeVisible();
+  const points = chart.getByRole('img', { name: /Wake window/ });
+  await points.last().focus();
+  await expect(chart.locator('..').getByText(/^Wake window/)).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('line-hover.png') });
+  await page.keyboard.press('ArrowLeft');
+  await expect(points.nth(-2)).toBeFocused();
 
   await page.goto('/reports');
   await expect(page.getByText('2 of 2 saved · shared with everyone in the family')).toBeVisible();

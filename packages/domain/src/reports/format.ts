@@ -30,6 +30,15 @@ export function axisValue(value: number, unit: ReportUnit, units: Units): string
   return formatReportValue(value, unit, units);
 }
 
+export type DeltaDirection = 'up' | 'down' | 'flat';
+
+export function deltaDirection(current: number | null, previous: number | null): DeltaDirection | null {
+  if (current === null || previous === null) return null;
+  const delta = current - previous;
+  if (Math.abs(delta) < 1e-9) return 'flat';
+  return delta > 0 ? 'up' : 'down';
+}
+
 export function formatDelta(
   current: number | null,
   previous: number | null,

@@ -2,24 +2,29 @@ import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import { HOUR_MS, MINUTE_MS } from '../time/constants';
 import { bucketing, reportDays } from './buckets';
-import { donutSlices, lineGeometry } from './geometry';
-import { reportCsv } from './csv';
+import { donutSlices, donutTotal, heatIntensity, lineGeometry } from './geometry';
+import { csvText, reportCsv } from './csv';
+import { axisValue, deltaDirection, formatDelta } from './format';
 import {
   allowedSplits,
   canAddMeasure,
+  canCompare,
   chartProblem,
   emptySpec,
   reportMeta,
   suggestChart,
   suggestedName,
   toggleMeasure,
+  withBucket,
   withChart,
+  withSplit,
 } from './builder';
 import { measureById, MEASURES } from './measures';
-import { bucketReadout, runReport } from './report';
+import { bucketReadout, reportDayKeyAt, runReport, todayKeyFor } from './report';
+import { passesFilters, splitChoices, splitLabel } from './splits';
 import type { ReportSettings } from './samples';
 import { parseReportSpec, rangeNeedsPlus, type ReportSpec } from './spec';
-import { REPORT_TEMPLATES } from './templates';
+import { REPORT_TEMPLATES, templateByKey, templateName } from './templates';
 
 const settings: ReportSettings = {
   timeZone: 'UTC',
@@ -99,6 +104,18 @@ describe('parseReportSpec', () => {
     expect(rangeNeedsPlus({ preset: 'all' })).toBe(true);
     expect(rangeNeedsPlus({ from: '2026-09-01', to: '2026-09-20' })).toBe(false);
     expect(rangeNeedsPlus({ from: '2026-08-01', to: '2026-09-20' })).toBe(true);
+  });
+
+  it('counts a custom range inclusively, so 30 days is free and 31 needs Plus', () => {
+    expect(rangeNeedsPlus({ from: '2026-09-01', to: '2026-09-30' })).toBe(false);
+    expect(rangeNeedsPlus({ from: '2026-09-01', to: '2026-10-01' })).toBe(true);
+  });
+
+  it('rejects day keys that are not real dates', () => {
+    const base = { version: 1, bucket: 'day', series: [], chart: 'bar' };
+    expect(parseReportSpec({ ...base, range: { from: '2026-00-01', to: '2026-01-05' } })).toBeNull();
+    expect(parseReportSpec({ ...base, range: { from: '2026-02-01', to: '2026-02-30' } })).toBeNull();
+    expect(parseReportSpec({ ...base, range: { from: '2024-02-29', to: '2024-03-01' } })).not.toBeNull();
   });
 });
 
@@ -475,5 +492,178 @@ describe('geometry and csv', () => {
     expect(csv.split('\n')[0]).toBe('Bucket,Bottle volume');
     expect(csv.split('\n')).toHaveLength(8);
     expect(csv).toContain('Wed 7 Oct,100 ml');
+  });
+});
+
+describe('runReport totals', () => {
+  it('averages per day over finished days only, and totals the whole range', () => {
+    const events = [
+      bottle('2026-10-06T12:00:00Z', 100),
+      bottle('2026-10-07T12:00:00Z', 100),
+      bottle(NOW.toISOString(), 60),
+    ];
+    const result = runReport(
+      spec({ range: { from: '2026-10-06', to: '2026-10-08' }, series: [{ measure: 'feeds.bottleMl' }] }),
+      events,
+      TODAY,
+      NOW,
+      settings,
+    );
+    expect(result.days).toBe(2);
+    expect(result.series[0]!.total).toBe(100);
+    expect(result.series[0]!.sum).toBe(260);
+    expect(result.figures.map((figure) => [figure.label, figure.value])).toEqual([
+      ['Per day', '100 ml'],
+      ['Total', '260 ml'],
+      ['Highest day', '100 ml · Tue 6 Oct'],
+    ]);
+  });
+
+  it('counts a food as new only when it was never eaten before, including before the range', () => {
+    const solids = (startedAt: string, foods: string[]) =>
+      makeEvent('solids', { startedAt, details: { foods, amount: null, reaction: null } });
+    const events = [
+      solids('2026-10-06T11:00:00Z', ['Pear', 'Apple']),
+      solids('2026-10-07T11:00:00Z', ['pear ', 'Rice']),
+    ];
+    const run = (foods: string[]) =>
+      runReport(
+        spec({ range: { from: '2026-10-06', to: '2026-10-07' }, series: [{ measure: 'solids.newFoods' }] }),
+        events,
+        TODAY,
+        NOW,
+        settings,
+        { foods },
+      ).series[0]!.values;
+    expect(run([])).toEqual([2, 1]);
+    expect(run(['APPLE', 'rice'])).toEqual([1, 0]);
+  });
+
+  it('leaves imported entries out of the late-logging count', () => {
+    const late = (startedAt: string, source: 'manual' | 'huckleberry_csv') =>
+      bottle(startedAt, 50, null, 'user-1') &&
+      makeEvent('bottle', { startedAt, createdAt: '2026-10-08T00:00:00Z', source });
+    const result = runReport(
+      spec({ range: { from: '2026-10-06', to: '2026-10-07' }, series: [{ measure: 'logging.late' }] }),
+      [late('2026-10-06T12:00:00Z', 'manual'), late('2026-10-07T12:00:00Z', 'huckleberry_csv')],
+      TODAY,
+      NOW,
+      settings,
+    );
+    expect(result.series[0]!.values).toEqual([1, 0]);
+  });
+
+  it('tells the apps which way a comparison moved', () => {
+    const events = [bottle('2026-10-05T12:00:00Z', 100), bottle('2026-10-07T12:00:00Z', 60)];
+    const result = runReport(
+      spec({
+        range: { from: '2026-10-06', to: '2026-10-07' },
+        series: [{ measure: 'feeds.bottleMl' }],
+        compare: 'previous',
+      }),
+      events,
+      TODAY,
+      NOW,
+      settings,
+    );
+    expect(result.figures[0]).toMatchObject({ delta: 'Down 20 ml', direction: 'down' });
+    expect(deltaDirection(5, 5)).toBe('flat');
+    expect(deltaDirection(6, 5)).toBe('up');
+    expect(deltaDirection(null, 5)).toBeNull();
+    expect(formatDelta(5, 5, 'count', 'metric')).toBe('No change');
+    expect(formatDelta(3, 5, 'count', 'metric')).toBe('Down 2');
+  });
+});
+
+describe('csv cells', () => {
+  it('quotes carriage returns and keeps spreadsheet formulas as text', () => {
+    expect(csvText('=SUM(A1)')).toBe("'=SUM(A1)");
+    expect(csvText('+1')).toBe("'+1");
+    expect(csvText('@cmd')).toBe("'@cmd");
+    expect(csvText('line\rbreak')).toBe('"line\rbreak"');
+    expect(csvText('Wed 7 Oct')).toBe('Wed 7 Oct');
+  });
+});
+
+describe('builder helpers', () => {
+  it('allows comparing only unsplit charts that show buckets over time', () => {
+    expect(canCompare(spec({ chart: 'bar' }))).toBe(true);
+    expect(canCompare(spec({ chart: 'bar', splitBy: 'location' }))).toBe(false);
+    for (const chart of ['donut', 'heatmap', 'histogram', 'rhythm'] as const) {
+      expect(canCompare(spec({ chart }))).toBe(false);
+    }
+  });
+
+  it('drops a comparison when splitting and the rolling average when leaving day buckets', () => {
+    const base = spec({ series: [{ measure: 'feeds.bottleMl' }], compare: 'previous', options: { average: 7 } });
+    expect(withSplit(base, 'carer').compare).toBeUndefined();
+    expect(withSplit(base, undefined).compare).toBe('previous');
+    expect(withBucket(base, 'week').options.average).toBeUndefined();
+    expect(withBucket(base, 'day').options.average).toBe(7);
+    expect(withBucket(spec({ series: [{ measure: 'feeds.bottleMl' }], chart: 'heatmap' }), 'week').chart).not.toBe(
+      'heatmap',
+    );
+  });
+
+  it('names templates for a baby and finds them by key', () => {
+    const template = templateByKey('night-naps')!;
+    expect(template.key).toBe('night-naps');
+    expect(templateName({ ...template, name: '{baby} sleeps' }, 'Olive')).toBe('Olive sleeps');
+    expect(templateByKey('nope')).toBeNull();
+  });
+});
+
+describe('splits', () => {
+  it('lists choices with labels and names unknown values', () => {
+    expect(splitChoices('carer', settings)).toEqual([
+      { value: 'user-1', label: 'Joel' },
+      { value: 'user-2', label: 'Sam' },
+    ]);
+    expect(splitChoices('solidsReaction', settings).map((choice) => choice.value)).toContain('liked');
+    expect(splitLabel('carer', 'unknown', settings)).toBe('Unknown carer');
+    expect(splitLabel('device', 'unknown', settings)).toBe('Unknown device');
+    expect(splitLabel('location', 'unknown', settings)).toBe('Not set');
+  });
+
+  it('matches a text filter against notes and foods', () => {
+    const event = makeEvent('solids', {
+      startedAt: '2026-10-07T11:00:00Z',
+      notes: 'First go',
+      details: { foods: ['Pear'], amount: null, reaction: null },
+    });
+    const sample = { event, at: Date.parse(event.startedAt), value: 1 };
+    expect(passesFilters(sample, [{ key: 'text', text: 'PEAR' }], settings)).toBe(true);
+    expect(passesFilters(sample, [{ key: 'text', text: 'first go' }], settings)).toBe(true);
+    expect(passesFilters(sample, [{ key: 'text', text: 'banana' }], settings)).toBe(false);
+  });
+});
+
+describe('formatting and geometry helpers', () => {
+  it('shortens axis values and scales heat cells', () => {
+    expect(axisValue(90 * MINUTE_MS, 'h', 'metric')).toBe('1.5h');
+    expect(axisValue(20 * MINUTE_MS, 'h', 'metric')).toBe('20m');
+    expect(axisValue(5 * MINUTE_MS, 'min', 'metric')).toBe('5m');
+    expect(axisValue(120, 'ml', 'metric')).toBe('120 ml');
+    expect(heatIntensity(0, 10)).toBe(0);
+    expect(heatIntensity(10, 10)).toBe(1);
+    expect(heatIntensity(5, 10)).toBeCloseTo(0.575);
+  });
+
+  it('totals donut slices from the whole range and reads bucket days', () => {
+    const result = runReport(
+      spec({
+        range: { from: '2026-10-06', to: '2026-10-07' },
+        series: [{ measure: 'feeds.bottleMl' }],
+        chart: 'donut',
+      }),
+      [bottle('2026-10-06T12:00:00Z', 100), bottle('2026-10-07T12:00:00Z', 50)],
+      TODAY,
+      NOW,
+      settings,
+    );
+    expect(donutTotal(result)).toBe(150);
+    expect(reportDayKeyAt(result, 1)).toBe('2026-10-07');
+    expect(reportDayKeyAt(result, 9)).toBeNull();
+    expect(todayKeyFor(new Date('2026-10-08T01:00:00Z'), { timeZone: 'UTC', dayStartMinutes: 120 })).toBe('2026-10-07');
   });
 });

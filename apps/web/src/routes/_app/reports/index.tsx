@@ -1,5 +1,5 @@
 import { useNow, useReports } from '@babble/api/react';
-import { canSaveReport, FREE_REPORT_LIMIT } from '@babble/config';
+import { reportLimit } from '@babble/config';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ChartSpline, Plus } from 'lucide-react';
 import { buttonClassName } from '#/components/ui/button';
@@ -17,11 +17,11 @@ function ReportsPage() {
   const now = useNow(60_000);
   const reports = useReports(babble.client, family.id);
   const saved = reports.data ?? [];
-  const limited =
-    babble.config.billingEnabled && !canSaveReport(babble.config.billingEnabled, family.plan, Number.MAX_SAFE_INTEGER);
-  const meta = limited
-    ? `${saved.length} of ${FREE_REPORT_LIMIT} saved · shared with everyone in the family`
-    : 'Shared with everyone in the family';
+  const limit = reportLimit(babble.config.billingEnabled, family.plan);
+  const meta =
+    limit === null
+      ? 'Shared with everyone in the family'
+      : `${saved.length} of ${limit} saved · shared with everyone in the family`;
 
   return (
     <div className="flex flex-col gap-8">

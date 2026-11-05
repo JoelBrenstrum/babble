@@ -2,6 +2,7 @@ import { toBabbleError } from '@babble/api';
 import { useNow, useReportData, useReportMutations, useReports } from '@babble/api/react';
 import { familyHasFeature } from '@babble/config';
 import {
+  canCompare,
   rangeNeedsPlus,
   REPORT_RANGE_LABELS,
   REPORT_RANGE_PRESETS,
@@ -85,7 +86,6 @@ function ReportView() {
     );
   }
   const group = specMeasures(spec)[0]?.group ?? 'logging';
-  const canCompare = !spec.splitBy && !['donut', 'heatmap', 'histogram', 'rhythm'].includes(spec.chart);
 
   const run = async (action: () => Promise<unknown>, done?: () => void) => {
     setError(null);
@@ -150,6 +150,7 @@ function ReportView() {
       </div>
       <ReportCard
         result={rangeLocked ? null : data.result}
+        idle={rangeLocked}
         units={data.settings.units}
         title={report.name}
         meta={reportMeta(spec)}
@@ -162,7 +163,7 @@ function ReportView() {
         footer={
           rangeLocked ? (
             <p className="text-center text-meta text-ink-3">Ranges over 30 days are part of Babble Plus.</p>
-          ) : canCompare ? (
+          ) : canCompare(spec) ? (
             <label className="flex h-10 items-center justify-between gap-3 text-body">
               Compare with the previous{' '}
               {'preset' in spec.range ? REPORT_RANGE_LABELS[spec.range.preset].toLowerCase() : 'period'}

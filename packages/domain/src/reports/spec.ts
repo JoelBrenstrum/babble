@@ -138,7 +138,11 @@ export const DEFAULT_SPEC: ReportSpec = {
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null;
 const oneOf = <T extends string>(list: readonly T[], value: unknown): value is T =>
   typeof value === 'string' && (list as readonly string[]).includes(value);
-const isDayKey = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+const isDayKey = (value: unknown): value is string => {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = Date.parse(`${value}T00:00:00Z`);
+  return !Number.isNaN(parsed) && new Date(parsed).toISOString().slice(0, 10) === value;
+};
 
 function parseRange(value: unknown): ReportRange | null {
   if (!isRecord(value)) return null;
@@ -195,9 +199,12 @@ export function parseReportSpec(value: unknown): ReportSpec | null {
   return spec;
 }
 
-export const FREE_RANGE_DAYS = 31;
+export const FREE_RANGE_DAYS = 30;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function rangeNeedsPlus(range: ReportRange): boolean {
   if ('preset' in range) return range.preset === '90d' || range.preset === '6m' || range.preset === 'all';
-  return Date.parse(range.to) - Date.parse(range.from) >= FREE_RANGE_DAYS * 24 * 60 * 60 * 1000;
+  const days = Math.round((Date.parse(range.to) - Date.parse(range.from)) / DAY_MS) + 1;
+  return days > FREE_RANGE_DAYS;
 }

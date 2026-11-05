@@ -2,6 +2,7 @@ import { toBabbleError } from '@babble/api';
 import { useNow, useReportData, useReportMutations, useReports } from '@babble/api/react';
 import { familyHasFeature } from '@babble/config';
 import {
+  canCompare,
   rangeNeedsPlus,
   REPORT_RANGE_PRESETS,
   reportMeta,
@@ -81,7 +82,6 @@ function ReportContent({ id, baby, family }: { id: string } & Pick<ReadyState, '
     );
   }
   const group = specMeasures(spec)[0]?.group ?? 'logging';
-  const canCompare = !spec.splitBy && !['donut', 'heatmap', 'histogram', 'rhythm'].includes(spec.chart);
 
   const confirmDelete = () =>
     Alert.alert(`Delete "${report.name}"?`, 'It will be removed for everyone in the family.', [
@@ -126,6 +126,7 @@ function ReportContent({ id, baby, family }: { id: string } & Pick<ReadyState, '
         />
         <ReportCard
           result={rangeLocked ? null : data.result}
+          idle={rangeLocked}
           units={data.settings.units}
           title={report.name}
           meta={reportMeta(spec)}
@@ -137,7 +138,7 @@ function ReportContent({ id, baby, family }: { id: string } & Pick<ReadyState, '
               <Text className="text-center font-sans text-meta text-ink-3">
                 Ranges over 30 days are part of Babble Plus.
               </Text>
-            ) : canCompare ? (
+            ) : canCompare(spec) ? (
               <CheckRow
                 label="Compare with the previous period"
                 value={spec.compare === 'previous'}

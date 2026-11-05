@@ -38,7 +38,7 @@ export type { ReportSettings } from './samples';
 export { hourLabel, reportDays, WEEKDAY_LABELS } from './buckets';
 export type { BucketDef } from './buckets';
 export { splitChoices, splitLabel } from './splits';
-export { axisValue, formatDelta, formatReportValue } from './format';
+export { axisValue, deltaDirection, formatDelta, formatReportValue, type DeltaDirection } from './format';
 export {
   bucketReadout,
   reportDayKeyAt,
@@ -49,6 +49,7 @@ export {
   type ReportDistribution,
   type ReportFigure,
   type ReportGrid,
+  type ReportHistory,
   type ReportResult,
   type ReportSeriesResult,
   type RhythmBlock,
@@ -57,6 +58,7 @@ export {
 export {
   allowedSplits,
   canAddMeasure,
+  canCompare,
   chartFits,
   chartProblem,
   emptySpec,
@@ -81,4 +83,4 @@ export {
   type LineGeometry,
   type LinePoint,
 } from './geometry';
-export { reportCsv } from './csv';
+export { csvText, reportCsv } from './csv';

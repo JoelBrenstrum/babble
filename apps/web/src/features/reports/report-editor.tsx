@@ -70,6 +70,7 @@ export function ReportEditor({
   const preview = (
     <ReportCard
       result={spec.series.length === 0 ? null : data.result}
+      idle={spec.series.length === 0 || rangeLocked}
       units={data.settings.units}
       title={name}
       meta={reportMeta(spec)}

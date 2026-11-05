@@ -99,6 +99,12 @@ export function allowedSplits(spec: ReportSpec): SplitKey[] {
   return [...measures[0]!.splits];
 }
 
+const NO_COMPARE_CHARTS: readonly ChartType[] = ['donut', 'heatmap', 'histogram', 'rhythm'];
+
+export function canCompare(spec: ReportSpec): boolean {
+  return !spec.splitBy && !NO_COMPARE_CHARTS.includes(spec.chart);
+}
+
 export function withSplit(spec: ReportSpec, splitBy: SplitKey | undefined): ReportSpec {
   const next: ReportSpec = { ...spec, splitBy, compare: splitBy ? undefined : spec.compare };
   return chartProblem(next, next.chart) ? withChart(next, suggestChart(next)) : next;

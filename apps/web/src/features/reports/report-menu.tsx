@@ -11,17 +11,28 @@ export interface MenuItem {
 export function ReportMenu({ label, items, children }: { label: string; items: MenuItem[]; children?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
+  const trigger = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (!open) return;
-    const close = (event: MouseEvent) => {
+    const closeOutside = (event: PointerEvent) => {
       if (!root.current?.contains(event.target as Node)) setOpen(false);
     };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      setOpen(false);
+      trigger.current?.focus();
+    };
+    document.addEventListener('pointerdown', closeOutside);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeOutside);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
   }, [open]);
   return (
     <div ref={root} className="relative">
       <button
+        ref={trigger}
         type="button"
         aria-label={label}
         aria-haspopup="menu"

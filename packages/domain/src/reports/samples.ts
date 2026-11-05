@@ -23,6 +23,7 @@ export interface SampleContext {
   settings: ReportSettings;
   range: TimeWindow;
   nights: TimeWindow[];
+  knownFoods: ReadonlySet<string>;
 }
 
 export interface Interval {

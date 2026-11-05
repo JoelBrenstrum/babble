@@ -93,9 +93,16 @@ export function subscribeToReports(client: BabbleClient, familyId: string, onCha
     .channel(`reports:${familyId}:${subscriptionCount}`)
     .on(
       'postgres_changes',
-      { event: '*', schema: 'public', table: 'reports', filter: `family_id=eq.${familyId}` },
+      { event: 'INSERT', schema: 'public', table: 'reports', filter: `family_id=eq.${familyId}` },
       () => onChange(),
     )
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'reports', filter: `family_id=eq.${familyId}` },
+      () => onChange(),
+    )
+    // A deleted row carries only its id, so a family filter would never match it.
+    .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'reports' }, () => onChange())
     .subscribe();
   return () => {
     void client.removeChannel(channel);

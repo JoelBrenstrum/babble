@@ -14,10 +14,12 @@ import {
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useMemo } from 'react';
 import type { BabbleClient } from '../client';
-import { babySettingsQuery, eventsBetweenQuery, queryKeys, reportsQuery } from '../queries';
+import { babySettingsQuery, eventsBetweenQuery, foodsBeforeQuery, queryKeys, reportsQuery } from '../queries';
 import { createReport, deleteReport, subscribeToReports, updateReport, type SavedReport } from '../reports';
 import type { BabyRow, BabySettings, Family } from '../types';
 import { trackingSettingsFrom } from './tracking-settings';
+
+const NEW_FOODS_MEASURE = 'solids.newFoods';
 
 export function useReports(client: BabbleClient, familyId: string) {
   const queryClient = useQueryClient();
@@ -113,11 +115,23 @@ export function useReportData(
     enabled,
     placeholderData: keepPreviousData,
   });
-  const result = useMemo(
-    () => (enabled && events.data && babySettings ? runReport(spec, events.data, todayKey, now, settings) : null),
-    [enabled, events.data, babySettings, spec, todayKey, now, settings],
+  const wantsFoodHistory = enabled && spec.series.some((series) => series.measure === NEW_FOODS_MEASURE);
+  const foods = useQuery({
+    ...foodsBeforeQuery(client, baby.id, from),
+    enabled: wantsFoodHistory,
+    placeholderData: keepPreviousData,
+  });
+  const history = useMemo(
+    () => ({ foods: wantsFoodHistory ? (foods.data ?? []) : [] }),
+    [wantsFoodHistory, foods.data],
   );
-  return { result, settings, loading: enabled && (events.isPending || events.isPlaceholderData), error: events.error };
+  const ready = Boolean(events.data && babySettings && (!wantsFoodHistory || foods.data));
+  const result = useMemo(
+    () => (enabled && ready ? runReport(spec, events.data!, todayKey, now, settings, history) : null),
+    [enabled, ready, events.data, spec, todayKey, now, settings, history],
+  );
+  const loading = enabled && (events.isPending || events.isPlaceholderData || (wantsFoodHistory && foods.isPending));
+  return { result, settings, loading, error: events.error ?? foods.error };
 }
 
 export type { SavedReport };

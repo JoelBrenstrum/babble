@@ -7,13 +7,6 @@ interface ToneClasses {
   text: string;
 }
 
-const tone = (name: string): ToneClasses => ({
-  bg: `bg-${name}`,
-  fill: `fill-${name}`,
-  stroke: `stroke-${name}`,
-  text: `text-${name}`,
-});
-
 const BASE: Record<string, ToneClasses> = {
   sleep: { bg: 'bg-sleep', fill: 'fill-sleep', stroke: 'stroke-sleep', text: 'text-sleep' },
   'feed-left': { bg: 'bg-feed-left', fill: 'fill-feed-left', stroke: 'stroke-feed-left', text: 'text-feed-left' },
@@ -37,15 +30,30 @@ const BASE: Record<string, ToneClasses> = {
   'person-2': { bg: 'bg-person-2', fill: 'fill-person-2', stroke: 'stroke-person-2', text: 'text-person-2' },
   'person-3': { bg: 'bg-person-3', fill: 'fill-person-3', stroke: 'stroke-person-3', text: 'text-person-3' },
   'person-4': { bg: 'bg-person-4', fill: 'fill-person-4', stroke: 'stroke-person-4', text: 'text-person-4' },
-  'poo-yellow': tone('poo-yellow'),
-  'poo-mustard': tone('poo-mustard'),
-  'poo-green': tone('poo-green'),
-  'poo-dark-green': tone('poo-dark-green'),
-  'poo-brown': tone('poo-brown'),
-  'poo-orange': tone('poo-orange'),
-  'poo-black': tone('poo-black'),
-  'poo-red': tone('poo-red'),
-  'poo-white-grey': tone('poo-white-grey'),
+  'poo-yellow': { bg: 'bg-poo-yellow', fill: 'fill-poo-yellow', stroke: 'stroke-poo-yellow', text: 'text-poo-yellow' },
+  'poo-mustard': {
+    bg: 'bg-poo-mustard',
+    fill: 'fill-poo-mustard',
+    stroke: 'stroke-poo-mustard',
+    text: 'text-poo-mustard',
+  },
+  'poo-green': { bg: 'bg-poo-green', fill: 'fill-poo-green', stroke: 'stroke-poo-green', text: 'text-poo-green' },
+  'poo-dark-green': {
+    bg: 'bg-poo-dark-green',
+    fill: 'fill-poo-dark-green',
+    stroke: 'stroke-poo-dark-green',
+    text: 'text-poo-dark-green',
+  },
+  'poo-brown': { bg: 'bg-poo-brown', fill: 'fill-poo-brown', stroke: 'stroke-poo-brown', text: 'text-poo-brown' },
+  'poo-orange': { bg: 'bg-poo-orange', fill: 'fill-poo-orange', stroke: 'stroke-poo-orange', text: 'text-poo-orange' },
+  'poo-black': { bg: 'bg-poo-black', fill: 'fill-poo-black', stroke: 'stroke-poo-black', text: 'text-poo-black' },
+  'poo-red': { bg: 'bg-poo-red', fill: 'fill-poo-red', stroke: 'stroke-poo-red', text: 'text-poo-red' },
+  'poo-white-grey': {
+    bg: 'bg-poo-white-grey',
+    fill: 'fill-poo-white-grey',
+    stroke: 'stroke-poo-white-grey',
+    text: 'text-poo-white-grey',
+  },
 };
 
 export interface ToneLook {

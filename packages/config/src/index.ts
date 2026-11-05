@@ -14,6 +14,7 @@ export {
   planSummary,
   plusPitch,
   REPORT_LIMIT_MESSAGE,
+  reportLimit,
   toPlan,
   type Entitlements,
   type Feature,

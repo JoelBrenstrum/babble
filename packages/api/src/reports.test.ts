@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { createReport, listReports, reportNameError, rowToReport, type ReportRow } from './reports';
+import { describe, expect, it, vi } from 'vitest';
+import { createReport, listReports, reportNameError, rowToReport, subscribeToReports, type ReportRow } from './reports';
 import { fakeClient } from './test-utils';
 
 const row = (overrides: Partial<ReportRow> = {}): ReportRow => ({
@@ -64,5 +64,25 @@ describe('createReport', () => {
       code: 'invalid_input',
     });
     expect(requests).toHaveLength(0);
+  });
+});
+
+describe('subscribeToReports', () => {
+  it('filters inserts and updates by family but listens to every delete', () => {
+    const listeners: Record<string, unknown>[] = [];
+    const channel = {
+      on: (_: string, filter: Record<string, unknown>) => (listeners.push(filter), channel),
+      subscribe: () => channel,
+    };
+    const client = {
+      channel: () => channel,
+      removeChannel: async () => 'ok',
+    } as unknown as Parameters<typeof subscribeToReports>[0];
+    subscribeToReports(client, 'family-1', vi.fn());
+    expect(listeners).toEqual([
+      { event: 'INSERT', schema: 'public', table: 'reports', filter: 'family_id=eq.family-1' },
+      { event: 'UPDATE', schema: 'public', table: 'reports', filter: 'family_id=eq.family-1' },
+      { event: 'DELETE', schema: 'public', table: 'reports' },
+    ]);
   });
 });

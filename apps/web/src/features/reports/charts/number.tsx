@@ -11,11 +11,12 @@ export function NumberChart({ result, units }: { result: ReportResult; units: Un
   const geometry = lineGeometry(result, SPARK, false);
   const look = toneLook(series.tone);
   const delta = figure?.delta ?? null;
-  const tone = delta?.startsWith('Up')
-    ? 'bg-success-soft text-on-success'
-    : delta?.startsWith('Down')
-      ? 'bg-caution-soft text-on-caution'
-      : 'bg-surface text-ink-2';
+  const tone =
+    figure?.direction === 'up'
+      ? 'bg-success-soft text-on-success'
+      : figure?.direction === 'down'
+        ? 'bg-caution-soft text-on-caution'
+        : 'bg-surface text-ink-2';
   return (
     <div className="flex flex-wrap items-end justify-between gap-4">
       <div className="flex flex-col gap-1">

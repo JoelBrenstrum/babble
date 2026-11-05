@@ -4,8 +4,8 @@ import { dayKeyFor, dayWindow, shiftDay } from '../time/local-time';
 import type { TimeWindow } from '../time/windows';
 import { aggregateValues, cumulative, rollingAverage } from './aggregate';
 import { bucketing, dayTitle, previousDays, reportDays, type BucketDef, type Bucketing } from './buckets';
-import { formatDelta, formatReportValue } from './format';
-import { measureById, type Measure, type ReportUnit } from './measures';
+import { deltaDirection, formatDelta, formatReportValue, type DeltaDirection } from './format';
+import { foodKey, measureById, type Measure, type ReportUnit } from './measures';
 import { nightsOver, type ReportSettings, type Sample } from './samples';
 import { passesFilters, splitLabel, splitValues, SPLIT_ORDER } from './splits';
 import type { Aggregate, ReportSpec, SplitKey } from './spec';
@@ -20,6 +20,7 @@ export interface ReportSeriesResult {
   values: (number | null)[];
   average?: (number | null)[];
   total: number | null;
+  sum: number | null;
   count: number;
 }
 
@@ -62,6 +63,11 @@ export interface ReportFigure {
   label: string;
   value: string;
   delta?: string | null;
+  direction?: DeltaDirection | null;
+}
+
+export interface ReportHistory {
+  foods: readonly string[];
 }
 
 export interface ReportResult {
@@ -122,9 +128,10 @@ function collectSamples(
   settings: ReportSettings,
   range: TimeWindow,
   nights: TimeWindow[],
+  knownFoods: ReadonlySet<string>,
 ): Sample[] {
   const relevant = events.filter((event) => !event.deletedAt && measure.types.includes(event.type));
-  const samples = measure.samples({ events: relevant, now, settings, range, nights });
+  const samples = measure.samples({ events: relevant, now, settings, range, nights, knownFoods });
   return samples.filter(
     (sample) =>
       (sample.end ?? sample.at) >= range.start.getTime() &&
@@ -202,29 +209,40 @@ function bucketValues(plan: SeriesPlan, buckets: Bucketing, perDayScale: boolean
   });
 }
 
-function seriesTotal(plan: SeriesPlan, buckets: Bucketing, days: number): number | null {
+function sumWithin(plan: SeriesPlan, buckets: Bucketing): number {
+  const inRange = plan.samples.flatMap((sample) =>
+    plan.measure.interval && sample.end !== undefined
+      ? buckets
+          .splitInterval({ start: sample.at, end: sample.end })
+          .map((piece) => piece.interval.end - piece.interval.start)
+      : buckets.indexOfInstant(sample.at) >= 0
+        ? [sample.value]
+        : [],
+  );
+  return aggregateValues(inRange, plan.aggregate) ?? 0;
+}
+
+function seriesTotals(
+  plan: SeriesPlan,
+  buckets: Bucketing,
+  finished: Bucketing,
+  days: number,
+): { total: number | null; sum: number | null } {
   if (plan.aggregate === 'sum' || plan.aggregate === 'count') {
-    const inRange = plan.samples.flatMap((sample) =>
-      plan.measure.interval && sample.end !== undefined
-        ? buckets
-            .splitInterval({ start: sample.at, end: sample.end })
-            .map((piece) => piece.interval.end - piece.interval.start)
-        : buckets.indexOfInstant(sample.at) >= 0
-          ? [sample.value]
-          : [],
-    );
-    const total = aggregateValues(inRange, plan.aggregate) ?? 0;
-    return plan.measure.perDay && days > 0 ? total / days : total;
+    const sum = sumWithin(plan, buckets);
+    const total = plan.measure.perDay && days > 0 ? sumWithin(plan, finished) / days : sum;
+    return { total, sum };
   }
   const values = plan.samples.filter((sample) => buckets.indexOfInstant(sample.at) >= 0).map((sample) => sample.value);
   const ordered = [...plan.samples].sort((a, b) => a.at - b.at);
-  return aggregateValues(values, plan.aggregate, ordered.at(-1)?.value);
+  return { total: aggregateValues(values, plan.aggregate, ordered.at(-1)?.value), sum: null };
 }
 
 function buildSeries(
   plans: readonly SeriesPlan[],
   buckets: Bucketing,
   spec: ReportSpec,
+  finished: Bucketing,
   days: number,
   perDayScale: boolean,
 ): { defs: BucketDef[]; series: ReportSeriesResult[] } {
@@ -251,7 +269,7 @@ function buildSeries(
       perDay: plan.measure.perDay && plan.aggregate === 'sum',
       values,
       ...(average ? { average } : {}),
-      total: seriesTotal(plan, buckets, days),
+      ...seriesTotals(plan, buckets, finished, days),
       count: plan.samples.filter((sample) => buckets.indexOfInstant(sample.at) >= 0 || plan.measure.interval).length,
     };
   });
@@ -368,13 +386,13 @@ function figuresFor(result: Omit<ReportResult, 'figures'>, settings: ReportSetti
       label,
       value: format(series.total, series.unit),
       delta: compared ? formatDelta(series.total, compared.total, series.unit, settings.units) : null,
+      direction: compared ? deltaDirection(series.total, compared.total) : null,
     });
   }
   if (single) {
     const series = result.series[0]!;
     if (series.perDay && result.days > 1) {
-      const total = series.total === null ? null : series.total * result.days;
-      figures.push({ label: 'Total', value: format(total, series.unit) });
+      figures.push({ label: 'Total', value: format(series.sum, series.unit) });
     }
     const highest = series.values.reduce<{ value: number; index: number } | null>(
       (best, value, index) => (value !== null && (!best || value > best.value) ? { value, index } : best),
@@ -434,8 +452,10 @@ export function runReport(
   todayKey: string,
   now: Date,
   settings: ReportSettings,
+  history: ReportHistory = { foods: [] },
 ): ReportResult {
   const dayKeys = reportDays(spec.range, todayKey, settings.birthDate);
+  const knownFoods = new Set(history.foods.map(foodKey));
   const measures = spec.series
     .map((series) => ({ series, measure: measureById(series.measure) }))
     .filter((item): item is { series: ReportSpec['series'][number]; measure: Measure } => item.measure !== null);
@@ -453,12 +473,14 @@ export function runReport(
       tone: measure.tone,
       measure,
       aggregate: series.aggregate ?? measure.aggregate,
-      samples: collectSamples(spec, measure, events, now, settings, range, nights),
+      samples: collectSamples(spec, measure, events, now, settings, range, nights, knownFoods),
     }));
     const plans = spec.splitBy && basePlans[0] ? splitSeries(spec, basePlans[0], settings) : basePlans;
     const buckets = bucketing(spec.bucket, keys, settings);
-    const finishedDays = keys.filter((key) => key < todayKey).length || keys.length;
-    const built = buildSeries(plans, buckets, spec, finishedDays, spec.bucket !== 'day');
+    const finishedKeys = keys.filter((key) => key < todayKey);
+    const finished = finishedKeys.length ? bucketing('day', finishedKeys, settings) : buckets;
+    const finishedDays = finishedKeys.length || keys.length;
+    const built = buildSeries(plans, buckets, spec, finished, finishedDays, spec.bucket !== 'day');
     return { keys, plans, buckets, series: built.series, defs: built.defs, finishedDays };
   };
 
