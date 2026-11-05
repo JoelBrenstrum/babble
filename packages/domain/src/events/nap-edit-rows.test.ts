@@ -118,6 +118,20 @@ describe('addWakeUpRow', () => {
   it('does nothing when there is no sleep to split', () => {
     expect(addWakeUpRow([{ kind: 'asleep', durationMs: 0 }])).toEqual([{ kind: 'asleep', durationMs: 0 }]);
   });
+
+  it('keeps the end of a nap that does not fall on whole minutes', () => {
+    const startedAt = '2026-10-06T09:00:17.250Z';
+    const endedAt = '2026-10-06T10:31:44.901Z';
+    const plain = napToEditRows(startedAt, endedAt, []);
+    expect(editRowsToNap(startedAt, addWakeUpRow(plain)).endedAt).toBe(endedAt);
+    const stretches = [
+      { startedAt, endedAt: '2026-10-06T09:20:03.007Z' },
+      { startedAt: '2026-10-06T09:26:41.333Z', endedAt },
+    ];
+    const split = addWakeUpRow(napToEditRows(startedAt, endedAt, stretches));
+    expect(split.filter((row) => row.kind === 'awake')).toHaveLength(2);
+    expect(editRowsToNap(startedAt, split).endedAt).toBe(endedAt);
+  });
 });
 
 describe('removeWakeUpRow', () => {
