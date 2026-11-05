@@ -28,18 +28,18 @@ export const Route = createFileRoute('/_app')({
   beforeLoad: async ({ context, location }) => {
     const { session } = (await context.babble.client.auth.getSession()).data;
     await queryCacheRestored();
+    const active = {
+      activeFamilyId: readStorage(storageKeys.activeFamily),
+      activeBabyId: readStorage(storageKeys.activeBaby),
+    };
+    // Saved families can predate onboarding finishing, so only a cache that opens the app skips the network.
     const families = session
       ? await cachedThenCurrent(context.queryClient, {
           ...familiesQuery(context.babble.client),
-          usable: (cached) => cached.length > 0,
+          usable: (cached) => resolveOnboarding({ signedIn: true, families: cached, ...active }).step === 'ready',
         })
       : [];
-    const state = resolveOnboarding({
-      signedIn: Boolean(session),
-      families,
-      activeFamilyId: readStorage(storageKeys.activeFamily),
-      activeBabyId: readStorage(storageKeys.activeBaby),
-    });
+    const state = resolveOnboarding({ signedIn: Boolean(session), families, ...active });
     if (!session || state.step === 'sign-in') {
       if (location.pathname === '/chair' && context.babble.config.deviceSignInEnabled) {
         throw redirect({ to: '/device-sign-in', search: { to: location.href } });
