@@ -27,7 +27,7 @@ babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding an
 | 7     | [Stats](stages/07-stats.md)                           | Today / 7d / 30d / All averages and charts, WHO growth percentiles with point readouts. Built.                           |
 | 8     | [Plus billing](stages/08-plus-billing.md)             | Stripe subscriptions on the web at NZ$10/month or NZ$80/year, then App Store and Play. Planned.                          |
 | 9     | [Offline mode](stages/09-offline.md)                  | Persisted cache, a device outbox for taps and logs, sync with tap-time accuracy. Planned.                                |
-| 10    | [Reports](stages/10-reports.md)                       | A report builder with nine chart types and saved reports (2 on free). Built on web, viewer on mobile; dashboard planned. |
+| 10    | [Reports](stages/10-reports.md)                       | A report builder with nine chart types and saved reports (2 on free). Built on web with the dashboard; viewer on mobile. |
 
 ### Built beyond the stages
 

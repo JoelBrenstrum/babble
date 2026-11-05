@@ -10,7 +10,9 @@ Built on branch `feat/reports`, phases 1 to 4 and the mobile viewer. The Claude 
 - [x] **Web**: `/reports` (templates and saved cards with live charts), `/reports/new`, `/reports/$id` (range override, compare switch, a menu with edit, duplicate, CSV and delete) and `/reports/$id/edit`. The builder has the seven sections on desktop and five tabs on phones. All nine chart types. Saving shows the free limit with "See Plus" and "Or replace one". Reports is in the desktop sidebar and linked from Stats. Playwright covers the whole flow on phone and desktop.
 - [x] **Mobile**: the Reports screen (templates and saved cards), creating a report from a template, and the viewer with the range picker, compare switch and delete. All nine chart types with `react-native-svg`. Reports is linked from Stats.
 - [ ] **Mobile builder**: measures, splits and filters are edited on the web for now; the phone-sheet design is ready.
-- [ ] **Dashboard** (phase 6), export as PNG, comparing two babies, public links.
+- [x] **Dashboard** (web, branch `feat/dashboard`): Stats opens with the family's dashboard, stored as one JSON layout per family in `dashboards`. Cards are prebuilt (the stats, growth and Patterns cards), saved reports, or a short note, at S (one column) or M (two). "Arrange" shows move, size and remove controls and an "Add card" tile; the layout saves on every change and syncs over realtime. Empty prebuilt cards hide outside Arrange. The default layout is the stats page as it was.
+- [x] **Guide**: a public page at `/guide` explaining reports (steps, every measure and split, the nine chart types, templates, saving and the free limit) and the dashboard. The welcome page lists Reports and Dashboard with links to it, and Reports and Stats link to it in the app.
+- [ ] Dashboard on mobile (the Stats tab still shows the fixed cards), export as PNG, comparing two babies, public links.
 
 ## Goal
 
@@ -102,16 +104,15 @@ Templates expressed as specs, under "Start from" in the builder and on the empty
 - **Weight gain** — bar, gain per week, all.
 - **Last 14 days** — rhythm, sleep and feeds, 14d.
 
-## Dashboard (phase 4)
+## Dashboard
 
 A per-family grid of cards, shared with every carer. Cards are either **prebuilt** (today's stats cards: sleep, feeds, breast time, nappies, pump, growth, and the Patterns cards) or **custom** (a saved report). Each card has a size (1 or 2 columns, on desktop up to 3) and a position; the grid stacks to one column on phones. "Add card" lists prebuilt cards and saved reports; the dashboard can also hold a short text card for notes ("Started formula top-ups 12 Oct"). Reordering is drag on desktop and a move sheet on phone. The dashboard replaces the top of Stats: the range picker stays and applies to prebuilt cards, while custom cards use their own range.
 
 ```
-dashboards       id, family_id, name, created_at
-dashboard_cards  id, dashboard_id, kind (prebuilt|report|text), ref (card key or report id), body?, size, position
+dashboards  family_id (pk), layout jsonb, updated_at
 ```
 
-One dashboard per family to start; the table allows more later. Free families keep the dashboard but can only pin their 2 saved reports.
+One layout per family, as JSON: `{ version: 1, cards: [{ id, kind: prebuilt|report|text, card | reportId | body, size: s|m }] }`. One row keeps reordering a single write and the parser drops anything it can't read. Free families keep the dashboard but can only pin their 2 saved reports.
 
 ## Build
 

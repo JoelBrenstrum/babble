@@ -13,12 +13,14 @@ export function SavedReportCard({
   family,
   report,
   now,
+  size = 's',
 }: {
   client: BabbleClient;
   baby: Pick<BabyRow, 'id' | 'timezone' | 'day_start_minutes' | 'birth_date'>;
   family: Family;
   report: SavedReport;
   now: Date;
+  size?: 's' | 'm';
 }) {
   const data = useReportData(client, baby, family, report.spec, now);
   const group = specMeasures(report.spec)[0]?.group ?? 'logging';
@@ -36,7 +38,7 @@ export function SavedReportCard({
         meta={reportMeta(report.spec)}
         icon={GROUP_ICONS[group]}
         group={group}
-        size="s"
+        size={size}
         loading={data.loading}
         className="h-full transition-colors hover:bg-surface"
         menu={author ? <Avatar name={author} className="size-7 text-caption" /> : undefined}

@@ -13,20 +13,31 @@ import {
 import { sampleStatsReport } from '@babble/api/fixtures';
 import { familyHasFeature } from '@babble/config';
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router';
-import { ChartColumn, ChartSpline, ChevronRight } from 'lucide-react';
+import { ChartColumn, ChartSpline, ChevronRight, LayoutGrid } from 'lucide-react';
 import { cn } from '#/lib/cn';
+import { Button } from '#/components/ui/button';
 import { EmptyState } from '#/components/ui/empty-state';
 import { Segmented } from '#/components/ui/segmented';
 import { PageSpinner } from '#/components/ui/spinner';
-import { GrowthCard } from '#/features/stats/growth-card';
+import { AddCardSheet } from '#/features/dashboard/add-card-sheet';
+import { Dashboard, type DashboardSources } from '#/features/dashboard/dashboard';
 import { StatsCards } from '#/features/stats/stats-cards';
 import { WeeklySummaryCard } from '#/features/stats/weekly-summary';
 import { patternCards, patternsOf, type Patterns } from '#/features/stats/patterns';
 import { PlusTeaser } from '#/features/plus-teaser';
 import { PlusMask } from '#/features/plus-mask';
-import { useInsights, useNow, useSettled, useUnits } from '@babble/api/react';
+import {
+  useDashboard,
+  useInsights,
+  useNow,
+  useReports,
+  useSaveDashboard,
+  useSettled,
+  useUnits,
+} from '@babble/api/react';
+import { addCard, pruneReports } from '@babble/domain';
 
 export const Route = createFileRoute('/_app/stats')({
   validateSearch: (search: Record<string, unknown>): { range?: StatsRange } => ({
@@ -55,6 +66,12 @@ function StatsPage() {
   const { todayKey, keys } = statsInputs(shownRange, baby, now);
   const growth = useQuery(eventListQuery(babble.client, baby.id, ['growth']));
   const sample = useMemo(() => (sampleOnly ? sampleStatsReport(now) : null), [sampleOnly, now]);
+  const dashboard = useDashboard(babble.client, family.id);
+  const saveDashboard = useSaveDashboard(babble.client, family.id);
+  const savedReports = useReports(babble.client, family.id).data;
+  const reports = useMemo(() => savedReports ?? [], [savedReports]);
+  const [arranging, setArranging] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   const report =
     sample ??
@@ -65,9 +82,42 @@ function StatsPage() {
   const empty = !sample && events.data?.length === 0;
   const showGrowth = Boolean(growth.data && (growth.data.length > 0 || (events.data?.length ?? 0) > 0));
   const patterns = patternsOf(insights);
+  const growthData = growth.data;
+  const layout = useMemo(
+    () => (dashboard.data ? pruneReports(dashboard.data, new Set(reports.map((report) => report.id))) : null),
+    [dashboard.data, reports],
+  );
+  const sources: DashboardSources | null = report
+    ? {
+        stats: report,
+        growth:
+          showGrowth && growthData
+            ? growthReport(
+                growthData,
+                { birthDate: baby.birth_date, sex: baby.sex, timeZone: baby.timezone },
+                units,
+                familyHasFeature(babble.config.billingEnabled, family.plan, 'predictions') ? now : undefined,
+              )
+            : null,
+        patterns: patterns && (patterns.locked ? patterns : { locked: false, report: patterns.report }),
+        reports,
+        client: babble.client,
+        baby,
+        family,
+        now,
+        babyName: baby.name,
+        canLog,
+        plusBadges: babble.config.billingEnabled,
+        linkBars: !sample,
+      }
+    : null;
   const sections = [
-    { id: 'daily', label: 'Daily stats', shown: true },
-    { id: 'growth', label: 'Growth', shown: showGrowth },
+    { id: 'daily', label: 'Dashboard', shown: true },
+    {
+      id: 'growth',
+      label: 'Growth',
+      shown: showGrowth && layout?.cards.some((card) => card.kind === 'prebuilt' && card.card === 'growth'),
+    },
     { id: 'patterns', label: 'Patterns', shown: patterns !== null },
   ].filter((section) => section.shown);
 
@@ -91,23 +141,46 @@ function StatsPage() {
         <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
           <div>
             <h2 id="stats-daily" className="text-heading font-bold">
-              Daily stats
+              Dashboard
             </h2>
-            {report && !sample && !empty && <p className="mt-1 text-meta text-ink-2">{statsCaption(report)}</p>}
+            {report && !sample && !empty && (
+              <p className="mt-1 text-meta text-ink-2">
+                {statsCaption(report)}{' '}
+                <Link
+                  to="/guide"
+                  hash="dashboard"
+                  className="font-semibold text-primary underline-offset-4 hover:underline"
+                >
+                  How the dashboard works
+                </Link>
+              </p>
+            )}
           </div>
-          <div className="w-full sm:w-80">
-            <Segmented<StatsRange>
-              label="Range"
-              value={range}
-              onChange={(next) =>
-                void navigate({
-                  search: { range: next },
-                  replace: true,
-                  state: (prev) => ({ ...prev, keepScroll: true }),
-                })
-              }
-              options={STATS_RANGES}
-            />
+          <div className="flex w-full items-center gap-2 sm:w-auto">
+            {canLog && layout && !sample && (
+              <Button
+                variant={arranging ? 'primary' : 'secondary'}
+                aria-pressed={arranging}
+                onClick={() => setArranging((value) => !value)}
+              >
+                <LayoutGrid className="size-4" strokeWidth={2.75} />
+                {arranging ? 'Done' : 'Arrange'}
+              </Button>
+            )}
+            <div className="min-w-0 flex-1 sm:w-80">
+              <Segmented<StatsRange>
+                label="Range"
+                value={range}
+                onChange={(next) =>
+                  void navigate({
+                    search: { range: next },
+                    replace: true,
+                    state: (prev) => ({ ...prev, keepScroll: true }),
+                  })
+                }
+                options={STATS_RANGES}
+              />
+            </div>
           </div>
         </div>
         <Link
@@ -118,9 +191,9 @@ function StatsPage() {
           <span className="flex-1">Reports: build your own charts</span>
           <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
         </Link>
-        {!report ? (
+        {!report || !sources || !layout ? (
           <PageSpinner />
-        ) : empty ? (
+        ) : empty && !arranging ? (
           <EmptyState icon={ChartColumn} title="Nothing to chart yet">
             Stats for sleep, feeds and nappies appear once you start logging.
           </EmptyState>
@@ -132,27 +205,26 @@ function StatsPage() {
             body={`Charts and averages for every day since ${baby.name} was born are part of Babble Plus.`}
           >
             <div className={cn('transition-opacity', loading && 'opacity-60')} aria-busy={loading}>
-              <StatsCards cards={report.cards} linkBars={!sample} />
+              <Dashboard
+                layout={layout}
+                sources={sources}
+                arranging={arranging}
+                onChange={(next) => saveDashboard.mutate(next)}
+                onAdd={() => setAdding(true)}
+              />
             </div>
           </PlusMask>
         )}
-      </section>
-      {showGrowth && growth.data && (
-        <div id="stats-section-growth" className="scroll-mt-6">
-          <GrowthCard
-            report={growthReport(
-              growth.data,
-              { birthDate: baby.birth_date, sex: baby.sex, timeZone: baby.timezone },
-              units,
-              familyHasFeature(babble.config.billingEnabled, family.plan, 'predictions') ? now : undefined,
-            )}
-            babyName={baby.name}
-            timeZone={baby.timezone}
-            canLog={canLog}
-            plusBadge={babble.config.billingEnabled}
+        {adding && layout && (
+          <AddCardSheet
+            layout={layout}
+            reports={reports}
+            plusLocked={!familyHasFeature(babble.config.billingEnabled, family.plan, 'insights')}
+            onAdd={(card) => saveDashboard.mutate(addCard(layout, card))}
+            onClose={() => setAdding(false)}
           />
-        </div>
-      )}
+        )}
+      </section>
       {patterns && <Insights patterns={patterns} babyName={baby.name} plusBadges={babble.config.billingEnabled} />}
     </div>
   );
