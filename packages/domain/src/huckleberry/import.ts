@@ -451,7 +451,13 @@ function mapActivity({ row, startedAt, endedAt, notes }: RowContext): MapResult 
     type: 'custom',
     ...instantOrInterval(startedAt, endedAt),
     notes,
-    details: { title: row.type, description: '' },
+    details: {
+      title: row.type,
+      description: '',
+      kind: endedAt && endedAt > startedAt ? 'duration' : 'note',
+      amount: null,
+      unit: null,
+    },
   };
 }
 

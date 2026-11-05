@@ -38,7 +38,11 @@ describe('EventForm', () => {
   beforeEach(() => fake.rpc.mockReset());
 
   it('shows the entry without save or delete for read-only members', async () => {
-    await renderForm({ ...emptyDraft('custom', now), details: { title: 'Bath', description: '' } }, false, true);
+    await renderForm(
+      { ...emptyDraft('custom', now), details: { ...emptyDraft('custom', now).details, title: 'Bath' } },
+      false,
+      true,
+    );
     expect(screen.getByText(/read-only access/)).toBeTruthy();
     expect(screen.getByDisplayValue('Bath')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Save' })).toBeNull();
@@ -49,7 +53,10 @@ describe('EventForm', () => {
     fake.rpc
       .mockResolvedValueOnce({ data: null, error: new Error('offline') })
       .mockResolvedValueOnce({ data: 'event-1', error: null });
-    const { onDone } = await renderForm({ ...emptyDraft('custom', now), details: { title: 'Bath', description: '' } });
+    const { onDone } = await renderForm({
+      ...emptyDraft('custom', now),
+      details: { ...emptyDraft('custom', now).details, title: 'Bath' },
+    });
     await fireEvent.press(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText("Couldn't save.")).toBeTruthy();

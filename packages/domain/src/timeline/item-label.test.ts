@@ -55,11 +55,20 @@ describe('timelineItemLabel', () => {
     const bath = makeEvent('custom', {
       startedAt: '2026-10-06T18:00:00Z',
       endedAt: '2026-10-06T18:20:00Z',
-      details: { title: 'Bath', description: '' },
+      details: { title: 'Bath', description: '', kind: 'note', amount: null, unit: null },
     });
     expect(label(bath)).toBe('Bath 6:00 pm, 20m');
     expect(label({ ...bath, endedAt: bath.startedAt })).toBe('Bath 6:00 pm');
     expect(label({ ...bath, endedAt: null })).toBe('Bath 6:00 pm, running');
+  });
+
+  it('labels custom amounts with the amount and unit', () => {
+    const drops = makeEvent('custom', {
+      startedAt: '2026-10-06T18:00:00Z',
+      endedAt: '2026-10-06T18:00:00Z',
+      details: { title: 'Vitamin drops', description: '', kind: 'amount', amount: 2, unit: 'drops' },
+    });
+    expect(label(drops)).toBe('Vitamin drops 6:00 pm, 2 drops');
   });
 
   it('falls back to the time for other types', () => {

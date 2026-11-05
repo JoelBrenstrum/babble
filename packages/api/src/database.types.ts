@@ -119,19 +119,28 @@ export type Database = {
       };
       custom_details: {
         Row: {
+          amount: number | null;
           description: string;
           event_id: string;
+          kind: Database['public']['Enums']['custom_event_kind'];
           title: string;
+          unit: string | null;
         };
         Insert: {
+          amount?: number | null;
           description?: string;
           event_id: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
           title: string;
+          unit?: string | null;
         };
         Update: {
+          amount?: number | null;
           description?: string;
           event_id?: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
           title?: string;
+          unit?: string | null;
         };
         Relationships: [
           {
@@ -148,19 +157,25 @@ export type Database = {
           baby_id: string;
           created_at: string;
           id: string;
+          kind: Database['public']['Enums']['custom_event_kind'];
           title: string;
+          unit: string | null;
         };
         Insert: {
           baby_id: string;
           created_at?: string;
           id?: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
           title: string;
+          unit?: string | null;
         };
         Update: {
           baby_id?: string;
           created_at?: string;
           id?: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
           title?: string;
+          unit?: string | null;
         };
         Relationships: [
           {
@@ -827,6 +842,7 @@ export type Database = {
     Enums: {
       baby_sex: 'female' | 'male';
       bottle_content: 'breast_milk' | 'formula' | 'mixed' | 'other';
+      custom_event_kind: 'note' | 'duration' | 'amount';
       event_source: 'manual' | 'huckleberry_csv' | 'babble_export';
       event_type: 'sleep' | 'breast_feed' | 'bottle' | 'solids' | 'nappy' | 'pump' | 'growth' | 'custom';
       fall_asleep: 'under_10_min' | '10_to_20_min' | 'long_time';
@@ -965,6 +981,7 @@ export const Constants = {
     Enums: {
       baby_sex: ['female', 'male'],
       bottle_content: ['breast_milk', 'formula', 'mixed', 'other'],
+      custom_event_kind: ['note', 'duration', 'amount'],
       event_source: ['manual', 'huckleberry_csv', 'babble_export'],
       event_type: ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'],
       fall_asleep: ['under_10_min', '10_to_20_min', 'long_time'],

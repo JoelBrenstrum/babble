@@ -143,7 +143,13 @@ const READERS: { [T in EventType]: Reader<DraftOfType<T>> } = {
   custom: objectOf({
     ...base,
     type: literal('custom'),
-    details: objectOf<CustomDetails>({ title: readString, description: absentAs(readString, '') }),
+    details: objectOf<CustomDetails>({
+      title: readString,
+      description: absentAs(readString, ''),
+      kind: absentAs(oneOf(ENUMS.custom_event_kind), 'note'),
+      amount: nullable(readNumber),
+      unit: nullable(readString),
+    }),
   }),
 };
 
