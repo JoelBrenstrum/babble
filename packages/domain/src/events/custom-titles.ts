@@ -5,7 +5,7 @@ export const MAX_CUSTOM_TITLE_LENGTH = 80;
 export const MAX_SAVED_CUSTOM_TITLES = 40;
 
 export function normaliseCustomTitle(text: string): string {
-  return text.trim().replace(/\s+/g, ' ').slice(0, MAX_CUSTOM_TITLE_LENGTH);
+  return text.trim().replace(/\s+/g, ' ').slice(0, MAX_CUSTOM_TITLE_LENGTH).trimEnd();
 }
 
 export function sameCustomTitle(a: string, b: string): boolean {

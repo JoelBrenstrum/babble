@@ -28,8 +28,9 @@ export function CustomEventSettings({
 
   function addTyped() {
     if (!canAdd) return;
-    add.mutate(typed);
+    const text = typed;
     setTyped('');
+    add.mutate(text, { onError: () => setTyped((current) => current || text) });
   }
 
   return (

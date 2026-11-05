@@ -24,8 +24,9 @@ export function CustomEventSettings({
   function submit(event: FormEvent) {
     event.preventDefault();
     if (!canSaveCustomTitle(saved, typed)) return;
-    add.mutate(typed);
+    const text = typed;
     setTyped('');
+    add.mutate(text, { onError: () => setTyped((current) => current || text) });
   }
 
   return (

@@ -1,4 +1,4 @@
-import { canSaveCustomTitle, normaliseCustomTitle } from '@babble/domain';
+import { normaliseCustomTitle } from '@babble/domain';
 import type { BabbleClient } from './client';
 import { BabbleError, toBabbleError, unwrap, unwrapVoid } from './errors';
 
@@ -9,17 +9,10 @@ export async function listCustomTitles(client: BabbleClient, babyId: string): Pr
   return rows.map((row) => row.title);
 }
 
-export async function addCustomTitle(
-  client: BabbleClient,
-  babyId: string,
-  saved: readonly string[],
-  text: string,
-): Promise<void> {
+// The database rejects duplicates and enforces the limit, so this never trusts a possibly optimistic cached list.
+export async function addCustomTitle(client: BabbleClient, babyId: string, text: string): Promise<void> {
   const title = normaliseCustomTitle(text);
-  if (!canSaveCustomTitle(saved, title)) {
-    if (!title) throw new BabbleError('Type a title to save it.', 'invalid_input');
-    return;
-  }
+  if (!title) throw new BabbleError('Type a title to save it.', 'invalid_input');
   const { error } = await client.from('custom_event_titles').insert({ baby_id: babyId, title });
   if (error && (error as { code?: string }).code !== '23505') throw toBabbleError(error);
 }

@@ -13,7 +13,7 @@ export function useCustomTitleMutations(client: BabbleClient, babyId: string) {
   const settle = () => queryClient.invalidateQueries({ queryKey: key });
 
   const add = useMutation({
-    mutationFn: (text: string) => addCustomTitle(client, babyId, current(), text),
+    mutationFn: (text: string) => addCustomTitle(client, babyId, text),
     onMutate: async (text) => {
       await queryClient.cancelQueries({ queryKey: key });
       const previous = current();

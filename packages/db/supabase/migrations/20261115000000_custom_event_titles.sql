@@ -16,12 +16,13 @@ create policy "editors delete custom event titles" on public.custom_event_titles
   for delete to authenticated using (baby_id in (select private.my_editor_baby_ids()));
 
 revoke all on public.custom_event_titles from anon, authenticated;
-grant select, insert, delete on public.custom_event_titles to authenticated;
+grant select, delete on public.custom_event_titles to authenticated;
+grant insert (baby_id, title) on public.custom_event_titles to authenticated;
 
 create function private.enforce_custom_event_title_limit()
 returns trigger
 language plpgsql
-security definer
+security invoker
 set search_path = ''
 as $$
 begin
@@ -38,6 +39,7 @@ revoke all on function private.enforce_custom_event_title_limit() from public, a
 create trigger custom_event_titles_enforce_limit before insert on public.custom_event_titles
   for each row execute function private.enforce_custom_event_title_limit();
 
+-- Definer because the seed orders the starter titles by created_at, which editors cannot set.
 create function private.seed_custom_event_titles()
 returns trigger
 language plpgsql

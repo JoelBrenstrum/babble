@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(9);
+select plan(11);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -66,6 +66,21 @@ select throws_ok(
   null,
   'titles are stored trimmed'
 );
+select throws_ok(
+  $$insert into public.custom_event_titles (baby_id, title, created_at)
+    values ('c3000000-0000-0000-0000-00000000000a', 'Pamol', now() - interval '1 year')$$,
+  '42501',
+  null,
+  'editors cannot choose where a suggestion sorts'
+);
+insert into public.babies (family_id, name, birth_date, timezone) values
+  ('b3000000-0000-0000-0000-00000000000a', 'Noah', '2026-10-26', 'UTC');
+select is(
+  (select array_agg(t.title order by t.created_at) from public.custom_event_titles t
+   join public.babies b on b.id = t.baby_id where b.name = 'Noah'),
+  array['Bath', 'Tummy time', 'Vitamin drops', 'Skin to skin', 'Walk'],
+  'a baby added by a carer starts with the default suggestions in order'
+);
 select pg_temp.sign_out();
 
 select pg_temp.sign_in_as('a3000000-0000-0000-0000-00000000000b');
@@ -98,6 +113,7 @@ select pg_temp.sign_out();
 
 insert into public.custom_event_titles (baby_id, title)
 select 'c3000000-0000-0000-0000-00000000000a', 'Title ' || n from generate_series(1, 35) n;
+select pg_temp.sign_in_as('a3000000-0000-0000-0000-00000000000a');
 select throws_ok(
   $$insert into public.custom_event_titles (baby_id, title) values ('c3000000-0000-0000-0000-00000000000a', 'One more')$$,
   'PL009',

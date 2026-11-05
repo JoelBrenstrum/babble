@@ -17,6 +17,10 @@ describe('normaliseCustomTitle', () => {
     expect(normaliseCustomTitle('  Calpol   2.5ml ')).toBe('Calpol 2.5ml');
     expect(normaliseCustomTitle('x'.repeat(100))).toHaveLength(80);
   });
+
+  it('never ends in a space when the cap lands on one', () => {
+    expect(normaliseCustomTitle(`${'x'.repeat(79)} hello`)).toBe('x'.repeat(79));
+  });
 });
 
 describe('recentCustomTitles', () => {
