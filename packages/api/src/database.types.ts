@@ -143,6 +143,35 @@ export type Database = {
           },
         ];
       };
+      custom_event_titles: {
+        Row: {
+          baby_id: string;
+          created_at: string;
+          id: string;
+          title: string;
+        };
+        Insert: {
+          baby_id: string;
+          created_at?: string;
+          id?: string;
+          title: string;
+        };
+        Update: {
+          baby_id?: string;
+          created_at?: string;
+          id?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'custom_event_titles_baby_id_fkey';
+            columns: ['baby_id'];
+            isOneToOne: false;
+            referencedRelation: 'babies';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       device_links: {
         Row: {
           approved_at: string | null;

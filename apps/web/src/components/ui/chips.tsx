@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import type { ReactNode } from 'react';
 import { cn } from '#/lib/cn';
 
 interface ChipOption<T extends string> {
@@ -72,6 +73,7 @@ type SingleChipsProps<T extends string> = {
   label: string;
   options: readonly ChipOption<T>[];
   value: T | null;
+  children?: ReactNode;
 } & ({ allowNone?: true; onChange: (value: T | null) => void } | { allowNone: false; onChange: (value: T) => void });
 
 export function SingleChips<T extends string>(props: SingleChipsProps<T>) {
@@ -92,6 +94,7 @@ export function SingleChips<T extends string>(props: SingleChipsProps<T>) {
             onClick={() => pick(option.value)}
           />
         ))}
+        {props.children}
       </div>
     </fieldset>
   );

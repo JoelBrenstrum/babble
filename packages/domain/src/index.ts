@@ -339,3 +339,13 @@ export {
   type TogOutside,
   type TogResult,
 } from './tog/tog';
+export {
+  canSaveCustomTitle,
+  customTitleSuggestions,
+  hasCustomTitle,
+  matchingCustomTitle,
+  MAX_CUSTOM_TITLE_LENGTH,
+  MAX_SAVED_CUSTOM_TITLES,
+  normaliseCustomTitle,
+  recentCustomTitles,
+} from './events/custom-titles';

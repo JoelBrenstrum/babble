@@ -18,6 +18,7 @@ export type BabbleErrorCode =
   | 'session_conflict'
   | 'baby_limit'
   | 'carer_limit'
+  | 'custom_title_limit'
   | 'last_admin'
   | 'device_link_invalid'
   | 'merge_invalid'
@@ -42,6 +43,7 @@ const MESSAGES: Record<BabbleErrorCode, string> = {
   session_conflict: 'Another session of this kind is already running. Finish or discard it first.',
   baby_limit: 'Adding more than one baby to a family needs Babble Plus.',
   carer_limit: CARER_LIMIT_MESSAGE,
+  custom_title_limit: 'You can keep up to 40 suggestions. Remove one in settings first.',
   last_admin: 'A family needs at least one admin. Make someone else an admin first.',
   merge_invalid: 'These can no longer be merged. They may have changed; refresh and try again.',
   device_link_invalid: 'This code has expired or was already used. Make a new one on the other screen.',
@@ -68,6 +70,7 @@ export function toBabbleError(error: unknown): BabbleError {
 function classify(code: string | undefined, message: string, status: number | undefined, name: string | undefined) {
   if (code === 'PL001') return 'baby_limit';
   if (code === 'PL002') return 'carer_limit';
+  if (code === 'PL009') return 'custom_title_limit';
   if (code === 'PL004') return 'last_admin';
   if (code === 'PL005') return 'device_link_invalid';
   if (code === 'PL007') return 'merge_invalid';
