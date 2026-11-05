@@ -242,14 +242,17 @@ export {
   withoutPumpAmounts,
   type RunningTone,
 } from './events/session-context';
+export { awakePeriods, stretchesWithAwake, type AwakePeriod } from './events/awake-periods';
 export {
-  awakePeriods,
-  napDurationText,
-  newAwakePeriod,
-  stretchesWithAwake,
-  trimAwakePeriod,
-  type AwakePeriod,
-} from './events/awake-periods';
+  addWakeUpRow,
+  editRowsToNap,
+  editRowTotals,
+  joinHoursMinutes,
+  napToEditRows,
+  removeWakeUpRow,
+  splitHoursMinutes,
+  type NapEditRow,
+} from './events/nap-edit-rows';
 export {
   CHAIR_IDLE_DIM_MS,
   CHAIR_ENDED_MS,

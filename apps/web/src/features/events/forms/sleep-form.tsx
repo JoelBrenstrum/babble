@@ -1,24 +1,19 @@
 import {
   awakePeriods,
-  napDurationText,
-  newAwakePeriod,
   SLEEP_QUALITIES,
   SLEEP_QUALITY_LABELS,
   stretchesWithAwake,
-  trimAwakePeriod,
-  type AwakePeriod,
   type DraftOfType,
   type FallAsleep,
   type Mood,
   type SleepDetails,
   type SleepLocation,
 } from '@babble/domain';
-import { Plus } from 'lucide-react';
-import { useMemo } from 'react';
+import { useState } from 'react';
 import { MultiChips, SingleChips } from '#/components/ui/chips';
 import { DateTimeField } from '#/components/ui/field';
 import { RatingScale } from '#/components/ui/rating-scale';
-import { NapBreakdown } from '../nap-breakdown';
+import { NapEditor } from '../nap-editor';
 import { FormSection, type FormProps } from './shared';
 
 const LOCATIONS: { value: SleepLocation; label: string }[] = [
@@ -102,17 +97,14 @@ export function SleepDetailFields({
 export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<DraftOfType<'sleep'>>) {
   const details = draft.details;
   const endedAt = draft.endedAt ?? draft.startedAt;
-  const periods = useMemo(
-    () => awakePeriods(draft.segments, draft.startedAt, endedAt),
-    [draft.segments, draft.startedAt, endedAt],
-  );
-  const duration = napDurationText(draft.startedAt, draft.endedAt, periods);
+  const [rowsVersion, setRowsVersion] = useState(0);
 
-  function update(next: { startedAt?: string; endedAt?: string; periods?: AwakePeriod[] }) {
+  function setRange(next: { startedAt?: string; endedAt?: string }) {
     const startedAt = next.startedAt ?? draft.startedAt;
     const end = next.endedAt ?? endedAt;
-    const nextPeriods = next.periods ?? periods;
-    onChange({ ...draft, startedAt, endedAt: end, segments: stretchesWithAwake(startedAt, end, nextPeriods) });
+    const periods = awakePeriods(draft.segments, draft.startedAt, endedAt);
+    onChange({ ...draft, startedAt, endedAt: end, segments: stretchesWithAwake(startedAt, end, periods) });
+    setRowsVersion((version) => version + 1);
   }
 
   return (
@@ -123,50 +115,24 @@ export function SleepForm({ draft, onChange, errors, timeZone }: FormProps<Draft
           timeZone={timeZone}
           value={draft.startedAt}
           error={errors.startedAt}
-          onChange={(startedAt) => update({ startedAt })}
+          onChange={(startedAt) => setRange({ startedAt })}
         />
         <DateTimeField
           label="Woke up"
           timeZone={timeZone}
           value={endedAt}
           error={errors.endedAt}
-          onChange={(value) => update({ endedAt: value })}
+          onChange={(value) => setRange({ endedAt: value })}
         />
       </div>
-      <section className="flex flex-col gap-3" aria-label="Wake-ups">
-        <span className="text-label font-semibold">Wake-ups</span>
-        {periods.length > 0 && (
-          <NapBreakdown
-            nap={{
-              startedAt: draft.startedAt,
-              endedAt,
-              segments: stretchesWithAwake(draft.startedAt, endedAt, periods),
-            }}
-            now={new Date(endedAt)}
-            trim="all"
-            onTrimAwake={(index) => update({ periods: trimAwakePeriod(periods, index) })}
-            onRemoveAwake={(index) => update({ periods: periods.filter((_, i) => i !== index) })}
-          />
-        )}
-        {errors.awake && <p className="text-meta text-danger">{errors.awake}</p>}
-        <button
-          type="button"
-          onClick={() => update({ periods: [...periods, newAwakePeriod(draft.startedAt, endedAt, periods)] })}
-          className="inline-flex h-11 items-center gap-2 self-start rounded-chip border border-line bg-raised px-4 text-label font-semibold hover:border-ink-3"
-        >
-          <Plus className="size-4" strokeWidth={3} />
-          Add a wake-up
-        </button>
-      </section>
-      {duration && periods.length === 0 && (
-        <div className="flex items-center justify-between rounded-tile bg-sleep-soft px-4 py-3 text-on-sleep">
-          <span className="text-body font-semibold">{duration.awake ? 'Asleep' : 'Duration'}</span>
-          <span className="tabular text-row-title font-bold">
-            {duration.asleep}
-            {duration.awake && <span className="ml-2 text-meta font-semibold">· awake {duration.awake}</span>}
-          </span>
-        </div>
-      )}
+      <NapEditor
+        key={rowsVersion}
+        startedAt={draft.startedAt}
+        endedAt={endedAt}
+        segments={draft.segments}
+        onChange={(next) => onChange({ ...draft, ...next })}
+      />
+      {errors.awake && <p className="text-meta text-danger">{errors.awake}</p>}
       <SleepDetailFields
         details={details}
         onChange={(patch) => onChange({ ...draft, details: { ...details, ...patch } })}
