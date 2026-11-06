@@ -18,6 +18,7 @@ export function WeekTimeline({
   show?: string;
 }) {
   const columns = { gridTemplateColumns: '2rem repeat(7, minmax(0, 1fr))' };
+  const hasAlert = days.some(({ layout }) => (layout?.alert.length ?? 0) > 0);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-x-4 gap-y-1 pl-8 text-meta font-semibold text-ink-2">
@@ -25,6 +26,12 @@ export function WeekTimeline({
           <span className="flex items-center gap-1.5">
             <span className="size-2.5 rounded-sm bg-sleep" />
             Sleep
+          </span>
+        )}
+        {hasAlert && lanes.includes('alert') && (
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-1 rounded-full bg-alert" />
+            Alert
           </span>
         )}
         {lanes.includes('feeds') && (
@@ -86,6 +93,13 @@ export function WeekTimeline({
                 <span
                   key={item.event.id}
                   className="absolute inset-x-[3px] min-h-[2px] rounded-sm bg-sleep"
+                  style={{ top: formatFraction(item.startFrac), height: formatFraction(item.endFrac - item.startFrac) }}
+                />
+              ))}
+              {layout?.alert.map((item) => (
+                <span
+                  key={item.event.id}
+                  className="absolute left-[3px] min-h-[2px] w-1 rounded-full bg-alert"
                   style={{ top: formatFraction(item.startFrac), height: formatFraction(item.endFrac - item.startFrac) }}
                 />
               ))}

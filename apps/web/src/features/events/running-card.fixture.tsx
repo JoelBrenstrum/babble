@@ -1,4 +1,10 @@
-import { sampleBaby, sampleFamily, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
+import {
+  sampleBaby,
+  sampleFamily,
+  sampleRunningAlert,
+  sampleRunningFeed,
+  sampleRunningSleep,
+} from '@babble/api/fixtures';
 import { applySessionAction } from '@babble/domain';
 import { fixtureClient } from '#/fixtures/client';
 import { FixtureRouter } from '#/fixtures/router';
@@ -26,4 +32,5 @@ export default {
   Feeding: <Card event={feed} />,
   Paused: <Card event={applySessionAction(feed, { kind: 'pause' }, now)} />,
   Napping: <Card event={sampleRunningSleep(now)} />,
+  Alert: <Card event={sampleRunningAlert(now)} />,
 };

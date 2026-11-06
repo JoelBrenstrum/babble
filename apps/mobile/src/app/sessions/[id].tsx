@@ -9,6 +9,7 @@ import { Screen } from '@/components/screen';
 import { ScreenHeader } from '@/components/screen-header';
 import { StatusMessage } from '@/components/status-message';
 import { ReadOnlyRunning } from '@/features/events/read-only-running';
+import { AlertDetailsEditor } from '@/features/events/alert-details-editor';
 import { RunningCard } from '@/features/events/running-card';
 import { KeepAwakeToggle } from '@/features/keep-awake-toggle';
 import { LiveMergeOffer } from '@/features/events/merge-sessions';
@@ -51,7 +52,14 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
   const segments = event.type === 'breast_feed' || event.type === 'pump' ? event.segments : [];
   const trimTo = logging ? trimIdleSwitch(event, clock.now()) : null;
   const merge = logging && earlier.data ? liveMergeOffer(event, earlier.data) : null;
-  const title = event.type === 'sleep' ? 'Sleep' : event.type === 'pump' ? 'Pump' : 'Breastfeed';
+  const title =
+    event.type === 'sleep'
+      ? 'Sleep'
+      : event.type === 'pump'
+        ? 'Pump'
+        : event.type === 'alert'
+          ? 'Alert time'
+          : 'Breastfeed';
 
   return (
     <Screen>
@@ -85,7 +93,16 @@ function SessionContent({ id, ready }: { id: string; ready: ReadyState }) {
             onMerged={() => router.replace(`/sessions/${merge.earlierId}`)}
           />
         )}
-        {logging && event.type !== 'sleep' && <KeepAwakeToggle />}
+        {logging && event.type !== 'sleep' && event.type !== 'alert' && <KeepAwakeToggle />}
+        {logging && event.type === 'alert' && (
+          <View className="gap-2">
+            <SectionLabel>Activities</SectionLabel>
+            <Card className="gap-3 p-5">
+              <Text className="font-sans text-meta text-ink-2">Saved as you go, without stopping the timer.</Text>
+              <AlertDetailsEditor event={event} client={client} babyId={baby.id} />
+            </Card>
+          </View>
+        )}
         {logging && event.type === 'sleep' && (
           <View className="gap-2">
             <SectionLabel>Details</SectionLabel>

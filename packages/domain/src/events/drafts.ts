@@ -12,6 +12,7 @@ export function emptyDraft<T extends EventType>(type: T, now: Date): DraftOfType
       details: { locations: [], fallAsleep: null, startMoods: [], endMoods: [], wokenByCarer: false, quality: null },
       segments: [],
     },
+    alert: { ...base, type: 'alert', details: { activities: [], endedBy: null } },
     breast_feed: { ...base, type: 'breast_feed', segments: [] },
     bottle: { ...base, type: 'bottle', details: { content: 'breast_milk', amountMl: null, amountLeftMl: null } },
     solids: { ...base, type: 'solids', details: { foods: [], amount: null, reaction: null } },
@@ -49,6 +50,8 @@ export function eventToDraft(event: BabyEvent): EventDraft {
   switch (event.type) {
     case 'sleep':
       return { ...base, type: 'sleep', details: event.details, segments: event.segments };
+    case 'alert':
+      return { ...base, type: 'alert', details: event.details };
     case 'breast_feed':
       return { ...base, type: 'breast_feed', segments: event.segments };
     case 'bottle':
@@ -96,6 +99,7 @@ export function pastDraft(type: EventType, now: Date): EventDraft {
   const draft = emptyDraft(type, now);
   const earlier = (minutes: number) => new Date(now.getTime() - minutes * MINUTE_MS).toISOString();
   if (type === 'sleep') return { ...draft, startedAt: earlier(PAST_SLEEP_MINUTES) };
+  if (type === 'alert') return { ...draft, startedAt: earlier(PAST_SESSION_MINUTES) };
   if (type === 'breast_feed' || type === 'pump') {
     return { ...draft, startedAt: earlier(PAST_SESSION_MINUTES), endedAt: earlier(PAST_SESSION_MINUTES) };
   }

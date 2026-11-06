@@ -3,7 +3,7 @@ import { dayLayout, type DayLayout } from '@babble/domain';
 import { describe, expect, it } from 'vitest';
 import { daySummaryText } from './day-summary-text';
 
-const empty: DayLayout = { sleep: [], feeds: [], nappies: [], pumps: [] };
+const empty: DayLayout = { sleep: [], alert: [], feeds: [], nappies: [], pumps: [] };
 
 describe('daySummaryText', () => {
   it('says when a day has no data or nothing logged', () => {

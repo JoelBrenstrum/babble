@@ -16,7 +16,7 @@ import {
   type TrackerKey,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowRight, Clock, Moon, Sun } from 'lucide-react-native';
+import { ArrowRight, Clock, Moon, Smile, Sun } from 'lucide-react-native';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
@@ -116,7 +116,7 @@ function StartSession({
   const promptsFor = useSessionPrompts(client, babyId);
   const { run, error } = useAsyncAction();
   const spinnerColor = useTokenColor('--primary');
-  const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
+  const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : type === 'alert' ? 'alert time' : 'feed';
   const context = startContext(type, latest, now, units);
 
   async function begin(side?: Side) {
@@ -145,7 +145,9 @@ function StartSession({
         <View className="flex-row items-start gap-3">
           <View testID={`running-dot-${tone}`} className={`mt-2 size-2.5 rounded-full ${DOT_COLOUR[tone]}`} />
           <View className="flex-1">
-            <Text className="font-bold text-row-title text-ink">{`A ${noun} is already running.`}</Text>
+            <Text className="font-bold text-row-title text-ink">
+              {type === 'alert' ? 'Alert time is already running.' : `A ${noun} is already running.`}
+            </Text>
             <Text className="font-sans text-meta text-ink-2">{runningSessionLine(running, now, startedBy)}</Text>
           </View>
         </View>
@@ -164,7 +166,7 @@ function StartSession({
     <View className="gap-4">
       {context && (
         <View className="flex-row items-center gap-3 rounded-tile bg-surface px-4 py-3">
-          {type === 'sleep' ? (
+          {type === 'sleep' || type === 'alert' ? (
             <Sun size={20} color={ink2} strokeWidth={2.5} />
           ) : (
             <Clock size={20} color={ink2} strokeWidth={2.5} />
@@ -172,7 +174,18 @@ function StartSession({
           <Text className="flex-1 font-sans text-body text-ink">{context}</Text>
         </View>
       )}
-      {type === 'sleep' ? (
+      {type === 'alert' ? (
+        <Button
+          variant="alert"
+          size="lg"
+          className="h-24"
+          loading={start.isPending}
+          icon={<Smile size={24} color={onSolid} strokeWidth={2.75} />}
+          onPress={() => begin()}
+        >
+          Start alert time
+        </Button>
+      ) : type === 'sleep' ? (
         <Button
           variant="sleep"
           size="lg"
@@ -210,7 +223,7 @@ function StartSession({
       )}
       {error && <StatusMessage tone="danger">{error}</StatusMessage>}
       <Button variant="secondary" onPress={onLogPast}>
-        {`Log a past ${noun} instead`}
+        {type === 'alert' ? 'Log past alert time instead' : `Log a past ${noun} instead`}
       </Button>
     </View>
   );
@@ -218,6 +231,7 @@ function StartSession({
 
 const DOT_COLOUR: Record<RunningTone, string> = {
   downtime: 'bg-session-downtime',
+  alert: 'bg-alert',
   sleep: 'bg-sleep',
   pump: 'bg-pump',
   'feed-left': 'bg-feed-left',

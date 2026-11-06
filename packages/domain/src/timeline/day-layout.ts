@@ -17,6 +17,7 @@ export interface TimelineItem {
 
 export interface DayLayout {
   sleep: TimelineItem[];
+  alert: TimelineItem[];
   feeds: TimelineItem[];
   nappies: TimelineItem[];
   pumps: TimelineItem[];
@@ -24,6 +25,7 @@ export interface DayLayout {
 
 const LANE: Partial<Record<BabyEvent['type'], keyof DayLayout>> = {
   sleep: 'sleep',
+  alert: 'alert',
   breast_feed: 'feeds',
   bottle: 'feeds',
   solids: 'feeds',
@@ -41,8 +43,8 @@ export function overlapsWindow(event: BabyEvent, window: TimeWindow, now: Date):
 }
 
 export function dayLayout(events: readonly BabyEvent[], window: TimeWindow, now: Date): DayLayout {
-  const layout: DayLayout = { sleep: [], feeds: [], nappies: [], pumps: [] };
-  const lastMarker: Record<keyof DayLayout, number[]> = { sleep: [], feeds: [], nappies: [], pumps: [] };
+  const layout: DayLayout = { sleep: [], alert: [], feeds: [], nappies: [], pumps: [] };
+  const lastMarker: Record<keyof DayLayout, number[]> = { sleep: [], alert: [], feeds: [], nappies: [], pumps: [] };
   const sorted = [...events].sort(byStartedAtAsc);
 
   for (const event of sorted) {

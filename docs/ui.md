@@ -172,6 +172,17 @@ Naps have a **Session** list like feeds: Asleep and Awake rows with "Total aslee
 
 While a nap is running, its timer screen has a **Details** card under the timer: where, how long it took to fall asleep, mood going down, mood on waking, woken by a carer, and notes. Each change saves straight away without stopping the timer (notes save when the field is left), and shows up live for other caregivers. The end-of-nap edit screen still offers end mood and "woken by a carer".
 
+## 7a. Alert time
+
+Alert time is when the baby is awake and content: not hungry, not tired, not crying. It's tracked separately from awake time, which is worked out from naps as every minute not asleep, so you can see whether the calm, alert part of being awake is growing.
+
+- **Start:** Home or the Alert time list → **+** → "Start alert time" (a single big button, with "Awake 45m since the last nap." above it). "Log past alert time instead" opens the form.
+- **While running:** the card reads "Alert" with a timer, "Started earlier?", discard (with undo), and **Stop alert time**. The session screen has an **Activities** card (Tummy time, Play mat, Reading, Singing, Cuddles, Outside, Bath) that saves as you go.
+- **Stopping** asks **What ended it?**: Fussy or crying · Hungry · Tired · Fell asleep, plus Skip and Keep going. "Ended earlier?" asks the same after picking the time. **Fell asleep** ends the alert time and starts a nap at that same moment (`end_alert`), then opens the nap timer.
+- **Starting a nap** while alert time is running ends it at the nap's start, marked "Fell asleep", so the two never overlap.
+- **Form:** Alert from / Until, "Alert for 1h 25m", activity chips and an optional "What ended it?". Used for past entries and for editing.
+- **Lists:** rows show the activities and "Then tired"; the strip shows Last alert (or Alert for) · Today with its 7-day average · Of awake (today's share of awake time and its average).
+
 ## 8. Nappy form
 
 ```
@@ -201,7 +212,7 @@ Title (with suggestions from past titles), description, start time, optional dur
 
 ## 12. Timeline: Day
 
-Date switcher (‹ Tue 7 Oct ›). A vertical timeline from day start to day start, with coloured blocks for sleep, feeds and pumps and markers for nappies. Breastfeeds draw each side in its own colour (`feed-left`, `feed-right`), with the idle gaps between sides as a dashed `downtime` outline. Totals per tracker below; the Feeds card shows Left, Right, Idle and Bottle. Tapping a block opens that event. On desktop, the timeline and totals sit side by side.
+Date switcher (‹ Tue 7 Oct ›). A vertical timeline from day start to day start, with coloured blocks for sleep, feeds and pumps and markers for nappies. Breastfeeds draw each side in its own colour (`feed-left`, `feed-right`), with the idle gaps between sides as a dashed `downtime` outline. Totals per tracker below; the Feeds card shows Left, Right, Idle and Bottle. An **Alert** lane sits next to Sleep once there's alert time on the day (or when lanes are filtered); its blocks show the duration, and the tooltip gives the start and end, length, activities and what ended it. The Alert total shows the alert time with "Of awake" (its share of awake time), Longest and Other awake. Tapping a block opens that event. On desktop, the timeline and totals sit side by side.
 
 **24h** (Day / 24h / 7d / 30d switch): the same timeline and totals for the last 24 hours, ending now, with clock-hour ticks and the now line at the end. It has no date arrows; the header reads "Last 24 hours". The totals and summary strip cover exactly that window.
 
@@ -255,6 +266,8 @@ To be designed when the stage starts.
 ## 17. Stats (Phase 2)
 
 A range picker (7d / 30d / All) and one card per tracker: figure tiles (daily averages over finished days) and a stacked bar chart per day, weekly averages for long ranges. Time on the breast appears once a breastfeed is logged: per day, per feed and the split ("L 42m · R 38m · idle 9m"), charted as left and right minutes per day so time feeding can be watched over weeks. Nappies also show recent poo colours. and a stacked bar chart per day, weekly averages for long ranges. Nappies also show recent poo colours. Pump appears only when there was pumping, and its Left / right figure is per day. Hovering or focusing a bar on the web shows a tooltip; bars with more than one series add the total ("7 Oct: Night 5h, Naps 4.5h · Total 9.5h"). On Expo, tapping a bar shows the same line above the chart. On the first day, figures read "Today so far" and drop "per day", and per-day-only figures are hidden. A Growth card (all entries, not range-limited) charts weight, length and head against the WHO percentile curves and shows the latest percentile; without a sex it asks for one in Settings. Hovering, focusing or tapping a measured point on the web shows a tooltip with the date, measurement and percentile ("1 Oct · 4.19 kg · 51st percentile"); on Expo, tapping a point shows that line above the chart ("Tap a point to see it" until then). See [Stage 7](stages/07-stats.md).
+
+An **Alert time** card appears after Sleep once alert time is logged: per day, share of awake time, stretches a day, longest stretch, the change on last week (once there are two weeks), and what usually ended it. Its chart stacks Alert, Feeding and Other awake for each day. Awake is every minute not asleep, Feeding is breastfeed sides and timed bottles outside alert time, and Other awake (the rest) stands in for unsettled or crying time.
 
 **Patterns (Plus)** sit above the tracker cards, each marked with the Plus badge at the top right:
 

@@ -1,11 +1,23 @@
 import type { Tracker } from '@babble/domain';
-import { Carrot, Droplets, GlassWater, Heart, Milk, Moon, Ruler, Sparkles, type LucideIcon } from 'lucide-react-native';
+import {
+  Carrot,
+  Droplets,
+  GlassWater,
+  Heart,
+  Milk,
+  Moon,
+  Ruler,
+  Smile,
+  Sparkles,
+  type LucideIcon,
+} from 'lucide-react-native';
 import { View } from 'react-native';
 import { useTokenColor } from '@/lib/theme';
 
 const ICONS: Record<Tracker['icon'], LucideIcon> = {
   heart: Heart,
   moon: Moon,
+  smile: Smile,
   droplets: Droplets,
   milk: Milk,
   carrot: Carrot,
@@ -17,6 +29,7 @@ const ICONS: Record<Tracker['icon'], LucideIcon> = {
 const TILE: Record<Tracker['token'], string> = {
   'feed-right': 'bg-feed-right-soft',
   sleep: 'bg-sleep-soft',
+  alert: 'bg-alert-soft',
   nappy: 'bg-nappy-soft',
   bottle: 'bg-bottle-soft',
   solids: 'bg-solids-soft',

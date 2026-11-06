@@ -71,6 +71,45 @@ describe('dayTotalCards', () => {
   });
 });
 
+describe('alert totals', () => {
+  it('adds alert time after sleep with its share of awake time', () => {
+    const cards = dayTotalCards(
+      {
+        ...empty,
+        alerts: 2,
+        alertMs: 2 * 3_600_000,
+        longestAlertMs: 80 * 60_000,
+        awakeMs: 8 * 3_600_000,
+        otherAwakeMs: 4 * 3_600_000,
+        solids: 1,
+        solidsFoods: ['Pear'],
+      },
+      'metric',
+      'UTC',
+    );
+    expect(cards.map((card) => card.label)).toEqual(['Sleep', 'Alert', 'Feeds', 'Solids', 'Nappies']);
+    expect(cards[1]).toEqual({
+      key: 'alert',
+      label: 'Alert',
+      value: '2h 00m',
+      details: [
+        { label: 'Of awake', value: '25%' },
+        { label: 'Longest', value: '1h 20m' },
+        { label: 'Other awake', value: '4h 00m' },
+      ],
+    });
+  });
+
+  it('adds an alert row to the week table only once there is some', () => {
+    const quiet = [{ ...empty }, { ...empty }];
+    expect(weekTableRows(quiet, summariseWeek(quiet), 'metric').some((row) => row.key === 'alert')).toBe(false);
+    const days = [{ ...empty, alertMs: 3_600_000 }, { ...empty }, null];
+    expect(
+      weekTableRows(days, summariseWeek([days[0]!, days[1]!]), 'metric').find((row) => row.key === 'alert'),
+    ).toEqual({ key: 'alert', label: 'Alert', values: ['1h 00m', '—', null], average: '30m' });
+  });
+});
+
 describe('week summaries', () => {
   it('shows dashes for a week with no days yet', () => {
     expect(weekSummaryStrip(summariseWeek([])).map((item) => item.value)).toEqual(['—', '—', '—']);

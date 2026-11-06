@@ -37,6 +37,11 @@ describe('dayLayout', () => {
     expect(feeds[1]).toMatchObject({ startFrac: 0.5, endFrac: 0.5, running: false });
   });
 
+  it('places alert time in its own lane', () => {
+    const alert = makeEvent('alert', { startedAt: '2026-10-06T06:00:00Z', endedAt: '2026-10-06T12:00:00Z' });
+    expect(dayLayout([alert], window, NOW).alert).toMatchObject([{ startFrac: 0.25, endFrac: 0.5, running: false }]);
+  });
+
   it('places solids as a marker in the feed lane', () => {
     const solids = makeEvent('solids', { startedAt: '2026-10-06T18:00:00Z', endedAt: '2026-10-06T18:00:00Z' });
     expect(dayLayout([solids], window, NOW).feeds).toMatchObject([{ startFrac: 0.75, endFrac: 0.75 }]);
@@ -55,7 +60,7 @@ describe('dayLayout', () => {
       makeEvent('nappy', { startedAt: '2026-10-07T00:00:00Z' }),
       makeEvent('growth', { startedAt: '2026-10-06T03:00:00Z' }),
     ];
-    expect(dayLayout(events, window, NOW)).toEqual({ sleep: [], feeds: [], nappies: [], pumps: [] });
+    expect(dayLayout(events, window, NOW)).toEqual({ sleep: [], alert: [], feeds: [], nappies: [], pumps: [] });
   });
 });
 

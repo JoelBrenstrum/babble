@@ -69,6 +69,7 @@ describe('parseTokenCss', () => {
     ]);
     for (const tracker of [
       'sleep',
+      'alert',
       'feed-left',
       'feed-right',
       'bottle',

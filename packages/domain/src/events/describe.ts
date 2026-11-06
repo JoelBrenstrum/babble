@@ -4,6 +4,8 @@ import { formatCustomAmount } from './custom-titles';
 import { segmentTotals } from './segments';
 import { summariseSleep } from './sleep-stretches';
 import {
+  ALERT_ACTIVITY_LABELS,
+  ALERT_END_LABELS,
   CAUTION_COLOURS,
   joinLabels,
   MOOD_LABELS,
@@ -33,6 +35,7 @@ export type PartTone =
   | 'feed-right'
   | 'downtime'
   | 'sleep'
+  | 'alert'
   | 'bottle'
   | 'solids'
   | 'nappy'
@@ -192,6 +195,15 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
       if (quality !== null) parts.push({ text: `Slept ${quality}/5`, tone: 'sleep' });
       return describe({ title: 'Sleep', parts, duration: formatDuration(sleep.asleepMs, { seconds: false }) });
     }
+    case 'alert': {
+      const { activities, endedBy } = event.details;
+      const parts: DescriptionPart[] = activities.map((activity) => ({
+        text: ALERT_ACTIVITY_LABELS[activity],
+        tone: 'alert',
+      }));
+      if (endedBy && !running) parts.push({ text: `Then ${ALERT_END_LABELS[endedBy].toLowerCase()}`, tone: 'neutral' });
+      return describe({ title: 'Alert time', parts, duration: formatDuration(spanMs, { seconds: false }) });
+    }
     case 'bottle': {
       const { amountMl, amountLeftMl, content } = event.details;
       const drank = amountMl !== null ? amountMl - (amountLeftMl ?? 0) : null;
@@ -279,7 +291,7 @@ export function summariseLatest(event: BabyEvent, now: Date, units: Units): stri
   const description = describeEvent(event, now, units);
   if (description.running) return description.duration ? `In progress · ${description.duration}` : 'In progress';
   if (event.type === 'pump') return description.trailing ?? '';
-  if (event.type === 'sleep') return description.duration ?? '';
+  if (event.type === 'sleep' || event.type === 'alert') return description.duration ?? '';
   if (event.type === 'custom') {
     const amount = event.details.amount !== null ? formatCustomAmount(event.details.amount, event.details.unit) : null;
     return [description.title, amount, description.duration].filter(Boolean).join(' · ');

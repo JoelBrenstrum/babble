@@ -47,6 +47,10 @@ export type FallAsleep = 'under_10_min' | '10_to_20_min' | 'long_time';
 
 export type Mood = 'happy' | 'upset';
 
+export type AlertActivity = 'tummy_time' | 'play' | 'reading' | 'music' | 'cuddles' | 'outside' | 'bath';
+
+export type AlertEnd = 'fussy' | 'hungry' | 'tired' | 'asleep';
+
 export interface Stretch {
   startedAt: string;
   endedAt: string | null;
@@ -67,6 +71,11 @@ export interface SleepDetails {
   endMoods: Mood[];
   wokenByCarer: boolean;
   quality: SleepQuality | null;
+}
+
+export interface AlertDetails {
+  activities: AlertActivity[];
+  endedBy: AlertEnd | null;
 }
 
 export interface BottleDetails {
@@ -122,6 +131,7 @@ interface EventBase {
 
 export type EventDraft =
   | (EventBase & { type: 'sleep'; details: SleepDetails; segments: SleepStretch[] })
+  | (EventBase & { type: 'alert'; details: AlertDetails })
   | (EventBase & { type: 'breast_feed'; segments: TimedSegment[] })
   | (EventBase & { type: 'bottle'; details: BottleDetails })
   | (EventBase & { type: 'solids'; details: SolidsDetails })

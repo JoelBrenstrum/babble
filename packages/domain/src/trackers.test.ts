@@ -9,6 +9,7 @@ describe('trackers', () => {
 
   it('knows which trackers have timers', () => {
     expect(isSessionType('breast_feed')).toBe(true);
+    expect(isSessionType('alert')).toBe(true);
     expect(isSessionType('bottle')).toBe(false);
   });
 

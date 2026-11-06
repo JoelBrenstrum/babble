@@ -1,5 +1,7 @@
 import {
   fitStretches,
+  type AlertDetails,
+  type AlertEnd,
   type BabyEvent,
   type EventDraft,
   type EventSource,
@@ -16,12 +18,12 @@ import {
 import type { QueryData } from '@supabase/supabase-js';
 import type { BabbleClient } from './client';
 import type { Json } from './database.types';
-import { unwrap, unwrapVoid } from './errors';
+import { unwrap, unwrapMaybe, unwrapVoid } from './errors';
 import { paginate } from './paginate';
 import { clock } from './clock';
 
 export const EVENT_SELECT =
-  '*, sleep:sleep_details(*), bottle:bottle_details(*), solids:solids_details(*), nappy:nappy_details(*), pump:pump_details(*), growth:growth_details(*), custom:custom_details(*), session:session_details(*), segments:timed_segments(*)';
+  '*, sleep:sleep_details(*), alert:alert_details(*), bottle:bottle_details(*), solids:solids_details(*), nappy:nappy_details(*), pump:pump_details(*), growth:growth_details(*), custom:custom_details(*), session:session_details(*), segments:timed_segments(*)';
 
 function selectEvents(client: BabbleClient) {
   return client.from('events').select(EVENT_SELECT);
@@ -67,6 +69,12 @@ export function rowToEvent(row: EventRow): BabyEvent {
           quality: (row.sleep?.quality ?? null) as SleepQuality | null,
         },
         segments: stretches,
+      };
+    case 'alert':
+      return {
+        ...meta,
+        type: 'alert',
+        details: { activities: row.alert?.activities ?? [], endedBy: row.alert?.ended_by ?? null },
       };
     case 'breast_feed':
       return { ...meta, type: 'breast_feed', segments };
@@ -180,6 +188,40 @@ export async function saveSleepDetails(client: BabbleClient, eventId: string, ch
   );
 }
 
+export type AlertChanges = Partial<AlertDetails> & { notes?: string | null };
+
+export function alertChangesPayload(changes: AlertChanges): Record<string, unknown> {
+  return {
+    ...('activities' in changes ? { activities: changes.activities ?? [] } : {}),
+    ...('endedBy' in changes ? { ended_by: changes.endedBy ?? null } : {}),
+    ...('notes' in changes ? { notes: changes.notes ?? null } : {}),
+  };
+}
+
+export async function saveAlertDetails(client: BabbleClient, eventId: string, changes: AlertChanges): Promise<void> {
+  unwrapVoid(
+    await client.rpc('save_alert_details', {
+      target_event_id: eventId,
+      changes: alertChangesPayload(changes) as Json,
+    }),
+  );
+}
+
+export async function endAlert(
+  client: BabbleClient,
+  eventId: string,
+  reason: AlertEnd | null,
+  endAt?: string,
+): Promise<string | null> {
+  return unwrapMaybe(
+    await client.rpc('end_alert', {
+      target_event_id: eventId,
+      ...(reason ? { reason } : {}),
+      ...(endAt ? { end_at: endAt } : {}),
+    }),
+  );
+}
+
 export type PumpAmountChanges = Partial<Pick<PumpDetails, 'leftMl' | 'rightMl'>>;
 
 export function pumpAmountsPayload(changes: PumpAmountChanges): Record<string, number | null> {
@@ -236,6 +278,8 @@ export function draftToPayload(
           : {}),
       };
     }
+    case 'alert':
+      return { ...base, details: { activities: draft.details.activities, ended_by: draft.details.endedBy } };
     case 'breast_feed':
       return { ...base, segments: segments(draft.segments) };
     case 'bottle':
@@ -314,7 +358,7 @@ export function rowsToEvents(rows: readonly EventRow[]): BabyEvent[] {
   return rows.map(rowToEvent);
 }
 
-const SESSION_TYPES: readonly EventType[] = ['sleep', 'breast_feed', 'pump'];
+const SESSION_TYPES: readonly EventType[] = ['sleep', 'alert', 'breast_feed', 'pump'];
 
 export function overlapFilter(from: string): string {
   return `started_at.gte.${from},ended_at.gte.${from},and(ended_at.is.null,type.in.(${SESSION_TYPES.join(',')}))`;
@@ -407,7 +451,7 @@ export async function saveEvent(client: BabbleClient, babyId: string, draft: Eve
 export async function startSession(
   client: BabbleClient,
   babyId: string,
-  type: 'breast_feed' | 'pump' | 'sleep',
+  type: 'breast_feed' | 'pump' | 'sleep' | 'alert',
   side: Side = 'left',
   startAt?: string,
 ): Promise<string> {

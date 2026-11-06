@@ -46,6 +46,9 @@ export function applySessionAction(event: BabyEvent, action: SessionAction, now:
         ? { ...segment, endedAt: compareIso(closeAt, segment.startedAt) > 0 ? closeAt : segment.startedAt }
         : segment,
     );
+  if (event.type === 'alert') {
+    return action.kind === 'end' ? { ...event, endedAt: endAt(action, at) } : event;
+  }
   if (event.type === 'sleep') return applyNapAction(event, action, at, closeOpen);
   if (event.type !== 'breast_feed' && event.type !== 'pump') return event;
 
@@ -217,5 +220,6 @@ export function discardNeedsConfirmation(event: Pick<BabyEvent, 'startedAt'>, no
 export function sessionNoun(type: BabyEvent['type']): string {
   if (type === 'sleep') return 'nap';
   if (type === 'pump') return 'pump';
+  if (type === 'alert') return 'alert period';
   return 'feed';
 }

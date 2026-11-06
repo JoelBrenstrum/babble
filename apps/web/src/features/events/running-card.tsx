@@ -1,6 +1,8 @@
 import { clock, type BabbleClient, type Author } from '@babble/api';
-import { useDiscardSession, useNow, useSessionAction, useSessionPrompts } from '@babble/api/react';
+import { useDiscardSession, useEndAlert, useNow, useSessionAction, useSessionPrompts } from '@babble/api/react';
 import {
+  ALERT_END_LABELS,
+  ALERT_ENDS,
   discardNeedsConfirmation,
   feedEndTime,
   formatDuration,
@@ -10,12 +12,13 @@ import {
   SIDE_LABEL,
   sessionNoun,
   summariseSleep,
+  type AlertEnd,
   type BabyEvent,
   type EventOfType,
   type Side,
 } from '@babble/domain';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { Moon, Pause, Play, Square, Trash2 } from 'lucide-react';
+import { Moon, Pause, Play, Smile, Square, Trash2 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Avatar } from '#/components/ui/avatar';
 import { Button } from '#/components/ui/button';
@@ -54,6 +57,8 @@ export function RunningCard({
   const card =
     event.type === 'sleep' ? (
       <SleepRunningCard event={event} {...props} />
+    ) : event.type === 'alert' ? (
+      <AlertRunningCard event={event} {...props} />
     ) : event.type === 'breast_feed' || event.type === 'pump' ? (
       <FeedRunningCard event={event} {...props} />
     ) : null;
@@ -218,6 +223,101 @@ function SleepRunningCard({
   );
 }
 
+function AlertRunningCard({
+  event,
+  client,
+  timeZone,
+  members,
+  compact = false,
+  onDiscarded,
+}: RunningCardProps & { event: EventOfType<'alert'> }) {
+  const now = useNow(1000);
+  const { noun, requestDiscard, discardControls, startControls, endControls } = useSessionEditors({
+    event,
+    client,
+    timeZone,
+    now,
+    onDiscarded,
+  });
+  const endAlert = useEndAlert(client, event.babyId);
+  const navigate = useNavigate();
+  const [stopping, setStopping] = useState<{ at?: string } | null>(null);
+
+  async function stop(reason: AlertEnd | null) {
+    let napId: string | null;
+    try {
+      napId = await endAlert.mutateAsync({ event, reason, at: stopping?.at });
+    } catch {
+      return;
+    }
+    setStopping(null);
+    if (napId && !compact) void navigate({ to: '/sessions/$eventId', params: { eventId: napId } });
+  }
+
+  return (
+    <Shell tone="alert" compact={compact}>
+      <Header
+        title="Alert"
+        paused={false}
+        startedBy={startedByName(members, event)}
+        eventId={event.id}
+        compact={compact}
+        noun={noun}
+        onDiscard={requestDiscard}
+      />
+      {discardControls}
+      <span className="tabular text-timer-lg font-medium text-on-alert">
+        {formatTimer(now.getTime() - Date.parse(event.startedAt))}
+      </span>
+      {startControls}
+      {stopping ? (
+        <div role="group" aria-label="What ended it?" className="flex flex-col gap-3 rounded-tile bg-raised p-4">
+          <p className="text-body font-semibold">What ended it?</p>
+          <div className="grid grid-cols-2 gap-2">
+            {ALERT_ENDS.map((reason) => (
+              <Button
+                key={reason}
+                variant={reason === 'asleep' ? 'primary' : 'secondary'}
+                loading={endAlert.isPending && endAlert.variables?.reason === reason}
+                disabled={endAlert.isPending}
+                onClick={() => void stop(reason)}
+              >
+                {reason === 'asleep' && <Moon className="size-5" strokeWidth={2.75} />}
+                {ALERT_END_LABELS[reason]}
+              </Button>
+            ))}
+          </div>
+          <div className="flex justify-between gap-2">
+            <Button variant="ghost" disabled={endAlert.isPending} onClick={() => setStopping(null)}>
+              Keep going
+            </Button>
+            <Button
+              variant="ghost"
+              loading={endAlert.isPending && endAlert.variables?.reason === null}
+              disabled={endAlert.isPending}
+              onClick={() => void stop(null)}
+            >
+              Skip
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <>
+          <Button
+            size="lg"
+            className="mt-2 bg-alert text-ink-on-solid hover:bg-on-alert"
+            onClick={() => setStopping({})}
+          >
+            <Smile className="size-5" strokeWidth={2.75} />
+            Stop alert time
+          </Button>
+          {endControls((at) => setStopping({ at }))}
+        </>
+      )}
+    </Shell>
+  );
+}
+
 function FeedRunningCard({
   event,
   client,
@@ -353,7 +453,7 @@ function Shell({
   compact,
   children,
 }: {
-  tone: 'sleep' | 'feed' | 'pump';
+  tone: 'sleep' | 'alert' | 'feed' | 'pump';
   compact: boolean;
   children: ReactNode;
 }) {
@@ -362,6 +462,7 @@ function Shell({
       className={cn(
         'flex flex-col gap-3 rounded-card p-5 shadow-raised',
         tone === 'sleep' && 'bg-sleep-soft',
+        tone === 'alert' && 'bg-alert-soft',
         tone === 'feed' && 'bg-raised ring-2 ring-feed-right/40',
         tone === 'pump' && 'bg-raised ring-2 ring-pump/40',
         compact && 'p-4',

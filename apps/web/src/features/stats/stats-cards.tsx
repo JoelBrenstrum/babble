@@ -18,6 +18,7 @@ import {
   Layers,
   Moon,
   MoonStar,
+  Smile,
   Sun,
   Timer,
   TrendingUp,
@@ -33,6 +34,11 @@ import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
 
 const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; series: string[] }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft text-on-sleep', series: ['bg-sleep', 'bg-sleep/45'] },
+  alert: {
+    icon: Smile,
+    tile: 'bg-alert-soft text-on-alert',
+    series: ['bg-alert', 'bg-feed-right/60', 'bg-session-downtime'],
+  },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft text-on-feed-right', series: ['bg-bottle', 'bg-feed-right'] },
   'breast-time': {
     icon: Timer,

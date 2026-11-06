@@ -24,6 +24,8 @@ export function timelineItemLabel(item: TimelineItem, timeZone: string, units: U
   switch (event.type) {
     case 'sleep':
       return `Sleep ${at}, ${length}`;
+    case 'alert':
+      return `Alert time ${at}, ${length}`;
     case 'breast_feed':
       return `Breastfeed ${at}, ${length}`;
     case 'pump':

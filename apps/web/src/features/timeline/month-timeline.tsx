@@ -21,6 +21,7 @@ export function MonthTimeline({
   lanes?: readonly TimelineLane[];
   show?: string;
 }) {
+  const hasAlert = days.some(({ layout }) => (layout?.alert.length ?? 0) > 0);
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap gap-x-4 gap-y-1 pl-16 text-meta font-semibold text-ink-2">
@@ -28,6 +29,12 @@ export function MonthTimeline({
           <span className="flex items-center gap-1.5">
             <span className="size-2.5 rounded-sm bg-sleep" />
             Sleep
+          </span>
+        )}
+        {hasAlert && lanes.includes('alert') && (
+          <span className="flex items-center gap-1.5">
+            <span className="h-1 w-2.5 rounded-full bg-alert" />
+            Alert
           </span>
         )}
         {lanes.includes('feeds') && (
@@ -98,6 +105,13 @@ export function MonthTimeline({
                     <span
                       key={item.event.id}
                       className="absolute inset-y-0 min-w-[2px] bg-sleep"
+                      style={{ left: pct(item.startFrac), width: pct(item.endFrac - item.startFrac) }}
+                    />
+                  ))}
+                  {layout?.alert.map((item) => (
+                    <span
+                      key={item.event.id}
+                      className="absolute bottom-0 h-1 min-w-[2px] rounded-full bg-alert"
                       style={{ left: pct(item.startFrac), width: pct(item.endFrac - item.startFrac) }}
                     />
                   ))}

@@ -17,6 +17,7 @@ import { useState, type FormEvent } from 'react';
 import { Button } from '#/components/ui/button';
 import { TextAreaField } from '#/components/ui/field';
 import { StatusMessage } from '#/components/ui/status';
+import { AlertForm } from './forms/alert-form';
 import { BottleForm } from './forms/bottle-form';
 import { CustomForm } from './forms/custom-form';
 import { GrowthForm } from './forms/growth-form';
@@ -89,6 +90,7 @@ export function EventForm({
     <form onSubmit={submit} className="flex flex-col gap-6" noValidate>
       <fieldset disabled={readOnly} className="flex min-w-0 flex-col gap-6">
         {draft.type === 'sleep' && <SleepForm {...common} draft={draft} onChange={setDraft} />}
+        {draft.type === 'alert' && <AlertForm {...common} draft={draft} onChange={setDraft} />}
         {draft.type === 'breast_feed' && <BreastFeedForm {...common} draft={draft} onChange={setDraft} />}
         {draft.type === 'bottle' && <BottleForm {...common} draft={draft} onChange={setDraft} />}
         {draft.type === 'solids' && (

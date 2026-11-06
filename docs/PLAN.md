@@ -34,6 +34,7 @@ babble is a baby tracker modelled on Huckleberry, with detailed breastfeeding an
 Details for each are in [ui.md](ui.md) unless noted.
 
 - **Solids** tracker: foods, amount, reaction, first tries; imported from Huckleberry too.
+- **Alert time** tracker: a timer for when the baby is awake and content, with activities and "What ended it?" ("Fell asleep" starts a nap). It has its own Timeline lane and totals, and a Stats card splitting awake time into Alert, Feeding and Other awake.
 - **Chair mode** (`/chair`, web): a full-screen feed station for a tablet or a Raspberry Pi touchscreen ([raspberry-pi.md](raspberry-pi.md)), with big Left/Right buttons, quick bottle and nappy, discard, idle time, dimming, full screen and a self-refresh on new releases. Also shown on the welcome page.
 - **Nappy prompt** when a feed starts, after the first side or when it ends (a per-baby setting), plus the feed ↔ nap prompts.
 - **Keep screen on** switch on feed sessions (Wake Lock / expo-keep-awake).

@@ -22,7 +22,7 @@ import {
   TIMELINE_LANES,
   visibleLanes,
 } from '@babble/domain';
-import { Droplets, GlassWater, Heart, Moon, type LucideIcon } from 'lucide-react';
+import { Droplets, GlassWater, Heart, Moon, Smile, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { ChartTip } from '#/components/ui/chart-tip';
 import { PooSwatch } from '#/components/ui/poo-swatch';
@@ -33,6 +33,7 @@ const TIP_ROOM_PX = 72;
 
 const LANE_STYLE: Record<TimelineLane, { icon: LucideIcon; tone: string }> = {
   sleep: { icon: Moon, tone: 'text-sleep' },
+  alert: { icon: Smile, tone: 'text-alert' },
   feeds: { icon: Heart, tone: 'text-feed-left' },
   nappies: { icon: Droplets, tone: 'text-nappy' },
   pumps: { icon: GlassWater, tone: 'text-pump' },
@@ -314,6 +315,31 @@ function Item({
         ))}
         {showsItemLabel(item) && (
           <span className="relative">{formatDuration(summariseSleep(event, now).asleepMs, { seconds: false })}</span>
+        )}
+      </TimelineItemLink>
+    );
+  }
+
+  if (event.type === 'alert') {
+    return (
+      <TimelineItemLink
+        event={event}
+        running={item.running}
+        label={label}
+        onTip={onTip}
+        style={span}
+        className={cn(
+          'absolute inset-x-0 min-h-1 overflow-hidden bg-alert px-1.5 py-0.5 text-caption font-bold text-ink-on-solid hover:brightness-110',
+          roundEnds,
+          item.running && 'animate-pulse',
+        )}
+      >
+        {showsItemLabel(item) && (
+          <span className="relative">
+            {formatDuration((event.endedAt ? Date.parse(event.endedAt) : now.getTime()) - Date.parse(event.startedAt), {
+              seconds: false,
+            })}
+          </span>
         )}
       </TimelineItemLink>
     );
