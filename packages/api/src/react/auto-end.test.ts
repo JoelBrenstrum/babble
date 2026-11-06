@@ -1,6 +1,7 @@
 import { QueryClient } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import { sampleBaby, sampleRunningFeed } from '../fixtures';
+import { queryKeys } from '../queries';
 import { fakeClient } from '../test-utils';
 import { autoEndStaleSessions, sessionsToAutoEnd } from './auto-end';
 
@@ -23,8 +24,9 @@ describe('sessionsToAutoEnd', () => {
 describe('autoEndStaleSessions', () => {
   it('ends stale sessions once while a request is in flight, then refreshes', async () => {
     const feed = stale();
-    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    const { client, requests } = fakeClient(() => ({ status: 200, body: true }));
     const queryClient = new QueryClient();
+    queryClient.setQueryData(queryKeys.events(sampleBaby.id), []);
     const inFlight = new Set<string>();
     const options = {
       client,
@@ -36,8 +38,9 @@ describe('autoEndStaleSessions', () => {
       inFlight,
     };
     await Promise.all([autoEndStaleSessions(options), autoEndStaleSessions(options)]);
-    expect(requests.filter((request) => request.url.pathname.endsWith('end_session'))).toHaveLength(1);
+    expect(requests.filter((request) => request.url.pathname.endsWith('auto_end_stale_session'))).toHaveLength(1);
     expect(inFlight.size).toBe(0);
+    expect(queryClient.getQueryState(queryKeys.events(sampleBaby.id))?.isInvalidated).toBe(true);
   });
 
   it('refreshes and releases the session even when ending fails', async () => {

@@ -22,3 +22,4 @@ export { oncePerKey } from './once-per-key';
 export * from './home-assistant';
 export * from './reports';
 export * from './dashboards';
+export * from './custom-titles';

@@ -129,7 +129,13 @@ export function rowToEvent(row: EventRow): BabyEvent {
       return {
         ...meta,
         type: 'custom',
-        details: { title: row.custom?.title ?? '', description: row.custom?.description ?? '' },
+        details: {
+          title: row.custom?.title ?? '',
+          description: row.custom?.description ?? '',
+          kind: row.custom?.kind ?? 'note',
+          amount: row.custom?.amount ?? null,
+          unit: row.custom?.unit ?? null,
+        },
       };
   }
 }
@@ -275,7 +281,16 @@ export function draftToPayload(
         },
       };
     case 'custom':
-      return { ...base, details: { title: draft.details.title, description: draft.details.description } };
+      return {
+        ...base,
+        details: {
+          title: draft.details.title,
+          description: draft.details.description,
+          kind: draft.details.kind,
+          amount: draft.details.amount,
+          unit: draft.details.unit,
+        },
+      };
   }
 }
 
@@ -425,6 +440,10 @@ export async function resumeSession(client: BabbleClient, eventId: string, side?
 
 export async function endSession(client: BabbleClient, eventId: string, endAt?: string): Promise<void> {
   unwrapVoid(await client.rpc('end_session', { target_event_id: eventId, ...(endAt ? { end_at: endAt } : {}) }));
+}
+
+export async function autoEndStaleSession(client: BabbleClient, eventId: string): Promise<boolean> {
+  return unwrap(await client.rpc('auto_end_stale_session', { target_event_id: eventId }));
 }
 
 export async function setSwitchTime(client: BabbleClient, eventId: string, switchAt: string): Promise<void> {

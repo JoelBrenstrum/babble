@@ -1,9 +1,11 @@
 import { QueryClient, onlineManager, type Query } from '@tanstack/react-query';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
+  cachedThenCurrent,
   ensureCurrentData,
   PERSIST_MAX_AGE_MS,
   resetRevalidation,
+  sameData,
   setupQueryPersistence,
   shouldPersistQuery,
   type PersistedStorage,
@@ -114,6 +116,79 @@ describe('ensureCurrentData', () => {
   });
 });
 
+describe('cachedThenCurrent', () => {
+  it('answers from the cache at once and refreshes it in the background', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    queryClient.setQueryData(['families'], [{ id: 'cached' }]);
+    let calls = 0;
+    const options = {
+      queryKey: ['families'],
+      queryFn: async () => {
+        calls += 1;
+        return [{ id: 'fresh' }];
+      },
+    };
+    expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'cached' }]);
+    await vi.waitFor(() => expect(queryClient.getQueryData(['families'])).toEqual([{ id: 'fresh' }]));
+    expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'fresh' }]);
+    expect(calls).toBe(1);
+  });
+
+  it('waits for the network when nothing is cached', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    const options = { queryKey: ['families'], queryFn: async () => [{ id: 'fresh' }] };
+    expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'fresh' }]);
+  });
+
+  it('keeps the cached data when the background refresh fails, and tries again next time', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    queryClient.setQueryData(['families'], [{ id: 'cached' }]);
+    let calls = 0;
+    const options = {
+      queryKey: ['families'],
+      queryFn: async () => {
+        calls += 1;
+        if (calls === 1) throw new Error('offline');
+        return [{ id: 'fresh' }];
+      },
+      retry: false,
+    };
+    expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'cached' }]);
+    await vi.waitFor(() => expect(calls).toBe(1));
+    expect(queryClient.getQueryData(['families'])).toEqual([{ id: 'cached' }]);
+    await cachedThenCurrent(queryClient, options);
+    await vi.waitFor(() => expect(queryClient.getQueryData(['families'])).toEqual([{ id: 'fresh' }]));
+  });
+
+  it('waits for the network when the cached data is not usable', async () => {
+    resetRevalidation();
+    const queryClient = client();
+    queryClient.setQueryData(['families'], []);
+    const options = {
+      queryKey: ['families'],
+      queryFn: async () => [{ id: 'fresh' }],
+      usable: (families: { id: string }[]) => families.length > 0,
+    };
+    expect(await cachedThenCurrent(queryClient, options)).toEqual([{ id: 'fresh' }]);
+  });
+});
+
+describe('sameData', () => {
+  it('treats separately fetched copies of the same families as unchanged', () => {
+    const families = [{ id: 'f', babies: [{ id: 'b', name: 'Olivia' }] }];
+    expect(sameData(families, structuredClone(families))).toBe(true);
+  });
+
+  it('notices a change anywhere inside', () => {
+    const families = [{ id: 'f', babies: [{ id: 'b', name: 'Olivia' }] }];
+    expect(sameData(families, [{ id: 'f', babies: [{ id: 'b', name: 'Liv' }] }])).toBe(false);
+    expect(sameData(families, [])).toBe(false);
+  });
+});
+
 describe('setupQueryPersistence', () => {
   it('restores what an earlier session cached', async () => {
     const storage = memoryStorage();
@@ -142,7 +217,7 @@ describe('setupQueryPersistence', () => {
     expect(second.getQueryState(['events', 'b1', 'latest'])?.isInvalidated).toBe(true);
   });
 
-  it('drops the cache when the release changes', async () => {
+  it('drops the cache when the cached data changes shape', async () => {
     const storage = memoryStorage();
     const first = client();
     await setupQueryPersistence(first, { storage, throttleTime: 0, buster: 'r1' }).restored;

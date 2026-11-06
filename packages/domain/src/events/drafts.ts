@@ -31,7 +31,11 @@ export function emptyDraft<T extends EventType>(type: T, now: Date): DraftOfType
     },
     pump: { ...base, type: 'pump', segments: [], details: { leftMl: null, rightMl: null, totalMl: null } },
     growth: { ...base, type: 'growth', details: { weightG: null, lengthMm: null, headCircumferenceMm: null } },
-    custom: { ...base, type: 'custom', details: { title: '', description: '' } },
+    custom: {
+      ...base,
+      type: 'custom',
+      details: { title: '', description: '', kind: 'note', amount: null, unit: null },
+    },
   };
   return drafts[type];
 }
