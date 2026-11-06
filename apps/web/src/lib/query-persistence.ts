@@ -1,11 +1,13 @@
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
-import type { Query, QueryClient } from '@tanstack/react-query';
+import { replaceEqualDeep, type Query, type QueryClient } from '@tanstack/react-query';
 import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { del, get, set } from 'idb-keyval';
-import { RELEASE_ID } from './release';
 
 export const PERSIST_MAX_AGE_MS = 24 * 60 * 60_000;
 const STORAGE_KEY = 'babble.queryCache';
+declare const __BABBLE_CACHE_VERSION__: string | undefined;
+
+export const CACHE_VERSION = typeof __BABBLE_CACHE_VERSION__ === 'string' ? __BABBLE_CACHE_VERSION__ : 'dev';
 const NEVER_PERSISTED = new Set(['release', 'invite', 'device-link']);
 
 export interface PersistedStorage {
@@ -46,7 +48,7 @@ export function setupQueryPersistence(
     queryClient,
     persister,
     maxAge: PERSIST_MAX_AGE_MS,
-    buster: options.buster ?? RELEASE_ID,
+    buster: options.buster ?? CACHE_VERSION,
     dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
   });
   // Restored data is shown straight away but always refetched: it may be seconds or hours old.
@@ -94,4 +96,33 @@ export async function ensureCurrentData<T>(
     if (cached !== undefined) return cached;
     throw error;
   }
+}
+
+// Answers from usable cached data straight away, refreshing in the background, so a start-up with saved data
+// never waits on the network.
+export async function cachedThenCurrent<T>(
+  queryClient: QueryClient,
+  {
+    usable = () => true,
+    ...options
+  }: {
+    queryKey: readonly unknown[];
+    queryFn: () => Promise<T>;
+    staleTime?: number;
+    retry?: boolean | number;
+    usable?: (data: T) => boolean;
+  },
+): Promise<T> {
+  const key = JSON.stringify(options.queryKey);
+  const cached = queryClient.getQueryData<T>(options.queryKey);
+  if (cached === undefined || revalidated.has(key) || !usable(cached)) return ensureCurrentData(queryClient, options);
+  void queryClient.fetchQuery({ ...options, staleTime: 0, networkMode: 'always' }).then(
+    () => void revalidated.add(key),
+    () => undefined,
+  );
+  return cached;
+}
+
+export function sameData<T>(a: T, b: T): boolean {
+  return replaceEqualDeep(a, b) === a;
 }

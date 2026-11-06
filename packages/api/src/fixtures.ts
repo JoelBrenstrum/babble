@@ -207,7 +207,7 @@ export function sampleEvents(now: Date): BabyEvent[] {
       type: 'custom',
       startedAt: minutesAgo(now, 60 * 20),
       endedAt: minutesAgo(now, 60 * 20 - 15),
-      details: { title: 'Bath', description: '' },
+      details: { title: 'Bath', description: '', kind: 'duration', amount: null, unit: null },
     },
   ];
 }

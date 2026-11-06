@@ -55,12 +55,13 @@ export type { TrackingSettings };
 
 const AUTO_END_CHECK_MS = 60_000;
 
-export function useRealtimeEvents(client: BabbleClient, babyId: string) {
+// A socket can die silently while the app is suspended, so a new resubscribeKey replaces the channel.
+export function useRealtimeEvents(client: BabbleClient, babyId: string, resubscribeKey?: unknown) {
   const queryClient = useQueryClient();
   useEffect(() => {
     const apply = (change: EventChange) => void applyEventChange(queryClient, client, babyId, change);
     return subscribeToBabyEvents(client, babyId, apply, () => apply(UNKNOWN_CHANGE));
-  }, [client, babyId, queryClient]);
+  }, [client, babyId, queryClient, resubscribeKey]);
 }
 
 export function useTrackingSettings(client: BabbleClient, babyId: string): TrackingSettings {
@@ -77,26 +78,27 @@ export function useAutoEndStaleSessions(
   options: { recheckKey?: unknown; enabled?: boolean } = {},
 ) {
   const queryClient = useQueryClient();
-  const { autoEndPausedMinutes } = useTrackingSettings(client, babyId);
+  const settings = useQuery(babySettingsQuery(client, babyId)).data;
   const running = useQuery(runningEventsQuery(client, babyId)).data;
   const inFlight = useRef(new Set<string>());
   const { recheckKey, enabled = true } = options;
+  const autoEndMinutes = settings ? trackingSettingsFrom(settings).autoEndPausedMinutes : null;
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || autoEndMinutes === null || !running) return;
     const check = () =>
       void autoEndStaleSessions({
         client,
         queryClient,
         babyId,
-        running: running ?? [],
+        running,
         now: clock.now(),
-        autoEndMinutes: autoEndPausedMinutes,
+        autoEndMinutes,
         inFlight: inFlight.current,
       });
     check();
     const id = setInterval(check, AUTO_END_CHECK_MS);
     return () => clearInterval(id);
-  }, [running, autoEndPausedMinutes, client, babyId, queryClient, recheckKey, enabled]);
+  }, [running, autoEndMinutes, client, babyId, queryClient, recheckKey, enabled]);
 }
 
 function undoAction(client: BabbleClient, queryClient: QueryClient, babyId: string, eventId: string) {

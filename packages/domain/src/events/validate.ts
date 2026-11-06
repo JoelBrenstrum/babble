@@ -1,4 +1,5 @@
 import { stretchesError } from './awake-periods';
+import { MAX_CUSTOM_AMOUNT } from './custom-titles';
 import { MAX_FOOD_LENGTH, MAX_FOODS } from './foods';
 import type { EventDraft } from './types';
 import { MINUTE_MS } from '../time/constants';
@@ -17,6 +18,7 @@ export type DraftErrorKey =
   | 'headCircumferenceMm'
   | 'foods'
   | 'title'
+  | 'amount'
   | 'segments'
   | 'amounts'
   | 'awake';
@@ -91,6 +93,11 @@ export function validateDraft(draft: EventDraft, now: Date): DraftErrors {
     }
     case 'custom':
       if (!draft.details.title.trim()) errors.title = 'Give it a title.';
+      if (draft.details.kind === 'amount') {
+        const { amount } = draft.details;
+        if (amount === null || amount <= 0) errors.amount = 'Enter an amount.';
+        else if (amount > MAX_CUSTOM_AMOUNT) errors.amount = `Keep it under ${MAX_CUSTOM_AMOUNT.toLocaleString('en')}.`;
+      }
       break;
     case 'breast_feed':
     case 'pump':

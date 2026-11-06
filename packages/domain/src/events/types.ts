@@ -113,9 +113,14 @@ export interface GrowthDetails {
   headCircumferenceMm: number | null;
 }
 
+export type CustomKind = 'note' | 'duration' | 'amount';
+
 export interface CustomDetails {
   title: string;
   description: string;
+  kind: CustomKind;
+  amount: number | null;
+  unit: string | null;
 }
 
 interface EventBase {

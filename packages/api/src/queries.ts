@@ -3,6 +3,7 @@ import type { EventType } from '@babble/domain';
 import { getEvent, latestEvents, listEvents, listEventsBetween, runningEvents } from './events';
 import { listFamilyDevices } from './devices';
 import { checkInvite, getBabySettings, getInstanceSettings, listFamilies, listPendingInvites } from './families';
+import { listCustomTitles } from './custom-titles';
 
 export const queryKeys = {
   instanceSettings: ['instance-settings'] as const,
@@ -25,6 +26,7 @@ export const queryKeys = {
     return { from, to };
   },
   event: (babyId: string, id: string) => ['events', babyId, 'event', id] as const,
+  customTitles: (babyId: string) => ['custom-titles', babyId] as const,
 };
 
 export function instanceSettingsQuery(client: BabbleClient) {
@@ -89,4 +91,8 @@ export function eventsBetweenQuery(client: BabbleClient, babyId: string, from: s
 
 export function familyDevicesQuery(client: BabbleClient, familyId: string) {
   return { queryKey: queryKeys.familyDevices(familyId), queryFn: () => listFamilyDevices(client, familyId) };
+}
+
+export function customTitlesQuery(client: BabbleClient, babyId: string) {
+  return { queryKey: queryKeys.customTitles(babyId), queryFn: () => listCustomTitles(client, babyId) };
 }

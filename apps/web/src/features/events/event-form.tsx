@@ -1,5 +1,5 @@
 import { clock, eventListQuery, type BabbleClient } from '@babble/api';
-import { useAsyncAction, useDeleteEvent, useSaveEvent } from '@babble/api/react';
+import { useAsyncAction, useCustomTitles, useDeleteEvent, useSaveEvent } from '@babble/api/react';
 import { useQuery } from '@tanstack/react-query';
 import {
   growthPlaceholders,
@@ -65,6 +65,7 @@ export function EventForm({
     ...eventListQuery(client, babyId, ['solids']),
     enabled: draft.type === 'solids',
   }).data;
+  const customTitles = useCustomTitles(client, babyId, { enabled: draft.type === 'custom' });
 
   async function attempt(skipAmounts: boolean) {
     const target = skipAmounts ? withoutPumpAmounts(draft) : draft;
@@ -107,7 +108,16 @@ export function EventForm({
             previous={growthPlaceholders(growthEvents ?? [], units, timeZone, event?.id)}
           />
         )}
-        {draft.type === 'custom' && <CustomForm {...common} draft={draft} onChange={setDraft} />}
+        {draft.type === 'custom' && (
+          <CustomForm
+            {...common}
+            draft={draft}
+            onChange={setDraft}
+            saved={customTitles.saved}
+            onSaveTitle={readOnly ? undefined : (entry) => customTitles.add.mutate(entry)}
+            saveError={customTitles.add.error?.message}
+          />
+        )}
 
         <TextAreaField
           label="Notes (optional)"

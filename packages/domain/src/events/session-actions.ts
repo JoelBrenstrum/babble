@@ -143,7 +143,7 @@ export function pickedPastTime(iso: string, now: Date, timeZone?: string): strin
   return Date.parse(yesterday) > now.getTime() ? iso : yesterday;
 }
 
-export const EARLIER_START_OPTIONS_MIN = [5, 10, 15] as const;
+export const EARLIER_START_OPTIONS_MIN = [1, 2, 5, 10, 15] as const;
 
 export function earlierStart(event: Pick<BabyEvent, 'startedAt'>, minutes: number): string {
   return new Date(Date.parse(event.startedAt) - minutes * MINUTE_MS).toISOString();

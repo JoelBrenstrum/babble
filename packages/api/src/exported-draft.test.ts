@@ -138,6 +138,14 @@ describe('readExportedDraft', () => {
     const draft = readExportedDraft(
       raw(emptyDraft('custom', NOW), { extra: 1, details: { title: 'Bath', description: '', colour: 'blue' } }),
     );
-    expect(draft).toEqual({ ...emptyDraft('custom', NOW), details: { title: 'Bath', description: '' } });
+    expect(draft).toEqual({
+      ...emptyDraft('custom', NOW),
+      details: { title: 'Bath', description: '', kind: 'note', amount: null, unit: null },
+    });
+  });
+
+  it('reads the amount of a custom entry', () => {
+    const details = { title: 'Drops', description: '', kind: 'amount', amount: 2, unit: 'drops' };
+    expect(readExportedDraft(raw(emptyDraft('custom', NOW), { details }))).toMatchObject({ details });
   });
 });

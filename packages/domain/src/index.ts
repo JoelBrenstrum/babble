@@ -247,14 +247,17 @@ export {
   withoutPumpAmounts,
   type RunningTone,
 } from './events/session-context';
+export { awakePeriods, stretchesWithAwake, type AwakePeriod } from './events/awake-periods';
 export {
-  awakePeriods,
-  napDurationText,
-  newAwakePeriod,
-  stretchesWithAwake,
-  trimAwakePeriod,
-  type AwakePeriod,
-} from './events/awake-periods';
+  addWakeUpRow,
+  editRowsToNap,
+  editRowTotals,
+  joinHoursMinutes,
+  napToEditRows,
+  removeWakeUpRow,
+  splitHoursMinutes,
+  type NapEditRow,
+} from './events/nap-edit-rows';
 export {
   CHAIR_IDLE_DIM_MS,
   CHAIR_ENDED_MS,
@@ -341,3 +344,25 @@ export {
   type TogOutside,
   type TogResult,
 } from './tog/tog';
+export {
+  canSaveCustomTitle,
+  CUSTOM_KIND_LABELS,
+  CUSTOM_KINDS,
+  customMinutes,
+  customTitleEntry,
+  customTitleHint,
+  formatCustomAmount,
+  hasCustomTitle,
+  matchingCustomTitle,
+  MAX_CUSTOM_AMOUNT,
+  MAX_CUSTOM_TITLE_LENGTH,
+  MAX_CUSTOM_UNIT_LENGTH,
+  MAX_SAVED_CUSTOM_TITLES,
+  normaliseCustomTitle,
+  normaliseCustomUnit,
+  withCustomKind,
+  withCustomMinutes,
+  withCustomStart,
+  withCustomTitle,
+  type CustomTitle,
+} from './events/custom-titles';

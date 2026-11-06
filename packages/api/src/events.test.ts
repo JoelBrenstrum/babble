@@ -169,6 +169,24 @@ describe('rowToEvent', () => {
     });
   });
 
+  it('maps a custom amount', () => {
+    const event = rowToEvent(
+      row({
+        type: 'custom',
+        custom: { event_id: 'event-1', title: 'Drops', description: '', kind: 'amount', amount: 2, unit: 'drops' },
+      }),
+    );
+    expect(event.type === 'custom' && event.details).toEqual({
+      title: 'Drops',
+      description: '',
+      kind: 'amount',
+      amount: 2,
+      unit: 'drops',
+    });
+    const fallback = rowToEvent(row({ type: 'custom' }));
+    expect(fallback.type === 'custom' && fallback.details).toMatchObject({ kind: 'note', amount: null, unit: null });
+  });
+
   it('round-trips every draft type through the payload', () => {
     for (const type of ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'] as const) {
       const payload = draftToPayload(emptyDraft(type, NOW), { babyId: 'baby-1' });
@@ -194,6 +212,21 @@ describe('draftToPayload', () => {
       notes: null,
       segments: [{ side: 'left', started_at: '2026-10-06T09:00:00Z', ended_at: '2026-10-06T09:10:00Z' }],
       details: { left_ml: 60, right_ml: 50, total_ml: null },
+    });
+  });
+
+  it('sends the kind, amount and unit of a custom entry', () => {
+    const empty = emptyDraft('custom', NOW);
+    const draft = {
+      ...empty,
+      details: { ...empty.details, title: 'Drops', kind: 'amount' as const, amount: 2, unit: 'drops' },
+    };
+    expect(draftToPayload(draft, { babyId: 'baby-1' })).toHaveProperty('details', {
+      title: 'Drops',
+      description: '',
+      kind: 'amount',
+      amount: 2,
+      unit: 'drops',
     });
   });
 

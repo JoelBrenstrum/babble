@@ -1,20 +1,16 @@
 import { formatDuration, napRows, type NapLike } from '@babble/domain';
-import { Minus, Trash2 } from 'lucide-react';
+import { Minus } from 'lucide-react';
 import { Card } from '#/components/ui/card';
 import { cn } from '#/lib/cn';
 
 export function NapBreakdown({
   nap,
   now,
-  trim = 'last',
   onTrimAwake,
-  onRemoveAwake,
 }: {
   nap: NapLike;
   now: Date;
-  trim?: 'last' | 'all';
   onTrimAwake?: (awakeIndex: number) => void;
-  onRemoveAwake?: (awakeIndex: number) => void;
 }) {
   const rows = napRows(nap, now);
   const lastAwake = rows.at(-1)?.kind === 'asleep' ? rows.length - 2 : -1;
@@ -27,7 +23,7 @@ export function NapBreakdown({
       {rows.map((row, index) => {
         if (row.kind === 'awake') awakeIndex += 1;
         const current = awakeIndex;
-        const canTrim = row.kind === 'awake' && !row.running && (trim === 'all' || index === lastAwake);
+        const canTrim = row.kind === 'awake' && !row.running && index === lastAwake;
         return (
           <div key={index} className="flex min-h-tap items-center gap-3 px-4 py-2">
             {row.kind === 'asleep' ? (
@@ -57,16 +53,6 @@ export function NapBreakdown({
                 className="-my-1 grid size-10 shrink-0 place-items-center rounded-full border border-line bg-raised text-ink hover:border-ink-3"
               >
                 <Minus className="size-4" strokeWidth={3} />
-              </button>
-            )}
-            {row.kind === 'awake' && !row.running && onRemoveAwake && (
-              <button
-                type="button"
-                aria-label={`Remove wake-up ${current + 1}`}
-                onClick={() => onRemoveAwake(current)}
-                className="-my-1 -mr-2 grid size-10 shrink-0 place-items-center rounded-full text-ink-2 hover:bg-line hover:text-danger"
-              >
-                <Trash2 className="size-4" strokeWidth={2.5} />
               </button>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { formatDuration } from '../format/duration';
 import { formatLength, formatVolume, formatWeight } from '../format/units';
+import { formatCustomAmount } from './custom-titles';
 import { segmentTotals } from './segments';
 import { summariseSleep } from './sleep-stretches';
 import {
@@ -273,7 +274,12 @@ export function describeEvent(event: BabyEvent, now: Date, units: Units): EventD
     case 'custom':
       return describe({
         title: event.details.title,
-        parts: event.details.description ? [{ text: event.details.description, tone: 'custom' }] : [],
+        parts: [
+          ...(event.details.amount !== null
+            ? [{ text: formatCustomAmount(event.details.amount, event.details.unit), tone: 'custom' as const }]
+            : []),
+          ...(event.details.description ? [{ text: event.details.description, tone: 'custom' as const }] : []),
+        ],
         duration: spanMs >= MINUTE_MS ? formatDuration(spanMs, { seconds: false }) : null,
       });
   }
@@ -286,7 +292,10 @@ export function summariseLatest(event: BabyEvent, now: Date, units: Units): stri
   if (description.running) return description.duration ? `In progress · ${description.duration}` : 'In progress';
   if (event.type === 'pump') return description.trailing ?? '';
   if (event.type === 'sleep' || event.type === 'alert') return description.duration ?? '';
-  if (event.type === 'custom') return [description.title, description.duration].filter(Boolean).join(' · ');
+  if (event.type === 'custom') {
+    const amount = event.details.amount !== null ? formatCustomAmount(event.details.amount, event.details.unit) : null;
+    return [description.title, amount, description.duration].filter(Boolean).join(' · ');
+  }
   const parts = description.parts.filter((part) => !SUMMARY_TONES.includes(part.tone)).map((part) => part.text);
   if (event.type === 'nappy' && description.trailing) parts.push(description.trailing);
   return parts.join(' · ') || description.duration || '';

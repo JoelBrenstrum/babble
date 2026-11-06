@@ -18,6 +18,7 @@ describe('loadBabble', () => {
   beforeEach(() => {
     vi.resetModules();
     getPublicConfig.mockReset();
+    window.localStorage.clear();
   });
 
   it('loads the config once and reuses it', async () => {
@@ -34,5 +35,46 @@ describe('loadBabble', () => {
     await expect(loadBabble()).rejects.toThrow('Failed to fetch');
     await expect(loadBabble()).resolves.toMatchObject({ config });
     expect(getPublicConfig).toHaveBeenCalledTimes(2);
+  });
+
+  it('starts from the saved config without waiting on the server, then saves the fresh one', async () => {
+    window.localStorage.setItem('babble.publicConfig', JSON.stringify(config));
+    const fresh = { ...config, billingEnabled: true };
+    let respond: (value: typeof config) => void = () => undefined;
+    getPublicConfig.mockReturnValue(new Promise((resolve) => (respond = resolve)));
+    const { loadBabble } = await import('./babble');
+    await expect(loadBabble()).resolves.toMatchObject({ config });
+    respond(fresh);
+    await vi.waitFor(() => expect(JSON.parse(window.localStorage.getItem('babble.publicConfig')!)).toEqual(fresh));
+    expect(getPublicConfig).toHaveBeenCalledTimes(1);
+  });
+
+  it('waits for the server when the saved config is incomplete', async () => {
+    const { publicUrl: _, ...noPublicUrl } = config;
+    window.localStorage.setItem('babble.publicConfig', JSON.stringify(noPublicUrl));
+    getPublicConfig.mockResolvedValue(config);
+    const { loadBabble } = await import('./babble');
+    await expect(loadBabble()).resolves.toMatchObject({ config });
+  });
+
+  it('saves the config it waited for', async () => {
+    getPublicConfig.mockResolvedValue(config);
+    const { loadBabble } = await import('./babble');
+    await loadBabble();
+    expect(JSON.parse(window.localStorage.getItem('babble.publicConfig')!)).toEqual(config);
+  });
+});
+
+describe('parseSavedConfig', () => {
+  it('ignores missing, corrupt or incomplete saved config', async () => {
+    const { parseSavedConfig } = await import('./babble');
+    expect(parseSavedConfig(null)).toBeNull();
+    expect(parseSavedConfig('{nope')).toBeNull();
+    expect(parseSavedConfig('null')).toBeNull();
+    expect(parseSavedConfig(JSON.stringify({ supabaseUrl: 'x' }))).toBeNull();
+    const { publicUrl: _, ...noPublicUrl } = config;
+    expect(parseSavedConfig(JSON.stringify(noPublicUrl))).toBeNull();
+    expect(parseSavedConfig(JSON.stringify({ ...config, billingEnabled: 'yes' }))).toBeNull();
+    expect(parseSavedConfig(JSON.stringify(config))).toEqual(config);
   });
 });
