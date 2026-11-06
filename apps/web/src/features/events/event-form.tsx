@@ -112,8 +112,7 @@ export function EventForm({
             draft={draft}
             onChange={setDraft}
             saved={customTitles.saved}
-            suggestions={customTitles.suggestions}
-            onSaveTitle={readOnly ? undefined : (title) => customTitles.add.mutate(title)}
+            onSaveTitle={readOnly ? undefined : (entry) => customTitles.add.mutate(entry)}
             saveError={customTitles.add.error?.message}
           />
         )}

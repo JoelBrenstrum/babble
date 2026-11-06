@@ -1,3 +1,4 @@
+import { formatCustomAmount } from '../events/custom-titles';
 import { describeEvent } from '../events/describe';
 import { formatDuration } from '../format/duration';
 import { formatVolume } from '../format/units';
@@ -35,7 +36,14 @@ export function timelineItemLabel(item: TimelineItem, timeZone: string, units: U
       return `Nappy ${at}, ${nappyKind(event.details).toLowerCase()}`;
     case 'custom': {
       const spanMs = event.endedAt ? ms(event.endedAt) - ms(event.startedAt) : null;
-      const custom = spanMs === null ? 'running' : spanMs >= MINUTE_MS ? length : null;
+      const custom =
+        event.details.amount !== null
+          ? formatCustomAmount(event.details.amount, event.details.unit)
+          : spanMs === null
+            ? 'running'
+            : spanMs >= MINUTE_MS
+              ? length
+              : null;
       return `${event.details.title} ${at}${custom ? `, ${custom}` : ''}`;
     }
     default:

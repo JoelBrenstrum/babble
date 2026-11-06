@@ -129,7 +129,13 @@ export function rowToEvent(row: EventRow): BabyEvent {
       return {
         ...meta,
         type: 'custom',
-        details: { title: row.custom?.title ?? '', description: row.custom?.description ?? '' },
+        details: {
+          title: row.custom?.title ?? '',
+          description: row.custom?.description ?? '',
+          kind: row.custom?.kind ?? 'note',
+          amount: row.custom?.amount ?? null,
+          unit: row.custom?.unit ?? null,
+        },
       };
   }
 }
@@ -275,7 +281,16 @@ export function draftToPayload(
         },
       };
     case 'custom':
-      return { ...base, details: { title: draft.details.title, description: draft.details.description } };
+      return {
+        ...base,
+        details: {
+          title: draft.details.title,
+          description: draft.details.description,
+          kind: draft.details.kind,
+          amount: draft.details.amount,
+          unit: draft.details.unit,
+        },
+      };
   }
 }
 
