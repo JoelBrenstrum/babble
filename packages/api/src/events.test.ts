@@ -293,8 +293,12 @@ describe('event requests', () => {
       reason: 'asleep',
       end_at: '2026-10-06T09:30:00Z',
     });
-    await endAlert(client, 'alert-1', null);
-    expect(requests[1]!.body).toEqual({ target_event_id: 'alert-1' });
+  });
+
+  it('resolves to null when ending alert time starts no nap', async () => {
+    const { client, requests } = fakeClient(() => ({ body: null }));
+    await expect(endAlert(client, 'alert-1', null)).resolves.toBeNull();
+    expect(requests[0]!.body).toEqual({ target_event_id: 'alert-1' });
   });
 
   it('sends only the pump sides that changed', async () => {

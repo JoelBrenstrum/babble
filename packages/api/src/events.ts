@@ -18,7 +18,7 @@ import {
 import type { QueryData } from '@supabase/supabase-js';
 import type { BabbleClient } from './client';
 import type { Json } from './database.types';
-import { unwrap, unwrapVoid } from './errors';
+import { unwrap, unwrapMaybe, unwrapVoid } from './errors';
 import { paginate } from './paginate';
 import { clock } from './clock';
 
@@ -213,13 +213,13 @@ export async function endAlert(
   reason: AlertEnd | null,
   endAt?: string,
 ): Promise<string | null> {
-  return unwrap(
+  return unwrapMaybe(
     await client.rpc('end_alert', {
       target_event_id: eventId,
       ...(reason ? { reason } : {}),
       ...(endAt ? { end_at: endAt } : {}),
     }),
-  ) as string | null;
+  );
 }
 
 export type PumpAmountChanges = Partial<Pick<PumpDetails, 'leftMl' | 'rightMl'>>;
