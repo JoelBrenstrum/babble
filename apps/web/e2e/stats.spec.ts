@@ -32,9 +32,9 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
 
   await expect(page.getByRole('radio', { name: 'Today' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Patterns' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Daily stats' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
   const sections = page.getByRole('navigation', { name: 'Stats sections' });
-  await expect(sections.getByRole('link')).toHaveText(['Daily stats', 'Growth', 'Patterns']);
+  await expect(sections.getByRole('link')).toHaveText(['Dashboard', 'Growth', 'Patterns']);
   await sections.getByRole('link', { name: 'Growth' }).click();
   await expect(page).toHaveURL(/#stats-section-growth$/);
 
@@ -49,6 +49,20 @@ test('stats summarise what has been logged over a range', async ({ page }, testI
   await expect(page.getByRole('heading', { name: 'All-time stats' })).toBeVisible();
 
   await page.getByRole('radio', { name: '7d' }).click();
+  await page.getByRole('button', { name: 'Arrange' }).click();
+  await page.getByRole('button', { name: 'Add card' }).click();
+  await page
+    .getByRole('dialog', { name: 'Add card' })
+    .getByRole('button', { name: 'A short note between the cards' })
+    .click();
+  await page.getByRole('textbox', { name: 'Note' }).fill('Started formula top-ups');
+  await page.getByLabel('Arrange Note').getByRole('button', { name: 'Move up' }).click();
+  await page.screenshot({ path: testInfo.outputPath('dashboard-arrange.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Done' }).click();
+  await expect(page.getByText('Started formula top-ups')).toBeVisible();
+  await page.reload();
+  await expect(page.getByText('Started formula top-ups')).toBeVisible();
+  await page.screenshot({ path: testInfo.outputPath('dashboard.png'), fullPage: true });
   await page.getByRole('group', { name: 'Nappies per day' }).getByRole('link').last().click();
   await expect(page).toHaveURL(/\/timeline\?view=day&date=\d{4}-\d{2}-\d{2}&show=nappies$/);
   const lanes = page.getByRole('group', { name: 'Show on the timeline' });

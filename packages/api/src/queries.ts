@@ -29,6 +29,7 @@ export const queryKeys = {
   event: (babyId: string, id: string) => ['events', babyId, 'event', id] as const,
   reports: (familyId: string) => ['reports', familyId] as const,
   foodsBefore: (babyId: string, before: string) => ['foods-before', babyId, before] as const,
+  dashboard: (familyId: string) => ['dashboard', familyId] as const,
   customTitles: (babyId: string) => ['custom-titles', babyId] as const,
 };
 

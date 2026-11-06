@@ -340,6 +340,7 @@ export {
   type TogResult,
 } from './tog/tog';
 export * from './reports';
+export * from './dashboard';
 export {
   canSaveCustomTitle,
   CUSTOM_KIND_LABELS,
