@@ -86,6 +86,16 @@ export function dayTotals(
       );
       return join(count(items.length, 'sleep', 'sleeps'), duration(asleepMs));
     }
+    case 'alert': {
+      const alertMs = items.reduce(
+        (sum, event) =>
+          event.type === 'alert'
+            ? sum + (Date.parse(event.endedAt ?? now.toISOString()) - Date.parse(event.startedAt))
+            : sum,
+        0,
+      );
+      return join(count(items.length, 'stretch', 'stretches'), duration(alertMs));
+    }
     case 'nappy': {
       const nappies = items.filter((event) => event.type === 'nappy');
       const wet = nappies.filter((event) => event.details.wet).length;

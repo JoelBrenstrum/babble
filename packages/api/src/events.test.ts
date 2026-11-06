@@ -4,6 +4,8 @@ import { clock } from './clock';
 import {
   deleteEvent,
   draftToPayload,
+  endAlert,
+  saveAlertDetails,
   EVENT_SELECT,
   latestEvents,
   listEvents,
@@ -44,6 +46,7 @@ function row(overrides: Partial<EventRow>): EventRow {
     updated_at: '2026-10-06T09:00:00Z',
     deleted_at: null,
     sleep: null,
+    alert: null,
     bottle: null,
     solids: null,
     nappy: null,
@@ -225,6 +228,42 @@ describe('event requests', () => {
     expect(requests[1]!.body).toEqual({ target_event_id: 'sleep-1', changes: { notes: 'Went down easily' } });
   });
 
+  it('maps alert time with its activities and what ended it', () => {
+    const event = rowToEvent(
+      row({
+        type: 'alert',
+        ended_at: '2026-10-06T09:40:00Z',
+        alert: { event_id: 'event-1', activities: ['tummy_time'], ended_by: 'tired' },
+      }),
+    );
+    expect(event).toMatchObject({ type: 'alert', details: { activities: ['tummy_time'], endedBy: 'tired' } });
+    expect(rowToEvent(row({ type: 'alert' }))).toMatchObject({ details: { activities: [], endedBy: null } });
+  });
+
+  it('saves alert time and its activities', async () => {
+    const draft = { ...emptyDraft('alert', NOW), details: { activities: ['reading' as const], endedBy: null } };
+    expect(draftToPayload(draft, { babyId: 'baby-1' })).toMatchObject({
+      details: { activities: ['reading'], ended_by: null },
+    });
+    const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
+    await saveAlertDetails(client, 'alert-1', { activities: ['bath'] });
+    expect(requests[0]!.url.pathname).toBe('/rest/v1/rpc/save_alert_details');
+    expect(requests[0]!.body).toEqual({ target_event_id: 'alert-1', changes: { activities: ['bath'] } });
+  });
+
+  it('ends alert time with what ended it and returns the nap it started', async () => {
+    const { client, requests } = fakeClient(() => ({ body: 'nap-1' }));
+    await expect(endAlert(client, 'alert-1', 'asleep', '2026-10-06T09:30:00Z')).resolves.toBe('nap-1');
+    expect(requests[0]!.url.pathname).toBe('/rest/v1/rpc/end_alert');
+    expect(requests[0]!.body).toEqual({
+      target_event_id: 'alert-1',
+      reason: 'asleep',
+      end_at: '2026-10-06T09:30:00Z',
+    });
+    await endAlert(client, 'alert-1', null);
+    expect(requests[1]!.body).toEqual({ target_event_id: 'alert-1' });
+  });
+
   it('sends only the pump sides that changed', async () => {
     const { client, requests } = fakeClient(() => ({ status: 204, body: null }));
     await savePumpAmounts(client, 'pump-1', { leftMl: 40 });
@@ -253,7 +292,7 @@ describe('event requests', () => {
     const params = requests[0]!.url.searchParams;
     expect(params.getAll('started_at')).toEqual(['lt.2026-10-07T00:00:00.000Z']);
     expect(params.getAll('or')).toEqual([
-      '(started_at.gte.2026-10-06T00:00:00.000Z,ended_at.gte.2026-10-06T00:00:00.000Z,and(ended_at.is.null,type.in.(sleep,breast_feed,pump)))',
+      '(started_at.gte.2026-10-06T00:00:00.000Z,ended_at.gte.2026-10-06T00:00:00.000Z,and(ended_at.is.null,type.in.(sleep,alert,breast_feed,pump)))',
     ]);
     expect(params.get('limit')).toBe('1000');
   });

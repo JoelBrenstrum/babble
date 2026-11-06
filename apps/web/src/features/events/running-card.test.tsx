@@ -1,6 +1,12 @@
 import { queryKeys, type BabbleClient, type BabySettings } from '@babble/api';
 import { NotifyProvider } from '@babble/api/react';
-import { sampleBaby, sampleFamily, sampleRunningFeed, sampleRunningSleep } from '@babble/api/fixtures';
+import {
+  sampleBaby,
+  sampleFamily,
+  sampleRunningAlert,
+  sampleRunningFeed,
+  sampleRunningSleep,
+} from '@babble/api/fixtures';
 import type { BabyEvent } from '@babble/domain';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
@@ -182,5 +188,40 @@ describe('RunningCard finishing', () => {
     renderCard(10 * 60, sampleRunningSleep);
     await userEvent.click(await screen.findByRole('button', { name: 'End nap' }));
     await waitFor(() => expect(rpc).toHaveBeenCalledWith('end_session', expect.anything()));
+  });
+});
+
+describe('RunningCard alert time', () => {
+  beforeEach(() => {
+    eq.mockReset().mockResolvedValue({ error: null });
+    rpc.mockReset().mockResolvedValue({ data: null, error: null });
+  });
+
+  it('asks what ended it and saves the answer', async () => {
+    const { event } = renderCard(25 * 60, sampleRunningAlert);
+    expect(await screen.findByText('Alert')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Stop alert time' }));
+    const picker = screen.getByRole('group', { name: 'What ended it?' });
+    expect(picker).toHaveTextContent(/Fussy or crying.*Hungry.*Tired.*Fell asleep/);
+    await userEvent.click(screen.getByRole('button', { name: 'Tired' }));
+    await waitFor(() => expect(rpc).toHaveBeenCalledWith('end_alert', { target_event_id: event.id, reason: 'tired' }));
+  });
+
+  it('stops without a reason when skipped and can keep going instead', async () => {
+    const { event } = renderCard(25 * 60, sampleRunningAlert);
+    await userEvent.click(await screen.findByRole('button', { name: 'Stop alert time' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Keep going' }));
+    expect(screen.queryByRole('group', { name: 'What ended it?' })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Stop alert time' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Skip' }));
+    await waitFor(() => expect(rpc).toHaveBeenCalledWith('end_alert', { target_event_id: event.id }));
+  });
+
+  it('starts a nap when the baby fell asleep', async () => {
+    rpc.mockResolvedValue({ data: 'nap-1', error: null });
+    const { event } = renderCard(25 * 60, sampleRunningAlert);
+    await userEvent.click(await screen.findByRole('button', { name: 'Stop alert time' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Fell asleep' }));
+    await waitFor(() => expect(rpc).toHaveBeenCalledWith('end_alert', { target_event_id: event.id, reason: 'asleep' }));
   });
 });

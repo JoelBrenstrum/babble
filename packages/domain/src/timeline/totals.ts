@@ -1,3 +1,4 @@
+import { alertShare, formatShare } from '../events/alert-time';
 import type { DaySummary, WeekSummary } from '../events/day-summary';
 import type { NappyDetails, Units } from '../events/types';
 import { formatDurationShort, formatPerDay } from '../format/duration';
@@ -6,7 +7,7 @@ import { MINUTE_MS } from '../time/constants';
 import { formatTimeOfDay, parseDayKey } from '../time/local-time';
 import { mean } from '../stats/maths';
 
-export type TotalKey = 'sleep' | 'feeds' | 'solids' | 'nappies' | 'pump';
+export type TotalKey = 'sleep' | 'alert' | 'feeds' | 'solids' | 'nappies' | 'pump';
 
 export type RhythmKey = 'spacing' | 'wake' | 'night';
 
@@ -54,8 +55,20 @@ export function dayTotalCards(summary: DaySummary, units: Units, timeZone: strin
       ],
     },
   ];
+  if (summary.alertMs > 0) {
+    cards.splice(1, 0, {
+      key: 'alert',
+      label: 'Alert',
+      value: formatDurationShort(summary.alertMs),
+      details: [
+        { label: 'Of awake', value: formatShare(alertShare(summary)) },
+        { label: 'Longest', value: formatDurationShort(summary.longestAlertMs) },
+        { label: 'Other awake', value: formatDurationShort(summary.otherAwakeMs) },
+      ],
+    });
+  }
   if (summary.solids > 0) {
-    cards.splice(2, 0, {
+    cards.splice(cards.findIndex((card) => card.key === 'feeds') + 1, 0, {
       key: 'solids',
       label: 'Solids',
       value: String(summary.solids),
@@ -128,6 +141,16 @@ export function weekTableRows(days: (DaySummary | null)[], week: WeekSummary, un
       values: each((day) => (day.longestSleepMs ? formatDurationShort(day.longestSleepMs) : '—')),
       average: formatDurationShort(average((day) => day.longestSleepMs)),
     },
+    ...(counted.some((day) => day.alertMs > 0)
+      ? [
+          {
+            key: 'alert' as const,
+            label: 'Alert',
+            values: each((day) => (day.alertMs ? formatDurationShort(day.alertMs) : '—')),
+            average: formatDurationShort(average((day) => day.alertMs)),
+          },
+        ]
+      : []),
     { key: 'feeds', label: 'Feeds', values: each((day) => String(day.feeds)), average: formatPerDay(week.feedsPerDay) },
     ...(['left', 'right', 'idle'] as const).map((side) => {
       const pick = (day: DaySummary) => day[`${side}Ms`];

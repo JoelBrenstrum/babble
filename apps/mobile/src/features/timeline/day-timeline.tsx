@@ -65,6 +65,7 @@ export function DayTimeline({
   const filtered = shown.length < TIMELINE_LANES.length;
   const lanes: { key: keyof DayLayout; label: string }[] = [
     { key: 'sleep' as const, label: 'Sleep' },
+    ...(layout.alert.length || filtered ? [{ key: 'alert' as const, label: 'Alert' }] : []),
     { key: 'feeds' as const, label: 'Feeds' },
     { key: 'nappies' as const, label: 'Nappy' },
     ...(layout.pumps.length || filtered ? [{ key: 'pumps' as const, label: 'Pump' }] : []),
@@ -253,6 +254,27 @@ function Item({
         {showsItemLabel(item) && (
           <Text className="font-bold text-caption text-ink-on-solid">
             {formatDuration(summariseSleep(event, now).asleepMs, { seconds: false })}
+          </Text>
+        )}
+      </Pressable>
+    );
+  }
+
+  if (event.type === 'alert') {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        onPress={() => open(item)}
+        onLongPress={onTip}
+        className="absolute inset-x-0 overflow-hidden bg-alert px-1.5 py-0.5"
+        style={[span, corners]}
+      >
+        {showsItemLabel(item) && (
+          <Text className="font-bold text-caption text-ink-on-solid">
+            {formatDuration((event.endedAt ? Date.parse(event.endedAt) : now.getTime()) - Date.parse(event.startedAt), {
+              seconds: false,
+            })}
           </Text>
         )}
       </Pressable>

@@ -7,6 +7,7 @@ import {
   applyRunningUpdate,
   findCachedEvent,
   mergePumpAmounts,
+  mergeAlertDetails,
   mergeSleepDetails,
   optimisticRunning,
   patchEventCaches,
@@ -42,6 +43,18 @@ describe('replaceInRunning', () => {
   it('drops deleted events', () => {
     const feed = sampleRunningFeed(NOW);
     expect(replaceInRunning([feed], { ...feed, deletedAt: NOW.toISOString() })).toEqual([]);
+  });
+});
+
+describe('mergeAlertDetails', () => {
+  it('merges activities and notes into alert time only', () => {
+    const alert = { ...sampleRunningSleep(NOW), type: 'alert', details: { activities: [], endedBy: null } } as never;
+    expect(mergeAlertDetails(alert, { activities: ['bath'], notes: 'Splashing' })).toMatchObject({
+      details: { activities: ['bath'], endedBy: null },
+      notes: 'Splashing',
+    });
+    const sleep = sampleRunningSleep(NOW);
+    expect(mergeAlertDetails(sleep, { activities: ['bath'] })).toBe(sleep);
   });
 });
 

@@ -1,16 +1,26 @@
-export type TrackerKey = 'breast_feed' | 'sleep' | 'nappy' | 'bottle' | 'solids' | 'pump' | 'growth' | 'custom';
+export type TrackerKey =
+  | 'breast_feed'
+  | 'sleep'
+  | 'alert'
+  | 'nappy'
+  | 'bottle'
+  | 'solids'
+  | 'pump'
+  | 'growth'
+  | 'custom';
 
 export interface Tracker {
   key: TrackerKey;
   label: string;
   pluralLabel: string;
-  icon: 'heart' | 'moon' | 'droplets' | 'milk' | 'carrot' | 'glass-water' | 'ruler' | 'sparkles';
-  token: 'feed-right' | 'sleep' | 'nappy' | 'bottle' | 'solids' | 'pump' | 'growth' | 'custom';
+  icon: 'heart' | 'moon' | 'smile' | 'droplets' | 'milk' | 'carrot' | 'glass-water' | 'ruler' | 'sparkles';
+  token: 'feed-right' | 'sleep' | 'alert' | 'nappy' | 'bottle' | 'solids' | 'pump' | 'growth' | 'custom';
 }
 
 export const TRACKERS: readonly Tracker[] = [
   { key: 'breast_feed', label: 'Breastfeed', pluralLabel: 'Breastfeeds', icon: 'heart', token: 'feed-right' },
   { key: 'sleep', label: 'Sleep', pluralLabel: 'Sleep', icon: 'moon', token: 'sleep' },
+  { key: 'alert', label: 'Alert time', pluralLabel: 'Alert time', icon: 'smile', token: 'alert' },
   { key: 'nappy', label: 'Nappy', pluralLabel: 'Nappies', icon: 'droplets', token: 'nappy' },
   { key: 'bottle', label: 'Bottle', pluralLabel: 'Bottles', icon: 'milk', token: 'bottle' },
   { key: 'solids', label: 'Solids', pluralLabel: 'Solids', icon: 'carrot', token: 'solids' },
@@ -29,7 +39,7 @@ export function trackerFor(type: TrackerKey): Tracker {
   return TRACKERS.find((tracker) => tracker.key === type)!;
 }
 
-export const SESSION_TYPES = ['breast_feed', 'pump', 'sleep'] as const;
+export const SESSION_TYPES = ['breast_feed', 'pump', 'sleep', 'alert'] as const;
 export type SessionType = (typeof SESSION_TYPES)[number];
 
 export function isSessionType(type: TrackerKey): type is SessionType {

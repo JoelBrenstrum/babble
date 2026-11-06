@@ -16,7 +16,7 @@ import {
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { createFileRoute, Link, notFound, redirect, useNavigate, useRouter } from '@tanstack/react-router';
-import { ArrowRight, Clock, Moon, Play, Sun } from 'lucide-react';
+import { ArrowRight, Clock, Moon, Play, Smile, Sun } from 'lucide-react';
 import { useState } from 'react';
 import { PageHeader } from '#/components/shell/page-header';
 import { RunningDot } from '#/components/shell/running-dot';
@@ -108,7 +108,7 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
   const previousSides = type === 'breast_feed' ? previousFeedSides(latest) : null;
   const showNapPrompt = useNapPrompt();
   const { run, error } = useAsyncAction();
-  const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : 'feed';
+  const noun = type === 'sleep' ? 'sleep' : type === 'pump' ? 'pump' : type === 'alert' ? 'alert time' : 'feed';
   const context = startContext(type, latest, now, units);
 
   function begin(side?: Side) {
@@ -148,7 +148,9 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
         <div className="flex items-start gap-3">
           <RunningDot indicator={runningIndicator([running])!} className="mt-2 shrink-0" />
           <div className="flex min-w-0 flex-col">
-            <p className="text-row-title font-bold">A {noun} is already running.</p>
+            <p className="text-row-title font-bold">
+              {type === 'alert' ? 'Alert time is' : `A ${noun} is`} already running.
+            </p>
             <p className="tabular text-meta text-ink-2">{runningSessionLine(running, now, startedBy)}</p>
           </div>
         </div>
@@ -166,7 +168,7 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
     <div className="flex flex-col gap-4">
       {context && (
         <div className="flex items-center gap-3 rounded-tile bg-surface px-4 py-3">
-          {type === 'sleep' ? (
+          {type === 'sleep' || type === 'alert' ? (
             <Sun className="size-5 shrink-0 text-ink-2" strokeWidth={2.5} />
           ) : (
             <Clock className="size-5 shrink-0 text-ink-2" strokeWidth={2.5} />
@@ -183,6 +185,20 @@ function StartSession({ type, onLogPast }: { type: SessionType; onLogPast: () =>
           <Moon className="size-6" strokeWidth={2.75} />
           Start sleep now
         </Button>
+      ) : type === 'alert' ? (
+        <>
+          <p className="text-body text-ink-2">
+            Start this when {baby.name} is awake and content: not hungry, not tired, just happy to look around or play.
+          </p>
+          <Button
+            size="lg"
+            className="h-24 bg-alert text-row-title text-ink-on-solid hover:bg-on-alert"
+            onClick={() => begin()}
+          >
+            <Smile className="size-6" strokeWidth={2.75} />
+            Start alert time
+          </Button>
+        </>
       ) : (
         <div className="grid grid-cols-2 gap-4">
           {(['left', 'right'] as const).map((side) => (

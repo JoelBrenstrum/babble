@@ -25,7 +25,7 @@ reminder_prefs      user_id, baby_id, feed_reminders bool   -- per-person opt-in
 events
   id               uuid (client-generated)
   baby_id          fk
-  type             enum: sleep | breast_feed | bottle | solids | nappy | pump | growth | custom
+  type             enum: sleep | alert | breast_feed | bottle | solids | nappy | pump | growth | custom
   started_at       timestamptz
   ended_at         timestamptz null      -- null = running; equals started_at for instant events
   notes            text null
@@ -47,6 +47,10 @@ sleep_details        event_id,
                      fall_asleep? (under_10_min|10_to_20_min|long_time),
                      start_moods enum[] (happy|upset), end_moods enum[] (happy|upset),
                      woken_by_carer bool
+
+alert_details        event_id,
+                     activities enum[] (tummy_time|play|reading|music|cuddles|outside|bath),
+                     ended_by? (fussy|hungry|tired|asleep)
 
 session_details      event_id, state (running|paused|ended)      -- breast_feed and pump
 timed_segments       id, event_id, side (left|right), started_at, ended_at null
@@ -102,6 +106,8 @@ Downtime is derived rather than stored so that changing the threshold applies to
 - `switch_side`, `pause_session`, `resume_session(event_id, side?)`.
 - `end_session(event_id, end_at?)`: closes the open segment; feeds and pumps end at their last segment, naps at `end_at` (default now).
 - `resume_feed(event_id, side?)`: reopens the most recent feed (breast or bottle) if it's a breastfeed and no feed is running; adds a new segment so the gap shows as downtime.
+- `end_alert(event_id, reason?, end_at?)`: ends running alert time and records what ended it; `asleep` also starts a nap at the same moment and returns its id. `start_session` for a sleep ends any running alert time at the nap's start as `asleep`. Alert time has no segments or session state; it's running while `ended_at` is null.
+- `save_alert_details(event_id, changes)`: activities, ended_by and notes, saved while it runs.
 - `set_session_start(event_id, start_at)`: moves a running session's start (and the first segment's, for feeds and pumps). The start can't be in the future or after the first segment ended.
 
 ## Feeds for reminders

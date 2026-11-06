@@ -19,6 +19,7 @@ export function WeekTimeline({
     <View className="gap-2">
       <View className="flex-row flex-wrap gap-x-4 gap-y-1 pl-8">
         {lanes.includes('sleep') && <Legend swatch="h-2.5 w-2.5 rounded-sm bg-sleep" label="Sleep" />}
+        {lanes.includes('alert') && <Legend swatch="h-2.5 w-1 rounded-sm bg-alert" label="Alert" />}
         {lanes.includes('feeds') && (
           <>
             <Legend swatch="h-1 w-2.5 rounded-full bg-feed-left" label="Left" />
@@ -55,6 +56,13 @@ export function WeekTimeline({
                 <View
                   key={item.event.id}
                   className="absolute inset-x-[3px] rounded-sm bg-sleep"
+                  style={{ top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac), minHeight: 2 }}
+                />
+              ))}
+              {layout?.alert.map((item) => (
+                <View
+                  key={item.event.id}
+                  className="absolute left-0 w-[3px] rounded-sm bg-alert"
                   style={{ top: pct(item.startFrac), height: pct(item.endFrac - item.startFrac), minHeight: 2 }}
                 />
               ))}

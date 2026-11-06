@@ -1,6 +1,7 @@
 import {
   applySessionAction,
   sessionNoun,
+  type AlertEnd,
   type BabyEvent,
   type EventDraft,
   type SessionAction,
@@ -16,6 +17,9 @@ import { clock } from '../clock';
 import { toBabbleError } from '../errors';
 import {
   deleteEvent,
+  endAlert,
+  saveAlertDetails,
+  type AlertChanges,
   restoreEvent,
   mergeSessions,
   reopenSession,
@@ -37,6 +41,7 @@ import { autoEndStaleSessions } from './auto-end';
 import { applyEventChange } from './event-cache';
 import { useNotify, type Notify } from './notify';
 import {
+  mergeAlertDetails,
   mergePumpAmounts,
   mergeSleepDetails,
   optimisticRunning,
@@ -220,6 +225,32 @@ export function useSaveSleepDetails(client: BabbleClient, babyId: string) {
     optimistic: ({ eventId, changes }) => ({
       eventId,
       produce: (current) => mergeSleepDetails(current, changes),
+    }),
+    toastErrors: true,
+  });
+}
+
+export function useSaveAlertDetails(client: BabbleClient, babyId: string) {
+  return useEventMutation(babyId, {
+    mutationFn: ({ eventId, changes }: { eventId: string; changes: AlertChanges }) =>
+      saveAlertDetails(client, eventId, changes),
+    optimistic: ({ eventId, changes }) => ({
+      eventId,
+      produce: (current) => mergeAlertDetails(current, changes),
+    }),
+    toastErrors: true,
+  });
+}
+
+export function useEndAlert(client: BabbleClient, babyId: string) {
+  return useEventMutation(babyId, {
+    mutationFn: ({ event, reason, at }: { event: BabyEvent; reason: AlertEnd | null; at?: string }) =>
+      endAlert(client, event.id, reason, at),
+    optimistic: ({ event, reason, at }) => ({
+      eventId: event.id,
+      fallback: event,
+      produce: (current) =>
+        mergeAlertDetails(applySessionAction(current, { kind: 'end', at }, clock.now()), { endedBy: reason }),
     }),
     toastErrors: true,
   });

@@ -65,6 +65,7 @@ describe('startContext', () => {
   it('says how long the baby has been awake since the last nap', () => {
     const nap = makeEvent('sleep', { startedAt: '2026-10-06T09:00:00Z', endedAt: '2026-10-06T10:55:00Z' });
     expect(startContext('sleep', [nap], NOW, 'metric')).toBe('Awake 1h 05m since the last nap.');
+    expect(startContext('alert', [nap], NOW, 'metric')).toBe('Awake 1h 05m since the last nap.');
     expect(startContext('sleep', [], NOW, 'metric')).toBeNull();
   });
 });
@@ -175,6 +176,7 @@ describe('runningTone', () => {
       segments: [{ side: 'left', startedAt: '2026-10-06T11:00:00Z', endedAt: null }],
     });
     expect(runningTone(left)).toBe('feed-left');
+    expect(runningTone(makeEvent('alert', { endedAt: null }))).toBe('alert');
     expect(runningTone({ ...feed, endedAt: null })).toBe('downtime');
     expect(runningTone(makeEvent('sleep', { endedAt: null, segments: [] }))).toBe('sleep');
     expect(runningTone(makeEvent('pump', { endedAt: null, segments: [] }))).toBe('pump');

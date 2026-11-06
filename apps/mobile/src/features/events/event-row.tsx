@@ -34,6 +34,7 @@ const PART_STYLES: Record<PartTone, [string, string, TokenName]> = {
   'feed-right': ['bg-feed-right-soft', 'text-on-feed-right', '--on-feed-right'],
   downtime: ['bg-session-downtime-soft', 'text-on-session-downtime', '--on-session-downtime'],
   sleep: ['bg-sleep-soft', 'text-on-sleep', '--on-sleep'],
+  alert: ['bg-alert-soft', 'text-on-alert', '--on-alert'],
   bottle: ['bg-bottle-soft', 'text-on-bottle', '--on-bottle'],
   solids: ['bg-solids-soft', 'text-on-solids', '--on-solids'],
   nappy: ['bg-nappy-soft', 'text-on-nappy', '--on-nappy'],

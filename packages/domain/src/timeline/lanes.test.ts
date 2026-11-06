@@ -15,7 +15,8 @@ describe('parseTimelineLanes', () => {
     ['nappies', 'nappies'],
     ['nappies,sleep', 'sleep,nappies'],
     ['sleep,nope', 'sleep'],
-    ['sleep,feeds,nappies,pumps', undefined],
+    ['sleep,alert,feeds,nappies,pumps', undefined],
+    ['sleep,feeds,nappies,pumps', 'sleep,feeds,nappies,pumps'],
     ['nope', undefined],
     ['', undefined],
     [3, undefined],
@@ -24,7 +25,7 @@ describe('parseTimelineLanes', () => {
 
 describe('shownLanes', () => {
   it('shows every lane when nothing is picked', () => {
-    expect(shownLanes(undefined)).toEqual(['sleep', 'feeds', 'nappies', 'pumps']);
+    expect(shownLanes(undefined)).toEqual(['sleep', 'alert', 'feeds', 'nappies', 'pumps']);
     expect(shownLanes('feeds,sleep')).toEqual(['sleep', 'feeds']);
   });
 });
@@ -32,43 +33,53 @@ describe('shownLanes', () => {
 describe('visibleLanes', () => {
   const item = {} as TimelineItem;
 
-  it('hides the empty pump lane while every lane is shown', () => {
-    expect(visibleLanes({ pumps: [] }, TIMELINE_LANES)).toEqual([
+  it('hides the empty alert and pump lanes while every lane is shown', () => {
+    expect(visibleLanes({ alert: [], pumps: [] }, TIMELINE_LANES)).toEqual([
       { key: 'sleep', label: 'Sleep' },
       { key: 'feeds', label: 'Feeds' },
       { key: 'nappies', label: 'Nappies' },
     ]);
-    expect(visibleLanes({ pumps: [item] }, TIMELINE_LANES).map((lane) => lane.key)).toEqual(TIMELINE_LANES);
+    expect(visibleLanes({ alert: [item], pumps: [item] }, TIMELINE_LANES).map((lane) => lane.key)).toEqual(
+      TIMELINE_LANES,
+    );
+    expect(visibleLanes({ alert: [item], pumps: [] }, TIMELINE_LANES).map((lane) => lane.key)).toEqual([
+      'sleep',
+      'alert',
+      'feeds',
+      'nappies',
+    ]);
   });
 
   it('keeps a chosen pump lane even when it is empty', () => {
-    expect(visibleLanes({ pumps: [] }, ['feeds', 'pumps'])).toEqual([
+    expect(visibleLanes({ alert: [], pumps: [] }, ['feeds', 'pumps'])).toEqual([
       { key: 'feeds', label: 'Feeds' },
       { key: 'pumps', label: 'Pumps' },
     ]);
   });
 
   it('lists lanes in timeline order whatever order they were picked in', () => {
-    expect(visibleLanes({ pumps: [] }, ['nappies', 'sleep']).map((lane) => lane.key)).toEqual(['sleep', 'nappies']);
+    expect(visibleLanes({ alert: [], pumps: [] }, ['nappies', 'sleep']).map((lane) => lane.key)).toEqual([
+      'sleep',
+      'nappies',
+    ]);
   });
 });
 
 describe('toggleLane', () => {
-  it('hides a lane from the full set', () => expect(toggleLane(undefined, 'pumps')).toBe('sleep,feeds,nappies'));
+  it('hides a lane from the full set', () => expect(toggleLane(undefined, 'pumps')).toBe('sleep,alert,feeds,nappies'));
   it('adds a lane back', () => expect(toggleLane('sleep', 'nappies')).toBe('sleep,nappies'));
   it('goes back to everything once all lanes are on', () =>
-    expect(toggleLane('sleep,feeds,nappies', 'pumps')).toBeUndefined());
+    expect(toggleLane('sleep,alert,feeds,nappies', 'pumps')).toBeUndefined());
   it('keeps the last lane on', () => expect(toggleLane('sleep', 'sleep')).toBe('sleep'));
 });
 
 describe('filterLayout', () => {
   const item = { event: { id: 'a' } } as TimelineItem;
-  const layout: DayLayout = { sleep: [item], feeds: [item], nappies: [item], pumps: [item] };
+  const layout: DayLayout = { sleep: [item], alert: [item], feeds: [item], nappies: [item], pumps: [item] };
 
   it('empties hidden lanes', () =>
-    expect(filterLayout(layout, ['nappies'])).toEqual({ sleep: [], feeds: [], nappies: [item], pumps: [] }));
-  it('leaves the layout alone when every lane shows', () =>
-    expect(filterLayout(layout, ['sleep', 'feeds', 'nappies', 'pumps'])).toBe(layout));
+    expect(filterLayout(layout, ['nappies'])).toEqual({ sleep: [], alert: [], feeds: [], nappies: [item], pumps: [] }));
+  it('leaves the layout alone when every lane shows', () => expect(filterLayout(layout, TIMELINE_LANES)).toBe(layout));
 });
 
 describe('statsBarLink', () => {
@@ -80,6 +91,7 @@ describe('statsBarLink', () => {
     });
     expect(statsBarLink('pump', { label: '2026-10-12', values: [3] }, false)?.show).toBe('pumps');
     expect(statsBarLink('night', { label: '2026-10-12', values: [3] }, false)?.show).toBe('sleep');
+    expect(statsBarLink('alert', { label: '2026-10-12', values: [3] }, false)?.show).toBe('alert');
     expect(statsBarLink('feed-trend', { label: '2026-10-12', values: [3] }, false)?.show).toBe('feeds');
     expect(statsBarLink('feed-spacing', { label: '2026-10-12', values: [3] }, false)?.show).toBe('feeds');
   });

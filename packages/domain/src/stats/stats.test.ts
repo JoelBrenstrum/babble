@@ -282,6 +282,47 @@ describe('statsReport', () => {
   });
 });
 
+describe('alert time card', () => {
+  const dayKeys = ['2026-10-06', '2026-10-07', '2026-10-08'];
+  const night = (id: string, day: string, next: string) =>
+    makeEvent('sleep', { id, startedAt: `${day}T20:00:00Z`, endedAt: `${next}T08:00:00Z`, segments: [] });
+  const alert = (id: string, startedAt: string, endedAt: string, endedBy: 'fussy' | 'tired') =>
+    makeEvent('alert', { id, startedAt, endedAt, details: { activities: [], endedBy } });
+
+  it('is left out until alert time is logged', () => {
+    const report = statsReport([night('n1', '2026-10-06', '2026-10-07')], dayKeys, '2026-10-08', NOW, settings);
+    expect(report.cards.some((card) => card.key === 'alert')).toBe(false);
+  });
+
+  it('averages alert time a day and its share of awake time', () => {
+    const report = statsReport(
+      [
+        night('n1', '2026-10-05', '2026-10-06'),
+        night('n2', '2026-10-06', '2026-10-07'),
+        night('n3', '2026-10-07', '2026-10-08'),
+        alert('a1', '2026-10-06T09:00:00Z', '2026-10-06T11:00:00Z', 'tired'),
+        alert('a2', '2026-10-07T09:00:00Z', '2026-10-07T10:00:00Z', 'tired'),
+        alert('a3', '2026-10-07T14:00:00Z', '2026-10-07T15:00:00Z', 'fussy'),
+      ],
+      dayKeys,
+      '2026-10-08',
+      NOW,
+      settings,
+    );
+    const card = report.cards.find((item) => item.key === 'alert')!;
+    expect(report.cards.map((item) => item.key).slice(0, 2)).toEqual(['sleep', 'alert']);
+    expect(card.figures.map((item) => [item.label, item.value])).toEqual([
+      ['Per day', '2h 00m'],
+      ['Of awake time', '17%'],
+      ['Stretches per day', '1.5'],
+      ['Longest stretch', '2h 00m'],
+      ['Usually ended by', 'Tired'],
+    ]);
+    expect(card.chart.series).toEqual(['Alert', 'Feeding', 'Other awake']);
+    expect(card.chart.bars[0]!.values).toEqual([2, 0, 10]);
+  });
+});
+
 describe('barReadout', () => {
   const report = statsReport(
     [makeEvent('bottle', { id: 'b1', startedAt: '2026-10-07T13:00:00Z' })],

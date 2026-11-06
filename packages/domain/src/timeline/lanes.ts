@@ -4,10 +4,13 @@ import type { DayLayout } from './day-layout';
 
 export type TimelineLane = keyof DayLayout;
 
-export const TIMELINE_LANES: readonly TimelineLane[] = ['sleep', 'feeds', 'nappies', 'pumps'];
+export const TIMELINE_LANES: readonly TimelineLane[] = ['sleep', 'alert', 'feeds', 'nappies', 'pumps'];
+
+const OPTIONAL_LANES: readonly TimelineLane[] = ['alert', 'pumps'];
 
 export const TIMELINE_LANE_LABELS: Record<TimelineLane, string> = {
   sleep: 'Sleep',
+  alert: 'Alert',
   feeds: 'Feeds',
   nappies: 'Nappies',
   pumps: 'Pumps',
@@ -33,11 +36,13 @@ export function toggleLane(show: string | undefined, lane: TimelineLane): string
 }
 
 export function visibleLanes(
-  layout: Pick<DayLayout, 'pumps'>,
+  layout: Pick<DayLayout, 'alert' | 'pumps'>,
   shown: readonly TimelineLane[],
 ): { key: TimelineLane; label: string }[] {
   const filtered = shown.length < TIMELINE_LANES.length;
-  return TIMELINE_LANES.filter((lane) => lane !== 'pumps' || layout.pumps.length > 0 || filtered)
+  return TIMELINE_LANES.filter(
+    (lane) => !OPTIONAL_LANES.includes(lane) || layout[lane as 'alert' | 'pumps'].length > 0 || filtered,
+  )
     .filter((lane) => shown.includes(lane))
     .map((lane) => ({ key: lane, label: TIMELINE_LANE_LABELS[lane] }));
 }
@@ -46,6 +51,7 @@ export function filterLayout(layout: DayLayout, lanes: readonly TimelineLane[]):
   if (lanes.length === TIMELINE_LANES.length) return layout;
   return {
     sleep: lanes.includes('sleep') ? layout.sleep : [],
+    alert: lanes.includes('alert') ? layout.alert : [],
     feeds: lanes.includes('feeds') ? layout.feeds : [],
     nappies: lanes.includes('nappies') ? layout.nappies : [],
     pumps: lanes.includes('pumps') ? layout.pumps : [],
@@ -63,6 +69,7 @@ const CARD_LANES: Record<StatsCard['key'], TimelineLane> = {
   pump: 'pumps',
   wake: 'sleep',
   night: 'sleep',
+  alert: 'alert',
 };
 
 export interface TimelineLink {

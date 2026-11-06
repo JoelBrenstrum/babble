@@ -3,6 +3,32 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      alert_details: {
+        Row: {
+          activities: Database['public']['Enums']['alert_activity'][];
+          ended_by: Database['public']['Enums']['alert_end'] | null;
+          event_id: string;
+        };
+        Insert: {
+          activities?: Database['public']['Enums']['alert_activity'][];
+          ended_by?: Database['public']['Enums']['alert_end'] | null;
+          event_id: string;
+        };
+        Update: {
+          activities?: Database['public']['Enums']['alert_activity'][];
+          ended_by?: Database['public']['Enums']['alert_end'] | null;
+          event_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'alert_details_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: true;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       babies: {
         Row: {
           birth_date: string;
@@ -690,6 +716,10 @@ export type Database = {
           expires_at: string;
         }[];
       };
+      end_alert: {
+        Args: { end_at?: string; reason?: Database['public']['Enums']['alert_end']; target_event_id: string };
+        Returns: string;
+      };
       end_session: { Args: { end_at?: string; target_event_id: string }; Returns: undefined };
       family_devices: {
         Args: { target_family_id: string };
@@ -760,6 +790,7 @@ export type Database = {
       };
       resume_sleep: { Args: { target_event_id: string }; Returns: undefined };
       save_event: { Args: { event: Json }; Returns: string };
+      save_alert_details: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       save_pump_amounts: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       save_sleep_details: { Args: { changes: Json; target_event_id: string }; Returns: undefined };
       server_time: { Args: Record<PropertyKey, never>; Returns: string };
@@ -796,10 +827,12 @@ export type Database = {
       };
     };
     Enums: {
+      alert_activity: 'tummy_time' | 'play' | 'reading' | 'music' | 'cuddles' | 'outside' | 'bath';
+      alert_end: 'fussy' | 'hungry' | 'tired' | 'asleep';
       baby_sex: 'female' | 'male';
       bottle_content: 'breast_milk' | 'formula' | 'mixed' | 'other';
       event_source: 'manual' | 'huckleberry_csv' | 'babble_export';
-      event_type: 'sleep' | 'breast_feed' | 'bottle' | 'solids' | 'nappy' | 'pump' | 'growth' | 'custom';
+      event_type: 'sleep' | 'alert' | 'breast_feed' | 'bottle' | 'solids' | 'nappy' | 'pump' | 'growth' | 'custom';
       fall_asleep: 'under_10_min' | '10_to_20_min' | 'long_time';
       family_role: 'owner' | 'caregiver' | 'viewer';
       mood: 'happy' | 'upset';
@@ -934,10 +967,12 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_activity: ['tummy_time', 'play', 'reading', 'music', 'cuddles', 'outside', 'bath'],
+      alert_end: ['fussy', 'hungry', 'tired', 'asleep'],
       baby_sex: ['female', 'male'],
       bottle_content: ['breast_milk', 'formula', 'mixed', 'other'],
       event_source: ['manual', 'huckleberry_csv', 'babble_export'],
-      event_type: ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'],
+      event_type: ['sleep', 'alert', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'],
       fall_asleep: ['under_10_min', '10_to_20_min', 'long_time'],
       family_role: ['owner', 'caregiver', 'viewer'],
       mood: ['happy', 'upset'],

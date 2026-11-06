@@ -23,6 +23,9 @@
   --color-sleep: rgb(var(--sleep));
   --color-sleep-soft: rgb(var(--sleep-soft));
   --color-on-sleep: rgb(var(--on-sleep));
+  --color-alert: rgb(var(--alert));
+  --color-alert-soft: rgb(var(--alert-soft));
+  --color-on-alert: rgb(var(--on-alert));
   --color-feed-left: rgb(var(--feed-left));
   --color-feed-left-soft: rgb(var(--feed-left-soft));
   --color-on-feed-left: rgb(var(--on-feed-left));

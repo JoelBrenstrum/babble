@@ -25,6 +25,17 @@ const running = makeEvent('breast_feed', {
 });
 
 describe('applySessionAction', () => {
+  it('ends alert time at the chosen time and ignores side actions', () => {
+    const alert = makeEvent('alert', { startedAt: '2026-10-06T09:30:00Z', endedAt: null });
+    expect(applySessionAction(alert, { kind: 'end', at: '2026-10-06T10:00:00Z' }, NOW).endedAt).toBe(
+      '2026-10-06T10:00:00Z',
+    );
+    expect(applySessionAction(alert, { kind: 'pause' }, NOW)).toBe(alert);
+    expect(applySessionAction(alert, { kind: 'set-start', startedAt: '2026-10-06T09:00:00.000Z' }, NOW).startedAt).toBe(
+      '2026-10-06T09:00:00.000Z',
+    );
+  });
+
   it('switches side by closing the open segment', () => {
     const next = applySessionAction(running, { kind: 'switch', side: 'right' }, NOW);
     expect(next.type === 'breast_feed' && next.segments).toEqual([

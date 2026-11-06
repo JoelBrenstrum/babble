@@ -82,6 +82,7 @@ export function statsReport(
     settings,
     showBreast: [...counted, summaries.get(todayKey)].some((day) => day && day.leftMs + day.rightMs > 0),
     showPump: counted.some((day) => day.pumps > 0) || Boolean(summaries.get(todayKey)?.pumps),
+    showAlert: [...counted, summaries.get(todayKey)].some((day) => day && day.alertMs > 0),
   });
   return { days: counted.length, todayOnly, cards };
 }

@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, type PressableProps } from 'react-native';
 import { useTokenColor } from '@/lib/theme';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'sleep';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'destructive' | 'sleep' | 'alert';
 
 const container: Record<Variant, string> = {
   primary: 'bg-primary active:bg-on-primary-soft',
@@ -10,6 +10,7 @@ const container: Record<Variant, string> = {
   ghost: 'bg-transparent active:bg-surface',
   destructive: 'bg-danger active:opacity-90',
   sleep: 'bg-sleep active:bg-on-sleep',
+  alert: 'bg-alert active:bg-on-alert',
 };
 
 const label: Record<Variant, string> = {
@@ -18,6 +19,7 @@ const label: Record<Variant, string> = {
   ghost: 'text-ink-2',
   destructive: 'text-ink-on-solid',
   sleep: 'text-ink-on-solid',
+  alert: 'text-ink-on-solid',
 };
 
 export function Button({
@@ -40,7 +42,7 @@ export function Button({
   const spinnerColor = useTokenColor(
     variant === 'primary'
       ? '--on-primary'
-      : variant === 'destructive' || variant === 'sleep'
+      : variant === 'destructive' || variant === 'sleep' || variant === 'alert'
         ? '--ink-on-solid'
         : '--ink',
   );

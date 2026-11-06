@@ -1,4 +1,5 @@
 import { nightOf, summariseDay, type DaySummary } from '../events/day-summary';
+import { alertShare, formatShare } from '../events/alert-time';
 import { nextBreastSide } from '../events/feed-rules';
 import type { BabyEvent, PooColour, Units } from '../events/types';
 import { formatDuration, formatDurationShort, formatPerDay } from '../format/duration';
@@ -22,7 +23,17 @@ import { summariseSleep } from '../events/sleep-stretches';
 import { DAY_MS, MINUTE_MS } from '../time/constants';
 import { byStartedAtDesc, compareIso } from '../time/instants';
 
-export type StripKind = 'feeds' | 'breast' | 'bottle' | 'solids' | 'sleep' | 'nappy' | 'pump' | 'growth' | 'custom';
+export type StripKind =
+  | 'feeds'
+  | 'breast'
+  | 'bottle'
+  | 'solids'
+  | 'sleep'
+  | 'alert'
+  | 'nappy'
+  | 'pump'
+  | 'growth'
+  | 'custom';
 
 export interface StripItem {
   label: string;
@@ -51,6 +62,7 @@ const KIND_TYPES: Record<StripKind, readonly TrackerKey[]> = {
   bottle: ['bottle'],
   solids: ['solids'],
   sleep: ['sleep'],
+  alert: ['alert'],
   nappy: ['nappy'],
   pump: ['pump'],
   growth: ['growth'],
@@ -63,6 +75,7 @@ const LAST_LABEL: Record<StripKind, string> = {
   bottle: 'Last bottle',
   solids: 'Last meal',
   sleep: 'Awake for',
+  alert: 'Last alert',
   nappy: 'Last change',
   pump: 'Last pump',
   growth: 'Last',
@@ -73,6 +86,7 @@ const RUNNING_LABEL: Partial<Record<StripKind, string>> = {
   feeds: 'Feeding for',
   breast: 'Feeding for',
   sleep: 'Asleep for',
+  alert: 'Alert for',
   pump: 'Pumping for',
 };
 
@@ -200,7 +214,10 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
   if (kind === 'growth') return growthItems(relevant, context);
 
   const since = sinceItem(kind, relevant, context);
-  const { today, past, average } = summaries(relevant, context);
+  const { today, past, average } = summaries(
+    kind === 'alert' ? unique.filter((event) => !event.deletedAt) : relevant,
+    context,
+  );
   const volume = (ml: number) => formatVolume(ml, context.units);
 
   switch (kind) {
@@ -260,6 +277,23 @@ export function listStrip(kind: StripKind, events: readonly BabyEvent[], context
           average((day) => day.naps),
         ),
       ];
+    case 'alert': {
+      const pastAwake = past.reduce((total, day) => total + day.awakeMs, 0);
+      const pastAlert = past.reduce((total, day) => total + day.alertMs, 0);
+      const share: StripItem = { label: 'Of awake', value: formatShare(alertShare(today)) };
+      return [
+        since,
+        todayItem(
+          'Today',
+          formatDurationShort(today.alertMs),
+          average((day) => day.alertMs),
+          formatDurationShort,
+        ),
+        pastAwake > 0
+          ? { ...share, note: `avg ${formatShare(alertShare({ alertMs: pastAlert, awakeMs: pastAwake }))}` }
+          : share,
+      ];
+    }
     case 'nappy': {
       const lastPoo = relevant
         .filter((event): event is Extract<BabyEvent, { type: 'nappy' }> => event.type === 'nappy')

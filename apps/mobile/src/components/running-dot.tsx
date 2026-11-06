@@ -6,6 +6,7 @@ import { AccessibilityInfo, Animated, Easing, View, type ColorValue } from 'reac
 const DOT: Record<Tracker['token'], string> = {
   'feed-right': 'bg-feed-right',
   sleep: 'bg-sleep',
+  alert: 'bg-alert',
   nappy: 'bg-nappy',
   bottle: 'bg-bottle',
   solids: 'bg-solids',
