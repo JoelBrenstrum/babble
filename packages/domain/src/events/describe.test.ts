@@ -9,7 +9,7 @@ describe('describeEvent branches', () => {
     const event = makeEvent('custom', {
       startedAt: '2026-10-06T10:00:00Z',
       endedAt: '2026-10-06T10:30:00Z',
-      details: { title: 'Bath', description: 'Warm' },
+      details: { title: 'Bath', description: 'Warm', kind: 'note', amount: null, unit: null },
     });
     expect(describeEvent(event, NOW, 'metric')).toEqual({
       title: 'Bath',
@@ -24,7 +24,7 @@ describe('describeEvent branches', () => {
     const event = makeEvent('custom', {
       startedAt: '2026-10-06T10:00:00Z',
       endedAt: '2026-10-06T10:00:30Z',
-      details: { title: 'Vitamin D', description: '' },
+      details: { title: 'Vitamin D', description: '', kind: 'note', amount: null, unit: null },
     });
     expect(describeEvent(event, NOW, 'metric')).toMatchObject({ parts: [], duration: null });
   });
@@ -81,7 +81,7 @@ describe('summariseLatest branches', () => {
     const custom = makeEvent('custom', {
       startedAt: '2026-10-06T10:00:00Z',
       endedAt: '2026-10-06T10:30:00Z',
-      details: { title: 'Bath', description: 'Warm' },
+      details: { title: 'Bath', description: 'Warm', kind: 'note', amount: null, unit: null },
     });
     expect(summariseLatest(custom, NOW, 'metric')).toBe('Bath · 30m');
     const growth = makeEvent('growth', { details: { weightG: 3950, lengthMm: 510, headCircumferenceMm: null } });
@@ -92,9 +92,19 @@ describe('summariseLatest branches', () => {
     const vitamin = makeEvent('custom', {
       startedAt: '2026-10-06T10:00:00Z',
       endedAt: '2026-10-06T10:00:30Z',
-      details: { title: 'Vitamin D', description: '' },
+      details: { title: 'Vitamin D', description: '', kind: 'note', amount: null, unit: null },
     });
     expect(summariseLatest(vitamin, NOW, 'metric')).toBe('Vitamin D');
+  });
+
+  it('includes the amount of a custom entry', () => {
+    const drops = makeEvent('custom', {
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: '2026-10-06T10:00:00Z',
+      details: { title: 'Vitamin drops', description: '', kind: 'amount', amount: 2.5, unit: 'drops' },
+    });
+    expect(summariseLatest(drops, NOW, 'metric')).toBe('Vitamin drops · 2.5 drops');
+    expect(describeEvent(drops, NOW, 'metric').parts.map((part) => part.text)).toEqual(['2.5 drops']);
   });
 
   it('shows the amount of a pump and the length of a sleep', () => {

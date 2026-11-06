@@ -15,6 +15,7 @@ import { MembersLabel, PendingInvites } from '#/features/pending-invites';
 import { PlusBadge } from '#/features/plus-dialog';
 import { PlusPlan } from '#/features/plus-plan';
 import { BabyTrackingSettings, FamilyTrackingSettings } from '#/features/tracking-settings';
+import { CustomEventSettings } from '#/features/custom-event-settings';
 import { SettingsBabyPicker } from '#/features/settings-baby-picker';
 import { ChairModeCard } from '#/features/chair/chair-mode-card';
 import { ExportData } from '#/features/export-data';
@@ -61,6 +62,7 @@ function SettingsPage() {
         />
         <BabySection key={baby.id} client={babble.client} baby={baby} disabled={!admin} />
         <BabyTrackingSettings client={babble.client} babyId={baby.id} disabled={!admin} />
+        <CustomEventSettings client={babble.client} babyId={baby.id} disabled={!canLog} />
         {canLog && (
           <CardLink to="/import" title="Import data" description="From a babble export or a Huckleberry CSV" />
         )}

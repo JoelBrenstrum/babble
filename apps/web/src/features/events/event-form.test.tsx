@@ -16,7 +16,7 @@ const failed = { data: null, error: { message: 'Network down' } };
 function renderForm(initial: EventDraft, focusAmounts = false, readOnly = false) {
   const onDone = vi.fn();
   render(
-    <QueryClientProvider client={new QueryClient()}>
+    <QueryClientProvider client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}>
       <ToastProvider>
         <EventForm
           client={client}
@@ -41,7 +41,10 @@ describe('EventForm save errors', () => {
 
   it('keeps the entry and retries after a failed save', async () => {
     rpc.mockResolvedValueOnce(failed).mockResolvedValueOnce(saved);
-    const { onDone } = renderForm({ ...emptyDraft('custom', now), details: { title: 'Bath', description: '' } });
+    const { onDone } = renderForm({
+      ...emptyDraft('custom', now),
+      details: { ...emptyDraft('custom', now).details, title: 'Bath' },
+    });
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     const alert = await screen.findByRole('alert');

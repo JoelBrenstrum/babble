@@ -400,7 +400,10 @@ describe('runReport', () => {
         startedAt: '2026-10-08T09:00:00Z',
         details: { weightG: 5210, lengthMm: 610, headCircumferenceMm: 405 },
       }),
-      makeEvent('custom', { startedAt: '2026-10-07T13:00:00Z', details: { title: 'Vaccine', description: '' } }),
+      makeEvent('custom', {
+        startedAt: '2026-10-07T13:00:00Z',
+        details: { title: 'Vaccine', description: '', kind: 'note', amount: null, unit: null },
+      }),
     ];
     for (const template of REPORT_TEMPLATES) {
       expect(parseReportSpec(template.spec)).toEqual(template.spec);

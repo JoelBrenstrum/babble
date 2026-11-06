@@ -36,9 +36,9 @@ export function BabyScope({ children }: { children: ReactNode }) {
 
 function BabyEffects({ babyId, logging }: { babyId: string; logging: boolean }) {
   const { client } = useBabble();
-  useRealtimeEvents(client, babyId);
   const queryClient = useQueryClient();
   const foregrounds = useForegroundCount();
+  useRealtimeEvents(client, babyId, foregrounds);
   useAutoEndStaleSessions(client, babyId, { recheckKey: foregrounds, enabled: logging });
   useEffect(() => {
     if (foregrounds > 0) void refreshEvents(queryClient, babyId);
