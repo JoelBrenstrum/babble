@@ -21,6 +21,7 @@
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:4px;border-radius:14px;background:rgb(var(--surface))">
         <sc-for list="{{ range }}" as="o" hint-placeholder-count="3"><div style="height:40px;border-radius:10px;display:grid;place-items:center;font-size:15px;font-weight:{{ o.w }};background:{{ o.bg }};color:{{ o.c }};box-shadow:{{ o.s }};cursor:pointer">{{ o.label }}</div></sc-for>
       </div>
+      <div style="display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;border-radius:14px;cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="icon-chart-spline" style="font-size:20px;color:rgb(var(--primary))"></i><span style="flex:1;display:flex;flex-direction:column"><span style="font-size:15px;font-weight:600">Reports</span><span style="font-size:13px;color:rgb(var(--ink-2))">Build your own charts</span></span><i class="icon-chevron-right" style="font-size:18px;color:rgb(var(--ink-3))"></i></div>
     </div>
   </sc-if>
 
@@ -35,7 +36,7 @@
   <div style="display:grid;grid-template-columns:{{ cols }};gap:16px;align-items:start">
     <sc-for list="{{ cards }}" as="cd" hint-placeholder-count="2">
       <div style="display:flex;flex-direction:column;gap:14px;padding:18px;border-radius:16px;background:rgb(var(--raised));border:1px solid rgb(var(--line));min-width:0">
-        <div style="display:flex;align-items:center;gap:10px"><span style="width:40px;height:40px;border-radius:50%;background:{{ cd.soft }};color:{{ cd.solid }};display:grid;place-items:center"><i class="{{ cd.icon }}" style="font-size:20px"></i></span><span style="font-size:18px;font-weight:700">{{ cd.title }}</span></div>
+        <div style="display:flex;align-items:center;gap:10px"><span style="width:40px;height:40px;border-radius:50%;background:{{ cd.soft }};color:{{ cd.solid }};display:grid;place-items:center"><i class="{{ cd.icon }}" style="font-size:20px"></i></span><span style="flex:1;font-size:18px;font-weight:700">{{ cd.title }}</span><div title="Open in Reports" style="width:40px;height:40px;flex:none;border-radius:50%;display:grid;place-items:center;color:rgb(var(--ink-2));cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="icon-ellipsis" style="font-size:20px"></i></div></div>
         <div style="display:grid;grid-template-columns:{{ figCols }};gap:8px">
           <sc-for list="{{ cd.figures }}" as="f" hint-placeholder-count="5"><div style="display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgb(var(--surface));min-width:0"><span style="font-size:12px;color:rgb(var(--ink-2));line-height:1.3">{{ f.k }}</span><span style="font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.3">{{ f.v }}</span></div></sc-for>
         </div>

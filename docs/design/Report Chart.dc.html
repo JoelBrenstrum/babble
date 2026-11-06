@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caprasimo&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/lucide-static@0.460.0/font/lucide.css">
+<link rel="stylesheet" href="tokens/babble-tokens.css">
+<script src="_ds/organic-8ca4e40c-10e5-4c36-8989-b6da0862057f/_ds_bundle.js"></script>
+<style>[class^="icon-"],[class*=" icon-"]{-webkit-text-stroke:.45px currentColor}</style>
+</helmet>
+<div style="position:relative;display:flex;flex-direction:column;gap:{{ g.gap }};padding:{{ g.pad }};border-radius:16px;background:{{ g.cardBg }};border:{{ g.cardBorder }};color:rgb(var(--ink));font-family:Figtree, system-ui, sans-serif;min-width:0;box-sizing:border-box">
+  <sc-if value="{{ g.showHead }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="width:40px;height:40px;flex:none;border-radius:50%;background:{{ h.soft }};color:{{ h.solid }};display:grid;place-items:center"><i class="{{ h.icon }}" style="font-size:20px"></i></span>
+      <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px"><span style="font-size:18px;font-weight:700;line-height:1.25;color:{{ h.titleC }}">{{ h.title }}</span><span style="font-size:13px;color:rgb(var(--ink-2));line-height:1.35">{{ h.meta }}</span></div>
+      <div style="width:40px;height:40px;flex:none;border-radius:50%;display:grid;place-items:center;color:rgb(var(--ink-2));background:{{ h.menuBg }};cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="icon-ellipsis" style="font-size:20px"></i></div>
+    </div>
+  </sc-if>
+  <sc-if value="{{ g.showFigs }}" hint-placeholder-val="{{ true }}">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(118px, 1fr));gap:8px">
+      <sc-for list="{{ figs }}" as="f" hint-placeholder-count="3"><div style="display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:12px;background:rgb(var(--surface));min-width:0"><span style="font-size:12px;color:rgb(var(--ink-2));line-height:1.3">{{ f.k }}</span><span style="font-size:16px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.3">{{ f.v }}</span></div></sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ g.showLegend }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div style="flex:1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px">
+        <sc-for list="{{ legend }}" as="lg" hint-placeholder-count="2"><span style="display:flex;align-items:center;gap:6px;font-size:13px;color:rgb(var(--ink-2))"><span style="width:10px;height:10px;border-radius:3px;background:{{ lg.c }};border:{{ lg.border }};box-sizing:border-box"></span>{{ lg.label }}</span></sc-for>
+        <sc-if value="{{ k.heat }}" hint-placeholder-val="{{ false }}"><span style="display:flex;align-items:center;gap:3px;font-size:13px;color:rgb(var(--ink-2))">Less<sc-for list="{{ heatRamp }}" as="hr" hint-placeholder-count="5"><span style="width:10px;height:10px;border-radius:3px;background:{{ hr }}"></span></sc-for>More</span></sc-if>
+      </div>
+      <span style="font-size:12px;color:rgb(var(--ink-3));white-space:nowrap">{{ note }}</span>
+    </div>
+  </sc-if>
+
+  <div style="position:relative;opacity:{{ g.op }}">
+    <sc-if value="{{ g.empty }}" hint-placeholder-val="{{ false }}">
+      <div style="height:{{ g.emptyH }};border-radius:12px;border:1.5px dashed rgb(var(--line-strong));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:rgb(var(--ink-2));text-align:center;padding:12px;box-sizing:border-box"><i class="icon-chart-spline" style="font-size:24px;color:rgb(var(--ink-3))"></i><span style="font-size:14px;font-weight:600">Nothing logged in this range yet</span></div>
+    </sc-if>
+    <sc-if value="{{ g.full }}" hint-placeholder-val="{{ true }}">
+
+      <sc-if value="{{ k.bars }}" hint-placeholder-val="{{ true }}">
+        <div style="position:relative;height:{{ g.chartH }};display:flex;align-items:flex-end;gap:{{ g.barGap }};border-bottom:1px solid rgb(var(--line-strong))">
+          <sc-for list="{{ bars }}" as="b" hint-placeholder-count="14">
+            <div style="flex:1;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:flex-end;opacity:{{ b.op }}" style-hover="opacity:0.8">
+              <sc-for list="{{ b.segs }}" as="sg" hint-placeholder-count="1"><div style="height:{{ sg.h }};background:{{ sg.bg }};border-radius:{{ sg.r }}"></div></sc-for>
+            </div>
+          </sc-for>
+          <sc-if value="{{ med.show }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:0;bottom:0;left:{{ med.left }};border-left:2px dashed rgb(var(--ink-2))"></div>
+            <span style="position:absolute;top:-2px;left:{{ med.left }};margin-left:6px;padding:2px 8px;border-radius:999px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));font-size:12px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums">{{ med.label }}</span>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ k.line }}" hint-placeholder-val="{{ false }}">
+        <div style="position:relative;height:{{ g.chartH }};border-bottom:1px solid rgb(var(--line-strong))">
+          <div style="position:absolute;left:0;right:0;top:50%;border-top:1px dashed rgb(var(--line))"></div>
+          <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible">
+            <sc-for list="{{ paths }}" as="p" hint-placeholder-count="2"><path d="{{ p.d }}" style="fill:{{ p.fill }};stroke:{{ p.stroke }};stroke-width:{{ p.w }};stroke-dasharray:{{ p.dash }};stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"></path></sc-for>
+          </svg>
+          <sc-if value="{{ guide.show }}" hint-placeholder-val="{{ false }}"><div style="position:absolute;top:0;bottom:0;left:{{ guide.left }};border-left:1px solid rgb(var(--ink-3))"></div></sc-if>
+          <sc-for list="{{ points }}" as="pt" hint-placeholder-count="0"><span style="position:absolute;left:{{ pt.left }};top:{{ pt.top }};width:{{ pt.s }};height:{{ pt.s }};margin:{{ pt.m }};border-radius:50%;background:{{ pt.fill }};border:2.5px solid {{ pt.c }};box-sizing:border-box"></span></sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ k.donut }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;gap:16px 24px">
+          <div style="position:relative;width:{{ dn.size }};height:{{ dn.size }};flex:none">
+            <svg viewBox="0 0 42 42" style="width:100%;height:100%;transform:rotate(0deg)">
+              <circle cx="21" cy="21" r="15.9155" style="fill:none;stroke:rgb(var(--surface));stroke-width:5.4"></circle>
+              <sc-for list="{{ dn.slices }}" as="sl" hint-placeholder-count="6"><circle cx="21" cy="21" r="15.9155" style="fill:none;stroke:{{ sl.c }};stroke-width:{{ sl.w }};stroke-dasharray:{{ sl.dash }};stroke-dashoffset:{{ sl.off }}"></circle></sc-for>
+            </svg>
+            <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center">
+              <span style="font-size:{{ dn.fs }};font-weight:700;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:-0.02em">{{ dn.total }}</span>
+              <span style="font-size:12px;color:rgb(var(--ink-2));display:{{ dn.labD }};margin-top:4px">{{ dn.label }}</span>
+            </div>
+          </div>
+          <sc-if value="{{ dn.showLegend }}" hint-placeholder-val="{{ true }}">
+            <div style="flex:1 1 200px;min-width:0;display:flex;flex-direction:column;gap:2px">
+              <sc-for list="{{ dn.rows }}" as="dr" hint-placeholder-count="6"><div style="display:flex;align-items:center;gap:8px;min-height:30px;padding:0 8px;border-radius:8px;background:{{ dr.bg }}"><span style="width:10px;height:10px;flex:none;border-radius:3px;background:{{ dr.c }}"></span><span style="flex:1;font-size:14px">{{ dr.label }}</span><span style="font-size:14px;font-weight:600;font-variant-numeric:tabular-nums">{{ dr.v }}</span><span style="width:38px;text-align:right;font-size:13px;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums">{{ dr.pct }}</span></div></sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ k.number }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px">
+          <div style="flex:1 1 auto;display:flex;flex-direction:column;gap:6px;align-items:flex-start">
+            <span style="display:flex;align-items:baseline;gap:6px;line-height:1"><span style="font-size:{{ nm.fs }};font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums">{{ nm.v }}</span><span style="font-size:{{ nm.ufs }};font-weight:600;color:rgb(var(--ink-2))">{{ nm.unit }}</span></span>
+            <sc-if value="{{ nm.showChip }}" hint-placeholder-val="{{ true }}"><span style="display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:{{ nm.chipBg }};color:{{ nm.chipC }};font-size:13px;font-weight:700;font-variant-numeric:tabular-nums"><i class="{{ nm.chipIcon }}" style="font-size:14px"></i>{{ nm.chip }}</span></sc-if>
+          </div>
+          <div style="flex:1 1 140px;max-width:260px;display:flex;flex-direction:column;gap:4px">
+            <div style="position:relative;height:{{ nm.sparkH }}">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;overflow:visible"><path d="{{ nm.spark }}" style="fill:none;stroke:{{ nm.c }};stroke-width:2;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke"></path></svg>
+              <sc-if value="{{ nm.pt.show }}" hint-placeholder-val="{{ false }}"><span style="position:absolute;left:{{ nm.pt.left }};top:{{ nm.pt.top }};width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:rgb(var(--raised));border:2.5px solid {{ nm.c }};box-sizing:border-box"></span></sc-if>
+            </div>
+            <sc-if value="{{ nm.pt.show }}" hint-placeholder-val="{{ false }}"><span style="align-self:flex-end;padding:4px 8px;border-radius:8px;background:rgb(var(--ink));color:rgb(var(--bg));font-size:12px;font-weight:600;white-space:nowrap">{{ nm.pt.text }}</span></sc-if>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ k.table }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;border-radius:12px;border:1px solid rgb(var(--line));overflow:hidden;font-size:{{ tb.fs }}">
+          <div style="display:grid;grid-template-columns:{{ tb.cols }};gap:8px;padding:8px 12px;background:rgb(var(--surface));font-weight:600;color:rgb(var(--ink-2));font-size:12px">
+            <sc-for list="{{ tb.head }}" as="th" hint-placeholder-count="5"><span style="text-align:{{ th.al }}">{{ th.t }}</span></sc-for>
+          </div>
+          <sc-for list="{{ tb.rows }}" as="tr" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:{{ tb.cols }};gap:8px;padding:8px 12px;border-top:{{ tr.bt }};background:{{ tr.bg }};font-weight:{{ tr.w }};font-variant-numeric:tabular-nums">
+              <sc-for list="{{ tr.cells }}" as="td" hint-placeholder-count="5"><span style="text-align:{{ td.al }};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ td.t }}</span></sc-for>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ k.heat }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:{{ hm.gap }}">
+          <sc-for list="{{ hm.rows }}" as="hrw" hint-placeholder-count="14">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="width:{{ hm.labW }};flex:none;font-size:11px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;display:{{ hm.labD }};white-space:nowrap">{{ hrw.label }}</span>
+              <div style="flex:1;display:grid;grid-template-columns:repeat(24, minmax(0, 1fr));gap:{{ hm.gap }}">
+                <sc-for list="{{ hrw.cells }}" as="cl" hint-placeholder-count="24"><span style="height:{{ hm.cellH }};border-radius:{{ hm.r }};background:{{ cl.bg }};box-shadow:{{ cl.ring }}"></span></sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ k.rhythm }}" hint-placeholder-val="{{ false }}">
+        <div style="max-height:{{ rh.maxH }};overflow-y:auto;display:flex;flex-direction:column;gap:4px;padding-right:{{ rh.padR }}">
+          <sc-for list="{{ rh.rows }}" as="rr" hint-placeholder-count="14">
+            <div style="display:flex;align-items:center;gap:6px;flex:none">
+              <span style="width:{{ rh.labW }};flex:none;font-size:11px;color:rgb(var(--ink-2));font-variant-numeric:tabular-nums;display:{{ rh.labD }};white-space:nowrap">{{ rr.label }}</span>
+              <div style="position:relative;flex:1;height:{{ rh.rowH }};border-radius:{{ rh.r }};background:rgb(var(--surface));overflow:hidden">
+                <span style="position:absolute;top:0;bottom:0;left:0;width:29.17%;background:rgb(var(--ink) / 0.05)"></span>
+                <span style="position:absolute;top:0;bottom:0;left:79.17%;right:0;background:rgb(var(--ink) / 0.05)"></span>
+                <sc-for list="{{ rr.blocks }}" as="bk" hint-placeholder-count="8"><span style="position:absolute;top:{{ bk.inset }};bottom:{{ bk.inset }};left:{{ bk.left }};width:{{ bk.width }};border-radius:{{ rh.br }};background:{{ bk.bg }};box-shadow:{{ bk.ring }}"></span></sc-for>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ tip.show }}" hint-placeholder-val="{{ false }}">
+        <div style="position:absolute;left:{{ tip.left }};top:{{ tip.top }};transform:translate({{ tip.tx }}, calc(-100% - 8px));z-index:2;padding:6px 10px;border-radius:10px;background:rgb(var(--ink));color:rgb(var(--bg));font-size:12px;font-weight:600;line-height:1.35;white-space:nowrap;box-shadow:var(--shadow-toast);font-variant-numeric:tabular-nums">{{ tip.text }}</div>
+      </sc-if>
+    </sc-if>
+    <sc-if value="{{ g.loading }}" hint-placeholder-val="{{ false }}">
+      <span style="position:absolute;top:6px;right:6px;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border-radius:999px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));font-size:12px;font-weight:600;color:rgb(var(--ink-2))"><i class="icon-loader" style="font-size:14px"></i>Updating…</span>
+    </sc-if>
+  </div>
+
+  <sc-if value="{{ g.showAxis }}" hint-placeholder-val="{{ true }}">
+    <div style="position:relative;height:16px;margin-left:{{ axisPad }};font-size:12px;color:rgb(var(--ink-3));font-variant-numeric:tabular-nums">
+      <sc-for list="{{ axis }}" as="ax" hint-placeholder-count="2"><span style="position:absolute;left:{{ ax.left }};transform:translateX({{ ax.tx }});white-space:nowrap">{{ ax.label }}</span></sc-for>
+    </div>
+  </sc-if>
+  <sc-if value="{{ g.showCaption }}" hint-placeholder-val="{{ true }}">
+    <span style="font-size:12px;color:rgb(var(--ink-3));line-height:1.45">{{ caption }}</span>
+  </sc-if>
+
+  <sc-if value="{{ g.menu }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:60px;right:14px;z-index:4;min-width:208px;display:flex;flex-direction:column;padding:6px;border-radius:14px;background:rgb(var(--raised));border:1px solid rgb(var(--line-strong));box-shadow:var(--shadow-toast)">
+      <sc-for list="{{ menu }}" as="mi" hint-placeholder-count="5"><div style="display:flex;align-items:center;gap:10px;height:44px;padding:0 12px;border-radius:10px;font-size:15px;font-weight:500;color:{{ mi.c }};background:{{ mi.bg }};cursor:pointer" style-hover="background:rgb(var(--surface))"><i class="{{ mi.icon }}" style="font-size:17px"></i>{{ mi.label }}</div></sc-for>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:640,&quot;height&quot;:420},&quot;preset&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;bar-bottle&quot;,&quot;bar-feeds&quot;,&quot;bar-nappy&quot;,&quot;stacked-sleep&quot;,&quot;stacked-loc&quot;,&quot;line-bottle&quot;,&quot;line-multi&quot;,&quot;line-weight&quot;,&quot;area-sleep&quot;,&quot;donut-loc&quot;,&quot;donut-carer&quot;,&quot;number-bottle&quot;,&quot;number-wake&quot;,&quot;table-feeds&quot;,&quot;heatmap-feeds&quot;,&quot;heatmap-sleep&quot;,&quot;hist-naps&quot;,&quot;hist-wake&quot;,&quot;rhythm-14&quot;],&quot;default&quot;:&quot;bar-bottle&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;state&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;ok&quot;,&quot;readout&quot;,&quot;empty&quot;,&quot;loading&quot;],&quot;default&quot;:&quot;ok&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;size&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;xs&quot;,&quot;s&quot;,&quot;m&quot;,&quot;l&quot;],&quot;default&quot;:&quot;m&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;bare&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;head&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;figs&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;},&quot;compare&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;menu&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;menuKind&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;saved&quot;,&quot;prebuilt&quot;],&quot;default&quot;:&quot;saved&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;placeholderTitle&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;},&quot;title&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;},&quot;meta&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;&quot;,&quot;tsType&quot;:&quot;string&quot;}}">
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const dl = (n, i) => { const d = new Date(2026, 9, 29 - (n - 1 - i)); return d.getDate() + ' ' + MON[d.getMonth()]; };
+const C = n => `rgb(var(--${n}))`;
+const A = (n, a) => `rgb(var(--${n}) / ${a})`;
+const MIX = (n, p, b) => `color-mix(in oklab, rgb(var(--${n})) ${Math.round(p)}%, rgb(var(--${b})))`;
+const rng = seed => { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; };
+const fh = h => { const m = Math.round(h * 60); const H = Math.floor(m / 60), M = m % 60; return H ? (M ? `${H}h ${M}m` : `${H}h`) : `${M}m`; };
+const ser = (n, seed, lo, hi, trend = 0) => { const r = rng(seed); return Array.from({ length: n }, (_, i) => lo + (hi - lo) * (0.25 + 0.5 * r() + trend * (i / (n - 1) - 0.5))); };
+const LOC = [['Cot', 'sleep'], ['Bassinet', 'nappy'], ['Held', 'secondary'], ['Pram', 'growth'], ['Car', 'bottle'], ['Swing', 'pump'], ['Next to carer', 'custom']];
+
+function day(d) {
+  const r = rng(1000 + d * 37);
+  const a = 1.2 + r() * 1.2, b = a + 0.6 + 2 + r() * 0.8, w = 6.6 + r() * 0.5;
+  const n1 = 8.9 + r() * 0.6, n2 = 12 + r() * 0.8, n3 = 15.2 + r() * 0.6, bed = 19 + r() * 0.8;
+  const sleeps = [[0, a], [a + 0.55, b], [b + 0.5, w], [n1, n1 + 1 + r() * 0.5], [n2, n2 + 1.2 + r() * 0.6], [n3, n3 + 0.5 + r() * 0.4], [bed, 24]];
+  const fs = [a, b, w + 0.1, n1 - 1.6, n2 - 1.2, n3 - 0.9, 17.8 + r() * 0.4, bed - 0.7];
+  const feeds = fs.map((t, i) => [t, t + 0.3 + r() * 0.25, i % 2 ? 'feed-right' : 'feed-left']);
+  const pumps = d % 3 === 1 ? [[21.4, 21.75]] : [];
+  return { sleeps, feeds, pumps };
+}
+function perHour(spans) {
+  const m = Array(24).fill(0);
+  spans.forEach(([s, e]) => { for (let h = Math.floor(s); h < Math.ceil(e) && h < 24; h++) m[h] += Math.max(0, Math.min(e, h + 1) - Math.max(s, h)) * 60; });
+  return m;
+}
+
+const P = {
+  'bar-bottle': () => ({ kind: 'bars', tr: 'bottle', icon: 'icon-milk', title: 'Bottle intake', meta: '14 days · by day', n: 14, series: [{ label: 'Bottle', c: C('bottle'), vals: ser(14, 7, 480, 760, 0.3) }], fmt: v => Math.round(v / 10) * 10 + ' ml', unit: 'ml', figs: [['Per day', '620 ml'], ['Bottles per day', '6.1'], ['Per bottle', '102 ml']], caption: 'One bar per day. Today is included so far.', tipIdx: 10 }),
+  'bar-feeds': () => ({ kind: 'bars', tr: 'feed-right', icon: 'icon-heart', title: 'Feeds', meta: 'Prebuilt · 14 days', n: 14, series: [{ label: 'Breast', c: C('feed-right'), vals: ser(14, 11, 5, 8) }, { label: 'Bottle', c: C('bottle'), vals: ser(14, 13, 0.6, 2.4) }], stackOrder: 'bottom-first', fmt: v => Math.round(v), figs: [['Per day', '8.6'], ['Average gap', '2h 26m'], ['Left / right', '53% / 47%']], caption: 'Breastfeeds and bottles per day.', tipIdx: 9 }),
+  'bar-nappy': () => ({ kind: 'bars', tr: 'nappy', icon: 'icon-droplets', title: 'Nappies', meta: 'Prebuilt · 14 days', n: 14, series: [{ label: 'Wet', c: A('nappy', 0.35), vals: ser(14, 17, 2, 4) }, { label: 'Both', c: A('nappy', 0.65), vals: ser(14, 19, 1, 3) }, { label: 'Dirty', c: C('nappy'), vals: ser(14, 23, 1, 2.5) }], fmt: v => Math.round(v), figs: [['Wet per day', '4.7'], ['Dirty per day', '4']], caption: 'Wet only, both, and dirty only.', tipIdx: 12 }),
+  'stacked-sleep': () => ({ kind: 'bars', tr: 'sleep', icon: 'icon-moon', title: 'Sleep', meta: 'Prebuilt · 30 days', n: 30, series: [{ label: 'Night', c: C('sleep'), vals: ser(30, 29, 8, 10.4) }, { label: 'Naps', c: A('sleep', 0.45), vals: ser(30, 31, 3, 5) }], fmt: fh, figs: [['Per day', '13h 05m'], ['Night', '9h 10m'], ['Naps per day', '3.4']], caption: 'Night sleep under naps, one bar per day.', tipIdx: 24, note: 'max 15h' }),
+  'stacked-loc': () => ({ kind: 'bars', tr: 'sleep', icon: 'icon-map-pin', title: 'Time asleep by location, 30 days', meta: '30 days · by location · by day', n: 30, series: LOC.slice(0, 5).map(([label, k], i) => ({ label, c: C(k), vals: ser(30, 41 + i * 3, [5, 3, 2, 1.2, 0.7][i] * 0.6, [5, 3, 2, 1.2, 0.7][i] * 1.5) })), fmt: fh, figs: [['Per day', '12h 40m'], ['Most often', 'Cot'], ['Days logged', '30']], caption: 'Each bar is one day, split by where Olivia slept.', tipIdx: 22, note: 'max 15h' }),
+  'hist-naps': () => ({ kind: 'bars', hist: true, tr: 'sleep', icon: 'icon-timer', title: 'Nap lengths', meta: '30 days · 15-minute bins', n: 12, series: [{ label: 'Naps', c: C('sleep'), vals: [1, 3, 6, 9, 11, 8, 6, 4, 3, 2, 1, 1] }], fmt: v => v + ' naps', binW: 15, median: 52, medLabel: 'Median 52m', figs: [['Naps', '102'], ['Median', '52m'], ['Longest', '2h 48m']], caption: 'How many naps fell into each 15-minute length.', tipIdx: 4, ticks: [[0, '0'], [33.33, '1h'], [66.67, '2h'], [100, '3h']], legend: [] }),
+  'hist-wake': () => ({ kind: 'bars', hist: true, tr: 'primary', icon: 'icon-sun', title: 'Wake windows', meta: '30 days · 15-minute bins', n: 12, series: [{ label: 'Wake windows', c: C('primary'), vals: [0, 1, 2, 4, 7, 10, 9, 6, 3, 2, 1, 1] }], fmt: v => v + ' windows', binW: 15, median: 92, medLabel: 'Median 1h 32m', figs: [['Median', '1h 32m'], ['Longest', '2h 55m']], caption: 'Time awake between sleeps.', tipIdx: 5, ticks: [[0, '0'], [33.33, '1h'], [66.67, '2h'], [100, '3h']], legend: [] }),
+  'line-bottle': () => ({ kind: 'line', tr: 'bottle', icon: 'icon-milk', title: 'Bottle intake', meta: '30 days · by day · 7-day average', n: 30, series: [{ label: 'Bottle', c: C('bottle'), vals: ser(30, 53, 440, 780, 0.5) }], avg: true, prevVals: ser(30, 59, 380, 700, 0.4), min: 300, max: 820, fmt: v => Math.round(v / 10) * 10 + ' ml', figs: [['Per day', '620 ml'], ['Bottles per day', '6.1'], ['Change', '+40 ml']], caption: 'Dashed line is the 7-day average.', tipIdx: 24, note: 'max 780 ml' }),
+  'line-multi': () => ({ kind: 'line', tr: 'bottle', icon: 'icon-milk', title: 'Bottle by content', meta: '30 days · by content', n: 30, series: [{ label: 'Breast milk', c: C('bottle'), vals: ser(30, 61, 260, 460, -0.4) }, { label: 'Formula', c: C('feed-right'), vals: ser(30, 67, 60, 300, 0.9) }, { label: 'Mixed', c: C('growth'), vals: ser(30, 71, 20, 140) }], min: 0, max: 520, fmt: v => Math.round(v / 10) * 10 + ' ml', figs: [['Breast milk', '360 ml'], ['Formula', '180 ml'], ['Mixed', '80 ml']], caption: 'Up to four series. Hover a day to compare.', tipIdx: 20 }),
+  'line-weight': () => ({ kind: 'line', tr: 'growth', icon: 'icon-ruler', title: 'Growth', meta: 'Prebuilt · since birth', n: 5, series: [{ label: 'Weight', c: C('growth'), vals: [3.4, 4.3, 5.2, 5.9, 6.4] }], dots: true, min: 3, max: 7, fmt: v => v.toFixed(2) + ' kg', labels: ['Birth', '1 mo', '2 mo', '3 mo', '4 mo'], figs: [['Weight', '6.40 kg'], ['Percentile', '51st'], ['Change', '+500 g']], caption: 'Weight at each measurement.', tipIdx: 4 }),
+  'area-sleep': () => ({ kind: 'line', area: true, tr: 'sleep', icon: 'icon-moon', title: 'Night and naps', meta: '30 days · by day · stacked', n: 30, series: [{ label: 'Night', c: C('sleep'), fill: A('sleep', 0.32), vals: ser(30, 79, 8, 10.4) }, { label: 'Naps', c: A('sleep', 0.6), fill: C('sleep-soft'), vals: ser(30, 83, 2.8, 5) }], min: 0, max: 16, fmt: fh, figs: [['Per day', '13h 05m'], ['Night', '9h 10m'], ['Naps', '3h 55m']], caption: 'Naps stacked on top of night sleep.', tipIdx: 21, note: 'max 15h' }),
+  'donut-loc': () => ({ kind: 'donut', tr: 'sleep', icon: 'icon-map-pin', title: 'Where Olivia sleeps', meta: '30 days · by location', slices: LOC.map(([label, k], i) => ({ label, c: C(k), v: [128, 69, 44, 28, 19, 15, 9][i] })), total: '312h', tLabel: 'asleep', fmt: v => v + 'h', figs: [['Most often', 'Cot'], ['Per day', '10h 24m'], ['Locations', '7']], caption: 'Share of time asleep in each place.', tipIdx: 0 }),
+  'donut-carer': () => ({ kind: 'donut', tr: 'secondary', icon: 'icon-users', title: 'Who logs what', meta: '30 days · by carer', slices: [{ label: 'Joel', c: C('secondary'), v: 239 }, { label: 'Jaimi', c: C('growth'), v: 173 }], total: '412', tLabel: 'entries', fmt: v => v, figs: [['Entries', '412'], ['Per day', '13.7']], caption: 'Entries logged by each carer.', tipIdx: 0 }),
+  'number-bottle': () => ({ kind: 'number', tr: 'bottle', icon: 'icon-milk', title: 'Bottle per day', meta: '30 days · average', v: '620', unit: 'ml', chip: '+40 ml on the previous 30 days', dir: 'up', spark: ser(30, 53, 440, 780, 0.5), figs: [], caption: 'Average per day across finished days.' }),
+  'number-wake': () => ({ kind: 'number', tr: 'primary', icon: 'icon-sun', title: 'Longest wake window', meta: '7 days · average', v: '1h 32m', unit: '', chip: '−6m on the previous 7 days', dir: 'down', spark: ser(14, 91, 60, 120), figs: [], caption: '' }),
+  'table-feeds': () => ({ kind: 'table', tr: 'feed-right', icon: 'icon-table', title: 'Feeds by week', meta: '5 weeks · by week', head: ['Week', 'Breast', 'Bottles', 'Bottle ml', 'Nappies'], rows: [['29 Sep', 58, 34, '3,410', 52], ['6 Oct', 55, 38, '3,880', 49], ['13 Oct', 52, 41, '4,120', 51], ['20 Oct', 49, 44, '4,390', 47], ['27 Oct', 21, 19, '1,940', 20]], total: ['Total', 235, 176, '17,740', 219], figs: [['Breast per week', '53'], ['Bottles per week', '39']], caption: 'This week so far. Export CSV is in the card menu.', tipIdx: 3 }),
+  'heatmap-feeds': () => ({ kind: 'heat', src: 'feeds', tr: 'feed-right', icon: 'icon-clock', title: 'When feeds happen', meta: '30 days · by hour of day', figs: [['Feeds per day', '8.6'], ['Busiest hour', '7–8 am'], ['Night feeds', '2.4']], caption: 'Darker cells mean more minutes feeding in that hour. Night is 19:00–07:00.', tip: [9, 3], tipFmt: (d, h, m) => `${d}, ${h}:00–${h + 1}:00 · ${Math.round(m)}m feeding` }),
+  'heatmap-sleep': () => ({ kind: 'heat', src: 'sleep', tr: 'sleep', icon: 'icon-moon', title: 'When Olivia sleeps', meta: '30 days · by hour of day', figs: [['Asleep per day', '13h 05m'], ['Usual bedtime', '7:20 pm']], caption: 'Darker cells mean more minutes asleep in that hour.', tip: [9, 13], tipFmt: (d, h, m) => `${d}, ${h}:00–${h + 1}:00 · ${Math.round(m)}m asleep` }),
+  'rhythm-14': () => ({ kind: 'rhythm', tr: 'sleep', icon: 'icon-calendar-days', title: 'Last 14 days', meta: '14 days · sleep, feeds and pumps', figs: [['Asleep per day', '13h 05m'], ['Feeds per day', '8.6']], caption: 'One row per day, midnight to midnight. Night is shaded.', tip: [2, 6] })
+};
+
+class Component extends DCLogic {
+  renderVals() {
+    const pr = this.props;
+    const cfg = (P[pr.preset] || P['bar-bottle'])();
+    const size = pr.size || 'm';
+    const st = pr.state || 'ok';
+    const bare = !!pr.bare || size === 'xs';
+    const SZ = { xs: { chartH: 34, gap: '1px', cell: 3, row: 3, dn: 36, nfs: 16 }, s: { chartH: 84, gap: '2px', cell: 6, row: 7, dn: 84, nfs: 30 }, m: { chartH: 140, gap: '3px', cell: 11, row: 18, dn: 150, nfs: 52 }, l: { chartH: 200, gap: '3px', cell: 16, row: 22, dn: 180, nfs: 64 } }[size];
+    const empty = st === 'empty', loading = st === 'loading', readout = st === 'readout';
+    const ph = !!pr.placeholderTitle;
+    const h = { soft: C(cfg.tr + '-soft'), solid: C(cfg.tr), icon: cfg.icon, title: pr.title || cfg.title, meta: pr.meta || cfg.meta, titleC: ph ? C('ink-3') : C('ink'), menuBg: pr.menu ? C('surface') : 'transparent' };
+    const showHead = !bare && pr.head !== false;
+    const g = {
+      gap: bare ? '6px' : '14px', pad: bare ? '0' : (size === 'l' ? '20px' : '16px'),
+      cardBg: bare ? 'transparent' : C('raised'), cardBorder: bare ? 'none' : `1px solid ${C('line')}`,
+      showHead, showFigs: !bare && pr.figs !== false && cfg.figs.length > 0, showLegend: !bare && !empty && cfg.kind !== 'number' && cfg.kind !== 'table',
+      showAxis: !bare && !empty && ['bars', 'line', 'heat', 'rhythm'].includes(cfg.kind), showCaption: !bare && !!cfg.caption && size !== 's',
+      empty, full: !empty, loading, op: loading ? 0.6 : 1, chartH: SZ.chartH + 'px', emptyH: Math.max(SZ.chartH, bare ? 34 : 120) + 'px', barGap: SZ.gap, menu: !!pr.menu
+    };
+    const k = { bars: cfg.kind === 'bars', line: cfg.kind === 'line', donut: cfg.kind === 'donut', number: cfg.kind === 'number', table: cfg.kind === 'table', heat: cfg.kind === 'heat', rhythm: cfg.kind === 'rhythm' };
+    let figs = cfg.figs.map(([kk, v]) => ({ k: kk, v: empty ? '—' : v }));
+    let legend = [], note = cfg.note || '', axis = [], axisPad = '0px', bars = [], paths = [], points = [], guide = { show: false }, med = { show: false };
+    let tip = { show: false, left: '50%', top: '0', tx: '-50%', text: '' };
+    let dn = { slices: [], rows: [] }, nm = { pt: { show: false } }, tb = { head: [], rows: [] }, hm = { rows: [] }, rh = { rows: [] }, heatRamp = [];
+    const clampL = p => Math.max(14, Math.min(86, p)) + '%';
+    const firstLast = (a, b) => [{ label: a, left: '0%', tx: '0' }, { label: b, left: '100%', tx: '-100%' }];
+
+    if (k.bars) {
+      const n = cfg.n, S = cfg.series;
+      const sums = Array.from({ length: n }, (_, i) => S.reduce((t, s) => t + s.vals[i], 0));
+      const max = Math.max(...sums) * 1.08;
+      const ti = cfg.tipIdx;
+      bars = sums.map((sum, i) => {
+        const segsBottom = S.map(s => ({ v: s.vals[i], bg: s.c }));
+        const top = segsBottom.map(x => x.v > 0).lastIndexOf(true);
+        const rad = size === 'xs' ? '2px 2px 0 0' : size === 's' ? '3px 3px 0 0' : '4px 4px 0 0';
+        const segs = segsBottom.map((x, j) => ({ h: (x.v / max * 100) + '%', bg: x.bg, r: j === top ? rad : '0' })).reverse();
+        return { segs, op: readout && i !== ti ? 0.45 : 1 };
+      });
+      legend = cfg.legend || (S.length > 1 || !cfg.hist ? S.map(s => ({ label: s.label, c: s.c, border: 'none' })) : []);
+      if (cfg.hist) {
+        legend = [];
+        med = { show: true, left: (cfg.median / (n * cfg.binW) * 100) + '%', label: cfg.medLabel };
+        axis = cfg.ticks.map(([p, l], i, arr) => ({ label: l, left: p + '%', tx: i === 0 ? '0' : i === arr.length - 1 ? '-100%' : '-50%' }));
+        note = '';
+        if (readout) tip = { show: true, left: clampL((ti + 0.5) / n * 100), top: (100 - sums[ti] / max * 100) + '%', tx: '-50%', text: `${ti * cfg.binW}–${(ti + 1) * cfg.binW} min: ${cfg.fmt(sums[ti])}` };
+      } else {
+        axis = firstLast(dl(n, 0), dl(n, n - 1));
+        if (readout) tip = { show: true, left: clampL((ti + 0.5) / n * 100), top: (100 - sums[ti] / max * 100) + '%', tx: '-50%', text: `${dl(n, ti)}: ` + S.map(s => `${s.label} ${cfg.fmt(s.vals[i0(ti)])}`).join(', ') };
+      }
+      function i0(x) { return x; }
+    }
+
+    if (k.line) {
+      const n = cfg.n, S = cfg.series, lo = cfg.min, hi = cfg.max;
+      const X = i => (i / (n - 1)) * 100, Y = v => 100 - (v - lo) / (hi - lo) * 100;
+      const pathOf = vals => vals.map((v, i) => `${i ? 'L' : 'M'}${X(i).toFixed(2)} ${Y(v).toFixed(2)}`).join(' ');
+      const ti = cfg.tipIdx;
+      if (cfg.area) {
+        const night = S[0].vals, tot = night.map((v, i) => v + S[1].vals[i]);
+        const top = pathOf(tot), mid = pathOf(night);
+        const back = night.map((v, i) => [X(i), Y(v)]).reverse().map(([x, y]) => `L${x.toFixed(2)} ${y.toFixed(2)}`).join(' ');
+        paths = [
+          { d: `${top} ${back} Z`, fill: S[1].fill, stroke: 'none', w: 0, dash: 'none' },
+          { d: `${mid} L100 100 L0 100 Z`, fill: S[0].fill, stroke: 'none', w: 0, dash: 'none' },
+          { d: mid, fill: 'none', stroke: S[0].c, w: 2, dash: 'none' },
+          { d: top, fill: 'none', stroke: S[1].c, w: 2, dash: 'none' }
+        ];
+        if (readout) { guide = { show: true, left: X(ti) + '%' }; points = [[night[ti], S[0].c], [tot[ti], S[1].c]].map(([v, c]) => ({ left: X(ti) + '%', top: Y(v) + '%', c, s: '10px', m: '-5px 0 0 -5px', fill: C('raised') })); tip = { show: true, left: clampL(X(ti)), top: Y(tot[ti]) + '%', tx: '-50%', text: `${dl(n, ti)}: Night ${fh(night[ti])}, Naps ${fh(S[1].vals[ti])}` }; }
+      } else {
+        if (pr.compare && cfg.prevVals) paths.push({ d: pathOf(cfg.prevVals), fill: 'none', stroke: A(cfg.tr, 0.3), w: 2, dash: 'none' });
+        S.forEach(s => paths.push({ d: pathOf(s.vals), fill: 'none', stroke: s.c, w: size === 'xs' ? 1.5 : 2.5, dash: 'none' }));
+        if (cfg.avg) {
+          const v = S[0].vals, av = v.map((_, i) => { const a = v.slice(Math.max(0, i - 6), i + 1); return a.reduce((x, y) => x + y, 0) / a.length; });
+          paths.push({ d: pathOf(av), fill: 'none', stroke: C('ink-2'), w: 1.75, dash: '5 4' });
+          cfg._av = av;
+        }
+        if (cfg.dots && size !== 'xs') S[0].vals.forEach((v, i) => points.push({ left: X(i) + '%', top: Y(v) + '%', c: C('raised'), s: '12px', m: '-6px 0 0 -6px', fill: C(cfg.tr) }));
+        if (readout) {
+          guide = { show: true, left: X(ti) + '%' };
+          S.forEach(s => points.push({ left: X(ti) + '%', top: Y(s.vals[ti]) + '%', c: s.c, s: '12px', m: '-6px 0 0 -6px', fill: C('raised') }));
+          const topV = Math.max(...S.map(s => s.vals[ti]));
+          const lab = cfg.labels ? cfg.labels[ti] : dl(n, ti);
+          let text = `${lab}: ` + S.map(s => (S.length > 1 ? s.label + ' ' : '') + cfg.fmt(s.vals[ti])).join(', ');
+          if (cfg._av) text += ` · 7-day avg ${cfg.fmt(cfg._av[ti])}`;
+          tip = { show: true, left: X(ti) > 80 ? X(ti) + '%' : clampL(X(ti)), top: Y(topV) + '%', tx: X(ti) > 80 ? '-88%' : '-50%', text };
+        }
+      }
+      legend = S.map(s => ({ label: s.label, c: s.fill && cfg.area ? s.fill : s.c, border: cfg.area ? `2px solid ${s.c}` : 'none' }));
+      if (cfg.avg) legend.push({ label: '7-day average', c: 'transparent', border: `2px dashed ${C('ink-2')}` });
+      if (pr.compare && cfg.prevVals) legend.push({ label: 'Previous 30 days', c: A(cfg.tr, 0.3), border: 'none' });
+      axis = cfg.labels ? firstLast(cfg.labels[0], cfg.labels[n - 1]) : firstLast(dl(n, 0), dl(n, n - 1));
+    }
+
+    if (k.donut) {
+      const tot = cfg.slices.reduce((t, s) => t + s.v, 0);
+      let cum = 0;
+      const ti = readout ? cfg.tipIdx : -1;
+      dn.slices = cfg.slices.map((s, i) => { const p = s.v / tot * 100; const gap = cfg.slices.length > 1 ? 0.7 : 0; const o = { c: s.c, w: i === ti ? 7 : 5.4, dash: `${Math.max(0, p - gap)} ${100 - p + gap}`, off: 25 - cum }; cum += p; return o; });
+      dn.rows = cfg.slices.map((s, i) => ({ label: s.label, c: s.c, v: cfg.fmt(s.v), pct: Math.round(s.v / tot * 100) + '%', bg: i === ti ? C('surface') : 'transparent' }));
+      dn.size = SZ.dn + 'px'; dn.fs = size === 'l' ? '40px' : size === 'm' ? '34px' : size === 's' ? '18px' : '0px';
+      dn.total = size === 'xs' ? '' : cfg.total; dn.label = cfg.tLabel; dn.labD = size === 'm' || size === 'l' ? 'block' : 'none';
+      dn.showLegend = !bare;
+      legend = []; note = '';
+      if (readout) { const s = cfg.slices[ti]; tip = { show: true, left: (SZ.dn * 0.82) + 'px', top: '18px', tx: '-50%', text: `${s.label}: ${cfg.fmt(s.v)} · ${Math.round(s.v / tot * 100)}%` }; }
+    }
+
+    if (k.number) {
+      const v = cfg.spark, lo = Math.min(...v), hi = Math.max(...v), n = v.length;
+      const X = i => i / (n - 1) * 100, Y = x => 100 - (x - lo) / (hi - lo) * 100;
+      const up = cfg.dir === 'up', down = cfg.dir === 'down';
+      nm = { v: empty ? '—' : cfg.v, unit: cfg.unit, fs: SZ.nfs + 'px', ufs: Math.round(SZ.nfs * 0.42) + 'px', chip: cfg.chip, showChip: size !== 'xs' && size !== 's', chipBg: up ? C('success-soft') : down ? C('caution-soft') : C('surface'), chipC: up ? C('on-success') : down ? C('on-caution') : C('ink-2'), chipIcon: up ? 'icon-trending-up' : down ? 'icon-trending-down' : 'icon-minus', c: C(cfg.tr), sparkH: size === 'xs' ? '16px' : size === 's' ? '28px' : '48px', spark: v.map((x, i) => `${i ? 'L' : 'M'}${X(i).toFixed(2)} ${Y(x).toFixed(2)}`).join(' '), pt: { show: false } };
+      if (readout) { const ti = n - 6; nm.pt = { show: true, left: X(ti) + '%', top: Y(v[ti]) + '%', text: `${dl(n, ti)}: ${Math.round(v[ti] / 10) * 10} ml` }; }
+    }
+
+    if (k.table) {
+      const al = j => j ? 'right' : 'left';
+      tb.cols = `minmax(64px, 1.3fr) repeat(${cfg.head.length - 1}, minmax(0, 1fr))`;
+      tb.fs = size === 's' || size === 'xs' ? '12px' : '14px';
+      tb.head = cfg.head.map((t, j) => ({ t, al: al(j) }));
+      const rows = size === 's' || size === 'xs' ? cfg.rows.slice(-3) : cfg.rows;
+      tb.rows = rows.map((r, i) => ({ cells: r.map((t, j) => ({ t: String(t), al: al(j) })), bt: `1px solid ${C('line')}`, bg: readout && i === cfg.tipIdx ? C('surface') : 'transparent', w: 400 }));
+      tb.rows.push({ cells: cfg.total.map((t, j) => ({ t: String(t), al: al(j) })), bt: `1.5px solid ${C('line-strong')}`, bg: 'transparent', w: 700 });
+    }
+
+    if (k.heat) {
+      const days = size === 'xs' || size === 's' ? 7 : 14;
+      const labW = size === 'l' ? 48 : size === 'm' ? 40 : 0;
+      const [tr, tc] = cfg.tip;
+      heatRamp = [0, 25, 50, 75, 100].map(p => MIX(cfg.tr, p, 'surface'));
+      legend = [{ label: 'Night 19:00–07:00', c: C('line'), border: 'none' }];
+      hm = { labW: labW + 'px', labD: labW ? 'block' : 'none', cellH: SZ.cell + 'px', gap: size === 'xs' ? '1px' : '2px', r: size === 'xs' ? '1px' : '3px' };
+      hm.rows = Array.from({ length: days }, (_, di) => {
+        const D = day(di);
+        const mins = perHour(cfg.src === 'feeds' ? D.feeds : D.sleeps);
+        const full = cfg.src === 'feeds' ? 30 : 60;
+        return { label: dl(days, di), cells: mins.map((m, hh) => { const night = hh < 7 || hh >= 19; const p = Math.min(100, m / full * 100); return { bg: p < 4 ? C(night ? 'line' : 'surface') : MIX(cfg.tr, 18 + p * 0.82, night ? 'line' : 'surface'), ring: readout && di === tr && hh === tc ? `0 0 0 2px ${C('ink')}` : 'none', m }; }) };
+      });
+      axisPad = labW ? (labW + 6) + 'px' : '0px';
+      axis = [0, 6, 12, 18].map(x => ({ label: String(x).padStart(2, '0') + ':00', left: (x / 24 * 100) + '%', tx: '0' }));
+      if (readout && tr < days) {
+        const cellTop = tr * (SZ.cell + 2);
+        tip = { show: true, left: `calc(${labW + 6}px + (100% - ${labW + 6}px) * ${(tc + 0.5) / 24})`, top: cellTop + 'px', tx: '-30%', text: cfg.tipFmt(dl(days, tr), tc, hm.rows[tr].cells[tc].m) };
+      }
+    }
+
+    if (k.rhythm) {
+      const days = size === 'xs' || size === 's' ? 7 : 14;
+      const labW = size === 'l' ? 48 : size === 'm' ? 40 : 0;
+      const [tr, tb2] = cfg.tip;
+      legend = [{ label: 'Sleep', c: C('sleep'), border: 'none' }, { label: 'Left', c: C('feed-left'), border: 'none' }, { label: 'Right', c: C('feed-right'), border: 'none' }, { label: 'Pump', c: C('pump'), border: 'none' }];
+      note = size === 'm' ? 'scroll for 14 days' : '';
+      rh = { labW: labW + 'px', labD: labW ? 'block' : 'none', rowH: SZ.row + 'px', r: size === 'xs' ? '2px' : '6px', br: size === 'xs' ? '1px' : '4px', maxH: size === 'm' ? (7 * (SZ.row + 4) - 4) + 'px' : 'none', padR: size === 'm' ? '4px' : '0' };
+      let tipText = '';
+      rh.rows = Array.from({ length: days }, (_, di) => {
+        const D = day(di);
+        const blocks = [];
+        D.sleeps.forEach(([s, e], j) => blocks.push({ left: (s / 24 * 100) + '%', width: ((e - s) / 24 * 100) + '%', bg: C('sleep'), inset: '0', ring: readout && di === tr && j === tb2 ? `0 0 0 2px ${C('ink')}` : 'none' }));
+        D.feeds.forEach(([s, e, kk]) => blocks.push({ left: (s / 24 * 100) + '%', width: (Math.max(0.35, e - s) / 24 * 100) + '%', bg: C(kk), inset: size === 'xs' ? '0' : '3px', ring: 'none' }));
+        D.pumps.forEach(([s, e]) => blocks.push({ left: (s / 24 * 100) + '%', width: ((e - s) / 24 * 100) + '%', bg: C('pump'), inset: size === 'xs' ? '0' : '3px', ring: 'none' }));
+        if (di === tr) { const [s, e] = D.sleeps[tb2]; const f = t => { const H = Math.floor(t), M = Math.round((t - H) * 60); const h12 = ((H + 11) % 12) + 1; return `${h12}:${String(M).padStart(2, '0')} ${H < 12 ? 'am' : 'pm'}`; }; tipText = `${dl(days, di)}: Sleep ${f(s)} – ${f(e)} (${fh(e - s)})`; tipLeft = (s + e) / 2 / 24; }
+        return { label: dl(days, di), blocks };
+      });
+      var tipLeft;
+      axisPad = labW ? (labW + 6) + 'px' : '0px';
+      axis = [0, 6, 12, 18].map(x => ({ label: String(x).padStart(2, '0') + ':00', left: (x / 24 * 100) + '%', tx: '0' }));
+      if (readout && tr < days) tip = { show: true, left: `calc(${labW + 6}px + (100% - ${labW + 6}px) * ${tipLeft})`, top: (tr * (SZ.row + 4)) + 'px', tx: '-30%', text: tipText };
+    }
+
+    const menuKind = pr.menuKind || 'saved';
+    const menu = (menuKind === 'prebuilt'
+      ? [['Open in Reports', 'icon-chart-spline'], ['Make larger', 'icon-maximize-2'], ['Remove from dashboard', 'icon-x']]
+      : [['Edit', 'icon-sliders-horizontal'], ['Rename', 'icon-pencil'], ['Duplicate', 'icon-copy'], ['Export CSV', 'icon-download'], ['Delete', 'icon-trash-2']]
+    ).map(([label, icon]) => ({ label, icon, c: label === 'Delete' ? C('on-danger') : C('ink'), bg: 'transparent' }));
+
+    return { g, h, k, figs, legend, note, axis, axisPad, bars, paths, points, guide, med, tip, dn, nm, tb, hm, rh, heatRamp, caption: cfg.caption, menu };
+  }
+}
+</script>
+</body>
+</html>

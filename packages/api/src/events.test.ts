@@ -8,6 +8,7 @@ import {
   latestEvents,
   listEvents,
   listEventsBetween,
+  listFoodsBefore,
   mergeSessions,
   reopenSession,
   rowToEvent,
@@ -383,6 +384,24 @@ describe('event requests', () => {
     clock.setOffset(0);
     vi.useRealTimers();
     expect(requests[0]!.body).toEqual({ deleted_at: '2026-10-06T10:01:00.000Z' });
+  });
+});
+
+describe('listFoodsBefore', () => {
+  it('lists each food once from solids logged before a time', async () => {
+    const { client, requests } = fakeClient(() => ({
+      body: [{ solids: { foods: ['Pear', 'Apple'] } }, { solids: { foods: ['pear', 'Rice'] } }, { solids: null }],
+    }));
+    await expect(listFoodsBefore(client, 'baby-1', '2026-10-06T00:00:00Z')).resolves.toEqual([
+      'Pear',
+      'Apple',
+      'pear',
+      'Rice',
+    ]);
+    const params = requests[0]!.url.searchParams;
+    expect(params.get('type')).toBe('eq.solids');
+    expect(params.get('deleted_at')).toBe('is.null');
+    expect(params.get('started_at')).toBe('lt.2026-10-06T00:00:00Z');
   });
 });
 

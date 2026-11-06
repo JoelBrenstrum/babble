@@ -370,6 +370,19 @@ export function listEventsBetween(
   return listAllEventPages(client, babyId, { before: to, overlapping: from });
 }
 
+export async function listFoodsBefore(client: BabbleClient, babyId: string, before: string): Promise<string[]> {
+  const rows = unwrap(
+    await client
+      .from('events')
+      .select('solids:solids_details(foods)')
+      .eq('baby_id', babyId)
+      .eq('type', 'solids')
+      .is('deleted_at', null)
+      .lt('started_at', before),
+  );
+  return [...new Set(rows.flatMap((row) => row.solids?.foods ?? []))];
+}
+
 export async function getEvent(client: BabbleClient, id: string): Promise<BabyEvent> {
   const row = unwrap(await selectEvents(client).eq('id', id).single());
   return rowToEvent(row);

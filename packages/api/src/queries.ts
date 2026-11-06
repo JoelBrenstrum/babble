@@ -1,8 +1,9 @@
 import type { BabbleClient } from './client';
 import type { EventType } from '@babble/domain';
-import { getEvent, latestEvents, listEvents, listEventsBetween, runningEvents } from './events';
+import { getEvent, latestEvents, listEvents, listEventsBetween, listFoodsBefore, runningEvents } from './events';
 import { listFamilyDevices } from './devices';
 import { checkInvite, getBabySettings, getInstanceSettings, listFamilies, listPendingInvites } from './families';
+import { listReports } from './reports';
 import { listCustomTitles } from './custom-titles';
 
 export const queryKeys = {
@@ -26,6 +27,8 @@ export const queryKeys = {
     return { from, to };
   },
   event: (babyId: string, id: string) => ['events', babyId, 'event', id] as const,
+  reports: (familyId: string) => ['reports', familyId] as const,
+  foodsBefore: (babyId: string, before: string) => ['foods-before', babyId, before] as const,
   customTitles: (babyId: string) => ['custom-titles', babyId] as const,
 };
 
@@ -91,6 +94,14 @@ export function eventsBetweenQuery(client: BabbleClient, babyId: string, from: s
 
 export function familyDevicesQuery(client: BabbleClient, familyId: string) {
   return { queryKey: queryKeys.familyDevices(familyId), queryFn: () => listFamilyDevices(client, familyId) };
+}
+
+export function foodsBeforeQuery(client: BabbleClient, babyId: string, before: string) {
+  return { queryKey: queryKeys.foodsBefore(babyId, before), queryFn: () => listFoodsBefore(client, babyId, before) };
+}
+
+export function reportsQuery(client: BabbleClient, familyId: string) {
+  return { queryKey: queryKeys.reports(familyId), queryFn: () => listReports(client, familyId) };
 }
 
 export function customTitlesQuery(client: BabbleClient, babyId: string) {
