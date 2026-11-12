@@ -1,4 +1,6 @@
 import { parsePublicConfig, type PublicConfig } from '@babble/config';
+import Constants from 'expo-constants';
+import { authRedirect } from './app-variant';
 
 export function readMobileConfig(): PublicConfig {
   return parsePublicConfig({
@@ -12,4 +14,4 @@ export function readMobileConfig(): PublicConfig {
   });
 }
 
-export const AUTH_REDIRECT = 'babble://auth/callback';
+export const AUTH_REDIRECT = authRedirect(Constants.expoConfig?.scheme);

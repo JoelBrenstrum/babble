@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "environment": "production",
+      "distribution": "internal",
+      "autoIncrement": true,
+      "env": {
+        "APP_VARIANT": "production",
+        "EXPO_PUBLIC_PUBLIC_URL": "https://babble.brenstrum.com",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://xzldiqmhzlfskwxyhuip.supabase.co",
+        "EXPO_PUBLIC_BILLING_ENABLED": "false",
+        "EXPO_PUBLIC_GOOGLE_AUTH_ENABLED": "false",
+        "EXPO_PUBLIC_OPERATOR_NAME": "the Brenstrum family"
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "extends": "preview",
+      "distribution": "store",
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  }
+}
