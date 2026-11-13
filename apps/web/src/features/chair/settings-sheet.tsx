@@ -1,12 +1,20 @@
 import { MAX_DEVICE_NAME } from '@babble/api';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, RefreshCw, Settings } from 'lucide-react';
 import { useId, useState } from 'react';
 import { useDeviceName } from '#/features/device-name-context';
 import { defaultDeviceName } from '#/lib/device-name';
 import { BigButton } from './big-button';
 import { Sheet } from './sheet';
 
-export function SettingsSheet({ onClose, onSignOut }: { onClose: () => void; onSignOut: () => Promise<void> }) {
+export function SettingsSheet({
+  onClose,
+  onRefresh,
+  onSignOut,
+}: {
+  onClose: () => void;
+  onRefresh: () => void;
+  onSignOut: () => Promise<void>;
+}) {
   const id = useId();
   const { name, setName } = useDeviceName();
   const [confirming, setConfirming] = useState(false);
@@ -33,8 +41,15 @@ export function SettingsSheet({ onClose, onSignOut }: { onClose: () => void; onS
         <p className="text-[length:4cqmin] text-ink-2">
           Entries logged on this screen say they were logged on {name.trim() || defaultDeviceName()}.
         </p>
+        <BigButton
+          onClick={onRefresh}
+          className="mt-auto h-[14cqmin] flex-none rounded-[4cqmin] bg-surface text-[length:5cqmin] text-ink-2"
+        >
+          <RefreshCw className="size-[5cqmin]" strokeWidth={2.75} />
+          Refresh screen
+        </BigButton>
         {confirming ? (
-          <div className="mt-auto flex flex-none flex-col gap-[2cqmin] rounded-[5cqmin] bg-surface p-[4cqmin]">
+          <div className="flex flex-none flex-col gap-[2cqmin] rounded-[5cqmin] bg-surface p-[4cqmin]">
             <p className="text-[length:5cqmin] font-bold">Sign out of chair mode?</p>
             <p className="text-[length:4cqmin] text-ink-2">
               To sign back in, scan the code on this screen with your phone.
@@ -60,7 +75,7 @@ export function SettingsSheet({ onClose, onSignOut }: { onClose: () => void; onS
         ) : (
           <BigButton
             onClick={() => setConfirming(true)}
-            className="mt-auto h-[14cqmin] flex-none rounded-[4cqmin] bg-surface text-[length:5cqmin] text-ink-2"
+            className="h-[14cqmin] flex-none rounded-[4cqmin] bg-surface text-[length:5cqmin] text-ink-2"
           >
             <LogOut className="size-[5cqmin]" strokeWidth={2.75} />
             Sign out

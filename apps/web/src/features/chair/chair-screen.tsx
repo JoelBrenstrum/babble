@@ -103,7 +103,9 @@ export function ChairScreen({
         <NappyAskSheet babyName={data.babyName} onClose={flow.closeSheet} onYes={() => flow.openSheet('nappy')} />
       )}
       {sheet === 'nappy' && <NappySheet onClose={flow.closeSheet} onPick={flow.saveNappy} />}
-      {sheet === 'settings' && <SettingsSheet onClose={flow.closeSheet} onSignOut={actions.signOut} />}
+      {sheet === 'settings' && (
+        <SettingsSheet onClose={flow.closeSheet} onRefresh={actions.refresh} onSignOut={actions.signOut} />
+      )}
 
       {data.updateReady && !toast && (
         <ChairPill className="gap-[3cqmin] pr-[1.4cqmin]">

@@ -20,6 +20,7 @@ export const CHAIR_WAKE_MS = 30_000;
 export const CHAIR_UNDO_MS = 5_000;
 export const CHAIR_ENDED_MS = 10_000;
 export const CHAIR_IDLE_DIM_MS = 5 * MINUTE_MS;
+export const CHAIR_POLL_MS = MINUTE_MS;
 // The device's idle timer and ours start from the same tap, but ticks and clock syncs can drift a few seconds.
 const SCREEN_OFF_SLACK_MS = 5_000;
 

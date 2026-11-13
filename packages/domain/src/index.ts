@@ -255,6 +255,7 @@ export {
 } from './events/nap-edit-rows';
 export {
   CHAIR_IDLE_DIM_MS,
+  CHAIR_POLL_MS,
   CHAIR_ENDED_MS,
   CHAIR_UNDO_MS,
   bottleStep,
