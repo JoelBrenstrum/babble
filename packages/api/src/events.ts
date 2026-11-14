@@ -526,26 +526,55 @@ export function eventChangeFrom(payload: { new?: unknown; old?: unknown }): Even
   return { id: text(row?.id), updatedAt: text(row?.updated_at), deletedAt: text(row?.deleted_at) };
 }
 
+export const RESUBSCRIBE_BASE_MS = 1_000;
+export const RESUBSCRIBE_MAX_MS = 30_000;
+
+export function resubscribeDelayMs(attempt: number): number {
+  return Math.min(RESUBSCRIBE_BASE_MS * 2 ** Math.max(0, attempt), RESUBSCRIBE_MAX_MS);
+}
+
 export function subscribeToBabyEvents(
   client: BabbleClient,
   babyId: string,
   onChange: (change: EventChange) => void,
   onFailure: () => void = () => onChange(UNKNOWN_CHANGE),
 ): () => void {
-  subscriptionCount += 1;
   let active = true;
-  const channel = client
-    .channel(`events:${babyId}:${subscriptionCount}`)
-    .on(
-      'postgres_changes',
-      { event: '*', schema: 'public', table: 'events', filter: `baby_id=eq.${babyId}` },
-      (payload) => onChange(eventChangeFrom(payload)),
-    )
-    .subscribe((status) => {
-      if (active && CHANNEL_FAILURES.includes(status)) onFailure();
+  let failures = 0;
+  let retry: ReturnType<typeof setTimeout> | undefined;
+  let channel: ReturnType<BabbleClient['channel']> | undefined;
+
+  const connect = () => {
+    subscriptionCount += 1;
+    const current = client
+      .channel(`events:${babyId}:${subscriptionCount}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'events', filter: `baby_id=eq.${babyId}` },
+        (payload) => onChange(eventChangeFrom(payload)),
+      );
+    channel = current;
+    current.subscribe((status) => {
+      if (!active || current !== channel) return;
+      if (status === 'SUBSCRIBED') {
+        // Changes made while the channel was down never arrive, so catch up once it is back.
+        if (failures > 0) onFailure();
+        failures = 0;
+        return;
+      }
+      if (!CHANNEL_FAILURES.includes(status)) return;
+      onFailure();
+      channel = undefined;
+      void client.removeChannel(current);
+      retry = setTimeout(connect, resubscribeDelayMs(failures));
+      failures += 1;
     });
+  };
+
+  connect();
   return () => {
     active = false;
-    void client.removeChannel(channel);
+    clearTimeout(retry);
+    if (channel) void client.removeChannel(channel);
   };
 }

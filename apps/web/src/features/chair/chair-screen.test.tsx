@@ -465,6 +465,14 @@ describe('ChairScreen night and offline', () => {
     localStorage.clear();
   });
 
+  it('refreshes the screen from the settings sheet', () => {
+    const actions = makeActions();
+    render(<ChairScreen data={makeData()} actions={actions} />);
+    tap('Chair mode settings');
+    tap('Refresh screen');
+    expect(actions.refresh).toHaveBeenCalledTimes(1);
+  });
+
   it('signs out from the settings sheet after confirming', async () => {
     const actions = makeActions();
     render(<ChairScreen data={makeData()} actions={actions} />);
