@@ -109,6 +109,7 @@ export interface ReportOptions {
   cumulative?: boolean;
   emptyDays?: boolean;
   stack?: boolean;
+  includeToday?: boolean;
 }
 
 export interface ReportSpec {
@@ -175,6 +176,7 @@ function parseOptions(value: unknown): ReportOptions {
   if (typeof value.cumulative === 'boolean') options.cumulative = value.cumulative;
   if (typeof value.emptyDays === 'boolean') options.emptyDays = value.emptyDays;
   if (typeof value.stack === 'boolean') options.stack = value.stack;
+  if (value.includeToday === true) options.includeToday = true;
   return options;
 }
 

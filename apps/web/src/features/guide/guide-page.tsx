@@ -56,7 +56,7 @@ const STEPS = [
   ],
   [
     'Options',
-    'A 7-day average, a cumulative line, hiding empty days, stacking, and comparing with the previous period.',
+    'A 7-day average, a cumulative line, hiding empty days, leaving out today while it is still filling in, stacking, and comparing with the previous period.',
   ],
 ] as const;
 

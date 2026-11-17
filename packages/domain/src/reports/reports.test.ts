@@ -39,7 +39,11 @@ const settings: ReportSettings = {
 const NOW = new Date('2026-10-08T12:00:00Z');
 const TODAY = '2026-10-08';
 
-const spec = (overrides: Partial<ReportSpec>): ReportSpec => ({ ...emptySpec(), ...overrides });
+const spec = (overrides: Partial<ReportSpec>): ReportSpec => ({
+  ...emptySpec(),
+  ...overrides,
+  options: { includeToday: true, ...(overrides.options ?? emptySpec().options) },
+});
 
 const sleep = (startedAt: string, endedAt: string, extra: Record<string, unknown> = {}) =>
   makeEvent('sleep', { startedAt, endedAt, segments: [], ...extra });
@@ -69,7 +73,7 @@ describe('parseReportSpec', () => {
         { key: 'text', text: ' ' },
         { key: 'nope', values: [] },
       ],
-      options: { average: 7, stack: false, bogus: true },
+      options: { average: 7, stack: false, includeToday: true, bogus: true },
     });
     expect(parsed).toEqual({
       version: 1,
@@ -80,7 +84,7 @@ describe('parseReportSpec', () => {
       chart: 'bar',
       compare: 'previous',
       filters: [{ key: 'location', values: ['cot'] }],
-      options: { average: 7, stack: false },
+      options: { average: 7, stack: false, includeToday: true },
     });
   });
 
@@ -121,18 +125,49 @@ describe('parseReportSpec', () => {
 
 describe('reportDays and bucketing', () => {
   it('resolves presets and clamps custom ranges to today', () => {
-    expect(reportDays({ preset: '7d' }, TODAY, '2026-08-01')).toHaveLength(7);
-    expect(reportDays({ preset: 'all' }, TODAY, '2026-10-05')).toEqual([
+    expect(reportDays({ preset: '7d' }, TODAY, '2026-08-01', true)).toHaveLength(7);
+    expect(reportDays({ preset: 'all' }, TODAY, '2026-10-05', true)).toEqual([
       '2026-10-05',
       '2026-10-06',
       '2026-10-07',
       '2026-10-08',
     ]);
-    expect(reportDays({ from: '2026-10-06', to: '2026-10-20' }, TODAY, '2026-08-01')).toEqual([
+    expect(reportDays({ from: '2026-10-06', to: '2026-10-20' }, TODAY, '2026-08-01', true)).toEqual([
       '2026-10-06',
       '2026-10-07',
       '2026-10-08',
     ]);
+  });
+
+  it('ends at yesterday unless today is included', () => {
+    expect(reportDays({ preset: '7d' }, TODAY, '2026-08-01', false)).toEqual([
+      '2026-10-01',
+      '2026-10-02',
+      '2026-10-03',
+      '2026-10-04',
+      '2026-10-05',
+      '2026-10-06',
+      '2026-10-07',
+    ]);
+    expect(reportDays({ preset: 'all' }, TODAY, '2026-10-05', false)).toEqual([
+      '2026-10-05',
+      '2026-10-06',
+      '2026-10-07',
+    ]);
+    expect(reportDays({ from: '2026-10-06', to: '2026-10-20' }, TODAY, '2026-08-01', false)).toEqual([
+      '2026-10-06',
+      '2026-10-07',
+    ]);
+    expect(reportDays({ from: '2026-10-01', to: '2026-10-03' }, TODAY, '2026-08-01', false)).toEqual([
+      '2026-10-01',
+      '2026-10-02',
+      '2026-10-03',
+    ]);
+  });
+
+  it('falls back to today when the range has no finished day', () => {
+    expect(reportDays({ preset: 'all' }, TODAY, TODAY, false)).toEqual([TODAY]);
+    expect(reportDays({ from: TODAY, to: TODAY }, TODAY, '2026-08-01', false)).toEqual([TODAY]);
   });
 
   it('splits an interval across hour buckets and groups days into weeks', () => {
@@ -147,7 +182,7 @@ describe('reportDays and bucketing', () => {
       [0, 15 * MINUTE_MS],
     ]);
 
-    const weeks = bucketing('week', reportDays({ preset: '14d' }, TODAY, '2026-08-01'), settings);
+    const weeks = bucketing('week', reportDays({ preset: '14d' }, TODAY, '2026-08-01', true), settings);
     expect(weeks.defs.map((def) => def.days)).toEqual([7, 7]);
     expect(weeks.defs[1]!.title).toBe('Week of 2 Oct');
     expect(weeks.indexOfDay('2026-10-03')).toBe(1);
@@ -159,6 +194,25 @@ describe('reportDays and bucketing', () => {
 });
 
 describe('runReport', () => {
+  it('leaves today out by default and keeps it when the spec includes it', () => {
+    const events = [bottle('2026-10-07T09:00:00Z', 120), bottle('2026-10-08T09:00:00Z', 90)];
+    const base = { ...emptySpec(), range: { preset: '7d' as const }, series: [{ measure: 'feeds.bottleMl' }] };
+    const excluded = runReport(base, events, TODAY, NOW, settings);
+    expect(excluded.buckets.at(-1)!.key).toBe('2026-10-07');
+    expect(excluded.series[0]!.sum).toBe(120);
+    expect(excluded.days).toBe(7);
+
+    const included = runReport(
+      { ...base, options: { ...base.options, includeToday: true } },
+      events,
+      TODAY,
+      NOW,
+      settings,
+    );
+    expect(included.buckets.at(-1)!.key).toBe(TODAY);
+    expect(included.series[0]!.sum).toBe(210);
+  });
+
   it('clips sleep across day boundaries and into the night window', () => {
     const events = [
       sleep('2026-10-06T22:00:00Z', '2026-10-07T06:00:00Z'),

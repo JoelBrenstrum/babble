@@ -42,7 +42,7 @@ interface ReportSpec {
   chart: 'bar' | 'line' | 'area' | 'donut' | 'number' | 'table' | 'heatmap' | 'histogram' | 'rhythm';
   compare?: 'previous' | 'baby'; // the same range one period earlier, or another baby in the family
   filters: ReportFilter[];
-  options: { average?: 7 | 14; cumulative?: boolean; emptyDays?: boolean; stack?: boolean };
+  options: { average?: 7 | 14; cumulative?: boolean; emptyDays?: boolean; stack?: boolean; includeToday?: boolean };
 }
 
 interface ReportSeries {

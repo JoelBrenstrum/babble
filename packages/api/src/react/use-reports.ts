@@ -82,7 +82,7 @@ export function reportWindow(
   now: Date,
 ): { todayKey: string; from: string; to: string } {
   const todayKey = dayKeyFor(now.toISOString(), baby.timezone, baby.day_start_minutes);
-  const dayKeys = reportDays(spec.range, todayKey, baby.birth_date);
+  const dayKeys = reportDays(spec.range, todayKey, baby.birth_date, spec.options.includeToday === true);
   const first = spec.compare === 'previous' ? shiftDay(dayKeys[0]!, -dayKeys.length) : dayKeys[0]!;
   return {
     todayKey,

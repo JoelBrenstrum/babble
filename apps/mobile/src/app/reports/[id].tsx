@@ -49,6 +49,7 @@ function ReportContent({ id, baby, family }: { id: string } & Pick<ReadyState, '
   const mutations = useReportMutations(client, family.id);
   const [range, setRange] = useState<ReportRangePreset | null>(null);
   const [compare, setCompare] = useState<boolean | null>(null);
+  const [excludeToday, setExcludeToday] = useState<boolean | null>(null);
   const [pitching, setPitching] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const danger = useTokenColor('--danger');
@@ -58,6 +59,7 @@ function ReportContent({ id, baby, family }: { id: string } & Pick<ReadyState, '
         ...report.spec,
         range: range ? { preset: range } : report.spec.range,
         compare: compare === null ? report.spec.compare : compare ? 'previous' : undefined,
+        options: excludeToday === null ? report.spec.options : { ...report.spec.options, includeToday: !excludeToday },
       }
     : null;
   const rangeLocked = spec ? longRangesLocked && rangeNeedsPlus(spec.range) : false;
@@ -138,13 +140,18 @@ function ReportContent({ id, baby, family }: { id: string } & Pick<ReadyState, '
               <Text className="text-center font-sans text-meta text-ink-3">
                 Ranges over 30 days are part of Babble Plus.
               </Text>
-            ) : canCompare(spec) ? (
-              <CheckRow
-                label="Compare with the previous period"
-                value={spec.compare === 'previous'}
-                onChange={setCompare}
-              />
-            ) : undefined
+            ) : (
+              <View>
+                <CheckRow label="Exclude today" value={!spec.options.includeToday} onChange={setExcludeToday} />
+                {canCompare(spec) && (
+                  <CheckRow
+                    label="Compare with the previous period"
+                    value={spec.compare === 'previous'}
+                    onChange={setCompare}
+                  />
+                )}
+              </View>
+            )
           }
         />
         <Text className="font-sans text-caption text-ink-3">
