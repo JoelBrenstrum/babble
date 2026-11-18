@@ -21,7 +21,8 @@ const at = (offsetMs: number) => new Date(NOW.getTime() + offsetMs).toISOString(
 
 describe('time checks', () => {
   it('allows a start a few minutes ahead but not beyond the tolerance', () => {
-    const draft = { ...emptyDraft('custom', NOW), details: { title: 'x', description: '' } };
+    const empty = emptyDraft('custom', NOW);
+    const draft = { ...empty, details: { ...empty.details, title: 'x' } };
     expect(validateDraft({ ...draft, startedAt: at(FUTURE_TOLERANCE_MS), endedAt: null }, NOW)).toEqual({});
     expect(validateDraft({ ...draft, startedAt: at(FUTURE_TOLERANCE_MS + 1), endedAt: null }, NOW)).toEqual({
       startedAt: "That's in the future.",
@@ -70,6 +71,21 @@ describe('growth limits', () => {
     [{ headCircumferenceMm: MIN_HEAD_CIRCUMFERENCE_MM }, {}],
     [{ headCircumferenceMm: MAX_HEAD_CIRCUMFERENCE_MM + 1 }, { headCircumferenceMm: 'That head size looks wrong.' }],
   ])('%j → %j', (details, expected) => expect(check(details)).toEqual(expected));
+});
+
+describe('custom amounts', () => {
+  it('needs a positive amount within the limit when the entry counts an amount', () => {
+    const empty = emptyDraft('custom', NOW);
+    const drops = { ...empty, details: { ...empty.details, title: 'Drops', kind: 'amount' as const, unit: 'drops' } };
+    expect(validateDraft(drops, NOW)).toEqual({ amount: 'Enter an amount.' });
+    expect(validateDraft({ ...drops, details: { ...drops.details, amount: 0 } }, NOW)).toEqual({
+      amount: 'Enter an amount.',
+    });
+    expect(validateDraft({ ...drops, details: { ...drops.details, amount: 100_001 } }, NOW)).toEqual({
+      amount: 'Keep it under 100,000.',
+    });
+    expect(validateDraft({ ...drops, details: { ...drops.details, amount: 2 } }, NOW)).toEqual({});
+  });
 });
 
 describe('pump and breastfeed segments', () => {

@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react-native';
+import type { ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTokenColor } from '@/lib/theme';
 
@@ -61,11 +62,13 @@ export function SingleChips<T extends string>({
   options,
   value,
   onChange,
+  children,
 }: {
   label: string;
   options: readonly ChipOption<T>[];
   value: T | null;
   onChange: (value: T | null) => void;
+  children?: ReactNode;
 }) {
   return (
     <View className="gap-2">
@@ -79,6 +82,7 @@ export function SingleChips<T extends string>({
             onPress={() => onChange(value === option.value ? null : option.value)}
           />
         ))}
+        {children}
       </View>
     </View>
   );

@@ -30,14 +30,22 @@ import { PlusTeaser } from '#/features/plus-teaser';
 import { PlusMask } from '#/features/plus-mask';
 import {
   useDashboard,
+  useDashboardEditor,
   useInsights,
   useNow,
   useReports,
-  useSaveDashboard,
   useSettled,
   useUnits,
 } from '@babble/api/react';
-import { addCard, pruneReports } from '@babble/domain';
+import {
+  addCard,
+  dashboardHasContent,
+  knownReportIds,
+  pruneReports,
+  shownDashboard,
+  type DashboardEdit,
+} from '@babble/domain';
+import { StatusMessage } from '#/components/ui/status';
 
 export const Route = createFileRoute('/_app/stats')({
   validateSearch: (search: Record<string, unknown>): { range?: StatsRange } => ({
@@ -67,8 +75,9 @@ function StatsPage() {
   const growth = useQuery(eventListQuery(babble.client, baby.id, ['growth']));
   const sample = useMemo(() => (sampleOnly ? sampleStatsReport(now) : null), [sampleOnly, now]);
   const dashboard = useDashboard(babble.client, family.id);
-  const saveDashboard = useSaveDashboard(babble.client, family.id);
-  const savedReports = useReports(babble.client, family.id).data;
+  const editor = useDashboardEditor(babble.client, family.id);
+  const savedReportsQuery = useReports(babble.client, family.id);
+  const savedReports = savedReportsQuery.data;
   const reports = useMemo(() => savedReports ?? [], [savedReports]);
   const [arranging, setArranging] = useState(false);
   const [adding, setAdding] = useState(false);
@@ -83,13 +92,17 @@ function StatsPage() {
   const showGrowth = Boolean(growth.data && (growth.data.length > 0 || (events.data?.length ?? 0) > 0));
   const patterns = patternsOf(insights);
   const growthData = growth.data;
+  const reportIds = useMemo(() => knownReportIds(savedReports), [savedReports]);
   const layout = useMemo(
-    () => (dashboard.data ? pruneReports(dashboard.data, new Set(reports.map((report) => report.id))) : null),
-    [dashboard.data, reports],
+    () => shownDashboard(editor.unsaved ?? dashboard.data, dashboard.isError, reportIds),
+    [editor.unsaved, dashboard.data, dashboard.isError, reportIds],
   );
+  const editDashboard = (change: DashboardEdit) => {
+    if (layout) editor.edit((latest) => change(reportIds ? pruneReports(latest, reportIds) : latest), layout);
+  };
   const sources: DashboardSources | null = report
     ? {
-        stats: report,
+        stats: empty ? null : report,
         growth:
           showGrowth && growthData
             ? growthReport(
@@ -157,7 +170,7 @@ function StatsPage() {
             )}
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto">
-            {canLog && layout && !sample && (
+            {canLog && layout && !sample && !dashboard.isError && (
               <Button
                 variant={arranging ? 'primary' : 'secondary'}
                 aria-pressed={arranging}
@@ -191,9 +204,26 @@ function StatsPage() {
           <span className="flex-1">Reports: build your own charts</span>
           <ChevronRight className="size-5 text-ink-3" strokeWidth={2.75} />
         </Link>
-        {!report || !sources || !layout ? (
+        {editor.unsaved && (
+          <StatusMessage
+            tone="danger"
+            action={
+              <>
+                <Button variant="secondary" onClick={editor.retry}>
+                  Try again
+                </Button>
+                <Button variant="ghost" onClick={editor.discard}>
+                  Discard
+                </Button>
+              </>
+            }
+          >
+            Your dashboard changes could not be saved.
+          </StatusMessage>
+        )}
+        {!report || !sources || !layout || savedReportsQuery.isPending ? (
           <PageSpinner />
-        ) : empty && !arranging ? (
+        ) : empty && !arranging && !dashboardHasContent(layout, sources) ? (
           <EmptyState icon={ChartColumn} title="Nothing to chart yet">
             Stats for sleep, feeds and nappies appear once you start logging.
           </EmptyState>
@@ -208,8 +238,8 @@ function StatsPage() {
               <Dashboard
                 layout={layout}
                 sources={sources}
-                arranging={arranging}
-                onChange={(next) => saveDashboard.mutate(next)}
+                arranging={arranging && !dashboard.isError}
+                onChange={editDashboard}
                 onAdd={() => setAdding(true)}
               />
             </div>
@@ -220,7 +250,7 @@ function StatsPage() {
             layout={layout}
             reports={reports}
             plusLocked={!familyHasFeature(babble.config.billingEnabled, family.plan, 'insights')}
-            onAdd={(card) => saveDashboard.mutate(addCard(layout, card))}
+            onAdd={(card) => editDashboard((latest) => addCard(latest, card))}
             onClose={() => setAdding(false)}
           />
         )}

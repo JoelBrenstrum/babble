@@ -22,6 +22,7 @@ import {
   buildChairData,
   canResumeSession,
   CHAIR_IDLE_DIM_MS,
+  CHAIR_POLL_MS,
   chairBottleDraft,
   chairNappyDraft,
   latestFeed,
@@ -90,8 +91,8 @@ function ChairLive() {
   const online = useOnline();
   const units = useUnits(client, baby.id);
   const { mergeGapMs, nappyPrompt } = useTrackingSettings(client, baby.id);
-  const running = useQuery(runningEventsQuery(client, baby.id)).data ?? [];
-  const latest = useQuery(latestEventsQuery(client, baby.id)).data ?? [];
+  const running = useQuery({ ...runningEventsQuery(client, baby.id), refetchInterval: CHAIR_POLL_MS }).data ?? [];
+  const latest = useQuery({ ...latestEventsQuery(client, baby.id), refetchInterval: CHAIR_POLL_MS }).data ?? [];
   const settings = useQuery(babySettingsQuery(client, baby.id)).data;
   const start = useStartSession(client, baby.id);
   const session = useSessionAction(client, baby.id);

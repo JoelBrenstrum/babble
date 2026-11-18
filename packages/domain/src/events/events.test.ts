@@ -316,7 +316,9 @@ describe('describeEvent', () => {
       ],
     });
     expect(summariseLatest(feed, NOW, 'metric')).toBe('L 10m · R 15m');
-    const custom = makeEvent('custom', { details: { title: 'Bath', description: '' } });
+    const custom = makeEvent('custom', {
+      details: { title: 'Bath', description: '', kind: 'note', amount: null, unit: null },
+    });
     expect(describeEvent(custom, NOW, 'metric').title).toBe('Bath');
   });
 });

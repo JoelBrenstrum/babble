@@ -2,16 +2,18 @@ import type { BabbleClient, BabyRow, Family, SavedReport } from '@babble/api';
 import {
   isStatsCardKey,
   moveCard,
+  patternCard,
   PLUS_PREBUILT,
+  prebuiltHasContent,
   PREBUILT_LABELS,
   removeCard,
   resizeCard,
   updateText,
   type DashboardCard,
+  type DashboardEdit,
   type DashboardLayout,
   type GrowthReport,
   type InsightsReport,
-  type StatsCard,
   type StatsReport,
 } from '@babble/domain';
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
@@ -38,12 +40,6 @@ export interface DashboardSources {
   canLog: boolean;
   plusBadges: boolean;
   linkBars: boolean;
-}
-
-function patternCard(report: InsightsReport, key: StatsCard['key']): StatsCard | null {
-  return (
-    [report.feeds, report.spacing, report.clusters, report.wake, report.night].find((card) => card?.key === key) ?? null
-  );
 }
 
 function Placeholder({ label, children }: { label: string; children: ReactNode }) {
@@ -139,10 +135,12 @@ export function Dashboard({
   layout: DashboardLayout;
   sources: DashboardSources;
   arranging: boolean;
-  onChange: (layout: DashboardLayout) => void;
+  onChange: (edit: DashboardEdit) => void;
   onAdd: () => void;
 }) {
-  const shown = layout.cards.filter((card) => arranging || card.kind !== 'prebuilt' || hasContent(card, sources));
+  const shown = layout.cards.filter(
+    (card) => arranging || card.kind !== 'prebuilt' || prebuiltHasContent(card.card, sources),
+  );
   return (
     <div className="grid gap-4 lg:grid-cols-2" role="list" aria-label="Dashboard cards">
       {shown.map((card, index) => (
@@ -154,6 +152,7 @@ export function Dashboard({
         >
           {arranging && (
             <div
+              role="group"
               className="flex items-center gap-1 rounded-chip bg-surface px-2 py-1"
               aria-label={`Arrange ${cardLabel(card, sources)}`}
             >
@@ -165,7 +164,7 @@ export function Dashboard({
                 aria-label="Move up"
                 disabled={index === 0}
                 className="grid size-8 place-items-center rounded-full hover:bg-line disabled:opacity-40"
-                onClick={() => onChange(moveCard(layout, card.id, -1))}
+                onClick={() => onChange((latest) => moveCard(latest, card.id, -1))}
               >
                 <ArrowUp className="size-4" strokeWidth={2.75} />
               </button>
@@ -174,7 +173,7 @@ export function Dashboard({
                 aria-label="Move down"
                 disabled={index === shown.length - 1}
                 className="grid size-8 place-items-center rounded-full hover:bg-line disabled:opacity-40"
-                onClick={() => onChange(moveCard(layout, card.id, 1))}
+                onClick={() => onChange((latest) => moveCard(latest, card.id, 1))}
               >
                 <ArrowDown className="size-4" strokeWidth={2.75} />
               </button>
@@ -182,7 +181,7 @@ export function Dashboard({
                 type="button"
                 aria-label={card.size === 's' ? 'Make wide' : 'Make narrow'}
                 className="h-8 rounded-full px-2 text-caption font-bold hover:bg-line"
-                onClick={() => onChange(resizeCard(layout, card.id, card.size === 's' ? 'm' : 's'))}
+                onClick={() => onChange((latest) => resizeCard(latest, card.id, card.size === 's' ? 'm' : 's'))}
               >
                 {card.size === 's' ? 'S' : 'M'}
               </button>
@@ -190,13 +189,13 @@ export function Dashboard({
                 type="button"
                 aria-label="Remove card"
                 className="grid size-8 place-items-center rounded-full text-danger hover:bg-line"
-                onClick={() => onChange(removeCard(layout, card.id))}
+                onClick={() => onChange((latest) => removeCard(latest, card.id))}
               >
                 <Trash2 className="size-4" strokeWidth={2.75} />
               </button>
             </div>
           )}
-          {renderCard(card, sources, arranging, (body) => onChange(updateText(layout, card.id, body)))}
+          {renderCard(card, sources, arranging, (body) => onChange((latest) => updateText(latest, card.id, body)))}
         </div>
       ))}
       {arranging && (
@@ -217,15 +216,4 @@ function cardLabel(card: DashboardCard, sources: DashboardSources): string {
   if (card.kind === 'text') return 'Note';
   if (card.kind === 'report') return sources.reports.find((item) => item.id === card.reportId)?.name ?? 'Report';
   return PREBUILT_LABELS[card.card];
-}
-
-function hasContent(card: DashboardCard & { kind: 'prebuilt' }, sources: DashboardSources): boolean {
-  if (card.card === 'growth') return sources.growth !== null;
-  if (PLUS_PREBUILT.includes(card.card)) {
-    if (!sources.patterns) return false;
-    if (sources.patterns.locked) return true;
-    if (card.card === 'weekly') return sources.patterns.report.weekly !== null;
-    return isStatsCardKey(card.card) && patternCard(sources.patterns.report, card.card) !== null;
-  }
-  return isStatsCardKey(card.card) && Boolean(sources.stats?.cards.some((item) => item.key === card.card));
 }

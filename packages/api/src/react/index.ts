@@ -23,3 +23,4 @@ export * from './use-timeline';
 export * from './use-session-prompts';
 export * from './use-reports';
 export * from './use-dashboard';
+export * from './use-custom-titles';

@@ -19,6 +19,8 @@ import {
   setSwitchTime,
   startSession,
   subscribeToBabyEvents,
+  resubscribeDelayMs,
+  RESUBSCRIBE_MAX_MS,
   switchSide,
   type EventRow,
 } from './events';
@@ -167,6 +169,24 @@ describe('rowToEvent', () => {
     });
   });
 
+  it('maps a custom amount', () => {
+    const event = rowToEvent(
+      row({
+        type: 'custom',
+        custom: { event_id: 'event-1', title: 'Drops', description: '', kind: 'amount', amount: 2, unit: 'drops' },
+      }),
+    );
+    expect(event.type === 'custom' && event.details).toEqual({
+      title: 'Drops',
+      description: '',
+      kind: 'amount',
+      amount: 2,
+      unit: 'drops',
+    });
+    const fallback = rowToEvent(row({ type: 'custom' }));
+    expect(fallback.type === 'custom' && fallback.details).toMatchObject({ kind: 'note', amount: null, unit: null });
+  });
+
   it('round-trips every draft type through the payload', () => {
     for (const type of ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'] as const) {
       const payload = draftToPayload(emptyDraft(type, NOW), { babyId: 'baby-1' });
@@ -192,6 +212,21 @@ describe('draftToPayload', () => {
       notes: null,
       segments: [{ side: 'left', started_at: '2026-10-06T09:00:00Z', ended_at: '2026-10-06T09:10:00Z' }],
       details: { left_ml: 60, right_ml: 50, total_ml: null },
+    });
+  });
+
+  it('sends the kind, amount and unit of a custom entry', () => {
+    const empty = emptyDraft('custom', NOW);
+    const draft = {
+      ...empty,
+      details: { ...empty.details, title: 'Drops', kind: 'amount' as const, amount: 2, unit: 'drops' },
+    };
+    expect(draftToPayload(draft, { babyId: 'baby-1' })).toHaveProperty('details', {
+      title: 'Drops',
+      description: '',
+      kind: 'amount',
+      amount: 2,
+      unit: 'drops',
     });
   });
 
@@ -372,36 +407,99 @@ describe('listFoodsBefore', () => {
   });
 });
 
+describe('resubscribeDelayMs', () => {
+  it('backs off exponentially up to a cap', () => {
+    expect(resubscribeDelayMs(0)).toBe(1_000);
+    expect(resubscribeDelayMs(1)).toBe(2_000);
+    expect(resubscribeDelayMs(3)).toBe(8_000);
+    expect(resubscribeDelayMs(20)).toBe(RESUBSCRIBE_MAX_MS);
+  });
+});
+
 describe('subscribeToBabyEvents', () => {
   function fakeChannelClient() {
-    let status: ((status: string) => void) | undefined;
+    const callbacks: ((status: string) => void)[] = [];
     const names: string[] = [];
-    const channel = {
-      on: () => channel,
-      subscribe: (callback: (status: string) => void) => {
-        status = callback;
+    let removed = 0;
+    const client = {
+      channel: (name: string) => {
+        names.push(name);
+        const channel = {
+          on: () => channel,
+          subscribe: (callback: (status: string) => void) => {
+            callbacks.push(callback);
+            return channel;
+          },
+        };
         return channel;
       },
-    };
-    const client = {
-      channel: (name: string) => (names.push(name), channel),
-      removeChannel: async () => 'ok',
+      removeChannel: async () => {
+        removed += 1;
+        return 'ok';
+      },
     } as unknown as Parameters<typeof subscribeToBabyEvents>[0];
-    return { client, names, emit: (value: string) => status?.(value) };
+    return {
+      client,
+      names,
+      get removed() {
+        return removed;
+      },
+      emit: (value: string) => callbacks.at(-1)?.(value),
+      emitTo: (index: number, value: string) => callbacks[index]?.(value),
+    };
   }
 
-  it('recovers on channel failure but not after unsubscribing', () => {
+  it('stays quiet while the channel is healthy', () => {
     const { client, emit } = fakeChannelClient();
     const onChange = vi.fn();
-    const stop = subscribeToBabyEvents(client, 'baby-1', onChange);
+    subscribeToBabyEvents(client, 'baby-1', onChange);
     emit('SUBSCRIBED');
     expect(onChange).not.toHaveBeenCalled();
-    emit('CHANNEL_ERROR');
-    emit('TIMED_OUT');
-    expect(onChange).toHaveBeenCalledTimes(2);
-    stop();
+  });
+
+  it('refreshes, resubscribes on a fresh channel and catches up once it is back', () => {
+    vi.useFakeTimers();
+    const fake = fakeChannelClient();
+    const { client, names, emit } = fake;
+    const onChange = vi.fn();
+    subscribeToBabyEvents(client, 'baby-1', onChange);
+    emit('SUBSCRIBED');
     emit('CLOSED');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(fake.removed).toBe(1);
+    expect(names).toHaveLength(1);
+    vi.advanceTimersByTime(resubscribeDelayMs(0));
+    expect(names).toHaveLength(2);
+    emit('SUBSCRIBED');
     expect(onChange).toHaveBeenCalledTimes(2);
+    emit('SUBSCRIBED');
+    expect(onChange).toHaveBeenCalledTimes(2);
+    vi.useRealTimers();
+  });
+
+  it('ignores statuses from a channel it has already replaced', () => {
+    vi.useFakeTimers();
+    const { client, emitTo } = fakeChannelClient();
+    const onChange = vi.fn();
+    subscribeToBabyEvents(client, 'baby-1', onChange);
+    emitTo(0, 'CHANNEL_ERROR');
+    emitTo(0, 'TIMED_OUT');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('stops retrying after unsubscribing', () => {
+    vi.useFakeTimers();
+    const { client, names, emit } = fakeChannelClient();
+    const onChange = vi.fn();
+    const stop = subscribeToBabyEvents(client, 'baby-1', onChange);
+    emit('CHANNEL_ERROR');
+    stop();
+    vi.advanceTimersByTime(RESUBSCRIBE_MAX_MS);
+    expect(names).toHaveLength(1);
+    emit('CLOSED');
+    expect(onChange).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 
   it('names each channel uniquely', () => {

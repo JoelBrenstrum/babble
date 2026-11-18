@@ -1,6 +1,7 @@
 import {
   clock,
   deleteMyAccount,
+  canLog,
   isAdmin,
   memberRole,
   queryKeys,
@@ -30,6 +31,7 @@ import { FamilyMembers } from '@/features/family-members';
 import { InviteFlow } from '@/features/invite-flow';
 import { MembersLabel, PendingInvites } from '@/features/pending-invites';
 import { BabyTrackingSettings, FamilyTrackingSettings } from '@/features/tracking-settings';
+import { CustomEventSettings } from '@/features/custom-event-settings';
 import { SexField } from '@/features/sex-field';
 import { TimezoneField } from '@/features/timezone-field';
 import { ExportData } from '@/features/export-data';
@@ -78,6 +80,7 @@ export default function SettingsTab() {
           </Card>
           <BabySection key={baby.id} baby={baby} disabled={!admin} />
           <BabyTrackingSettings client={client} babyId={baby.id} disabled={!admin} />
+          <CustomEventSettings client={client} babyId={baby.id} disabled={!canLog(family, session.user.id)} />
           <ExportData client={client} family={family} baby={baby} scope="baby" />
         </SettingsGroupSection>
         <SettingsGroupSection group={familyGroup} plus={plan?.plus ?? false} note={lockedNote}>

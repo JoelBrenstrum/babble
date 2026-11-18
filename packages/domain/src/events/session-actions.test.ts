@@ -3,6 +3,7 @@ import {
   applySessionAction,
   canMoveSwitch,
   discardNeedsConfirmation,
+  EARLIER_START_OPTIONS_MIN,
   earlierEnd,
   earlierStart,
   earliestEnd,
@@ -137,6 +138,8 @@ describe('changing the start of a running session', () => {
 
   it('offers starts earlier than the current one', () => {
     expect(earlierStart(running, 10)).toBe('2026-10-06T09:50:00.000Z');
+    expect(earlierStart(running, 1)).toBe('2026-10-06T09:59:00.000Z');
+    expect(EARLIER_START_OPTIONS_MIN).toEqual([1, 2, 5, 10, 15]);
   });
 });
 

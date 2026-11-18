@@ -23,6 +23,7 @@ describe('GuidePage', () => {
     expect(screen.getByRole('heading', { name: 'Heatmap' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'When your baby sleeps' })).toBeInTheDocument();
     expect(screen.getByText(/A free family can save 2 reports/)).toBeInTheDocument();
+    expect(screen.getByText(/Longer ranges and all time are part of Plus/)).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Get started' })).toBeInTheDocument();
   });
 
@@ -30,6 +31,8 @@ describe('GuidePage', () => {
     await renderPage(true, false);
     expect(screen.getAllByRole('link', { name: 'Open Reports' }).length).toBeGreaterThan(0);
     expect(screen.queryByText(/A free family can save/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Longer ranges and all time are part of Plus/)).not.toBeInTheDocument();
+    expect(screen.getByText(/6 months, all time, or a custom pair of dates/)).toBeInTheDocument();
     expect(screen.getByText('Save as many reports as you like.')).toBeInTheDocument();
   });
 });

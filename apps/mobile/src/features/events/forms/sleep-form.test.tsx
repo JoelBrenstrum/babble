@@ -28,31 +28,35 @@ function Harness({ onDraft }: { onDraft?: (draft: DraftOfType<'sleep'>) => void 
 }
 
 describe('SleepForm', () => {
-  it('shows the duration when the range is valid', async () => {
-    const draft = { ...base, startedAt: '2026-10-05T12:58:00Z', endedAt: '2026-10-05T14:10:00Z' };
-    await render(
-      <SleepForm draft={draft} onChange={jest.fn()} errors={{}} timeZone="Pacific/Auckland" units="metric" isNew />,
-    );
-    expect(screen.getByText('Duration')).toBeTruthy();
-    expect(screen.getByText('1h 12m')).toBeTruthy();
-  });
-
-  it('hides the duration when the end is before the start', async () => {
-    const draft = { ...base, startedAt: '2026-10-05T14:10:00Z', endedAt: '2026-10-05T12:58:00Z' };
-    await render(
-      <SleepForm draft={draft} onChange={jest.fn()} errors={{}} timeZone="Pacific/Auckland" units="metric" isNew />,
-    );
-    expect(screen.queryByText('Duration')).toBeNull();
-  });
-
-  it('adds wake-ups, trims them a minute at a time and removes them', async () => {
+  it('shows the nap length as an editable sleep row', async () => {
     await render(<Harness />);
+    expect(screen.getByText('1h 12m')).toBeTruthy();
+    expect(screen.getByLabelText('Sleep 1 hours').props.value).toBe('1');
+    expect(screen.getByLabelText('Sleep 1 minutes').props.value).toBe('12');
+  });
+
+  it('moves the wake-up time when the sleep row changes', async () => {
+    const onDraft = jest.fn();
+    await render(<Harness onDraft={onDraft} />);
+    await fireEvent.changeText(screen.getByLabelText('Sleep 1 minutes'), '40');
+    expect(onDraft.mock.calls.at(-1)![0].endedAt).toBe('2026-10-05T14:38:00.000Z');
+    expect(screen.getByText('1h 40m')).toBeTruthy();
+  });
+
+  it('adds wake-ups, edits how long each lasted and removes them', async () => {
+    const onDraft = jest.fn();
+    await render(<Harness onDraft={onDraft} />);
     await fireEvent.press(screen.getByRole('button', { name: 'Add a wake-up' }));
-    expect(screen.getByText('awake 10m 00s')).toBeTruthy();
-    await fireEvent.press(screen.getByRole('button', { name: 'Take a minute off wake-up 1' }));
-    expect(screen.getByText('awake 9m 00s')).toBeTruthy();
+    expect(screen.getByText('awake 10m')).toBeTruthy();
+    expect(onDraft.mock.calls.at(-1)![0].segments).toHaveLength(2);
+
+    await fireEvent.changeText(screen.getByLabelText('Wake-up 1 minutes'), '25');
+    expect(screen.getByText('awake 25m')).toBeTruthy();
+    expect(onDraft.mock.calls.at(-1)![0].endedAt).toBe('2026-10-05T14:25:00.000Z');
+
     await fireEvent.press(screen.getByRole('button', { name: 'Remove wake-up 1' }));
-    expect(screen.getByText('Duration')).toBeTruthy();
+    expect(screen.queryByText('Awake')).toBeNull();
+    expect(onDraft.mock.calls.at(-1)![0]).toMatchObject({ segments: [], endedAt: '2026-10-05T14:25:00.000Z' });
   });
 
   it('rates sleep quality and clears it on a second tap', async () => {

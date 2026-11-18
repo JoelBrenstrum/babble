@@ -119,19 +119,28 @@ export type Database = {
       };
       custom_details: {
         Row: {
+          amount: number | null;
           description: string;
           event_id: string;
+          kind: Database['public']['Enums']['custom_event_kind'];
           title: string;
+          unit: string | null;
         };
         Insert: {
+          amount?: number | null;
           description?: string;
           event_id: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
           title: string;
+          unit?: string | null;
         };
         Update: {
+          amount?: number | null;
           description?: string;
           event_id?: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
           title?: string;
+          unit?: string | null;
         };
         Relationships: [
           {
@@ -139,6 +148,41 @@ export type Database = {
             columns: ['event_id'];
             isOneToOne: true;
             referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      custom_event_titles: {
+        Row: {
+          baby_id: string;
+          created_at: string;
+          id: string;
+          kind: Database['public']['Enums']['custom_event_kind'];
+          title: string;
+          unit: string | null;
+        };
+        Insert: {
+          baby_id: string;
+          created_at?: string;
+          id?: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
+          title: string;
+          unit?: string | null;
+        };
+        Update: {
+          baby_id?: string;
+          created_at?: string;
+          id?: string;
+          kind?: Database['public']['Enums']['custom_event_kind'];
+          title?: string;
+          unit?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'custom_event_titles_baby_id_fkey';
+            columns: ['baby_id'];
+            isOneToOne: false;
+            referencedRelation: 'babies';
             referencedColumns: ['id'];
           },
         ];
@@ -724,6 +768,7 @@ export type Database = {
     Functions: {
       accept_invite: { Args: { display_name: string; invite_code: string }; Returns: string };
       approve_device_link: { Args: { link_code: string }; Returns: undefined };
+      auto_end_stale_session: { Args: { target_event_id: string }; Returns: boolean };
       check_invite: {
         Args: { invite_code: string };
         Returns: {
@@ -862,6 +907,7 @@ export type Database = {
     Enums: {
       baby_sex: 'female' | 'male';
       bottle_content: 'breast_milk' | 'formula' | 'mixed' | 'other';
+      custom_event_kind: 'note' | 'duration' | 'amount';
       event_source: 'manual' | 'huckleberry_csv' | 'babble_export';
       event_type: 'sleep' | 'breast_feed' | 'bottle' | 'solids' | 'nappy' | 'pump' | 'growth' | 'custom';
       fall_asleep: 'under_10_min' | '10_to_20_min' | 'long_time';
@@ -1000,6 +1046,7 @@ export const Constants = {
     Enums: {
       baby_sex: ['female', 'male'],
       bottle_content: ['breast_milk', 'formula', 'mixed', 'other'],
+      custom_event_kind: ['note', 'duration', 'amount'],
       event_source: ['manual', 'huckleberry_csv', 'babble_export'],
       event_type: ['sleep', 'breast_feed', 'bottle', 'solids', 'nappy', 'pump', 'growth', 'custom'],
       fall_asleep: ['under_10_min', '10_to_20_min', 'long_time'],

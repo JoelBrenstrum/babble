@@ -46,7 +46,7 @@ describe('latestMeta', () => {
     const custom = makeEvent('custom', {
       startedAt: '2026-10-06T11:00:00Z',
       endedAt: '2026-10-06T11:00:00Z',
-      details: { title: 'Vitamin D', description: '' },
+      details: { title: 'Vitamin D', description: '', kind: 'note', amount: null, unit: null },
     });
     expect(meta(custom)).toBe('Last 1h 00m ago · Vitamin D');
   });

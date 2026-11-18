@@ -23,7 +23,8 @@ import { configProblem } from '#/lib/config-problem';
 import { clearPersistedQueries } from '#/lib/query-persistence';
 import { themeBootScript, themeColorMeta } from '#/lib/theme';
 import { reloadForRelease, useNewRelease } from '#/lib/release';
-import { watchResume } from '#/lib/resume';
+import { reloadPage } from '#/lib/reload';
+import { useResumeRefresh } from '#/lib/resume';
 import { clearAccountStorage } from '#/lib/storage';
 import appCss from '../styles.css?url';
 
@@ -90,7 +91,10 @@ function RootComponent() {
     };
   }, [babble]);
 
-  useEffect(() => watchResume(), []);
+  const reloadStuckNavigation = useCallback(() => {
+    if (router.state.status === 'pending') void router.invalidate();
+  }, [router]);
+  const resume = useResumeRefresh(queryClient, reloadStuckNavigation);
 
   useEffect(() => {
     let userId: string | null | undefined;
@@ -116,7 +120,11 @@ function RootComponent() {
       <ToastProvider>
         <ToastNotify>
           <Outlet />
-          <ReleaseBanner />
+          {resume.stalled ? (
+            <UpdateBanner message="Couldn't refresh babble." onRefresh={reloadPage} onDismiss={resume.dismiss} />
+          ) : (
+            <ReleaseBanner />
+          )}
         </ToastNotify>
       </ToastProvider>
     </QueryClientProvider>

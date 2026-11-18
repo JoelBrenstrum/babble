@@ -1,7 +1,15 @@
 import { RefreshCw, X } from 'lucide-react';
 import { useState } from 'react';
 
-export function UpdateBanner({ onRefresh }: { onRefresh: () => void }) {
+export function UpdateBanner({
+  onRefresh,
+  message = 'A new version of babble is ready.',
+  onDismiss,
+}: {
+  onRefresh: () => void;
+  message?: string;
+  onDismiss?: () => void;
+}) {
   const [dismissed, setDismissed] = useState(false);
   if (dismissed) return null;
   return (
@@ -11,7 +19,7 @@ export function UpdateBanner({ onRefresh }: { onRefresh: () => void }) {
         className="pointer-events-auto flex min-h-tap w-full max-w-md items-center gap-2 rounded-card bg-ink py-1 pr-1 pl-4 text-body text-bg shadow-toast"
       >
         <RefreshCw aria-hidden className="size-5 shrink-0 text-primary-soft" strokeWidth={2.5} />
-        <span className="flex-1">A new version of babble is ready.</span>
+        <span className="flex-1">{message}</span>
         <button
           type="button"
           onClick={onRefresh}
@@ -22,7 +30,10 @@ export function UpdateBanner({ onRefresh }: { onRefresh: () => void }) {
         <button
           type="button"
           aria-label="Not now"
-          onClick={() => setDismissed(true)}
+          onClick={() => {
+            setDismissed(true);
+            onDismiss?.();
+          }}
           className="grid size-10 place-items-center rounded-button text-bg/70 hover:bg-white/10"
         >
           <X className="size-5" strokeWidth={2.5} />
