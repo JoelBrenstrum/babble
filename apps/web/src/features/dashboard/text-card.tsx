@@ -15,11 +15,8 @@ export function TextCard({
   onChange?: (body: string) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
-  const sent = useRef<string | null>(null);
   const save = (next: string) => {
-    if (!onChange || next === body || next === sent.current) return;
-    sent.current = next;
-    onChange(next);
+    if (onChange && next !== body) onChange(next);
   };
   const saveRef = useRef(save);
   saveRef.current = save;
@@ -27,7 +24,6 @@ export function TextCard({
     if (draft === null) return;
     if (draft === body) {
       setDraft(null);
-      sent.current = null;
       return;
     }
     const timer = setTimeout(() => saveRef.current(draft), SAVE_DELAY_MS);

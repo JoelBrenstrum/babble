@@ -2,6 +2,7 @@ import { sampleBaby, sampleFamily, sampleStatsReport } from '@babble/api/fixture
 import type { BabbleClient } from '@babble/api';
 import type { DashboardLayout } from '@babble/domain';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import { FixtureRouter } from '#/fixtures/router';
 import { Dashboard, type DashboardSources } from './dashboard';
@@ -115,14 +116,38 @@ describe('TextCard', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
-  it('saves once when the note loses focus before the delay', async () => {
+  it('saves once when the note loses focus and the save lands', async () => {
     const onChange = vi.fn();
-    render(<TextCard body="First" editing onChange={onChange} />);
+    function Saved() {
+      const [body, setBody] = useState('First');
+      return (
+        <TextCard
+          body={body}
+          editing
+          onChange={(next) => {
+            onChange(next);
+            setBody(next);
+          }}
+        />
+      );
+    }
+    render(<Saved />);
     const note = screen.getByLabelText('Note');
     fireEvent.change(note, { target: { value: 'Typed' } });
     fireEvent.blur(note);
     expect(onChange).toHaveBeenCalledWith('Typed');
     await new Promise((resolve) => setTimeout(resolve, 500));
     expect(onChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('saves again when another change replaced the note saved on blur', async () => {
+    const onChange = vi.fn();
+    render(<TextCard body="" editing onChange={onChange} />);
+    const note = screen.getByLabelText('Note');
+    fireEvent.change(note, { target: { value: 'Typed' } });
+    fireEvent.blur(note);
+    expect(onChange).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(onChange).toHaveBeenCalledTimes(2));
+    expect(onChange).toHaveBeenLastCalledWith('Typed');
   });
 });
