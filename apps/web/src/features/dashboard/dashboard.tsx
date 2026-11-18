@@ -10,6 +10,7 @@ import {
   resizeCard,
   updateText,
   type DashboardCard,
+  type DashboardEdit,
   type DashboardLayout,
   type GrowthReport,
   type InsightsReport,
@@ -134,7 +135,7 @@ export function Dashboard({
   layout: DashboardLayout;
   sources: DashboardSources;
   arranging: boolean;
-  onChange: (layout: DashboardLayout) => void;
+  onChange: (edit: DashboardEdit) => void;
   onAdd: () => void;
 }) {
   const shown = layout.cards.filter(
@@ -163,7 +164,7 @@ export function Dashboard({
                 aria-label="Move up"
                 disabled={index === 0}
                 className="grid size-8 place-items-center rounded-full hover:bg-line disabled:opacity-40"
-                onClick={() => onChange(moveCard(layout, card.id, -1))}
+                onClick={() => onChange((latest) => moveCard(latest, card.id, -1))}
               >
                 <ArrowUp className="size-4" strokeWidth={2.75} />
               </button>
@@ -172,7 +173,7 @@ export function Dashboard({
                 aria-label="Move down"
                 disabled={index === shown.length - 1}
                 className="grid size-8 place-items-center rounded-full hover:bg-line disabled:opacity-40"
-                onClick={() => onChange(moveCard(layout, card.id, 1))}
+                onClick={() => onChange((latest) => moveCard(latest, card.id, 1))}
               >
                 <ArrowDown className="size-4" strokeWidth={2.75} />
               </button>
@@ -180,7 +181,7 @@ export function Dashboard({
                 type="button"
                 aria-label={card.size === 's' ? 'Make wide' : 'Make narrow'}
                 className="h-8 rounded-full px-2 text-caption font-bold hover:bg-line"
-                onClick={() => onChange(resizeCard(layout, card.id, card.size === 's' ? 'm' : 's'))}
+                onClick={() => onChange((latest) => resizeCard(latest, card.id, card.size === 's' ? 'm' : 's'))}
               >
                 {card.size === 's' ? 'S' : 'M'}
               </button>
@@ -188,13 +189,13 @@ export function Dashboard({
                 type="button"
                 aria-label="Remove card"
                 className="grid size-8 place-items-center rounded-full text-danger hover:bg-line"
-                onClick={() => onChange(removeCard(layout, card.id))}
+                onClick={() => onChange((latest) => removeCard(latest, card.id))}
               >
                 <Trash2 className="size-4" strokeWidth={2.75} />
               </button>
             </div>
           )}
-          {renderCard(card, sources, arranging, (body) => onChange(updateText(layout, card.id, body)))}
+          {renderCard(card, sources, arranging, (body) => onChange((latest) => updateText(latest, card.id, body)))}
         </div>
       ))}
       {arranging && (

@@ -59,6 +59,8 @@ export interface DashboardLayout {
   cards: DashboardCard[];
 }
 
+export type DashboardEdit = (layout: DashboardLayout) => DashboardLayout;
+
 export const MAX_DASHBOARD_CARDS = 24;
 export const MAX_TEXT_LENGTH = 280;
 
@@ -163,6 +165,9 @@ export function dashboardTouched(layout: DashboardLayout): boolean {
   );
 }
 
+export const knownReportIds = (reports: readonly { id: string }[] | undefined): ReadonlySet<string> | null =>
+  reports ? new Set(reports.map((report) => report.id)) : null;
+
 export function shownDashboard(
   stored: DashboardLayout | undefined,
   failed: boolean,
@@ -194,4 +199,12 @@ export function prebuiltHasContent(card: PrebuiltCard, content: DashboardContent
     return isStatsCardKey(card) && patternCard(content.patterns.report, card) !== null;
   }
   return isStatsCardKey(card) && Boolean(content.stats?.cards.some((item) => item.key === card));
+}
+
+export function dashboardHasContent(layout: DashboardLayout, content: DashboardContent): boolean {
+  return layout.cards.some((card) => {
+    if (card.kind === 'text') return card.body.trim() !== '';
+    if (card.kind === 'report') return true;
+    return prebuiltHasContent(card.card, content);
+  });
 }

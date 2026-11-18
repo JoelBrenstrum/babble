@@ -3,9 +3,11 @@ import type { StatsCard } from '../stats/cards';
 import type { InsightsReport } from '../stats/insights';
 import {
   addCard,
+  dashboardHasContent,
   dashboardTouched,
   defaultDashboard,
   hasCard,
+  knownReportIds,
   MAX_DASHBOARD_CARDS,
   moveCard,
   parseDashboardLayout,
@@ -123,5 +125,32 @@ describe('prebuiltHasContent', () => {
     expect(prebuiltHasContent('wake', unlocked)).toBe(true);
     expect(prebuiltHasContent('night', unlocked)).toBe(false);
     expect(prebuiltHasContent('weekly', unlocked)).toBe(false);
+  });
+});
+
+describe('knownReportIds', () => {
+  it('tells an unknown list from an empty one', () => {
+    expect(knownReportIds(undefined)).toBeNull();
+    expect(knownReportIds([])).toEqual(new Set());
+    expect(knownReportIds([{ id: 'r1' }, { id: 'r2' }])).toEqual(new Set(['r1', 'r2']));
+  });
+});
+
+describe('dashboardHasContent', () => {
+  const none = { stats: null, growth: null, patterns: null };
+
+  it('is empty when no card has anything to show', () => {
+    expect(dashboardHasContent(defaultDashboard(), none)).toBe(false);
+    expect(dashboardHasContent(addCard(defaultDashboard(), { kind: 'text', body: '  ', size: 's' }), none)).toBe(false);
+  });
+
+  it('counts written notes, report cards and prebuilt cards with data', () => {
+    expect(dashboardHasContent(addCard(defaultDashboard(), { kind: 'text', body: 'Note', size: 's' }), none)).toBe(
+      true,
+    );
+    expect(dashboardHasContent(addCard(defaultDashboard(), { kind: 'report', reportId: 'r1', size: 's' }), none)).toBe(
+      true,
+    );
+    expect(dashboardHasContent(defaultDashboard(), { ...none, growth: {} })).toBe(true);
   });
 });
