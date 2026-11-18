@@ -28,7 +28,12 @@ function ReportsPage() {
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-title font-bold">Reports</h1>
-          <p className="mt-1 text-meta text-ink-2">{meta}</p>
+          <p className="mt-1 text-meta text-ink-2">
+            {meta} ·{' '}
+            <Link to="/guide" hash="reports" className="font-semibold text-primary underline-offset-4 hover:underline">
+              How reports work
+            </Link>
+          </p>
         </div>
         {canLog && (
           <Link

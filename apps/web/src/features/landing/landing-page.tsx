@@ -115,6 +115,7 @@ export function LandingPage({
                   {feature.link && (
                     <Link
                       to={feature.link.to}
+                      hash={feature.link.hash}
                       className="mt-2 inline-block rounded-button text-meta font-semibold text-primary underline-offset-2 hover:underline"
                     >
                       {feature.link.label}
@@ -214,6 +215,11 @@ export function LandingPage({
               <li>
                 <Link to="/sign-in" search={{ invite: undefined }} className={linkClass}>
                   Sign in
+                </Link>
+              </li>
+              <li>
+                <Link to="/guide" className={linkClass}>
+                  Reports guide
                 </Link>
               </li>
               <li>

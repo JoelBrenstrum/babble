@@ -2,10 +2,12 @@ import {
   AlarmClock,
   CalendarDays,
   ChartColumn,
+  ChartSpline,
   Droplets,
   FileUp,
   Heart,
   House,
+  LayoutGrid,
   Milk,
   Moon,
   MoonStar,
@@ -28,7 +30,7 @@ interface Feature {
   title: string;
   body: string;
   plus?: boolean;
-  link?: { to: '/home-assistant' | '/tog'; label: string };
+  link?: { to: '/home-assistant' | '/tog' | '/guide'; hash?: string; label: string };
 }
 
 export const FEATURES: Feature[] = [
@@ -79,6 +81,20 @@ export const FEATURES: Feature[] = [
     tone: 'bg-pump-soft text-on-pump',
     title: 'Stats',
     body: 'Trends for sleep, feeds and nappies over a week or a month.',
+  },
+  {
+    icon: ChartSpline,
+    tone: 'bg-primary-soft text-on-primary-soft',
+    title: 'Reports',
+    body: 'Build your own charts: pick what to measure, split it by location, carer or time of day, and draw it as bars, lines, a donut, a heatmap and more.',
+    link: { to: '/guide', hash: 'reports', label: 'How reports work' },
+  },
+  {
+    icon: LayoutGrid,
+    tone: 'bg-pump-soft text-on-pump',
+    title: 'Dashboard',
+    body: 'Arrange the stats cards, your saved reports and short notes into a dashboard the whole family shares.',
+    link: { to: '/guide', hash: 'dashboard', label: 'How the dashboard works' },
   },
   {
     icon: Wand,

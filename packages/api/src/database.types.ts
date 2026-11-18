@@ -187,6 +187,32 @@ export type Database = {
           },
         ];
       };
+      dashboards: {
+        Row: {
+          family_id: string;
+          layout: NonNullable<Json>;
+          updated_at: string;
+        };
+        Insert: {
+          family_id: string;
+          layout: NonNullable<Json>;
+          updated_at?: string;
+        };
+        Update: {
+          family_id?: string;
+          layout?: NonNullable<Json>;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'dashboards_family_id_fkey';
+            columns: ['family_id'];
+            isOneToOne: true;
+            referencedRelation: 'families';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       device_links: {
         Row: {
           approved_at: string | null;

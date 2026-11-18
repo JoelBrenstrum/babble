@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as DeviceSignInRouteImport } from './routes/device-sign-in'
+import { Route as GuideRouteImport } from './routes/guide'
 import { Route as HomeAssistantRouteImport } from './routes/home-assistant'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as PrivacyRouteImport } from './routes/privacy'
@@ -57,6 +58,11 @@ const AppRoute = AppRouteImport.update({
 const DeviceSignInRoute = DeviceSignInRouteImport.update({
   id: '/device-sign-in',
   path: '/device-sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeAssistantRoute = HomeAssistantRouteImport.update({
@@ -255,6 +261,7 @@ const ApiHaV1BabiesBabyIdActionsActionRoute =
 export interface FileRoutesByFullPath {
   '/': typeof AppIndexRoute
   '/device-sign-in': typeof DeviceSignInRoute
+  '/guide': typeof GuideRoute
   '/home-assistant': typeof HomeAssistantRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -295,6 +302,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/device-sign-in': typeof DeviceSignInRoute
+  '/guide': typeof GuideRoute
   '/home-assistant': typeof HomeAssistantRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_app': typeof AppRouteWithChildren
   '/device-sign-in': typeof DeviceSignInRoute
+  '/guide': typeof GuideRoute
   '/home-assistant': typeof HomeAssistantRoute
   '/onboarding': typeof OnboardingRouteWithChildren
   '/privacy': typeof PrivacyRoute
@@ -382,6 +391,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/device-sign-in'
+    | '/guide'
     | '/home-assistant'
     | '/onboarding'
     | '/privacy'
@@ -422,6 +432,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/device-sign-in'
+    | '/guide'
     | '/home-assistant'
     | '/onboarding'
     | '/privacy'
@@ -464,6 +475,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/_app'
     | '/device-sign-in'
+    | '/guide'
     | '/home-assistant'
     | '/onboarding'
     | '/privacy'
@@ -507,6 +519,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   AppRoute: typeof AppRouteWithChildren
   DeviceSignInRoute: typeof DeviceSignInRoute
+  GuideRoute: typeof GuideRoute
   HomeAssistantRoute: typeof HomeAssistantRoute
   OnboardingRoute: typeof OnboardingRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
@@ -543,6 +556,13 @@ declare module '@tanstack/react-router' {
       path: '/device-sign-in'
       fullPath: '/device-sign-in'
       preLoaderRoute: typeof DeviceSignInRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home-assistant': {
@@ -871,6 +891,7 @@ const OnboardingRouteWithChildren = OnboardingRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   AppRoute: AppRouteWithChildren,
   DeviceSignInRoute: DeviceSignInRoute,
+  GuideRoute: GuideRoute,
   HomeAssistantRoute: HomeAssistantRoute,
   OnboardingRoute: OnboardingRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
