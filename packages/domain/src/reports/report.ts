@@ -305,6 +305,16 @@ function heatmapGrid(plans: readonly SeriesPlan[], dayKeys: readonly string[], s
   };
 }
 
+function averageDayGrid(series: ReportSeriesResult, hours: readonly BucketDef[], days: number): ReportGrid {
+  const values = series.values.map((value) => value ?? 0);
+  return {
+    rows: [{ key: 'average', label: 'Average', title: 'Average', days }],
+    cols: hours.map((def) => def.label),
+    values: [values],
+    max: Math.max(0, ...values),
+  };
+}
+
 const NICE_WIDTHS: Record<ReportUnit, number[]> = {
   h: [5, 10, 15, 30, 60, 120, 180].map((minutes) => minutes * 60_000),
   min: [1, 2, 5, 10, 15, 30].map((minutes) => minutes * 60_000),
@@ -514,7 +524,12 @@ export function runReport(
     series,
     max,
     compare,
-    grid: spec.chart === 'heatmap' && current.plans.length ? heatmapGrid(current.plans, dayKeys, settings) : null,
+    grid:
+      spec.chart === 'heatmap' && current.plans.length
+        ? spec.options.averageDay && series[0]
+          ? averageDayGrid(series[0], buckets, dayKeys.length)
+          : heatmapGrid(current.plans, dayKeys, settings)
+        : null,
     distribution:
       spec.chart === 'histogram' && first
         ? distribution(first, current.buckets, first.measure.unit, (value) =>

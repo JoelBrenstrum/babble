@@ -1,4 +1,4 @@
-import { REPORT_TEMPLATES, templateName } from '@babble/domain';
+import { REPORT_TEMPLATES, templateDescription, templateName } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { TEMPLATE_ICONS } from './report-icons';
 
@@ -14,7 +14,7 @@ export function TemplateChips({ babyName }: { babyName: string }) {
               <Link
                 to="/reports/new"
                 search={{ template: template.key }}
-                title={template.description}
+                title={templateDescription(template, babyName)}
                 className="inline-flex h-11 items-center gap-2 rounded-chip border border-line bg-raised px-4 text-label font-semibold text-ink hover:bg-surface"
               >
                 <Icon className="size-4 text-primary" strokeWidth={2.75} />
