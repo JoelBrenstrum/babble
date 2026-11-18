@@ -1,4 +1,5 @@
 import type { StatsCard } from '../stats/cards';
+import type { InsightsReport } from '../stats/insights';
 
 export const PREBUILT_CARDS = [
   'sleep',
@@ -160,4 +161,37 @@ export function dashboardTouched(layout: DashboardLayout): boolean {
     layout.cards.length !== base.cards.length ||
     layout.cards.some((card, index) => JSON.stringify(card) !== JSON.stringify(base.cards[index]))
   );
+}
+
+export function shownDashboard(
+  stored: DashboardLayout | undefined,
+  failed: boolean,
+  reportIds: ReadonlySet<string> | null,
+): DashboardLayout | null {
+  const base = stored ?? (failed ? defaultDashboard() : null);
+  if (!base) return null;
+  return reportIds ? pruneReports(base, reportIds) : base;
+}
+
+export interface DashboardContent {
+  stats: { cards: readonly StatsCard[] } | null;
+  growth: object | null;
+  patterns: { locked: true } | { locked: false; report: InsightsReport } | null;
+}
+
+export function patternCard(report: InsightsReport, key: StatsCard['key']): StatsCard | null {
+  return (
+    [report.feeds, report.spacing, report.clusters, report.wake, report.night].find((card) => card?.key === key) ?? null
+  );
+}
+
+export function prebuiltHasContent(card: PrebuiltCard, content: DashboardContent): boolean {
+  if (card === 'growth') return content.growth !== null;
+  if (PLUS_PREBUILT.includes(card)) {
+    if (!content.patterns) return false;
+    if (content.patterns.locked) return true;
+    if (card === 'weekly') return content.patterns.report.weekly !== null;
+    return isStatsCardKey(card) && patternCard(content.patterns.report, card) !== null;
+  }
+  return isStatsCardKey(card) && Boolean(content.stats?.cards.some((item) => item.key === card));
 }

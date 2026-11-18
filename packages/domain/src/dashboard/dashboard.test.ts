@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { StatsCard } from '../stats/cards';
+import type { InsightsReport } from '../stats/insights';
 import {
   addCard,
   dashboardTouched,
@@ -7,9 +9,12 @@ import {
   MAX_DASHBOARD_CARDS,
   moveCard,
   parseDashboardLayout,
+  patternCard,
+  prebuiltHasContent,
   pruneReports,
   removeCard,
   resizeCard,
+  shownDashboard,
   updateText,
 } from './dashboard';
 
@@ -68,5 +73,55 @@ describe('layout edits', () => {
     for (let count = 0; count < MAX_DASHBOARD_CARDS + 2; count += 1)
       layout = addCard(layout, { kind: 'text', body: String(count), size: 's' });
     expect(layout.cards).toHaveLength(MAX_DASHBOARD_CARDS);
+  });
+});
+
+describe('shownDashboard', () => {
+  const stored = addCard(defaultDashboard(), { kind: 'report', reportId: 'r1', size: 's' });
+
+  it('waits for the stored layout and falls back to the default when it cannot load', () => {
+    expect(shownDashboard(undefined, false, new Set())).toBeNull();
+    expect(shownDashboard(undefined, true, null)).toEqual(defaultDashboard());
+  });
+
+  it('keeps report cards until the saved reports are known', () => {
+    expect(shownDashboard(stored, false, null)).toBe(stored);
+    expect(shownDashboard(stored, false, new Set(['r1']))).toBe(stored);
+    expect(shownDashboard(stored, false, new Set())!.cards).toHaveLength(stored.cards.length - 1);
+  });
+});
+
+describe('prebuiltHasContent', () => {
+  const card = (key: StatsCard['key']) => ({ key }) as StatsCard;
+  const report: InsightsReport = {
+    feeds: null,
+    spacing: null,
+    clusters: null,
+    wake: card('wake'),
+    night: null,
+    weekly: null,
+  };
+  const none = { stats: null, growth: null, patterns: null };
+
+  it('finds a pattern card by its key', () => {
+    expect(patternCard(report, 'wake')).toBe(report.wake);
+    expect(patternCard(report, 'night')).toBeNull();
+  });
+
+  it('shows stats cards and growth only when there is data for them', () => {
+    expect(prebuiltHasContent('sleep', none)).toBe(false);
+    expect(prebuiltHasContent('sleep', { ...none, stats: { cards: [card('sleep')] } })).toBe(true);
+    expect(prebuiltHasContent('feeds', { ...none, stats: { cards: [card('sleep')] } })).toBe(false);
+    expect(prebuiltHasContent('growth', none)).toBe(false);
+    expect(prebuiltHasContent('growth', { ...none, growth: {} })).toBe(true);
+  });
+
+  it('shows Plus cards when locked, and otherwise only the patterns that exist', () => {
+    expect(prebuiltHasContent('wake', none)).toBe(false);
+    expect(prebuiltHasContent('night', { ...none, patterns: { locked: true } })).toBe(true);
+    const unlocked = { ...none, patterns: { locked: false as const, report } };
+    expect(prebuiltHasContent('wake', unlocked)).toBe(true);
+    expect(prebuiltHasContent('night', unlocked)).toBe(false);
+    expect(prebuiltHasContent('weekly', unlocked)).toBe(false);
   });
 });

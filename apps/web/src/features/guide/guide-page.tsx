@@ -32,12 +32,17 @@ const CHART_USES: Record<ChartType, string> = {
   rhythm: 'Sleep, feeds and nappies as blocks along each day, so you can see a routine settling in.',
 };
 
-const STEPS = [
+const steps = (billingEnabled: boolean) => [
   [
     'Measure',
     'What to count or time. Pick up to four with the same unit (hours, millilitres, counts), or one measure to split.',
   ],
-  ['Range', 'The last 7, 14 or 30 days, or a custom pair of dates. Longer ranges and all time are part of Plus.'],
+  [
+    'Range',
+    billingEnabled
+      ? 'The last 7, 14 or 30 days, or a custom pair of dates. Longer ranges and all time are part of Plus.'
+      : 'The last 7, 14, 30 or 90 days, 6 months, all time, or a custom pair of dates.',
+  ],
   [
     'Group by',
     'One bar or point per day, week or month, or fold the range onto the hour of day or the weekday to see rhythms.',
@@ -58,7 +63,7 @@ const STEPS = [
     'Options',
     'A 7-day average, a cumulative line, hiding empty days, stacking, and comparing with the previous period.',
   ],
-] as const;
+];
 
 export function GuidePage({ signedIn, billingEnabled }: { signedIn: boolean; billingEnabled: boolean }) {
   return (
@@ -114,7 +119,7 @@ export function GuidePage({ signedIn, billingEnabled }: { signedIn: boolean; bil
             from a template or a blank report, and the preview redraws as you change each setting.
           </p>
           <ol className="flex flex-col gap-3">
-            {STEPS.map(([title, body], index) => (
+            {steps(billingEnabled).map(([title, body], index) => (
               <li key={title} className="flex gap-4 rounded-card bg-raised p-4 shadow-raised">
                 <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-soft text-label font-bold text-on-primary-soft">
                   {index + 1}

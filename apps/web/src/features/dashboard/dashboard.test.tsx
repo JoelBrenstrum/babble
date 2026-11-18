@@ -5,6 +5,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { FixtureRouter } from '#/fixtures/router';
 import { Dashboard, type DashboardSources } from './dashboard';
+import { TextCard } from './text-card';
 
 const now = new Date('2026-10-08T12:00:00Z');
 
@@ -92,5 +93,36 @@ describe('Dashboard', () => {
       </FixtureRouter>,
     );
     expect(await screen.findByText('Wake windows is part of Babble Plus.')).toBeInTheDocument();
+  });
+
+  it('labels each arrange toolbar as a group', async () => {
+    render(
+      <FixtureRouter>
+        <Dashboard layout={layout} sources={sources()} arranging onChange={vi.fn()} onAdd={vi.fn()} />
+      </FixtureRouter>,
+    );
+    expect(await screen.findByRole('group', { name: 'Arrange Note' })).toBeInTheDocument();
+  });
+});
+
+describe('TextCard', () => {
+  it('follows a note changed elsewhere without saving over it', async () => {
+    const onChange = vi.fn();
+    const { rerender } = render(<TextCard body="First" editing onChange={onChange} />);
+    rerender(<TextCard body="Changed by someone else" editing onChange={onChange} />);
+    expect(screen.getByLabelText('Note')).toHaveValue('Changed by someone else');
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('saves once when the note loses focus before the delay', async () => {
+    const onChange = vi.fn();
+    render(<TextCard body="First" editing onChange={onChange} />);
+    const note = screen.getByLabelText('Note');
+    fireEvent.change(note, { target: { value: 'Typed' } });
+    fireEvent.blur(note);
+    expect(onChange).toHaveBeenCalledWith('Typed');
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    expect(onChange).toHaveBeenCalledTimes(1);
   });
 });
