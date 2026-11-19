@@ -24,7 +24,7 @@ import { bucketReadout, reportDayKeyAt, runReport, todayKeyFor } from './report'
 import { passesFilters, splitChoices, splitLabel } from './splits';
 import type { ReportSettings } from './samples';
 import { parseReportSpec, rangeNeedsPlus, type ReportSpec } from './spec';
-import { REPORT_TEMPLATES, templateByKey, templateName } from './templates';
+import { REPORT_TEMPLATES, templateByKey, templateDescription, templateName } from './templates';
 
 const settings: ReportSettings = {
   timeZone: 'UTC',
@@ -73,7 +73,7 @@ describe('parseReportSpec', () => {
         { key: 'text', text: ' ' },
         { key: 'nope', values: [] },
       ],
-      options: { average: 7, stack: false, includeToday: true, bogus: true },
+      options: { average: 7, stack: false, includeToday: true, averageDay: true, bogus: true },
     });
     expect(parsed).toEqual({
       version: 1,
@@ -84,7 +84,7 @@ describe('parseReportSpec', () => {
       chart: 'bar',
       compare: 'previous',
       filters: [{ key: 'location', values: ['cot'] }],
-      options: { average: 7, stack: false, includeToday: true },
+      options: { average: 7, stack: false, includeToday: true, averageDay: true },
     });
   });
 
@@ -194,6 +194,35 @@ describe('reportDays and bucketing', () => {
 });
 
 describe('runReport', () => {
+  it('averages a heatmap into one row of hours across the range', () => {
+    const events = [
+      sleep('2026-10-06T01:00:00Z', '2026-10-06T02:00:00Z'),
+      sleep('2026-10-07T01:30:00Z', '2026-10-07T02:30:00Z'),
+    ];
+    const hourly = spec({
+      range: { from: '2026-10-06', to: '2026-10-07' },
+      bucket: 'hour',
+      chart: 'heatmap',
+      series: [{ measure: 'sleep.total' }],
+    });
+    const perDay = runReport(hourly, events, TODAY, NOW, settings).grid!;
+    expect(perDay.rows.map((row) => row.key)).toEqual(['2026-10-06', '2026-10-07']);
+
+    const average = runReport(
+      { ...hourly, options: { ...hourly.options, averageDay: true } },
+      events,
+      TODAY,
+      NOW,
+      settings,
+    ).grid!;
+    expect(average.rows).toEqual([{ key: 'average', label: 'Average', title: 'Average', days: 2 }]);
+    expect(average.cols).toHaveLength(24);
+    expect(average.values[0]![1]).toBe(45 * MINUTE_MS);
+    expect(average.values[0]![2]).toBe(15 * MINUTE_MS);
+    expect(average.values[0]![3]).toBe(0);
+    expect(average.max).toBe(45 * MINUTE_MS);
+  });
+
   it('leaves today out by default and keeps it when the spec includes it', () => {
     const events = [bottle('2026-10-07T09:00:00Z', 120), bottle('2026-10-08T09:00:00Z', 90)];
     const base = { ...emptySpec(), range: { preset: '7d' as const }, series: [{ measure: 'feeds.bottleMl' }] };
@@ -666,6 +695,7 @@ describe('builder helpers', () => {
     const template = templateByKey('night-naps')!;
     expect(template.key).toBe('night-naps');
     expect(templateName({ ...template, name: '{baby} sleeps' }, 'Olive')).toBe('Olive sleeps');
+    expect(templateDescription(templateByKey('naps-per-day')!, 'Olive')).toBe('How many naps Olive takes each day.');
     expect(templateByKey('nope')).toBeNull();
   });
 });

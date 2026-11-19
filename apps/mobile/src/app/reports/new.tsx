@@ -1,7 +1,14 @@
 import { toBabbleError } from '@babble/api';
 import { useNow, useReportData, useReportMutations, useReports } from '@babble/api/react';
 import { canSaveReport, familyHasFeature, REPORT_LIMIT_MESSAGE, type PlusFeature } from '@babble/config';
-import { rangeNeedsPlus, reportMeta, specMeasures, templateByKey, templateName } from '@babble/domain';
+import {
+  rangeNeedsPlus,
+  reportMeta,
+  specMeasures,
+  templateByKey,
+  templateDescription,
+  templateName,
+} from '@babble/domain';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Text, View } from 'react-native';
@@ -86,7 +93,7 @@ function NewReportContent({
             ) : undefined
           }
         />
-        <Text className="font-sans text-meta text-ink-2">{template.description}</Text>
+        <Text className="font-sans text-meta text-ink-2">{templateDescription(template, baby.name)}</Text>
         <TextField label="Name" value={name} onChangeText={setName} maxLength={80} hint="Shared with your family." />
         {atLimit && (
           <View className="gap-3 rounded-tile bg-caution-soft p-4">

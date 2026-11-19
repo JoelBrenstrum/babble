@@ -51,11 +51,35 @@ export const REPORT_TEMPLATES: readonly ReportTemplate[] = [
     spec: base({ chart: 'heatmap', bucket: 'hour', series: [{ measure: 'sleep.total' }] }),
   },
   {
+    key: 'typical-sleep-day',
+    name: 'A typical day of sleep',
+    description: 'Average time asleep in each hour of the day, across the last 30 days.',
+    icon: 'clock',
+    spec: base({
+      chart: 'heatmap',
+      bucket: 'hour',
+      series: [{ measure: 'sleep.total' }],
+      options: { averageDay: true },
+    }),
+  },
+  {
     key: 'feeds-by-hour',
     name: 'When feeds happen',
     description: 'Feeds by hour of day across the last 30 days.',
     icon: 'heart',
     spec: base({ chart: 'heatmap', bucket: 'hour', series: [{ measure: 'feeds.count' }] }),
+  },
+  {
+    key: 'typical-feed-day',
+    name: 'A typical day of feeds',
+    description: 'Average feeds in each hour of the day, across the last 30 days.',
+    icon: 'heart',
+    spec: base({
+      chart: 'heatmap',
+      bucket: 'hour',
+      series: [{ measure: 'feeds.count' }],
+      options: { averageDay: true },
+    }),
   },
   {
     key: 'sleep-by-location',
@@ -134,10 +158,99 @@ export const REPORT_TEMPLATES: readonly ReportTemplate[] = [
       series: [{ measure: 'sleep.total' }, { measure: 'feeds.count' }],
     }),
   },
+  {
+    key: 'longest-stretch',
+    name: 'Longest sleep stretch',
+    description: 'The longest unbroken sleep each day, with a 7-day average.',
+    icon: 'moon',
+    spec: base({ chart: 'line', series: [{ measure: 'sleep.longest' }], options: { average: 7 } }),
+  },
+  {
+    key: 'naps-per-day',
+    name: 'Naps per day',
+    description: 'How many naps {baby} takes each day.',
+    icon: 'sun',
+    spec: base({ chart: 'bar', series: [{ measure: 'sleep.naps' }] }),
+  },
+  {
+    key: 'sleep-by-weekday',
+    name: 'Sleep by weekday',
+    description: 'Average time asleep on each day of the week.',
+    icon: 'calendar',
+    spec: base({ chart: 'bar', bucket: 'weekday', series: [{ measure: 'sleep.total' }] }),
+  },
+  {
+    key: 'sleep-week-on-week',
+    name: 'Sleep, this week and last',
+    description: 'Time asleep over the last 7 days against the 7 days before.',
+    icon: 'moon',
+    spec: base({
+      chart: 'bar',
+      range: { preset: '7d' },
+      series: [{ measure: 'sleep.total' }],
+      compare: 'previous',
+    }),
+  },
+  {
+    key: 'feed-gaps',
+    name: 'Gaps between feeds',
+    description: 'How long {baby} goes between feeds, as a distribution.',
+    icon: 'timer',
+    spec: base({ chart: 'histogram', series: [{ measure: 'feeds.gap' }] }),
+  },
+  {
+    key: 'breast-sides',
+    name: 'Left and right',
+    description: 'Time on the breast per day, split by side.',
+    icon: 'heart',
+    spec: base({ chart: 'bar', series: [{ measure: 'feeds.breastTime' }], splitBy: 'side' }),
+  },
+  {
+    key: 'bottle-sizes',
+    name: 'Bottle sizes',
+    description: 'How much {baby} drinks per bottle, as a distribution.',
+    icon: 'bottle',
+    spec: base({ chart: 'histogram', series: [{ measure: 'feeds.perBottle' }] }),
+  },
+  {
+    key: 'pump-output',
+    name: 'Pump output',
+    description: 'Volume pumped per day with a 7-day average.',
+    icon: 'bottle',
+    spec: base({ chart: 'line', series: [{ measure: 'pump.ml' }], options: { average: 7 } }),
+  },
+  {
+    key: 'weight',
+    name: 'Weight',
+    description: 'Every weight measurement since birth.',
+    icon: 'ruler',
+    spec: base({
+      chart: 'line',
+      range: { preset: 'all' },
+      series: [{ measure: 'growth.weight' }],
+      options: { emptyDays: false },
+    }),
+  },
+  {
+    key: 'new-foods',
+    name: 'New foods tried',
+    description: 'A running count of new foods over 90 days.',
+    icon: 'layers',
+    spec: base({
+      chart: 'line',
+      range: { preset: '90d' },
+      series: [{ measure: 'solids.newFoods' }],
+      options: { cumulative: true },
+    }),
+  },
 ];
 
 export function templateName(template: ReportTemplate, babyName: string): string {
   return template.name.replace('{baby}', babyName);
+}
+
+export function templateDescription(template: ReportTemplate, babyName: string): string {
+  return template.description.replace('{baby}', babyName);
 }
 
 export const templateByKey = (key: string): ReportTemplate | null =>

@@ -402,6 +402,12 @@ export function ReportBuilder({
         onChange={(on) => onChange({ ...spec, options: { ...spec.options, includeToday: on ? undefined : true } })}
       />
       <Switch
+        label="Heatmap: average the days into one row"
+        checked={Boolean(spec.options.averageDay)}
+        disabled={spec.chart !== 'heatmap'}
+        onChange={(on) => onChange({ ...spec, options: { ...spec.options, averageDay: on ? true : undefined } })}
+      />
+      <Switch
         label="Stack"
         checked={spec.options.stack !== false}
         disabled={measures.length < 2 && !spec.splitBy}
