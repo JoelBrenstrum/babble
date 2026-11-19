@@ -454,7 +454,7 @@ export function runReport(
   settings: ReportSettings,
   history: ReportHistory = { foods: [] },
 ): ReportResult {
-  const dayKeys = reportDays(spec.range, todayKey, settings.birthDate);
+  const dayKeys = reportDays(spec.range, todayKey, settings.birthDate, spec.options.includeToday === true);
   const knownFoods = new Set(history.foods.map(foodKey));
   const measures = spec.series
     .map((series) => ({ series, measure: measureById(series.measure) }))

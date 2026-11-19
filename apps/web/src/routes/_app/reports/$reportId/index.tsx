@@ -41,6 +41,7 @@ function ReportView() {
   const mutations = useReportMutations(babble.client, family.id);
   const [range, setRange] = useState<ReportRangePreset | null>(null);
   const [compare, setCompare] = useState<boolean | null>(null);
+  const [excludeToday, setExcludeToday] = useState<boolean | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [pitching, setPitching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,6 +52,7 @@ function ReportView() {
         ...report.spec,
         range: range ? { preset: range } : report.spec.range,
         compare: compare === null ? report.spec.compare : compare ? 'previous' : undefined,
+        options: excludeToday === null ? report.spec.options : { ...report.spec.options, includeToday: !excludeToday },
       }
     : null;
   const rangeLocked = spec ? longRangesLocked && rangeNeedsPlus(spec.range) : false;
@@ -163,20 +165,35 @@ function ReportView() {
         footer={
           rangeLocked ? (
             <p className="text-center text-meta text-ink-3">Ranges over 30 days are part of Babble Plus.</p>
-          ) : canCompare(spec) ? (
-            <label className="flex h-10 items-center justify-between gap-3 text-body">
-              Compare with the previous{' '}
-              {'preset' in spec.range ? REPORT_RANGE_LABELS[spec.range.preset].toLowerCase() : 'period'}
-              <input
-                type="checkbox"
-                role="switch"
-                aria-checked={spec.compare === 'previous'}
-                className="size-5 accent-primary"
-                checked={spec.compare === 'previous'}
-                onChange={(event) => setCompare(event.target.checked)}
-              />
-            </label>
-          ) : undefined
+          ) : (
+            <div className="flex flex-col">
+              <label className="flex h-10 items-center justify-between gap-3 text-body">
+                Exclude today
+                <input
+                  type="checkbox"
+                  role="switch"
+                  aria-checked={!spec.options.includeToday}
+                  className="size-5 accent-primary"
+                  checked={!spec.options.includeToday}
+                  onChange={(event) => setExcludeToday(event.target.checked)}
+                />
+              </label>
+              {canCompare(spec) && (
+                <label className="flex h-10 items-center justify-between gap-3 text-body">
+                  Compare with the previous{' '}
+                  {'preset' in spec.range ? REPORT_RANGE_LABELS[spec.range.preset].toLowerCase() : 'period'}
+                  <input
+                    type="checkbox"
+                    role="switch"
+                    aria-checked={spec.compare === 'previous'}
+                    className="size-5 accent-primary"
+                    checked={spec.compare === 'previous'}
+                    onChange={(event) => setCompare(event.target.checked)}
+                  />
+                </label>
+              )}
+            </div>
+          )
         }
       />
       {confirming && (

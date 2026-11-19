@@ -46,29 +46,29 @@ export function monthTitle(monthKey: string): string {
   );
 }
 
-export function reportDays(range: ReportRange, todayKey: string, birthDate: string): string[] {
+export function reportDays(range: ReportRange, todayKey: string, birthDate: string, includeToday: boolean): string[] {
+  const end = includeToday ? todayKey : shiftDay(todayKey, -1);
   if ('from' in range) {
     const keys: string[] = [];
-    const last = range.to < todayKey ? range.to : todayKey;
+    const last = range.to < end ? range.to : end;
     for (let key = range.from; key <= last; key = shiftDay(key, 1)) keys.push(key);
     return keys.length ? keys : [todayKey];
   }
   switch (range.preset) {
     case '7d':
-      return lastDays(todayKey, 7);
+      return lastDays(end, 7);
     case '14d':
-      return lastDays(todayKey, 14);
+      return lastDays(end, 14);
     case '30d':
-      return lastDays(todayKey, 30);
+      return lastDays(end, 30);
     case '90d':
-      return lastDays(todayKey, 90);
+      return lastDays(end, 90);
     case '6m':
-      return lastDays(todayKey, 182);
+      return lastDays(end, 182);
     case 'all': {
       const keys: string[] = [];
-      for (let key = birthDate < todayKey ? birthDate : todayKey; key <= todayKey; key = shiftDay(key, 1))
-        keys.push(key);
-      return keys;
+      for (let key = birthDate; key <= end; key = shiftDay(key, 1)) keys.push(key);
+      return keys.length ? keys : [todayKey];
     }
   }
 }

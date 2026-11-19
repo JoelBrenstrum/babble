@@ -98,4 +98,17 @@ describe('ReportBuilder', () => {
     fireEvent.click(screen.getAllByRole('checkbox', { name: '14 days' })[0]!);
     expect((onSpec.mock.calls.at(-1)![0] as ReportSpec).range).toEqual({ preset: '14d' });
   });
+
+  it('excludes today until the switch is turned off', () => {
+    const onSpec = vi.fn();
+    render(<Harness initial={emptySpec()} onSpec={onSpec} />);
+    const toggle = screen.getAllByRole('switch', { name: 'Exclude today' })[0]!;
+    expect(toggle).toBeChecked();
+
+    fireEvent.click(toggle);
+    expect((onSpec.mock.calls.at(-1)![0] as ReportSpec).options.includeToday).toBe(true);
+
+    fireEvent.click(screen.getAllByRole('switch', { name: 'Exclude today' })[0]!);
+    expect((onSpec.mock.calls.at(-1)![0] as ReportSpec).options.includeToday).toBeUndefined();
+  });
 });

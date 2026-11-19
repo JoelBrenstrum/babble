@@ -42,6 +42,7 @@ const spec = (overrides: Partial<ReportSpec>): ReportSpec => ({
   ...emptySpec(),
   range: { preset: '7d' },
   ...overrides,
+  options: { includeToday: true, ...(overrides.options ?? emptySpec().options) },
 });
 
 describe('ReportCard', () => {

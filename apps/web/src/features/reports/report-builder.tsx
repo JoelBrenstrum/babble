@@ -397,6 +397,11 @@ export function ReportBuilder({
         onChange={(on) => onChange({ ...spec, options: { ...spec.options, emptyDays: on } })}
       />
       <Switch
+        label="Exclude today"
+        checked={!spec.options.includeToday}
+        onChange={(on) => onChange({ ...spec, options: { ...spec.options, includeToday: on ? undefined : true } })}
+      />
+      <Switch
         label="Stack"
         checked={spec.options.stack !== false}
         disabled={measures.length < 2 && !spec.splitBy}
