@@ -7,6 +7,7 @@ import {
   Hourglass,
   Moon,
   MoonStar,
+  Smile,
   Sun,
   type LucideIcon,
 } from 'lucide-react-native';
@@ -22,6 +23,7 @@ const TONES: Record<
     tile: string;
     ink:
       | '--on-sleep'
+      | '--on-alert'
       | '--on-feed-right'
       | '--on-solids'
       | '--on-nappy'
@@ -31,6 +33,7 @@ const TONES: Record<
   }
 > = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft', ink: '--on-sleep' },
+  alert: { icon: Smile, tile: 'bg-alert-soft', ink: '--on-alert' },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft', ink: '--on-feed-right' },
   solids: { icon: Carrot, tile: 'bg-solids-soft', ink: '--on-solids' },
   nappies: { icon: Droplets, tile: 'bg-nappy-soft', ink: '--on-nappy' },
@@ -43,6 +46,7 @@ const TONES: Record<
 const ROW_DOT: Record<WeekRow['key'], string> = {
   sleep: 'bg-sleep',
   longest: 'bg-sleep',
+  alert: 'bg-alert',
   feeds: 'bg-feed-right',
   left: 'bg-feed-left',
   right: 'bg-feed-right',

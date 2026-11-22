@@ -23,7 +23,7 @@ export function runningIndicator(running: readonly BabyEvent[]): RunningIndicato
 }
 
 function runningNoun(type: BabyEvent['type']): string {
-  if (type === 'breast_feed' || type === 'pump' || type === 'sleep') return sessionNoun(type);
+  if (type === 'breast_feed' || type === 'pump' || type === 'sleep' || type === 'alert') return sessionNoun(type);
   return trackerFor(type).label.toLowerCase();
 }
 

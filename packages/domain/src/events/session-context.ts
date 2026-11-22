@@ -28,7 +28,7 @@ function pumpTotalMl(details: EventOfType<'pump'>['details']): number | null {
 }
 
 export function startContext(
-  type: 'breast_feed' | 'pump' | 'sleep',
+  type: 'breast_feed' | 'pump' | 'sleep' | 'alert',
   latest: readonly BabyEvent[],
   now: Date,
   units: Units,
@@ -84,9 +84,10 @@ export function runningSessionLine(event: BabyEvent, now: Date, startedBy?: stri
   return `Paused · ${formatDuration(totals.activeMs)}${by}`;
 }
 
-export type RunningTone = 'downtime' | 'sleep' | 'pump' | 'feed-left' | 'feed-right';
+export type RunningTone = 'downtime' | 'sleep' | 'alert' | 'pump' | 'feed-left' | 'feed-right';
 
 export function runningTone(event: BabyEvent): RunningTone {
+  if (event.type === 'alert') return 'alert';
   if (event.type !== 'sleep' && event.type !== 'breast_feed' && event.type !== 'pump') return 'downtime';
   const segments: readonly { endedAt: string | null }[] = event.segments;
   if (segments.length > 0 && segments.every((segment) => segment.endedAt !== null)) return 'downtime';

@@ -19,6 +19,7 @@ export function MonthTimeline({
     <View className="gap-2">
       <View className="flex-row flex-wrap gap-x-4 gap-y-1 pl-14">
         {lanes.includes('sleep') && <Legend swatch="h-2.5 w-2.5 rounded-sm bg-sleep" label="Sleep" />}
+        {lanes.includes('alert') && <Legend swatch="h-1 w-2.5 rounded-sm bg-alert" label="Alert" />}
         {lanes.includes('feeds') && (
           <>
             <Legend swatch="h-2.5 w-0.5 rounded-full bg-feed-left" label="Left" />
@@ -77,6 +78,13 @@ export function MonthTimeline({
                   <View
                     key={item.event.id}
                     className="absolute bottom-0 top-0 bg-sleep"
+                    style={{ left: pct(item.startFrac), width: pct(item.endFrac - item.startFrac), minWidth: 2 }}
+                  />
+                ))}
+                {layout?.alert.map((item) => (
+                  <View
+                    key={item.event.id}
+                    className="absolute bottom-0 h-[3px] bg-alert"
                     style={{ left: pct(item.startFrac), width: pct(item.endFrac - item.startFrac), minWidth: 2 }}
                   />
                 ))}

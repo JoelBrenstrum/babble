@@ -203,7 +203,12 @@ export {
 } from './growth/growth';
 export { hasStrip, listStrip, stripKind, stripWindow, type StripItem } from './lists/list-strip';
 export { listDayGroups } from './lists/day-groups';
+export { alertShare, alertSplit, commonestEnd, formatShare, type AlertSplit } from './events/alert-time';
 export {
+  ALERT_ACTIVITIES,
+  ALERT_ACTIVITY_LABELS,
+  ALERT_END_LABELS,
+  ALERT_ENDS,
   CAUTION_COLOURS,
   MOOD_LABELS,
   POO_COLOUR_LABELS,

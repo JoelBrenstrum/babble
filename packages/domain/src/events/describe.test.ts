@@ -5,6 +5,35 @@ import { makeEvent } from './test-events';
 const NOW = new Date('2026-10-06T12:00:00Z');
 
 describe('describeEvent branches', () => {
+  it('describes alert time with its activities and what ended it', () => {
+    const event = makeEvent('alert', {
+      startedAt: '2026-10-06T10:00:00Z',
+      endedAt: '2026-10-06T10:45:00Z',
+      details: { activities: ['tummy_time', 'reading'], endedBy: 'tired' },
+    });
+    expect(describeEvent(event, NOW, 'metric')).toEqual({
+      title: 'Alert time',
+      parts: [
+        { text: 'Tummy time', tone: 'alert' },
+        { text: 'Reading', tone: 'alert' },
+        { text: 'Then tired', tone: 'neutral' },
+      ],
+      duration: '45m',
+      trailing: '45m',
+      running: false,
+    });
+    expect(summariseLatest(event, NOW, 'metric')).toBe('45m');
+  });
+
+  it('shows running alert time as in progress', () => {
+    const event = makeEvent('alert', { startedAt: '2026-10-06T11:30:00Z', endedAt: null });
+    expect(describeEvent(event, NOW, 'metric')).toMatchObject({
+      parts: [{ text: 'In progress', tone: 'active', icon: 'play' }],
+      duration: '30m',
+      running: true,
+    });
+  });
+
   it('describes a custom entry with its description and length', () => {
     const event = makeEvent('custom', {
       startedAt: '2026-10-06T10:00:00Z',

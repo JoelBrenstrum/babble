@@ -1,12 +1,13 @@
 import { nightIntervals, type ZonedNightSettings } from '../time/night';
 import { overlapMs, type TimeWindow } from '../time/windows';
+import { alertSplit } from './alert-time';
 import { mergeGapMsFrom, nightSettingsFrom, type NightSettingsRow } from './baby-settings';
 import { eventSpan } from './event-span';
 import { hasFood } from './foods';
 import { segmentTotals } from './segments';
 import { summariseSegments } from './session-summary';
 import { asleepIntervals, asleepWithin } from './sleep-stretches';
-import { tracksIdle, type BabyEvent } from './types';
+import { tracksIdle, type AlertEnd, type BabyEvent } from './types';
 import { compareIso } from '../time/instants';
 
 export interface DayNight extends ZonedNightSettings {
@@ -64,6 +65,13 @@ export interface DaySummary {
   pumpMl: number;
   pumpLeftMl: number;
   pumpRightMl: number;
+  alerts: number;
+  alertMs: number;
+  longestAlertMs: number;
+  awakeMs: number;
+  feedingMs: number;
+  otherAwakeMs: number;
+  alertEnds: Partial<Record<AlertEnd, number>>;
 }
 
 export function summariseDay(
@@ -98,6 +106,13 @@ export function summariseDay(
     pumpMl: 0,
     pumpLeftMl: 0,
     pumpRightMl: 0,
+    alerts: 0,
+    alertMs: 0,
+    longestAlertMs: 0,
+    awakeMs: 0,
+    feedingMs: 0,
+    otherAwakeMs: 0,
+    alertEnds: {},
   };
 
   for (const event of events) {
@@ -169,6 +184,14 @@ export function summariseDay(
       }
     }
   }
+  const alert = alertSplit(events, window, now);
+  summary.alerts = alert.alerts;
+  summary.alertMs = alert.alertMs;
+  summary.longestAlertMs = alert.longestAlertMs;
+  summary.awakeMs = alert.awakeMs;
+  summary.feedingMs = alert.feedingMs;
+  summary.otherAwakeMs = alert.otherAwakeMs;
+  summary.alertEnds = alert.endedBy;
   return summary;
 }
 

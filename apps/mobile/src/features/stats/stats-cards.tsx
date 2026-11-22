@@ -16,6 +16,7 @@ import {
   Layers,
   Moon,
   MoonStar,
+  Smile,
   Sun,
   Timer,
   TrendingUp,
@@ -30,6 +31,7 @@ import { useTokenColor } from '@/lib/theme';
 
 type InkToken =
   | '--on-sleep'
+  | '--on-alert'
   | '--on-bottle'
   | '--on-feed-left'
   | '--on-feed-right'
@@ -53,6 +55,12 @@ const LOOK: Record<StatsCard['key'], { icon: LucideIcon; tile: string; ink: InkT
     series: ['bg-nappy/35', 'bg-nappy/65', 'bg-nappy'],
   },
   pump: { icon: GlassWater, tile: 'bg-pump-soft', ink: '--on-pump', series: ['bg-pump'] },
+  alert: {
+    icon: Smile,
+    tile: 'bg-alert-soft',
+    ink: '--on-alert',
+    series: ['bg-alert', 'bg-feed-right/60', 'bg-session-downtime/50'],
+  },
   wake: { icon: Sun, tile: 'bg-primary-soft', ink: '--on-primary-soft', series: ['bg-primary'] },
   night: { icon: MoonStar, tile: 'bg-sleep-soft', ink: '--on-sleep', series: ['bg-sleep'] },
   'feed-trend': {

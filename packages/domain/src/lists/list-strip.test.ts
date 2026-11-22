@@ -116,6 +116,30 @@ describe('sinceItem', () => {
 });
 
 describe('listStrip', () => {
+  it('summarises alert time with its share of the awake time today', () => {
+    const night = makeEvent('sleep', {
+      id: id(),
+      startedAt: '2026-10-07T20:00:00Z',
+      endedAt: '2026-10-08T08:00:00Z',
+      segments: [],
+    });
+    const yesterday = makeEvent('alert', {
+      id: id(),
+      startedAt: '2026-10-07T09:00:00Z',
+      endedAt: '2026-10-07T10:00:00Z',
+    });
+    const today = makeEvent('alert', {
+      id: id(),
+      startedAt: '2026-10-08T09:00:00Z',
+      endedAt: '2026-10-08T10:00:00Z',
+    });
+    expect(listStrip('alert', [night, yesterday, today], context)).toEqual([
+      { label: 'Last alert', value: '2h 00m', note: 'ago · 10:00 am' },
+      { label: 'Today', value: '1h 00m', note: 'avg 1h 00m' },
+      { label: 'Of awake', value: '25%', note: 'avg 5%' },
+    ]);
+  });
+
   it('summarises feeds with a daily average and the next side', () => {
     const events = [
       breastFeed('2026-10-06T08:00:00Z', '2026-10-06T08:20:00Z', 'left'),

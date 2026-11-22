@@ -7,7 +7,7 @@ describe('LaneToggles', () => {
     const onChange = vi.fn();
     const { rerender } = render(<LaneToggles show={undefined} onChange={onChange} />);
     fireEvent.click(screen.getByRole('button', { name: 'Sleep' }));
-    expect(onChange).toHaveBeenCalledWith('feeds,nappies,pumps');
+    expect(onChange).toHaveBeenCalledWith('alert,feeds,nappies,pumps');
 
     rerender(<LaneToggles show="nappies" onChange={onChange} />);
     expect(screen.getByRole('button', { name: 'Nappies' })).toHaveAttribute('aria-pressed', 'true');

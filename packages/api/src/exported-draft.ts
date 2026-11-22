@@ -1,6 +1,7 @@
 import {
   isEventType,
   SLEEP_QUALITIES,
+  type AlertDetails,
   type BottleDetails,
   type CustomDetails,
   type DraftOfType,
@@ -88,6 +89,14 @@ const READERS: { [T in EventType]: Reader<DraftOfType<T>> } = {
       quality: nullable(oneOf(SLEEP_QUALITIES)),
     }),
     segments: listOf(stretch),
+  }),
+  alert: objectOf({
+    ...base,
+    type: literal('alert'),
+    details: detailsOf<AlertDetails>({
+      activities: listOf(oneOf(ENUMS.alert_activity)),
+      endedBy: nullable(oneOf(ENUMS.alert_end)),
+    }),
   }),
   breast_feed: objectOf({ ...base, type: literal('breast_feed'), segments: listOf(segment) }),
   bottle: objectOf({

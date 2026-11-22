@@ -1,10 +1,11 @@
 import type { Tracker } from '@babble/domain';
-import { Carrot, Droplets, GlassWater, Heart, Milk, Moon, Ruler, Sparkles, type LucideIcon } from 'lucide-react';
+import { Carrot, Droplets, GlassWater, Heart, Milk, Moon, Ruler, Smile, Sparkles, type LucideIcon } from 'lucide-react';
 import { cn } from '#/lib/cn';
 
 const ICONS: Record<Tracker['icon'], LucideIcon> = {
   heart: Heart,
   moon: Moon,
+  smile: Smile,
   droplets: Droplets,
   milk: Milk,
   carrot: Carrot,
@@ -16,6 +17,7 @@ const ICONS: Record<Tracker['icon'], LucideIcon> = {
 const TILE: Record<Tracker['token'], string> = {
   'feed-right': 'bg-feed-right-soft text-on-feed-right',
   sleep: 'bg-sleep-soft text-on-sleep',
+  alert: 'bg-alert-soft text-on-alert',
   nappy: 'bg-nappy-soft text-on-nappy',
   bottle: 'bg-bottle-soft text-on-bottle',
   solids: 'bg-solids-soft text-on-solids',

@@ -1,4 +1,6 @@
 import type {
+  AlertActivity,
+  AlertEnd,
   Mood,
   PooColour,
   PooTexture,
@@ -70,6 +72,27 @@ export const SOLIDS_AMOUNT_OPTIONS: { value: SolidsAmount; label: string }[] = (
 export const SOLIDS_REACTION_OPTIONS: { value: SolidsReaction; label: string }[] = (
   ['loved', 'liked', 'unsure', 'disliked'] as const
 ).map((value) => ({ value, label: SOLIDS_REACTION_LABELS[value] }));
+
+export const ALERT_ACTIVITY_LABELS: Record<AlertActivity, string> = {
+  tummy_time: 'Tummy time',
+  play: 'Play mat',
+  reading: 'Reading',
+  music: 'Singing',
+  cuddles: 'Cuddles',
+  outside: 'Outside',
+  bath: 'Bath',
+};
+
+export const ALERT_ACTIVITIES = Object.keys(ALERT_ACTIVITY_LABELS) as AlertActivity[];
+
+export const ALERT_END_LABELS: Record<AlertEnd, string> = {
+  fussy: 'Fussy or crying',
+  hungry: 'Hungry',
+  tired: 'Tired',
+  asleep: 'Fell asleep',
+};
+
+export const ALERT_ENDS = Object.keys(ALERT_END_LABELS) as AlertEnd[];
 
 export const MOOD_LABELS: Record<Mood, string> = { happy: 'Happy', upset: 'Upset' };
 

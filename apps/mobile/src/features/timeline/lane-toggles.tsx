@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 
 const DOT: Record<TimelineLane, string> = {
   sleep: 'bg-sleep',
+  alert: 'bg-alert',
   feeds: 'bg-feed-left',
   nappies: 'bg-nappy',
   pumps: 'bg-pump',

@@ -2,6 +2,7 @@ export * from './auto-end';
 export * from './notify';
 export {
   findCachedEvent,
+  mergeAlertDetails,
   mergeSleepDetails,
   optimisticRunning,
   patchEventCaches,

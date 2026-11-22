@@ -21,6 +21,7 @@ import { StatusMessage } from '@/components/status-message';
 import { TextField } from '@/components/text-field';
 import { useTokenColor } from '@/lib/theme';
 import { BottleForm } from './forms/bottle-form';
+import { AlertForm } from './forms/alert-form';
 import { CustomForm } from './forms/custom-form';
 import { GrowthForm } from './forms/growth-form';
 import { NappyForm } from './forms/nappy-form';
@@ -90,6 +91,7 @@ export function EventForm({
   const fields = (
     <>
       {draft.type === 'sleep' && <SleepForm {...common} draft={draft} onChange={setDraft} />}
+      {draft.type === 'alert' && <AlertForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'breast_feed' && <BreastFeedForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'bottle' && <BottleForm {...common} draft={draft} onChange={setDraft} />}
       {draft.type === 'solids' && (

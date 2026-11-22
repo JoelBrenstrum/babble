@@ -6,7 +6,7 @@ describe('LaneToggles', () => {
     const onChange = jest.fn();
     await render(<LaneToggles show={undefined} onChange={onChange} />);
     await fireEvent.press(screen.getByRole('switch', { name: 'Sleep' }));
-    expect(onChange).toHaveBeenCalledWith('feeds,nappies,pumps');
+    expect(onChange).toHaveBeenCalledWith('alert,feeds,nappies,pumps');
   });
 
   it('cannot hide the only lane left', async () => {

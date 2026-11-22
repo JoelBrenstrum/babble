@@ -2,6 +2,7 @@ import type { DayLayout } from '@babble/domain';
 
 const NOUNS: { key: keyof DayLayout; one: string; many: string }[] = [
   { key: 'sleep', one: 'sleep', many: 'sleeps' },
+  { key: 'alert', one: 'alert stretch', many: 'alert stretches' },
   { key: 'feeds', one: 'feed', many: 'feeds' },
   { key: 'nappies', one: 'nappy', many: 'nappies' },
   { key: 'pumps', one: 'pump', many: 'pumps' },

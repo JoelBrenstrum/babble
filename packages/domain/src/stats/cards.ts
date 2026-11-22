@@ -1,4 +1,7 @@
+import { alertShare, commonestEnd, formatShare } from '../events/alert-time';
 import type { DaySummary } from '../events/day-summary';
+import { ALERT_END_LABELS } from '../events/labels';
+import { durationChange } from '../format/change';
 import { summariseSegments } from '../events/session-summary';
 import type { BabyEvent, EventOfType, PooColour } from '../events/types';
 import { formatDurationShort, formatPerDay } from '../format/duration';
@@ -23,6 +26,7 @@ export interface StatsCard {
     | 'nappies'
     | 'pump'
     | 'wake'
+    | 'alert'
     | 'night'
     | 'feed-trend'
     | 'feed-spacing'
@@ -66,6 +70,62 @@ export interface CardInput {
   settings: StatsSettings;
   showBreast: boolean;
   showPump: boolean;
+  showAlert: boolean;
+}
+
+const WEEK_DAYS = 7;
+
+function alertCard(
+  counted: readonly DaySummary[],
+  first: string,
+  daily: (label: string) => string,
+  bars: CardInput['bars'],
+): StatsCard {
+  const sum = (days: readonly DaySummary[], pick: (day: DaySummary) => number) =>
+    days.reduce((total, day) => total + pick(day), 0);
+  const average = (days: readonly DaySummary[], pick: (day: DaySummary) => number) => mean(days, pick) ?? 0;
+  const longest = counted.reduce((max, day) => Math.max(max, day.longestAlertMs), 0);
+  const ends: Partial<Record<keyof typeof ALERT_END_LABELS, number>> = {};
+  for (const day of counted) {
+    for (const [reason, count] of Object.entries(day.alertEnds) as [keyof typeof ALERT_END_LABELS, number][]) {
+      ends[reason] = (ends[reason] ?? 0) + count;
+    }
+  }
+  const usualEnd = commonestEnd(ends);
+  const thisWeek = counted.slice(-WEEK_DAYS);
+  const lastWeek = counted.slice(-2 * WEEK_DAYS, -WEEK_DAYS);
+  const figures = [
+    { label: first, value: formatDurationShort(average(counted, (day) => day.alertMs)) },
+    {
+      label: 'Of awake time',
+      value: formatShare(
+        alertShare({ alertMs: sum(counted, (day) => day.alertMs), awakeMs: sum(counted, (day) => day.awakeMs) }),
+      ),
+    },
+    { label: daily('Stretches'), value: formatPerDay(average(counted, (day) => day.alerts)) },
+    { label: 'Longest stretch', value: longest ? formatDurationShort(longest) : '—' },
+  ];
+  if (lastWeek.length === WEEK_DAYS) {
+    figures.push({
+      label: 'On last week',
+      value: durationChange(
+        average(thisWeek, (day) => day.alertMs),
+        average(lastWeek, (day) => day.alertMs),
+      ),
+    });
+  }
+  if (usualEnd) figures.push({ label: 'Usually ended by', value: ALERT_END_LABELS[usualEnd] });
+  return {
+    key: 'alert',
+    title: 'Alert time',
+    figures,
+    chart: buildChart(
+      'h',
+      ['Alert', 'Feeding', 'Other awake'],
+      bars((day) => [day.alertMs / HOUR_MS, day.feedingMs / HOUR_MS, day.otherAwakeMs / HOUR_MS]),
+    ),
+    note: 'Awake time is every minute not asleep. Other awake is the time that was neither alert nor feeding.',
+  };
 }
 
 export function buildCards({
@@ -79,6 +139,7 @@ export function buildCards({
   settings,
   showBreast,
   showPump,
+  showAlert,
 }: CardInput): StatsCard[] {
   const daily = (label: string) => (single ? label : `${label} per day`);
   const average = (pick: (day: DaySummary) => number) => mean(counted, pick) ?? 0;
@@ -189,8 +250,10 @@ export function buildCards({
     },
   ];
 
+  if (showAlert) cards.splice(1, 0, alertCard(counted, first, daily, bars));
+
   if (showBreast) {
-    cards.splice(2, 0, {
+    cards.splice(cards.findIndex((card) => card.key === 'feeds') + 1, 0, {
       key: 'breast-time',
       title: 'Time on the breast',
       figures: [

@@ -120,6 +120,16 @@ export function sampleRunningSleep(now: Date): EventOfType<'sleep'> {
   };
 }
 
+export function sampleRunningAlert(now: Date): EventOfType<'alert'> {
+  return {
+    ...meta('event-running-alert', 'user-john'),
+    type: 'alert',
+    startedAt: minutesAgo(now, 25),
+    endedAt: null,
+    details: { activities: ['tummy_time'], endedBy: null },
+  };
+}
+
 function sampleFeed(now: Date): EventOfType<'breast_feed'> {
   return {
     ...meta('event-feed-1'),

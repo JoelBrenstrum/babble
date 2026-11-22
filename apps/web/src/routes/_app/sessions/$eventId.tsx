@@ -6,6 +6,7 @@ import { PageHeader } from '#/components/shell/page-header';
 import { Card, SectionLabel } from '#/components/ui/card';
 import { SectionSpinner } from '#/components/ui/spinner';
 import { StatusMessage } from '#/components/ui/status';
+import { AlertDetailsEditor } from '#/features/events/alert-details-editor';
 import { RunningCard } from '#/features/events/running-card';
 import { KeepAwakeToggle } from '#/features/keep-awake-toggle';
 import { LiveMergeOffer } from '#/features/events/merge-sessions';
@@ -92,7 +93,16 @@ function SessionPage() {
         />
       )}
       {!canLog && <StatusMessage tone="info">{READ_ONLY_NOTE}</StatusMessage>}
-      {event.type !== 'sleep' && <KeepAwakeToggle />}
+      {event.type !== 'sleep' && event.type !== 'alert' && <KeepAwakeToggle />}
+      {canLog && event.type === 'alert' && (
+        <section className="flex flex-col gap-2">
+          <SectionLabel>Activities</SectionLabel>
+          <Card className="flex flex-col gap-3 p-5">
+            <p className="text-meta text-ink-2">Saved as you go, without stopping the timer.</p>
+            <AlertDetailsEditor event={event} client={babble.client} babyId={baby.id} />
+          </Card>
+        </section>
+      )}
       {canLog && event.type === 'sleep' && (
         <section className="flex flex-col gap-2">
           <SectionLabel>Details</SectionLabel>

@@ -1,11 +1,23 @@
 import { weekdayLabel, type StripItem, type TotalCard, type WeekRow } from '@babble/domain';
-import { Carrot, Droplets, GlassWater, Heart, Hourglass, Moon, MoonStar, Sun, type LucideIcon } from 'lucide-react';
+import {
+  Carrot,
+  Droplets,
+  GlassWater,
+  Heart,
+  Hourglass,
+  Moon,
+  MoonStar,
+  Smile,
+  Sun,
+  type LucideIcon,
+} from 'lucide-react';
 import { Card } from '#/components/ui/card';
 import { PooSwatch } from '#/components/ui/poo-swatch';
 import { cn } from '#/lib/cn';
 
 const TONES: Record<TotalCard['key'], { icon: LucideIcon; tile: string }> = {
   sleep: { icon: Moon, tile: 'bg-sleep-soft text-on-sleep' },
+  alert: { icon: Smile, tile: 'bg-alert-soft text-on-alert' },
   feeds: { icon: Heart, tile: 'bg-feed-right-soft text-on-feed-right' },
   solids: { icon: Carrot, tile: 'bg-solids-soft text-on-solids' },
   nappies: { icon: Droplets, tile: 'bg-nappy-soft text-on-nappy' },
@@ -18,6 +30,7 @@ const TONES: Record<TotalCard['key'], { icon: LucideIcon; tile: string }> = {
 const ROW_DOT: Record<WeekRow['key'], string> = {
   sleep: 'bg-sleep',
   longest: 'bg-sleep',
+  alert: 'bg-alert',
   feeds: 'bg-feed-right',
   left: 'bg-feed-left',
   right: 'bg-feed-right',
