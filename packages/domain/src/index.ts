@@ -166,7 +166,9 @@ export {
   predictedItemTip,
   predictionText,
   type PredictedItem,
+  type Prediction,
 } from './predict/predicted-view';
+export { ROUTINE_AGE_WEEKS, wakeWindowText, type WakeWindow } from './predict/wake-window';
 export {
   barAnchor,
   barLines,

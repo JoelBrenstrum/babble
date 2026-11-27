@@ -11,7 +11,7 @@ import {
   predictAhead,
   predictionSince,
   type InsightsReport,
-  type PredictedBlock,
+  type Prediction,
 } from '@babble/domain';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
@@ -64,7 +64,7 @@ export function usePrediction(
   baby: Pick<BabyRow, 'id' | 'timezone' | 'birth_date'>,
   family: PlanHolder,
   now: Date,
-): PredictedBlock[] | null {
+): Prediction | null {
   const enabled = familyHasFeature(billingEnabled, family.plan, 'predictions');
   const events = useQuery({ ...eventsSinceQuery(client, baby.id, predictionSince(now)), enabled }).data;
   const settings = useQuery({ ...babySettingsQuery(client, baby.id), enabled }).data;

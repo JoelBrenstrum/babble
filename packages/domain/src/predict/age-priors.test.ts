@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { priorsForAge } from './age-priors';
+import { priorsForAge, wakeWindowForAge } from './age-priors';
 
 const M = 60_000;
 
 describe('priorsForAge', () => {
   it('gives a newborn a short wake window', () => {
-    expect(priorsForAge(0.5).wakeToSleep).toEqual({ low: 35 * M, mid: 45 * M, high: 60 * M });
+    expect(priorsForAge(0.5).wakeToSleep).toEqual({ low: 30 * M, mid: 45 * M, high: 60 * M });
   });
 
   it('lengthens the wake window with age', () => {
@@ -13,6 +13,18 @@ describe('priorsForAge', () => {
     const windows = ages.map((age) => priorsForAge(age).wakeToSleep.mid);
     expect([...windows].sort((a, b) => a - b)).toEqual(windows);
     expect(new Set(windows).size).toBe(ages.length);
+  });
+
+  it('follows the wake window guide month by month through the first year', () => {
+    const minutes = (age: number) => {
+      const { low, high } = wakeWindowForAge(age);
+      return [low / M, high / M];
+    };
+    expect(minutes(1.5)).toEqual([45, 90]);
+    expect(minutes(3.5)).toEqual([75, 120]);
+    expect(minutes(6)).toEqual([120, 180]);
+    expect(minutes(8)).toEqual([135, 210]);
+    expect(minutes(12)).toEqual([195, 240]);
   });
 
   it('treats an age before birth as a newborn and caps old toddlers at the last band', () => {

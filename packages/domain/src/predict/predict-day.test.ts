@@ -294,7 +294,7 @@ describe('predictDay with age-typical patterns', () => {
     const blocks = predictDay(events, now, new Date(wake + 6 * 60 * M), AGED)!;
     const sleep = blocks.find((block) => block.kind === 'sleep')!;
     expect(blocks[0]?.kind).toBe('feed');
-    expect(sleep.startedAt).toBe(iso(wake + 120 * M));
+    expect(sleep.startedAt).toBe(iso(wake + 105 * M));
     expect(sleep.startWindow).toEqual({ from: iso(wake + 90 * M), to: iso(wake + 150 * M) });
   });
 
@@ -408,5 +408,89 @@ describe('predictDay with age-typical patterns', () => {
     const now = new Date(BASE + 9 * 60 * M);
     expect(predictDayStatus(regularCycles(3), now, new Date(BASE + 15 * 60 * M), AGED).status).toBe('ready');
     expect(predictDayStatus([], now, new Date(BASE + 15 * 60 * M), AGED)).toEqual({ status: 'no-anchor' });
+  });
+});
+
+describe('predictDayStatus wake window', () => {
+  const NZ = 13 * 60 * M;
+  const local = (time: string) => Date.parse(`2026-10-03T${time}:00Z`) - NZ;
+  const sleepEvent = (id: string, start: number, end: number | null) =>
+    makeEvent('sleep', { id, startedAt: iso(start), endedAt: end === null ? null : iso(end), segments: [] });
+  const status = (events: BabyEvent[], now: number, ageMonths: number) => {
+    const result = predictDayStatus(events, new Date(now), new Date(now + 4 * 60 * M), { ...OPTIONS, ageMonths });
+    if (result.status !== 'ready') throw new Error(result.status);
+    return result;
+  };
+
+  it('gives the age-typical wake window from the last wake-up', () => {
+    const wake = local('14:00');
+    const { wakeWindow } = status([sleepEvent('nap', wake - 90 * M, wake)], wake + 10 * M, 6);
+    expect(wakeWindow).toEqual({
+      wokeAt: iso(wake),
+      from: iso(wake + 120 * M),
+      to: iso(wake + 180 * M),
+      reason: null,
+      napMs: null,
+    });
+  });
+
+  it('shortens the window and the next predicted sleep after a short nap', () => {
+    const wake = local('14:00');
+    const { wakeWindow, blocks } = status([sleepEvent('nap', wake - 20 * M, wake)], wake + 10 * M, 6);
+    expect(wakeWindow).toMatchObject({
+      from: iso(wake + 84 * M),
+      to: iso(wake + 126 * M),
+      reason: 'short-nap',
+      napMs: 20 * M,
+    });
+    expect(blocks.find((block) => block.kind === 'sleep')!.startedAt).toBe(iso(wake + 105 * M));
+  });
+
+  it('keeps the window after a short first nap that follows a good night', () => {
+    const morning = local('07:00');
+    const wake = local('09:30');
+    const after = (nightHours: number) =>
+      status(
+        [sleepEvent('night', morning - nightHours * 60 * M, morning), sleepEvent('nap', wake - 25 * M, wake)],
+        wake + 10 * M,
+        6,
+      ).wakeWindow!;
+    const rested = after(11);
+    const tired = after(8);
+    expect(rested).toMatchObject({ reason: 'good-night', napMs: 25 * M });
+    expect(tired).toMatchObject({ reason: 'short-nap', napMs: 25 * M });
+    expect(Date.parse(tired.from)).toBeLessThan(Date.parse(rested.from));
+  });
+
+  it('uses the age guide for the first wake window of the day', () => {
+    const morning = local('06:30');
+    const { wakeWindow } = status([sleepEvent('night', morning - 11 * 60 * M, morning)], morning + 10 * M, 6);
+    expect(wakeWindow).toMatchObject({ from: iso(morning + 120 * M), to: iso(morning + 180 * M), reason: null });
+  });
+
+  it('has no wake window for a waking in the night, a running sleep or a wake-up long past', () => {
+    const waking = local('23:00') - 24 * 60 * M;
+    expect(status([sleepEvent('night', waking - 180 * M, waking)], waking + 10 * M, 6).wakeWindow).toBeNull();
+    const nap = local('14:00');
+    expect(status([sleepEvent('nap', nap, null)], nap + 10 * M, 6).wakeWindow).toBeNull();
+    expect(status([sleepEvent('nap', nap - 90 * M, nap)], nap + 7 * 60 * M, 6).wakeWindow).toBeNull();
+  });
+
+  it('keeps the wake window but holds back predicted sleeps and feeds before thirteen weeks', () => {
+    const wake = local('14:00') + 2 * 24 * 60 * M;
+    const events = [...regularCycles(8), sleepEvent('nap', wake - 90 * M, wake)];
+    const young = status(events, wake + 10 * M, 2);
+    expect(young.blocks).toEqual([]);
+    expect(young.wakeWindow).toMatchObject({ from: iso(wake + 60 * M), to: iso(wake + 105 * M) });
+    expect(status(events, wake + 10 * M, 3).blocks.length).toBeGreaterThan(0);
+  });
+
+  it('predicts nothing for a sleeping baby under thirteen weeks', () => {
+    const nap = local('14:00');
+    expect(status([sleepEvent('nap', nap, null)], nap + 10 * M, 2)).toEqual({
+      status: 'ready',
+      blocks: [],
+      wakeWindow: null,
+    });
   });
 });
