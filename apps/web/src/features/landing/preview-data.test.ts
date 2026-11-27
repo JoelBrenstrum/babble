@@ -64,7 +64,7 @@ describe('monthPreview', () => {
 
 describe('predictions in the previews', () => {
   it('says when the baby is likely to sleep next and draws it on the timeline', () => {
-    expect(homePreview(now).prediction).toMatch(/^Likely asleep around /);
+    expect(homePreview(now).prediction).toMatch(/^Wake window 1h 15m–1h 45m · start settling in 18m · around /);
     const timeline = timelinePreview(now);
     expect(timeline.prediction).toMatch(/^Likely awake around /);
     expect(timeline.predicted.sleep.length).toBeGreaterThan(0);

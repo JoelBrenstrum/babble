@@ -53,7 +53,14 @@ export function homePreview(now: Date) {
     running: [running],
     latest: [running, ...events],
     summary,
-    prediction: predictionText(predicted, now, timezone),
+    prediction: predictionText(
+      {
+        blocks: predicted,
+        wakeWindow: { wokeAt: at(now, -57), from: at(now, 18), to: at(now, 48), reason: null, napMs: null },
+      },
+      now,
+      timezone,
+    ),
   };
 }
 
@@ -89,8 +96,8 @@ export function timelinePreview(now: Date) {
     ticks: hourTicks(dayKey, timezone, dayStart, 3),
     nowFrac: fractionOf(window, at.getTime()),
     totals: dayTotalCards(summary, 'metric', timezone),
-    predicted: predictedLayout(predicted, window, at, timezone),
-    prediction: predictionText(predicted, at, timezone),
+    predicted: predictedLayout({ blocks: predicted }, window, at, timezone),
+    prediction: predictionText({ blocks: predicted, wakeWindow: null }, at, timezone),
   };
 }
 

@@ -1,8 +1,9 @@
 import { minutesOfDay } from '../time/local-time';
 import type { BabyEvent } from '../events/types';
-import { DAY_MS, MINUTE_MS } from '../time/constants';
+import { DAY_MS, HOUR_MS, MINUTE_MS } from '../time/constants';
 import { isWithinNight, type NightSettings } from '../time/night';
 import { priorsForAge, type AgePriors, type Prior } from './age-priors';
+import { adjustWakeRange, isRoutineAge, wakeContext, type WakeWindow } from './wake-window';
 
 export type PredictedKind = 'sleep' | 'feed';
 
@@ -69,6 +70,7 @@ const PRIOR_WEIGHT = 2;
 const LEARNED_KEYS: readonly RhythmKey[] = ['feedLength', 'feedToSleep', 'sleepLength', 'wakeToFeed'];
 const DAYTIME_PRIORS: readonly RhythmKey[] = ['sleepLength', 'wakeToSleep'];
 const STALE_WAKE_FACTOR = 2;
+const MORNING_LEAD_MS = 2 * HOUR_MS;
 
 const DEFAULTS = {
   lookbackDays: 7,
@@ -226,7 +228,7 @@ function estimate(
 }
 
 export type PredictionResult =
-  | { status: 'ready'; blocks: PredictedBlock[] }
+  | { status: 'ready'; blocks: PredictedBlock[]; wakeWindow: WakeWindow | null }
   | { status: 'learning' }
   | { status: 'no-anchor' };
 
@@ -282,10 +284,35 @@ export function predictDayStatus(
 
   // The age priors describe naps and daytime wake windows, so they would drag night stretches short.
   const atNight = (at: number) => isWithinNight(new Date(at), { timeZone: settings.timeZone, ...settings.night });
+  const nightWake = (at: number) => atNight(at) && atNight(at + MORNING_LEAD_MS);
+  const outsideDay = (key: RhythmKey, at: number) => (key === 'wakeToSleep' ? nightWake(at) : atNight(at));
   const priorFor = (key: RhythmKey, at: number) =>
-    key === 'feedToSleep' || (DAYTIME_PRIORS.includes(key) && atNight(at)) ? null : (priors?.[key] ?? null);
-  const quantiles = (key: RhythmKey, at: number) =>
+    key === 'feedToSleep' || (DAYTIME_PRIORS.includes(key) && outsideDay(key, at)) ? null : (priors?.[key] ?? null);
+  const routine = isRoutineAge(settings.ageMonths);
+  const learned = (key: RhythmKey, at: number) =>
     estimate(rhythm[key], priorFor(key, at), at, nowMs, settings, key === 'wakeToFeed' ? ANY_VALUE : 0);
+
+  const sleeps = history.flatMap((e) =>
+    e.kind === 'sleep' && e.end !== null
+      ? [{ start: e.start, end: e.end, night: atNight(e.start) || atNight((e.start + e.end) / 2) }]
+      : [],
+  );
+  const loggedWake = history.some((e) => e.kind === 'sleep' && e.end === null) ? null : (sleeps.at(-1)?.end ?? null);
+  const wakeRange =
+    loggedWake === null
+      ? null
+      : routine
+        ? learned('wakeToSleep', loggedWake)
+        : nightWake(loggedWake)
+          ? null
+          : (priors?.wakeToSleep ?? null);
+  const adjusted = !wakeRange
+    ? null
+    : routine
+      ? adjustWakeRange(wakeRange, wakeContext(sleeps))
+      : { range: wakeRange, reason: null };
+  const quantiles = (key: RhythmKey, at: number) =>
+    key === 'wakeToSleep' && at === loggedWake && adjusted ? adjusted.range : learned(key, at);
   const windowAt = (anchor: number, q: Quantiles | null): PredictedWindow | undefined =>
     q ? { from: iso(anchor + q.low), to: iso(anchor + q.high) } : undefined;
   const length = (key: RhythmKey, at: number) => quantiles(key, at)?.mid ?? 0;
@@ -355,6 +382,21 @@ export function predictDayStatus(
     return { status: 'no-anchor' };
   }
 
+  const wakeWindow: WakeWindow | null =
+    loggedWake !== null &&
+    adjusted &&
+    !nightWake(loggedWake) &&
+    nowMs - loggedWake <= STALE_WAKE_FACTOR * adjusted.range.high
+      ? {
+          wokeAt: iso(loggedWake),
+          from: iso(loggedWake + adjusted.range.low),
+          to: iso(loggedWake + adjusted.range.high),
+          reason: adjusted.reason,
+          napMs: adjusted.reason ? sleeps.at(-1)!.end - sleeps.at(-1)!.start : null,
+        }
+      : null;
+  if (!routine) return { status: 'ready', blocks: [], wakeWindow };
+
   const limit = until.getTime();
   while (next.at < limit) {
     if (next.kind === 'feed') {
@@ -370,5 +412,5 @@ export function predictDayStatus(
       next = feedAfter(wake);
     }
   }
-  return { status: 'ready', blocks: blocks.filter((block) => Date.parse(block.startedAt) < limit) };
+  return { status: 'ready', blocks: blocks.filter((block) => Date.parse(block.startedAt) < limit), wakeWindow };
 }

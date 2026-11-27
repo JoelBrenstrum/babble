@@ -15,7 +15,7 @@ interface Display {
   fromBase: (value: number) => number;
 }
 
-const DAYS_PER_MONTH = 365.25 / 12;
+export const DAYS_PER_MONTH = 365.25 / 12;
 export const WHO_MAX_MONTHS = 24;
 export const CURVE_PERCENTILES = [3, 15, 50, 85, 97] as const;
 

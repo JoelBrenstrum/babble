@@ -381,7 +381,7 @@ function predictionsSection(input: SnapshotInput, events: readonly BabyEvent[]):
       timeZone: input.baby.timeZone,
       birthDate: input.baby.birthDate,
       night: nightSettingsFrom(input.settings),
-    }) ?? [];
+    })?.blocks ?? [];
   return {
     next_sleep_at: blocks.find((block) => block.kind === 'sleep' && !block.continuesRunning)?.startedAt ?? null,
     next_feed_at: blocks.find((block) => block.kind === 'feed' && !block.continuesRunning)?.startedAt ?? null,

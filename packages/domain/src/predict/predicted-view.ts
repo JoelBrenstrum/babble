@@ -4,7 +4,8 @@ import type { TimelineTip } from '../timeline/item-label';
 import { fractionOf, type TimeWindow } from '../time/windows';
 import type { BabyEvent } from '../events/types';
 import { ageInMonths } from '../growth/growth';
-import { predictDay, type PredictedBlock, type PredictedKind, type PredictedWindow } from './predict-day';
+import { predictDayStatus, type PredictedBlock, type PredictedKind, type PredictedWindow } from './predict-day';
+import { wakeWindowText, type WakeWindow } from './wake-window';
 import { DAY_MS, HOUR_MS, MINUTE_MS } from '../time/constants';
 import type { NightSettings } from '../time/night';
 
@@ -34,13 +35,19 @@ export function predictionSince(now: Date): string {
   return `${new Date(now.getTime() - LOOKBACK_MS).toISOString().slice(0, 13)}:00:00Z`;
 }
 
-export function predictAhead(events: readonly BabyEvent[], now: Date, baby: PredictionBaby): PredictedBlock[] | null {
+export interface Prediction {
+  blocks: PredictedBlock[];
+  wakeWindow: WakeWindow | null;
+}
+
+export function predictAhead(events: readonly BabyEvent[], now: Date, baby: PredictionBaby): Prediction | null {
   const ageMonths = baby.birthDate ? ageInMonths(baby.birthDate, now.toISOString(), baby.timeZone) : null;
-  return predictDay(events, now, new Date(now.getTime() + PREDICTION_HORIZON_MS), {
+  const result = predictDayStatus(events, now, new Date(now.getTime() + PREDICTION_HORIZON_MS), {
     timeZone: baby.timeZone,
     ageMonths,
     night: baby.night,
   });
+  return result.status === 'ready' ? { blocks: result.blocks, wakeWindow: result.wakeWindow } : null;
 }
 
 function narrow(window: PredictedWindow | undefined): window is undefined {
@@ -51,8 +58,11 @@ function span(window: PredictedWindow, timeZone: string): string {
   return `${formatTimeOfDay(window.from, timeZone)}–${formatTimeOfDay(window.to, timeZone)}`;
 }
 
-export function predictionText(blocks: readonly PredictedBlock[] | null, now: Date, timeZone: string): string | null {
-  const first = blocks?.[0];
+export function predictionText(prediction: Prediction | null, now: Date, timeZone: string): string | null {
+  if (!prediction) return null;
+  if (prediction.wakeWindow) return wakeWindowText(prediction.wakeWindow, now, timeZone).text;
+  const { blocks } = prediction;
+  const first = blocks[0];
   if (!first) return null;
   const nowMs = now.getTime();
   if (first.kind === 'sleep' && first.continuesRunning) {
@@ -126,13 +136,13 @@ export function predictedItemTip(block: PredictedBlock, now: Date, timeZone: str
 }
 
 export function predictedLayout(
-  blocks: readonly PredictedBlock[] | null,
+  prediction: Pick<Prediction, 'blocks'> | null,
   window: TimeWindow,
   now: Date,
   timeZone: string,
 ): { sleep: PredictedItem[]; feeds: PredictedItem[] } {
   const layout: { sleep: PredictedItem[]; feeds: PredictedItem[] } = { sleep: [], feeds: [] };
-  for (const block of blocks ?? []) {
+  for (const block of prediction?.blocks ?? []) {
     const start = Date.parse(block.startedAt);
     const end = Math.max(start, Date.parse(block.endedAt));
     if (end <= window.start.getTime() || start >= window.end.getTime()) continue;
