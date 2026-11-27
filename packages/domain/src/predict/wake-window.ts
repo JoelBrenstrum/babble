@@ -12,7 +12,7 @@ const MAX_CUT = 0.3;
 const GOOD_NIGHT_FLOOR_MS = 9 * HOUR_MS;
 const GOOD_NIGHT_UNLEARNED_MS = 10 * HOUR_MS;
 const MIN_NIGHTS = 3;
-const SAME_NIGHT_GAP_MS = 12 * HOUR_MS;
+const SAME_NIGHT_GAP_MS = 6 * HOUR_MS;
 const GOOD_NIGHT_RELIEF = [1, 0.5];
 
 export type WakeWindowReason = 'short-nap' | 'good-night';

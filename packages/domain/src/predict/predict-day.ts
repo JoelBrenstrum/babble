@@ -293,7 +293,9 @@ export function predictDayStatus(
     estimate(rhythm[key], priorFor(key, at), at, nowMs, settings, key === 'wakeToFeed' ? ANY_VALUE : 0);
 
   const sleeps = history.flatMap((e) =>
-    e.kind === 'sleep' && e.end !== null ? [{ start: e.start, end: e.end, night: atNight(e.start) }] : [],
+    e.kind === 'sleep' && e.end !== null
+      ? [{ start: e.start, end: e.end, night: atNight(e.start) || atNight((e.start + e.end) / 2) }]
+      : [],
   );
   const loggedWake = history.some((e) => e.kind === 'sleep' && e.end === null) ? null : (sleeps.at(-1)?.end ?? null);
   const wakeRange =
@@ -304,7 +306,11 @@ export function predictDayStatus(
         : nightWake(loggedWake)
           ? null
           : (priors?.wakeToSleep ?? null);
-  const adjusted = wakeRange ? adjustWakeRange(wakeRange, wakeContext(sleeps)) : null;
+  const adjusted = !wakeRange
+    ? null
+    : routine
+      ? adjustWakeRange(wakeRange, wakeContext(sleeps))
+      : { range: wakeRange, reason: null };
   const quantiles = (key: RhythmKey, at: number) =>
     key === 'wakeToSleep' && at === loggedWake && adjusted ? adjusted.range : learned(key, at);
   const windowAt = (anchor: number, q: Quantiles | null): PredictedWindow | undefined =>

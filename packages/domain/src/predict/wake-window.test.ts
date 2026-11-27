@@ -84,6 +84,12 @@ describe('wakeContext', () => {
     expect(wakeContext([...rough, night(4, 9), span(105, 30)]).goodNight).toBe(true);
   });
 
+  it('judges the latest night alone when no nap was logged the day before', () => {
+    const sleeps = [span(19, 13 * 60, true), span(43, 8 * 60, true), span(54, 30)];
+    expect(nightTotals(sleeps)).toEqual([13 * H, 8 * H]);
+    expect(wakeContext(sleeps).goodNight).toBe(false);
+  });
+
   it('does not credit a night when the naps have no night before them', () => {
     expect(wakeContext([span(33, 30)]).goodNight).toBe(false);
   });

@@ -462,6 +462,19 @@ describe('predictDayStatus wake window', () => {
     expect(Date.parse(tired.from)).toBeLessThan(Date.parse(rested.from));
   });
 
+  it('counts a night that began before the night window as a good night', () => {
+    const morning = local('06:30');
+    const wake = local('09:00');
+    const events = [sleepEvent('night', morning - 12 * 60 * M, morning), sleepEvent('nap', wake - 25 * M, wake)];
+    expect(status(events, wake + 10 * M, 6).wakeWindow).toMatchObject({ reason: 'good-night' });
+  });
+
+  it('keeps a late afternoon nap as a nap', () => {
+    const wake = local('18:55');
+    const events = [sleepEvent('nap', wake - 40 * M, wake)];
+    expect(status(events, wake + 10 * M, 6).wakeWindow).toMatchObject({ reason: 'short-nap', napMs: 40 * M });
+  });
+
   it('uses the age guide for the first wake window of the day', () => {
     const morning = local('06:30');
     const { wakeWindow } = status([sleepEvent('night', morning - 11 * 60 * M, morning)], morning + 10 * M, 6);
@@ -483,6 +496,18 @@ describe('predictDayStatus wake window', () => {
     expect(young.blocks).toEqual([]);
     expect(young.wakeWindow).toMatchObject({ from: iso(wake + 60 * M), to: iso(wake + 105 * M) });
     expect(status(events, wake + 10 * M, 3).blocks.length).toBeGreaterThan(0);
+  });
+
+  it('leaves the age guide alone after a short nap before thirteen weeks', () => {
+    const wake = local('14:00');
+    const { wakeWindow } = status([sleepEvent('nap', wake - 20 * M, wake)], wake + 10 * M, 2);
+    expect(wakeWindow).toEqual({
+      wokeAt: iso(wake),
+      from: iso(wake + 60 * M),
+      to: iso(wake + 105 * M),
+      reason: null,
+      napMs: null,
+    });
   });
 
   it('predicts nothing for a sleeping baby under thirteen weeks', () => {
