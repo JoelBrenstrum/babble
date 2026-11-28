@@ -1,4 +1,4 @@
-import { weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
+import { weekdayLabel, TIMELINE_LANES, type DayLayout, type NightMarker, type TimelineLane } from '@babble/domain';
 import { Pressable, Text, View } from 'react-native';
 import { pct } from './percent';
 
@@ -8,12 +8,14 @@ export function WeekTimeline({
   todayKey,
   onOpenDay,
   lanes = TIMELINE_LANES,
+  night = [],
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
   ticks: { frac: number; label: string }[];
   todayKey: string;
   onOpenDay: (dayKey: string) => void;
   lanes?: readonly TimelineLane[];
+  night?: NightMarker[];
 }) {
   return (
     <View className="gap-2">
@@ -27,6 +29,9 @@ export function WeekTimeline({
           </>
         )}
         {lanes.includes('nappies') && <Legend swatch="h-2 w-2 rounded-full bg-nappy" label="Nappy" />}
+        {night.slice(0, 1).map((marker) => (
+          <Legend key={marker.label} swatch="w-3 border-t border-dashed border-sleep" label={marker.label} />
+        ))}
       </View>
       <View className="h-[420px] flex-row gap-1.5">
         <View className="w-6">
@@ -51,6 +56,22 @@ export function WeekTimeline({
               onPress={() => onOpenDay(dayKey)}
               className={`flex-1 overflow-hidden rounded-tile bg-surface ${dayKey === todayKey ? 'border-2 border-primary' : ''} ${layout ? '' : 'opacity-50'}`}
             >
+              {ticks.slice(1, -1).map((tick, index) => (
+                <View
+                  key={`tick-${index}`}
+                  testID="hour-line"
+                  className="absolute inset-x-0 border-t border-line"
+                  style={{ top: pct(tick.frac) }}
+                />
+              ))}
+              {night.map((marker) => (
+                <View
+                  key={`night-${marker.frac}`}
+                  testID="night-marker"
+                  className="absolute inset-x-0 border-t border-dashed border-sleep"
+                  style={{ top: pct(marker.frac) }}
+                />
+              ))}
               {layout?.sleep.map((item) => (
                 <View
                   key={item.event.id}

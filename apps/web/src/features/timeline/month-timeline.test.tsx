@@ -32,5 +32,25 @@ describe('MonthTimeline', () => {
       '/timeline?view=day&date=2026-10-12',
     );
     expect(container.querySelectorAll('.bg-sleep:not(.size-2\\.5)')).toHaveLength(1);
+    expect(screen.queryByTestId('night-marker')).toBeNull();
+  });
+
+  it('marks the night start on every row and names it in the legend', async () => {
+    const days = lastDays('2026-10-13', 3).map((dayKey) => ({ dayKey, layout: null }));
+    render(
+      <FixtureRouter>
+        <MonthTimeline
+          days={days}
+          ticks={[
+            { frac: 0, label: '00' },
+            { frac: 1, label: '24' },
+          ]}
+          todayKey="2026-10-13"
+          night={[{ frac: 0.75, label: 'Night starts 6:00 pm' }]}
+        />
+      </FixtureRouter>,
+    );
+    expect(await screen.findByText('Night starts 6:00 pm')).toBeInTheDocument();
+    expect(screen.getAllByTestId('night-marker').map((marker) => marker.style.left)).toEqual(['75%', '75%', '75%']);
   });
 });

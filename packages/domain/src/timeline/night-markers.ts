@@ -2,6 +2,7 @@ import { nightSettingsFrom, type NightSettingsRow } from '../events/baby-setting
 import { dayKeyFor, formatTimeOfDay } from '../time/local-time';
 import { nightIntervals } from '../time/night';
 import type { TimeWindow } from '../time/windows';
+import type { TimelineModel } from './timeline-model';
 
 export interface NightMarker {
   frac: number;
@@ -26,4 +27,16 @@ export function nightMarkers(
       frac: (at.getTime() - start) / (end - start),
       label: `Night starts ${formatTimeOfDay(at.toISOString(), timeZone)}`,
     }));
+}
+
+export function timelineNightMarkers(
+  model: TimelineModel | null,
+  settings: NightSettingsRow | null | undefined,
+  timeZone: string,
+): NightMarker[] {
+  if (!model) return [];
+  if (model.view === 'day') return nightMarkers(model.day.window, settings, timeZone);
+  if (model.view === '24h') return nightMarkers(model.window, settings, timeZone);
+  const firstDay = model.days[0]?.window;
+  return firstDay ? nightMarkers(firstDay, settings, timeZone).filter((marker) => marker.frac < 1) : [];
 }

@@ -4,7 +4,7 @@ import {
   dayRhythmWindow,
   feedDueFor,
   feedDueMarker,
-  nightMarkers,
+  timelineNightMarkers,
   previous24hWindow,
   previousDayWindow,
   rollingComparison,
@@ -157,6 +157,6 @@ export function useTimelineMarkers(input: {
   const due = enabled ? feedDueFor(latest ?? [], running ?? [], settings, now, timeZone) : null;
   return {
     feedDue: window && lanes.includes('feeds') ? feedDueMarker(due, window, now, timeZone) : null,
-    night: window ? nightMarkers(window, settings, timeZone) : [],
+    night: timelineNightMarkers(model, settings, timeZone),
   };
 }
