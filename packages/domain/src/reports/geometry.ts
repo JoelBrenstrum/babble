@@ -114,6 +114,11 @@ export function heatIntensity(value: number, max: number): number {
   return Math.min(1, 0.15 + (value / max) * 0.85);
 }
 
+export function heatmapLabel(result: ReportResult): string {
+  const label = result.series[0]?.label ?? 'Events';
+  return `${label} by hour of day, ${result.spec.options.averageDay ? 'averaged over the range' : 'one row per day'}`;
+}
+
 export function donutTotal(result: ReportResult): number {
   return result.series.reduce(
     (total, series) => total + Math.max(0, (series.perDay ? series.sum : series.total) ?? 0),

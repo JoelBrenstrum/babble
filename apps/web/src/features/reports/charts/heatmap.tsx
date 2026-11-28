@@ -1,4 +1,4 @@
-import { formatReportValue, heatIntensity, type ReportResult, type Units } from '@babble/domain';
+import { formatReportValue, heatIntensity, heatmapLabel, type ReportResult, type Units } from '@babble/domain';
 import { useState } from 'react';
 import { ChartTip } from '#/components/ui/chart-tip';
 import { cn } from '#/lib/cn';
@@ -26,7 +26,7 @@ export function HeatmapChart({ result, units, rows: limit }: { result: ReportRes
           </span>
         ))}
       </div>
-      <div className="flex flex-col gap-px" role="img" aria-label={`${series.label} by hour of day, one row per day`}>
+      <div className="flex flex-col gap-px" role="img" aria-label={heatmapLabel(result)}>
         {grid.rows.map((row, rowIndex) => (
           <div key={row.key} className="flex items-center gap-1">
             <span className="w-11 shrink-0 truncate text-caption tabular text-ink-3">
@@ -37,7 +37,8 @@ export function HeatmapChart({ result, units, rows: limit }: { result: ReportRes
                 <span
                   key={col}
                   className={cn(
-                    'h-3 rounded-[2px]',
+                    rows === 1 ? 'h-10' : 'h-3',
+                    'rounded-[2px]',
                     value > 0 ? look.classes.bg : 'bg-surface',
                     active?.row === rowIndex && active.col === col && 'ring-1 ring-ink',
                   )}

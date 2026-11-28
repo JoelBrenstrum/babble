@@ -10,6 +10,8 @@ import {
   REPORT_TEMPLATES,
   SPLIT_KEYS,
   SPLIT_LABELS,
+  templateDescription,
+  templateName,
   type ChartType,
 } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
@@ -61,7 +63,7 @@ const steps = (billingEnabled: boolean) => [
   ],
   [
     'Options',
-    'A 7-day average, a cumulative line, hiding empty days, leaving out today while it is still filling in, stacking, and comparing with the previous period.',
+    'A 7-day average, a cumulative line, hiding empty days, leaving out today while it is still filling in, averaging a heatmap into one typical day, stacking, and comparing with the previous period.',
   ],
 ];
 
@@ -217,8 +219,8 @@ export function GuidePage({ signedIn, billingEnabled }: { signedIn: boolean; bil
           <ul className="grid gap-3 sm:grid-cols-2">
             {REPORT_TEMPLATES.map((template) => (
               <li key={template.key} className="rounded-card bg-raised p-4 shadow-raised">
-                <h3 className="text-row-title font-semibold">{template.name.replace('{baby}', 'your baby')}</h3>
-                <p className="mt-1 text-meta text-ink-2">{template.description}</p>
+                <h3 className="text-row-title font-semibold">{templateName(template, 'your baby')}</h3>
+                <p className="mt-1 text-meta text-ink-2">{templateDescription(template, 'your baby')}</p>
               </li>
             ))}
           </ul>

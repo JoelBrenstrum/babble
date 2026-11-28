@@ -72,11 +72,12 @@ export {
   withChart,
   withSplit,
 } from './builder';
-export { REPORT_TEMPLATES, templateByKey, templateName, type ReportTemplate } from './templates';
+export { REPORT_TEMPLATES, templateByKey, templateDescription, templateName, type ReportTemplate } from './templates';
 export {
   donutSlices,
   donutTotal,
   heatIntensity,
+  heatmapLabel,
   lineGeometry,
   REPORT_PAD,
   type DonutSlice,
