@@ -25,4 +25,30 @@ describe('WeekTimeline', () => {
     expect(monday).toHaveAccessibleDescription('1 sleep');
     expect(screen.getByRole('link', { name: 'Open Tue 13' })).toHaveAccessibleDescription('No data for this day');
   });
+
+  it('draws the hour lines and the night start across every day', async () => {
+    render(
+      <FixtureRouter>
+        <WeekTimeline
+          days={[
+            { dayKey: '2026-10-12', layout: null },
+            { dayKey: '2026-10-13', layout: null },
+          ]}
+          ticks={[
+            { frac: 0, label: '00' },
+            { frac: 0.5, label: '12' },
+            { frac: 1, label: '24' },
+          ]}
+          todayKey="2026-10-13"
+          night={[{ frac: 0.75, label: 'Night starts 6:00 pm' }]}
+        />
+      </FixtureRouter>,
+    );
+    expect(await screen.findByText('Night starts 6:00 pm')).toBeInTheDocument();
+    const lines = screen.getAllByTestId('hour-line');
+    expect(lines.map((line) => line.style.top)).toEqual(['50%', '50%']);
+    const markers = screen.getAllByTestId('night-marker');
+    expect(markers.map((marker) => marker.style.top)).toEqual(['75%', '75%']);
+    expect(markers[0]).toHaveClass('border-dashed');
+  });
 });

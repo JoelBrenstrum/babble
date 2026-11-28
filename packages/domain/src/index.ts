@@ -66,7 +66,7 @@ export {
 } from './time/local-time';
 export { summariseDay, summariseWeek, type DaySummary, type WeekSummary } from './events/day-summary';
 export { hourTicks } from './timeline/days';
-export { nightMarkers, type NightMarker } from './timeline/night-markers';
+export { nightMarkers, timelineNightMarkers, type NightMarker } from './timeline/night-markers';
 export {
   filterLayout,
   parseTimelineLanes,

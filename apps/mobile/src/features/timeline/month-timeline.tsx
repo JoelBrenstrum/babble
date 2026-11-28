@@ -1,4 +1,4 @@
-import { weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
+import { weekdayLabel, TIMELINE_LANES, type DayLayout, type NightMarker, type TimelineLane } from '@babble/domain';
 import { Pressable, Text, View } from 'react-native';
 import { pct } from './percent';
 
@@ -8,12 +8,14 @@ export function MonthTimeline({
   todayKey,
   onOpenDay,
   lanes = TIMELINE_LANES,
+  night = [],
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
   ticks: { frac: number; label: string }[];
   todayKey: string;
   onOpenDay: (dayKey: string) => void;
   lanes?: readonly TimelineLane[];
+  night?: NightMarker[];
 }) {
   return (
     <View className="gap-2">
@@ -26,6 +28,9 @@ export function MonthTimeline({
             <Legend swatch="h-2.5 w-0.5 rounded-full bg-bottle" label="Bottle" />
           </>
         )}
+        {night.slice(0, 1).map((marker) => (
+          <Legend key={marker.label} swatch="h-2.5 border-l border-dashed border-sleep" label={marker.label} />
+        ))}
       </View>
       <View className="flex-row">
         <View className="w-14" />
@@ -71,6 +76,14 @@ export function MonthTimeline({
                     key={`tick-${index}`}
                     className="absolute bottom-0 top-0 w-px bg-line"
                     style={{ left: pct(tick.frac) }}
+                  />
+                ))}
+                {night.map((marker) => (
+                  <View
+                    key={`night-${marker.frac}`}
+                    testID="night-marker"
+                    className="absolute bottom-0 top-0 border-l border-dashed border-sleep"
+                    style={{ left: pct(marker.frac) }}
                   />
                 ))}
                 {layout?.sleep.map((item) => (

@@ -1,4 +1,4 @@
-import { weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
+import { weekdayLabel, TIMELINE_LANES, type DayLayout, type NightMarker, type TimelineLane } from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { cn } from '#/lib/cn';
@@ -13,6 +13,7 @@ export function MonthTimeline({
   linkDays = true,
   lanes = TIMELINE_LANES,
   show,
+  night = [],
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
   ticks: { frac: number; label: string }[];
@@ -20,6 +21,7 @@ export function MonthTimeline({
   linkDays?: boolean;
   lanes?: readonly TimelineLane[];
   show?: string;
+  night?: NightMarker[];
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -46,6 +48,12 @@ export function MonthTimeline({
             </span>
           </>
         )}
+        {night.slice(0, 1).map((marker) => (
+          <span key={marker.label} className="flex items-center gap-1.5">
+            <span className="h-2.5 border-l border-dashed border-sleep" />
+            {marker.label}
+          </span>
+        ))}
       </div>
       <div className="grid grid-cols-[4rem_minmax(0,1fr)]">
         <span />
@@ -92,6 +100,14 @@ export function MonthTimeline({
                       key={`tick-${index}`}
                       className="absolute inset-y-0 w-px bg-line"
                       style={{ left: pct(tick.frac) }}
+                    />
+                  ))}
+                  {night.map((marker) => (
+                    <span
+                      key={`night-${marker.frac}`}
+                      data-testid="night-marker"
+                      className="absolute inset-y-0 border-l border-dashed border-sleep"
+                      style={{ left: pct(marker.frac) }}
                     />
                   ))}
                   {layout?.sleep.map((item) => (

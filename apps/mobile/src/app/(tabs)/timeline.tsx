@@ -344,6 +344,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
               ticks={model.ticks}
               todayKey={todayKey}
               onOpenDay={openDay}
+              night={night}
             />
           </>
         ) : (
@@ -358,6 +359,7 @@ function TimelineContent({ family, baby }: Pick<ReadyState, 'family' | 'baby'>) 
               ticks={model.ticks}
               todayKey={todayKey}
               onOpenDay={openDay}
+              night={night}
             />
             <WeekTable
               dayKeys={keys}

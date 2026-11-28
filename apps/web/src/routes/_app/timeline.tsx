@@ -251,6 +251,7 @@ function TimelinePage() {
             todayKey={model.todayKey}
             lanes={lanes}
             show={show}
+            night={markers.night}
           />
         </div>
       ) : (
@@ -265,6 +266,7 @@ function TimelinePage() {
             todayKey={model.todayKey}
             lanes={lanes}
             show={show}
+            night={markers.night}
           />
           <WeekTable
             dayKeys={model.keys}

@@ -1,4 +1,11 @@
-import { formatFraction, weekdayLabel, TIMELINE_LANES, type DayLayout, type TimelineLane } from '@babble/domain';
+import {
+  formatFraction,
+  weekdayLabel,
+  TIMELINE_LANES,
+  type DayLayout,
+  type NightMarker,
+  type TimelineLane,
+} from '@babble/domain';
 import { Link } from '@tanstack/react-router';
 import { cn } from '#/lib/cn';
 import { blockTouchMenu, NO_CALLOUT } from '#/lib/touch-menu';
@@ -10,12 +17,14 @@ export function WeekTimeline({
   todayKey,
   lanes = TIMELINE_LANES,
   show,
+  night = [],
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
   ticks: { frac: number; label: string }[];
   todayKey: string;
   lanes?: readonly TimelineLane[];
   show?: string;
+  night?: NightMarker[];
 }) {
   const columns = { gridTemplateColumns: '2rem repeat(7, minmax(0, 1fr))' };
   return (
@@ -49,6 +58,12 @@ export function WeekTimeline({
             Nappy
           </span>
         )}
+        {night.slice(0, 1).map((marker) => (
+          <span key={marker.label} className="flex items-center gap-1.5">
+            <span className="w-3 border-t border-dashed border-sleep" />
+            {marker.label}
+          </span>
+        ))}
       </div>
       <div className="grid h-[28rem] gap-1.5 md:h-[34rem]" style={columns}>
         <div className="relative">
@@ -82,6 +97,22 @@ export function WeekTimeline({
               <span id={`week-summary-${dayKey}`} className="sr-only">
                 {daySummaryText(layout)}
               </span>
+              {ticks.slice(1, -1).map((tick, index) => (
+                <span
+                  key={`tick-${index}`}
+                  data-testid="hour-line"
+                  className="absolute inset-x-0 border-t border-line"
+                  style={{ top: formatFraction(tick.frac) }}
+                />
+              ))}
+              {night.map((marker) => (
+                <span
+                  key={`night-${marker.frac}`}
+                  data-testid="night-marker"
+                  className="absolute inset-x-0 border-t border-dashed border-sleep"
+                  style={{ top: formatFraction(marker.frac) }}
+                />
+              ))}
               {layout?.sleep.map((item) => (
                 <span
                   key={item.event.id}
