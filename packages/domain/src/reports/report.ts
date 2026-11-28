@@ -306,7 +306,8 @@ function heatmapGrid(plans: readonly SeriesPlan[], dayKeys: readonly string[], s
 }
 
 function averageDayGrid(series: ReportSeriesResult, hours: readonly BucketDef[], days: number): ReportGrid {
-  const values = series.values.map((value) => value ?? 0);
+  const scale = series.aggregate === 'count' && days > 0 ? 1 / days : 1;
+  const values = series.values.map((value) => (value ?? 0) * scale);
   return {
     rows: [{ key: 'average', label: 'Average', title: 'Average', days }],
     cols: hours.map((def) => def.label),

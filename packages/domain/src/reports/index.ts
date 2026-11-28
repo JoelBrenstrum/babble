@@ -77,6 +77,7 @@ export {
   donutSlices,
   donutTotal,
   heatIntensity,
+  heatmapLabel,
   lineGeometry,
   REPORT_PAD,
   type DonutSlice,

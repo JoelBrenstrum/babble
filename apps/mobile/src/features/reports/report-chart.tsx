@@ -4,6 +4,7 @@ import {
   donutTotal,
   formatReportValue,
   heatIntensity,
+  heatmapLabel,
   hourLabel,
   lineGeometry,
   REPORT_PAD,
@@ -339,10 +340,7 @@ function Heatmap({ result, units, rows: limit }: { result: ReportResult; units: 
           </Text>
         ))}
       </View>
-      <View
-        className="gap-px"
-        accessibilityLabel={`${series.label} by hour of day, ${grid.rows.length === 1 ? 'averaged over the range' : 'one row per day'}`}
-      >
+      <View className="gap-px" accessibilityLabel={heatmapLabel(result)}>
         {grid.rows.map((row, rowIndex) => (
           <View key={row.key} className="flex-row items-center gap-1">
             <Text className="w-10 font-sans text-caption text-ink-3" numberOfLines={1}>

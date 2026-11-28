@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { makeEvent } from '../events/test-events';
 import { HOUR_MS, MINUTE_MS } from '../time/constants';
 import { bucketing, reportDays } from './buckets';
-import { donutSlices, donutTotal, heatIntensity, lineGeometry } from './geometry';
+import { donutSlices, donutTotal, heatIntensity, heatmapLabel, lineGeometry } from './geometry';
 import { csvText, reportCsv } from './csv';
 import { axisValue, deltaDirection, formatDelta } from './format';
 import {
@@ -221,6 +221,52 @@ describe('runReport', () => {
     expect(average.values[0]![2]).toBe(15 * MINUTE_MS);
     expect(average.values[0]![3]).toBe(0);
     expect(average.max).toBe(45 * MINUTE_MS);
+  });
+
+  it('averages a counted heatmap across the days in the range', () => {
+    const events = [
+      sleep('2026-10-06T01:10:00Z', '2026-10-06T01:40:00Z'),
+      sleep('2026-10-07T01:20:00Z', '2026-10-07T01:50:00Z'),
+      sleep('2026-10-07T03:10:00Z', '2026-10-07T03:40:00Z'),
+    ];
+    const average = runReport(
+      spec({
+        range: { from: '2026-10-06', to: '2026-10-07' },
+        bucket: 'hour',
+        chart: 'heatmap',
+        series: [{ measure: 'sleep.total', aggregate: 'count' }],
+        options: { includeToday: true, averageDay: true },
+      }),
+      events,
+      TODAY,
+      NOW,
+      settings,
+    ).grid!;
+    expect(average.values[0]![1]).toBe(1);
+    expect(average.values[0]![3]).toBe(0.5);
+    expect(average.max).toBe(1);
+  });
+
+  it('labels a heatmap by its mode rather than its row count', () => {
+    const events = [sleep('2026-10-06T01:00:00Z', '2026-10-06T02:00:00Z')];
+    const oneDay = spec({
+      range: { from: '2026-10-06', to: '2026-10-06' },
+      bucket: 'hour',
+      chart: 'heatmap',
+      series: [{ measure: 'sleep.total' }],
+    });
+    const perDay = runReport(oneDay, events, TODAY, NOW, settings);
+    expect(perDay.grid!.rows).toHaveLength(1);
+    expect(heatmapLabel(perDay)).toBe(`${perDay.series[0]!.label} by hour of day, one row per day`);
+
+    const averaged = runReport(
+      { ...oneDay, options: { ...oneDay.options, averageDay: true } },
+      events,
+      TODAY,
+      NOW,
+      settings,
+    );
+    expect(heatmapLabel(averaged)).toBe(`${averaged.series[0]!.label} by hour of day, averaged over the range`);
   });
 
   it('leaves today out by default and keeps it when the spec includes it', () => {
