@@ -174,6 +174,12 @@ export function timelineModel(input: {
     view,
     days,
     week: summariseWeek(days.flatMap((day) => (counted.has(day.dayKey) && day.summary ? [day.summary] : []))),
-    ticks: hourTicks(keys[0]!, baby.timezone, baby.day_start_minutes, 6),
+    ticks:
+      view === '7d'
+        ? withMinorHours(
+            hourTicks(keys[0]!, baby.timezone, baby.day_start_minutes, 3),
+            hourTicks(keys[0]!, baby.timezone, baby.day_start_minutes, 1),
+          )
+        : hourTicks(keys[0]!, baby.timezone, baby.day_start_minutes, 6),
   };
 }

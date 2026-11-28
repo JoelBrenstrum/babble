@@ -100,6 +100,25 @@ describe('timelineModel', () => {
     expect(result.days.find((day) => day.dayKey === '2026-10-06')?.summary?.nappies).toBe(1);
   });
 
+  it('gives the week a tick every hour, labelled every three, and the month one every six', () => {
+    const week = model('7d', '2026-10-06');
+    const month = model('30d', '2026-10-06');
+    expect(week.ticks).toHaveLength(25);
+    expect(week.ticks.filter((tick) => !tick.minor).map((tick) => tick.label)).toEqual([
+      '07',
+      '10',
+      '13',
+      '16',
+      '19',
+      '22',
+      '01',
+      '04',
+      '07',
+    ]);
+    expect(month.ticks.map((tick) => tick.label)).toEqual(['07', '13', '19', '01', '07']);
+    expect(month.ticks.some((tick) => tick.minor)).toBe(false);
+  });
+
   it('works before settings have loaded', () => {
     const result = timelineModel({ view: 'day', date: undefined, events, settings: undefined, baby, now });
     expect(result.view === 'day' && result.day.summary.nightMs).toBe(0);

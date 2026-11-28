@@ -36,7 +36,8 @@ describe('WeekTimeline', () => {
           ]}
           ticks={[
             { frac: 0, label: '00' },
-            { frac: 0.5, label: '12' },
+            { frac: 0.25, label: '6am', minor: true },
+            { frac: 0.5, label: 'noon' },
             { frac: 1, label: '24' },
           ]}
           todayKey="2026-10-13"
@@ -46,7 +47,10 @@ describe('WeekTimeline', () => {
     );
     expect(await screen.findByText('Night starts 6:00 pm')).toBeInTheDocument();
     const lines = screen.getAllByTestId('hour-line');
-    expect(lines.map((line) => line.style.top)).toEqual(['50%', '50%']);
+    expect(lines.map((line) => line.style.top)).toEqual(['25%', '50%', '25%', '50%']);
+    expect(lines.map((line) => line.classList.contains('opacity-40'))).toEqual([true, false, true, false]);
+    expect(screen.getByText('noon')).toBeInTheDocument();
+    expect(screen.queryByText('6am')).toBeNull();
     const markers = screen.getAllByTestId('night-marker');
     expect(markers.map((marker) => marker.style.top)).toEqual(['75%', '75%']);
     expect(markers[0]).toHaveClass('border-dashed');

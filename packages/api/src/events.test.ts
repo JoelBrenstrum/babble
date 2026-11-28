@@ -511,7 +511,7 @@ describe('subscribeToBabyEvents', () => {
 });
 
 describe('nap stretches in the payload', () => {
-  it('sends stretches fitted to an edited start and end, and none for an unpaused nap', () => {
+  it('sends stretches fitted to an edited start and end', () => {
     const nap = {
       ...emptyDraft('sleep', NOW),
       startedAt: '2026-10-06T08:50:00Z',
@@ -525,6 +525,15 @@ describe('nap stretches in the payload', () => {
       { side: null, started_at: '2026-10-06T08:50:00Z', ended_at: '2026-10-06T09:10:00Z' },
       { side: null, started_at: '2026-10-06T09:20:00Z', ended_at: '2026-10-06T09:30:00Z' },
     ]);
-    expect(draftToPayload({ ...nap, segments: [] }, { babyId: 'b' })).not.toHaveProperty('segments');
+  });
+
+  it('clears the saved stretches of a finished nap edited down to one stretch', () => {
+    const nap = { ...emptyDraft('sleep', NOW), startedAt: '2026-10-06T08:50:00Z', endedAt: '2026-10-06T09:30:00Z' };
+    expect(draftToPayload(nap, { babyId: 'b' })).toHaveProperty('segments', []);
+  });
+
+  it('leaves the saved stretches of a running nap alone when it has none to send', () => {
+    const nap = { ...emptyDraft('sleep', NOW), startedAt: '2026-10-06T08:50:00Z', endedAt: null };
+    expect(draftToPayload(nap, { babyId: 'b' })).not.toHaveProperty('segments');
   });
 });

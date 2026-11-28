@@ -20,7 +20,7 @@ export function WeekTimeline({
   night = [],
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
-  ticks: { frac: number; label: string }[];
+  ticks: { frac: number; label: string; minor?: boolean }[];
   todayKey: string;
   lanes?: readonly TimelineLane[];
   show?: string;
@@ -67,15 +67,18 @@ export function WeekTimeline({
       </div>
       <div className="grid h-[28rem] gap-1.5 md:h-[34rem]" style={columns}>
         <div className="relative">
-          {ticks.map((tick, index) => (
-            <span
-              key={index}
-              className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
-              style={{ top: formatFraction(tick.frac) }}
-            >
-              {tick.label}
-            </span>
-          ))}
+          {ticks.map(
+            (tick, index) =>
+              !tick.minor && (
+                <span
+                  key={index}
+                  className="tabular absolute left-0 -translate-y-1/2 text-caption text-ink-3"
+                  style={{ top: formatFraction(tick.frac) }}
+                >
+                  {tick.label}
+                </span>
+              ),
+          )}
         </div>
         {days.map(({ dayKey, layout }) => {
           const { weekday, day } = weekdayLabel(dayKey);
@@ -101,7 +104,10 @@ export function WeekTimeline({
                 <span
                   key={`tick-${index}`}
                   data-testid="hour-line"
-                  className="absolute inset-x-0 border-t border-line"
+                  className={cn(
+                    'absolute inset-x-0 border-t border-dotted border-line-strong',
+                    tick.minor && 'opacity-40',
+                  )}
                   style={{ top: formatFraction(tick.frac) }}
                 />
               ))}

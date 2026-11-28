@@ -7,7 +7,8 @@ const days = [
 ];
 const ticks = [
   { frac: 0, label: '00' },
-  { frac: 0.5, label: '12' },
+  { frac: 0.25, label: '6am', minor: true },
+  { frac: 0.5, label: 'noon' },
   { frac: 1, label: '24' },
 ];
 
@@ -23,7 +24,9 @@ describe('WeekTimeline', () => {
       />,
     );
     expect(screen.getByText('Night starts 6:00 pm')).toBeTruthy();
-    expect(screen.getAllByTestId('hour-line')).toHaveLength(2);
+    expect(screen.getAllByTestId('hour-line')).toHaveLength(4);
+    expect(screen.getAllByText('noon')).toHaveLength(1);
+    expect(screen.queryByText('6am')).toBeNull();
     expect(screen.getAllByTestId('night-marker').map((marker) => marker.props.style.top)).toEqual([
       '75.000%',
       '75.000%',
