@@ -4,6 +4,7 @@ import {
   pausedForMs,
   pumpFinishSummary,
   runningSessionLine,
+  sessionTimeRange,
   runningTone,
   previousFeedSides,
   startContext,
@@ -156,6 +157,26 @@ describe('pumpFinishSummary', () => {
     });
     expect(pumpFinishSummary(pump, 'Pacific/Auckland')).toBe('17m 55s · finished 3:12 am');
     expect(pumpFinishSummary(feed, 'Pacific/Auckland')).toBeNull();
+  });
+});
+
+describe('sessionTimeRange', () => {
+  it('shows when a feed or nap started and ended', () => {
+    expect(sessionTimeRange(feed, 'Pacific/Auckland')).toBe('10:26 pm – 10:46 pm');
+    const nap = makeEvent('sleep', { startedAt: '2026-10-06T09:26:00Z', endedAt: '2026-10-06T10:10:00Z' });
+    expect(sessionTimeRange(nap, 'Pacific/Auckland')).toBe('10:26 pm – 11:10 pm');
+  });
+
+  it('names the day when the end falls on a later one', () => {
+    const overnight = makeEvent('sleep', { startedAt: '2026-10-06T09:26:00Z', endedAt: '2026-10-06T17:05:00Z' });
+    expect(sessionTimeRange(overnight, 'Pacific/Auckland')).toBe('10:26 pm – 7 Oct, 6:05 am');
+  });
+
+  it('is null while running, for an entry with no length and for other entries', () => {
+    expect(sessionTimeRange({ ...feed, endedAt: null }, 'Pacific/Auckland')).toBeNull();
+    expect(sessionTimeRange({ ...feed, endedAt: feed.startedAt }, 'Pacific/Auckland')).toBeNull();
+    const bottle = makeEvent('bottle', { startedAt: '2026-10-06T09:26:00Z', endedAt: '2026-10-06T09:40:00Z' });
+    expect(sessionTimeRange(bottle, 'Pacific/Auckland')).toBeNull();
   });
 });
 
