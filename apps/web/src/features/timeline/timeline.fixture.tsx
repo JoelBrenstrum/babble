@@ -11,6 +11,7 @@ import {
   lastDays,
   listStrip,
   weekTableRows,
+  withMinorHours,
 } from '@babble/domain';
 import { FixtureRouter } from '#/fixtures/router';
 import { DayTimeline } from './day-timeline';
@@ -56,8 +57,9 @@ export default {
             dayKey: key,
             layout: key === todayKey ? layout : key < todayKey ? dayLayout([], dayWindow(key, timezone, 0), now) : null,
           }))}
-          ticks={hourTicks(keys[0]!, timezone, 0, 6)}
+          ticks={withMinorHours(hourTicks(keys[0]!, timezone, 0, 3), hourTicks(keys[0]!, timezone, 0, 1))}
           todayKey={todayKey}
+          night={[{ frac: 19 / 24, label: 'Night starts 7:00 pm' }]}
         />
         <WeekTable
           dayKeys={keys}

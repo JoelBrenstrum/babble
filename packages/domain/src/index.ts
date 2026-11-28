@@ -65,7 +65,7 @@ export {
   toLocalInputValue,
 } from './time/local-time';
 export { summariseDay, summariseWeek, type DaySummary, type WeekSummary } from './events/day-summary';
-export { hourTicks } from './timeline/days';
+export { hourTicks, withMinorHours } from './timeline/days';
 export { nightMarkers, timelineNightMarkers, type NightMarker } from './timeline/night-markers';
 export {
   filterLayout,

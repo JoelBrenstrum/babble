@@ -225,7 +225,7 @@ export function draftToPayload(
       return {
         ...base,
         details: sleepDetailsPayload(draft.details),
-        ...(stretches.length > 0
+        ...(stretches.length > 0 || draft.endedAt !== null
           ? {
               segments: stretches.map((stretch) => ({
                 side: null,

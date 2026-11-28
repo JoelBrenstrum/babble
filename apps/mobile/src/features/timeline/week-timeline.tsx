@@ -11,7 +11,7 @@ export function WeekTimeline({
   night = [],
 }: {
   days: { dayKey: string; layout: DayLayout | null }[];
-  ticks: { frac: number; label: string }[];
+  ticks: { frac: number; label: string; minor?: boolean }[];
   todayKey: string;
   onOpenDay: (dayKey: string) => void;
   lanes?: readonly TimelineLane[];
@@ -35,15 +35,18 @@ export function WeekTimeline({
       </View>
       <View className="h-[420px] flex-row gap-1.5">
         <View className="w-6">
-          {ticks.map((tick, index) => (
-            <Text
-              key={index}
-              className="absolute left-0 font-sans text-caption text-ink-3"
-              style={{ top: pct(tick.frac), transform: [{ translateY: -7 }] }}
-            >
-              {tick.label}
-            </Text>
-          ))}
+          {ticks.map(
+            (tick, index) =>
+              !tick.minor && (
+                <Text
+                  key={index}
+                  className="absolute left-0 font-sans text-caption text-ink-3"
+                  style={{ top: pct(tick.frac), transform: [{ translateY: -7 }] }}
+                >
+                  {tick.label}
+                </Text>
+              ),
+          )}
         </View>
         {days.map(({ dayKey, layout }) => {
           const { weekday, day } = weekdayLabel(dayKey);
@@ -60,7 +63,7 @@ export function WeekTimeline({
                 <View
                   key={`tick-${index}`}
                   testID="hour-line"
-                  className="absolute inset-x-0 border-t border-line"
+                  className={`absolute inset-x-0 border-t border-dotted border-line-strong ${tick.minor ? 'opacity-40' : ''}`}
                   style={{ top: pct(tick.frac) }}
                 />
               ))}
