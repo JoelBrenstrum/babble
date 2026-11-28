@@ -238,6 +238,7 @@ export {
   pausedForMs,
   previousFeedSides,
   pumpFinishSummary,
+  sessionTimeRange,
   runningSessionLine,
   runningTone,
   startContext,

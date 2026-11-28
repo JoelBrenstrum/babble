@@ -15,6 +15,7 @@ import {
   pumpFinishSummary,
   READ_ONLY_NOTE,
   resumeCopy,
+  sessionTimeRange,
   trackerFor,
   type BabyEvent,
   type Units,
@@ -85,7 +86,7 @@ function EditEvent() {
         backTo={{ to: '/track/$type', params: { type: tracker.key } }}
         icon={<TrackerIcon tracker={tracker} />}
         title={finish ? 'How much did you pump?' : tracker.label}
-        subtitle={finishSummary}
+        subtitle={finishSummary ?? sessionTimeRange(event.data, baby.timezone)}
       />
       {(event.data.type === 'breast_feed' || event.data.type === 'pump') && event.data.segments.length > 0 && (
         <SessionBreakdown

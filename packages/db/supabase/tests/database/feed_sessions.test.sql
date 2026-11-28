@@ -1,7 +1,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(14);
+select plan(16);
 update private.instance_settings set billing_enabled = false;
 
 create function pg_temp.sign_in_as(user_id uuid)
@@ -47,6 +47,24 @@ grant select on future to authenticated;
 select ok(
   (select started_at <= now() from public.events where id = (select id from future)),
   'a session cannot start in the future');
+
+reset role;
+insert into public.events (id, baby_id, type, started_at) values
+  ('00000000-0000-0000-0000-0000000000c4', '00000000-0000-0000-0000-0000000000c3', 'breast_feed', now() - interval '60 minutes');
+insert into public.timed_segments (event_id, side, started_at, ended_at) values
+  ('00000000-0000-0000-0000-0000000000c4', 'left', now() - interval '60 minutes', now() - interval '45 minutes'),
+  ('00000000-0000-0000-0000-0000000000c4', 'right', now() - interval '40 minutes', now() - interval '10 minutes');
+insert into public.session_details (event_id, state) values ('00000000-0000-0000-0000-0000000000c4', 'paused');
+select pg_temp.sign_in_as('00000000-0000-0000-0000-0000000000c1');
+select public.end_session('00000000-0000-0000-0000-0000000000c4', now() - interval '25 minutes');
+select ok(
+  (select ended_at = now() - interval '25 minutes' from public.events where id = '00000000-0000-0000-0000-0000000000c4'),
+  'a paused feed can end before it was paused');
+select results_eq(
+  $$ select side::text, ended_at from public.timed_segments
+     where event_id = '00000000-0000-0000-0000-0000000000c4' order by started_at $$,
+  $$ values ('left', now() - interval '45 minutes'), ('right', now() - interval '25 minutes') $$,
+  'ending a paused feed earlier cuts only its last side short');
 
 -- resuming feeds
 create temp table feed on commit drop as

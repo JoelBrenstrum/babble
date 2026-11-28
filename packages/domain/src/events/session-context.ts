@@ -1,6 +1,6 @@
 import { formatAgo, formatDuration } from '../format/duration';
 import { formatVolume } from '../format/units';
-import { formatTimeOfDay } from '../time/local-time';
+import { dayKeyFor, formatShortDate, formatTimeOfDay } from '../time/local-time';
 import { nextBreastSide } from './feed-rules';
 import { SIDE_LABEL } from './labels';
 import { lastSegmentEnd, segmentTotals } from './segments';
@@ -107,6 +107,14 @@ export function pumpFinishSummary(event: BabyEvent, timeZone: string): string | 
       ? segmentTotals(event.segments, new Date(event.endedAt)).activeMs
       : Date.parse(event.endedAt) - Date.parse(event.startedAt);
   return `${formatDuration(activeMs)} · finished ${formatTimeOfDay(event.endedAt, timeZone)}`;
+}
+
+export function sessionTimeRange(event: BabyEvent, timeZone: string): string | null {
+  if (event.type !== 'breast_feed' && event.type !== 'pump' && event.type !== 'sleep') return null;
+  if (!event.endedAt || event.endedAt === event.startedAt) return null;
+  const sameDay = dayKeyFor(event.startedAt, timeZone, 0) === dayKeyFor(event.endedAt, timeZone, 0);
+  const end = formatTimeOfDay(event.endedAt, timeZone);
+  return `${formatTimeOfDay(event.startedAt, timeZone)} – ${sameDay ? end : `${formatShortDate(event.endedAt, timeZone)}, ${end}`}`;
 }
 
 export function manualSleepDuration(startedAt: string, endedAt: string | null): string | null {
